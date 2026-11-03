@@ -24,6 +24,7 @@ from core.requests.likeMediaRequest import LikeMediaRequest
 from core.requests.notificationRequests import UpdateNotificationSubscriptionsRequest
 from core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
 from core.requests.updateLangRequest import UpdateLangRequest
+from core.requests.updateListeningHeatmapRequest import UpdateListeningHeatmapRequest
 from core.requests.updatePasswordRequest import UpdatePasswordRequest
 from core.requests.updateVolumeRequest import UpdateVolumeRequest
 from core.responses.baseAlbumWithoutSongsResponse import (
@@ -82,6 +83,7 @@ async def get_user(request: Request) -> UserSettingsResponse:
         lang=user.language.lang_code,
         crossfade=user.cross_fade_ms,
         volume=user.volume,
+        showListeningHeatmap=user.show_listening_heatmap,
         queueType=QueueTypeEnum(user.queue_type_enum),
         repeatMode=RepeatModeEnum(user.repeat_mode_enum),
     )
@@ -184,6 +186,7 @@ async def get_session(request: Request) -> SessionResponse:
         repeatMode=RepeatModeEnum(value=a_result_user.result().repeat_mode_key),
         currentTimeMs=a_result_user.result().current_time_ms,
         volume=a_result_user.result().volume,
+        showListeningHeatmap=a_result_user.result().show_listening_heatmap,
     )
 
 
@@ -512,4 +515,24 @@ async def cycle_repeat_mode(request: Request) -> OkResponse:
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
+    return OkResponse()
+
+
+@router.post("/listening-heatmap")
+async def update_listening_heatmap(
+    request: Request, payload: UpdateListeningHeatmapRequest
+) -> OkResponse:
+    """Persist listening history visibility for the authenticated user."""
+    current_user = AuthMiddleware.get_current_user(request=request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify listening history preference owner: %s", current_user.info())
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
+    result = await User.update_listening_heatmap_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=current_user.result().id,
+        enabled=payload.enabled,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot save listening history preference: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse()

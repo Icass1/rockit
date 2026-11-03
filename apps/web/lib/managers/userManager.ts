@@ -15,6 +15,7 @@ import { isIOS } from "@/lib/utils/isIOS";
  * touch the web vocabulary and search managers.
  */
 export class UserManager extends BaseUserManager {
+    private _showListeningHeatmap = createAtom(true);
     private _sessionReady = createAtom(false);
     private _volumeUser?: string;
     private _volumeTimer?: ReturnType<typeof setTimeout>;
@@ -101,6 +102,7 @@ export class UserManager extends BaseUserManager {
                 this._currentTimeMs.set(res.result.currentTimeMs);
                 rockIt.notificationManager.setUser(res.result.username);
                 this._loggedIn.set(true);
+                this._showListeningHeatmap.set(res.result.showListeningHeatmap);
                 this.restoreVolume(res.result.username, res.result.volume);
                 saveSessionOffline(res.result).catch(() => {});
             } else if (res.code !== 401) {
@@ -114,6 +116,9 @@ export class UserManager extends BaseUserManager {
                     this._currentTimeMs.set(cached.currentTimeMs);
                     rockIt.notificationManager.setUser(cached.username);
                     this._loggedIn.set(true);
+                    this._showListeningHeatmap.set(
+                        cached.showListeningHeatmap ?? true
+                    );
                     this.restoreVolume(cached.username, cached.volume);
                 } else {
                     this._loggedIn.set(false);
@@ -156,6 +161,37 @@ export class UserManager extends BaseUserManager {
             return true;
         } catch (error) {
             console.error("Cannot upload profile image", error);
+            return false;
+        }
+    }
+
+    get showListeningHeatmapAtom(): ReadonlyAtom<boolean> {
+        return this._showListeningHeatmap.getReadonlyAtom();
+    }
+
+    async setListeningHeatmapAsync(enabled: boolean): Promise<boolean> {
+        try {
+            const result = await Http.updateListeningHeatmap({ enabled });
+            if (!result.isOk()) {
+                rockIt.notificationManager.notifyError(
+                    "Could not save listening history preference"
+                );
+                return false;
+            }
+            this._showListeningHeatmap.set(enabled);
+            const cached = await loadSessionOffline().catch(() => undefined);
+            if (cached && cached.username === this._username.get()) {
+                await saveSessionOffline({
+                    ...cached,
+                    showListeningHeatmap: enabled,
+                }).catch(() => {});
+            }
+            return true;
+        } catch (error) {
+            console.error("Cannot save listening history preference", error);
+            rockIt.notificationManager.notifyError(
+                "Could not save listening history preference"
+            );
             return false;
         }
     }

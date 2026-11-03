@@ -472,3 +472,17 @@ class UserAccess:
         user.auto_add_downloads_to_library = auto_add
         await session.flush()
         return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def update_user_listening_heatmap_async(
+        session: AsyncSession, user_id: int, enabled: bool
+    ) -> Result[bool]:
+        """Save the user's listening history visibility preference."""
+        user = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            logger.error("Cannot update listening history preference: user not found")
+            return Result(code=ResultCode.NOT_FOUND, message="User not found")
+        user.show_listening_heatmap = enabled
+        await session.commit()
+        return Result(code=ResultCode.OK, message="OK", result=True)

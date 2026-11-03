@@ -4,6 +4,7 @@
 import { z } from "zod";
 
 export const UserSettingsResponseSchema = z.object({
+    showListeningHeatmap: z.boolean().default(true),
     username: z.string(),
     lang: z.string(),
     crossfade: z.number(),

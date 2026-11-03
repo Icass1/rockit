@@ -23,6 +23,10 @@ from core.responses.basePlaylistWithoutMediasResponse import (
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.baseStationResponse import BaseStationResponse
 from core.responses.baseVideoResponse import BaseVideoResponse
+from core.responses.listeningHeatmapResponse import (
+    ListeningHeatmapResponse,
+    ListeningHeatmapSegment,
+)
 from core.responses.mediaResponse import MediaResponse
 from core.responses.searchResponse import (
     BaseSearchResultsItem,
@@ -42,6 +46,41 @@ TMedia = TypeVar("TMedia")
 
 
 class Media:
+    @staticmethod
+    async def get_listening_heatmap_async(
+        session: AsyncSession, user_id: int, public_id: str
+    ) -> Result[ListeningHeatmapResponse]:
+        """Count listens with a sweep of half-open original-clock intervals."""
+        intervals = await MediaAccess.get_listening_intervals_async(
+            session=session, user_id=user_id, public_id=public_id
+        )
+        if intervals.is_not_ok():
+            logger.error(f"Error reading listening history. {intervals.info()}")
+            return Result(code=intervals.code(), message=intervals.message())
+        events: dict[int, int] = {}
+        for start, end in intervals.result():
+            start = max(0, start)
+            if end <= start:
+                continue
+            events[start] = events.get(start, 0) + 1
+            events[end] = events.get(end, 0) - 1
+        segments: list[ListeningHeatmapSegment] = []
+        count = 0
+        previous = 0
+        for position, change in sorted(events.items()):
+            if position > previous and count > 0:
+                if segments and segments[-1].endMs == previous and segments[-1].count == count:
+                    segments[-1].endMs = position
+                else:
+                    segments.append(
+                        ListeningHeatmapSegment(startMs=previous, endMs=position, count=count)
+                    )
+            count += change
+            previous = position
+        return Result(
+            code=ResultCode.OK, message="OK", result=ListeningHeatmapResponse(segments=segments)
+        )
+
     @staticmethod
     def _extract_first_async_result(
         a_result: Result[list[TMedia]],

@@ -44,6 +44,9 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
     repeat_mode_key: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.repeat_mode_enum.key"), nullable=False, default=1
     )
+    show_listening_heatmap: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )
     volume: Mapped[float] = mapped_column(DOUBLE_PRECISION, nullable=False, default=1)
     cross_fade_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     lang_id: Mapped[int] = mapped_column(
@@ -91,6 +94,7 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
         current_queue_id: int | None = None,
         queue_type_key: int = 2,
         repeat_mode_key: int = 1,
+        show_listening_heatmap: bool = True,
         volume: float = 1,
         cross_fade_ms: int = 0,
         lang_id: int = 1,
@@ -112,6 +116,7 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
         kwargs["current_queue_id"] = current_queue_id
         kwargs["queue_type_key"] = queue_type_key
         kwargs["repeat_mode_key"] = repeat_mode_key
+        kwargs["show_listening_heatmap"] = show_listening_heatmap
         kwargs["volume"] = volume
         kwargs["cross_fade_ms"] = cross_fade_ms
         kwargs["lang_id"] = lang_id

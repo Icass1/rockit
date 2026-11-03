@@ -4,6 +4,7 @@
 import { z } from "zod";
 
 export const SessionResponseSchema = z.object({
+    showListeningHeatmap: z.boolean().default(true),
     username: z.string(),
     image: z.string(),
     admin: z.boolean(),

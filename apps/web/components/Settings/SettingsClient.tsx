@@ -11,6 +11,7 @@ import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
+import ListeningHistorySetting from "@/components/Settings/ListeningHistorySetting";
 import LogOutButton from "@/components/Settings/LogOutButton";
 import NotificationSettings from "@/components/Settings/NotificationSettings";
 import ProfileImageInput from "@/components/Settings/ProfileImageInput";
@@ -169,6 +170,10 @@ export default function SettingsClient(): JSX.Element {
 
                     <SettingsSection title={$vocabulary.DOWNLOADS}>
                         <DownloadLibrarySetting />
+                    </SettingsSection>
+
+                    <SettingsSection title="Player">
+                        <ListeningHistorySetting />
                     </SettingsSection>
 
                     <SettingsSection title="Audio">

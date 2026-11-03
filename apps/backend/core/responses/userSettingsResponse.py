@@ -5,6 +5,7 @@ from core.enums.repeatModeEnum import RepeatModeEnum
 
 
 class UserSettingsResponse(BaseModel):
+    showListeningHeatmap: bool = True
     username: str
     lang: str
     crossfade: int

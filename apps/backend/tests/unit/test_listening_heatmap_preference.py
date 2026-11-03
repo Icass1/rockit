@@ -38,4 +38,4 @@ async def test_missing_user_does_not_commit() -> None:
 @pytest.mark.parametrize("enabled", ["false", 0, None])
 def test_visibility_requires_boolean(enabled: object) -> None:
     with pytest.raises(ValidationError):
-        UpdateListeningHeatmapRequest(enabled=enabled)
+        UpdateListeningHeatmapRequest.model_validate(obj={"enabled": enabled})

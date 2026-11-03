@@ -1,26 +1,13 @@
-import {
-    ListeningHeatmapResponseSchema,
-    type ListeningHeatmapSegment,
-} from "@/dto";
-import { BACKEND_URL } from "@/environment";
+import type { ListeningHeatmapSegment } from "@/dto";
 import type { ListeningHeatmapSummary } from "@/models/types/listeningHeatmap";
+import { Http } from "@/lib/http";
 
 export class ListeningHeatmapManager {
-    async load(
-        publicId: string,
-        signal: AbortSignal
-    ): Promise<ListeningHeatmapSegment[]> {
-        const response = await fetch(
-            `${BACKEND_URL}/media/${encodeURIComponent(publicId)}/listening-heatmap`,
-            {
-                credentials: "include",
-                cache: "no-store",
-                signal,
-            }
-        );
-        if (!response.ok) throw new Error("Listening history unavailable");
-        return ListeningHeatmapResponseSchema.parse(await response.json())
-            .segments;
+    async load(publicId: string): Promise<ListeningHeatmapSegment[]> {
+        const response = await Http.getListeningHeatmap(publicId);
+        if (response.isNotOk() || !response.result)
+            throw new Error("Listening history unavailable");
+        return response.result.segments;
     }
 
     summarize(

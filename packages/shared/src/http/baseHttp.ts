@@ -1112,6 +1112,13 @@ export class BaseHttp {
         );
     }
 
+    static async getListeningHeatmap(publicId: string) {
+        return this.apiGetAsync(
+            `/media/${encodeURIComponent(publicId)}/listening-heatmap`,
+            dto.ListeningHeatmapResponseSchema
+        );
+    }
+
     static async searchArtists(
         provider: string,
         name: string,

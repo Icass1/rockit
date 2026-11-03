@@ -13,24 +13,20 @@ export function useListeningHeatmap(
     });
     useEffect(() => {
         if (!publicId) return;
-        const controller = new AbortController();
+        let active = true;
         const refresh = async (): Promise<void> => {
             try {
-                const segments = await listeningHeatmapManager.load(
-                    publicId,
-                    controller.signal
-                );
-                if (!controller.signal.aborted)
-                    setState({ publicId, segments, status: "ready" });
+                const segments = await listeningHeatmapManager.load(publicId);
+                if (active) setState({ publicId, segments, status: "ready" });
             } catch {
-                if (!controller.signal.aborted)
+                if (active)
                     setState({ publicId, segments: [], status: "error" });
             }
         };
         void refresh();
         const interval = setInterval(() => void refresh(), 30_000);
         return () => {
-            controller.abort();
+            active = false;
             clearInterval(interval);
         };
     }, [publicId]);

@@ -8,4 +8,4 @@ class ListeningHeatmapSegment(BaseModel):
 
 
 class ListeningHeatmapResponse(BaseModel):
-    segments: list[ListeningHeatmapSegment] = Field(default_factory=list)
+    segments: list[ListeningHeatmapSegment] = Field(default_factory=list[ListeningHeatmapSegment])

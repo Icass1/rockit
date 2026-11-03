@@ -59,12 +59,11 @@ export default function PlayerCoverArt({
     }, []);
     const { width, height } = useWindowSize();
     const videoContainerRef = useRef<HTMLDivElement>(null);
-    const isDesktop =
+    const isMobile =
         width !== undefined &&
         height !== undefined &&
-        width >= 768 &&
-        height >= 500;
-    const showVideo = mediaType === "video" && !audioOnly && !isDesktop;
+        (width < 768 || height < 500);
+    const showVideo = mediaType === "video" && !audioOnly && isMobile;
 
     const attachVideoRef = useCallback(
         (container: HTMLDivElement | null): void => {

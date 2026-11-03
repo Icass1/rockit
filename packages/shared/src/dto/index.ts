@@ -390,6 +390,14 @@ export {
     type ListeningBadgeResponse,
 } from "./listeningBadgeResponse";
 export {
+    ListeningHeatmapResponseSchema,
+    type ListeningHeatmapResponse,
+} from "./listeningHeatmapResponse";
+export {
+    ListeningHeatmapSegmentSchema,
+    type ListeningHeatmapSegment,
+} from "./listeningHeatmapSegment";
+export {
     ListeningMilestoneResponseSchema,
     type ListeningMilestoneResponse,
 } from "./listeningMilestoneResponse";
@@ -765,6 +773,10 @@ export {
     type UpdateLangRequest,
 } from "./updateLangRequest";
 export {
+    UpdateListeningHeatmapRequestSchema,
+    type UpdateListeningHeatmapRequest,
+} from "./updateListeningHeatmapRequest";
+export {
     UpdateNotificationSubscriptionsRequestSchema,
     type UpdateNotificationSubscriptionsRequest,
 } from "./updateNotificationSubscriptionsRequest";
@@ -895,4 +907,5 @@ export {
     NotificationEventKeySchema,
     type NotificationEventKey,
 } from "./notificationEventKey";
+export { StrictBoolSchema, type StrictBool } from "./strictBool";
 export { StrictIntSchema, type StrictInt } from "./strictInt";

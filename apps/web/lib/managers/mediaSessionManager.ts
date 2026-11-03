@@ -49,10 +49,15 @@ export class MediaSessionManager {
         this._subscribeToChanges();
 
         if (typeof document !== "undefined") {
-            document.addEventListener("visibilitychange", (): void => {
+            const onVisible = (): void => {
                 if (document.hidden) return;
                 this._recoverKeepaliveOnVisible();
-            });
+                this._updatePlaybackState();
+            };
+            document.addEventListener("visibilitychange", onVisible);
+            this._unsubscribers.push((): void =>
+                document.removeEventListener("visibilitychange", onVisible)
+            );
         }
     }
 
@@ -302,25 +307,40 @@ export class MediaSessionManager {
         this._unsubscribers.push(unsubMedia);
 
         const unsubPlaying = rockIt.mediaPlayerManager.playingAtom.subscribe(
-            (playing: boolean): void => {
-                navigator.mediaSession.playbackState = playing
-                    ? "playing"
-                    : "paused";
-            }
+            (): void => this._updatePlaybackState()
         );
         this._unsubscribers.push(unsubPlaying);
 
         const unsubTime = rockIt.mediaPlayerManager.currentTimeAtom.subscribe(
             (time: number): void => {
                 this._updatePositionState(time);
+                // Native now-playing controls can lose their declared state at
+                // a track handoff even while our playing atom stays unchanged.
+                this._updatePlaybackState();
             }
         );
         this._unsubscribers.push(unsubTime);
     }
 
+    private _updatePlaybackState(): void {
+        // Report the latest player state only. Never start, pause or seek media
+        // to repair a stale lock-screen indicator, including during transitions.
+        try {
+            navigator.mediaSession.playbackState = !rockIt.queueManager
+                .currentMedia
+                ? "none"
+                : rockIt.mediaPlayerManager.playingAtom.get()
+                  ? "playing"
+                  : "paused";
+        } catch {
+            /* Some mediaSession implementations do not support playbackState. */
+        }
+    }
+
     private _updateMetadata(media: TPlayableMedia | undefined): void {
         if (!media) {
             navigator.mediaSession.metadata = null;
+            this._updatePlaybackState();
             return;
         }
 
@@ -363,6 +383,9 @@ export class MediaSessionManager {
         if (MediaSessionManager._isiOS()) {
             this._registeriOSActionHandlers();
         }
+        // Publish after metadata/handler changes so the native controls describe
+        // the incoming track even when playback continued without an atom change.
+        this._updatePlaybackState();
     }
 
     private _registeriOSActionHandlers(): void {

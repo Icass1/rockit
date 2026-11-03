@@ -5,6 +5,7 @@ from core.enums.repeatModeEnum import RepeatModeEnum
 
 
 class SessionResponse(BaseModel):
+    showListeningHeatmap: bool = True
     username: str
     image: str
     admin: bool

@@ -1112,6 +1112,13 @@ export class BaseHttp {
         );
     }
 
+    static async getListeningHeatmap(publicId: string) {
+        return this.apiGetAsync(
+            `/media/${encodeURIComponent(publicId)}/listening-heatmap`,
+            dto.ListeningHeatmapResponseSchema
+        );
+    }
+
     static async searchArtists(
         provider: string,
         name: string,
@@ -1536,6 +1543,17 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/user/liked-media`,
             dto.LikedMediaResponseSchema
+        );
+    }
+
+    static async updateListeningHeatmap(
+        payload: dto.UpdateListeningHeatmapRequest
+    ) {
+        return this.apiPostAsync(
+            `/user/listening-heatmap`,
+            dto.UpdateListeningHeatmapRequestSchema,
+            dto.OkResponseSchema,
+            payload
         );
     }
 

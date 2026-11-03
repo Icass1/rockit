@@ -7,6 +7,7 @@ from sqlalchemy.sql import Select
 
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.user_media_listen_interval import UserMediaListenIntervalRow
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from logger import getLogger
 from result import Result, ResultCode
@@ -15,6 +16,30 @@ logger = getLogger(__name__)
 
 
 class MediaAccess:
+    @staticmethod
+    async def get_listening_intervals_async(
+        session: AsyncSession, user_id: int, public_id: str
+    ) -> Result[list[tuple[int, int]]]:
+        """Read only this user's intervals for a public media ID."""
+        try:
+            statement = (
+                select(
+                    UserMediaListenIntervalRow.time_ms_start, UserMediaListenIntervalRow.time_ms_end
+                )
+                .join(CoreMediaRow, CoreMediaRow.id == UserMediaListenIntervalRow.media_id)
+                .where(
+                    CoreMediaRow.public_id == public_id,
+                    UserMediaListenIntervalRow.user_id == user_id,
+                )
+            )
+            rows = await session.execute(statement=statement)
+            return Result(
+                code=ResultCode.OK, message="OK", result=[(row[0], row[1]) for row in rows]
+            )
+        except Exception as error:
+            logger.error(f"Error reading listening intervals: {error}")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Could not read listening history")
+
     @staticmethod
     async def get_medias_from_public_ids_async(
         session: AsyncSession,

@@ -945,3 +945,15 @@ class User:
             return ResultCode(code=a_result.code(), message=a_result.message())
 
         return ResultCode(code=ResultCode.OK, message="OK")
+
+    @staticmethod
+    async def update_listening_heatmap_async(
+        session: AsyncSession, user_id: int, enabled: bool
+    ) -> Result[bool]:
+        """Update listening history visibility for a user."""
+        result = await UserAccess.update_user_listening_heatmap_async(
+            session=session, user_id=user_id, enabled=enabled
+        )
+        if result.is_not_ok():
+            logger.error("Cannot update listening history preference: %s", result.info())
+        return result

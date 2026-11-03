@@ -27,6 +27,14 @@ MIGRATIONS: tuple[Migration, ...] = (
             "ALTER TABLE IF EXISTS core.notification DROP COLUMN IF EXISTS source_key",
         ),
     ),
+    Migration(
+        version=2,
+        name="add_user_listening_heatmap_preference",
+        statements=(
+            'ALTER TABLE core."user" ADD COLUMN IF NOT EXISTS '
+            "show_listening_heatmap BOOLEAN NOT NULL DEFAULT TRUE",
+        ),
+    ),
 )
 
 

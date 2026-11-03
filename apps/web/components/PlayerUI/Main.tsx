@@ -16,6 +16,7 @@ export default function PlayerUIMain({
 }): JSX.Element | undefined {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
+    const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
     const [showIcon, setShowIcon] = useState(false);
     const [titleVisible, setTitleVisible] = useState(true);
     const [songHover, setSongHover] = useState(false);
@@ -67,7 +68,12 @@ export default function PlayerUIMain({
                 rockIt.mediaPlayerManager.detachVideoFromContainer(previous);
             }
             videoContainerRef.current = container;
-            if (container && isVideo(currentMedia) && !$audioOnly) {
+            if (
+                container &&
+                $isPlayerUIVisible &&
+                isVideo(currentMedia) &&
+                !$audioOnly
+            ) {
                 rockIt.mediaPlayerManager.attachVideoToContainer(container);
                 const video = rockIt.mediaPlayerManager.videoElement;
                 const updateAspectRatio = (): void => {
@@ -89,7 +95,7 @@ export default function PlayerUIMain({
                 };
             }
         },
-        [currentMedia, $audioOnly]
+        [currentMedia, $audioOnly, $isPlayerUIVisible]
     );
 
     useEffect((): (() => void) | undefined => {

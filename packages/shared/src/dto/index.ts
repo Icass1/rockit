@@ -773,6 +773,10 @@ export {
     type UpdateLangRequest,
 } from "./updateLangRequest";
 export {
+    UpdateListeningHeatmapRequestSchema,
+    type UpdateListeningHeatmapRequest,
+} from "./updateListeningHeatmapRequest";
+export {
     UpdateNotificationSubscriptionsRequestSchema,
     type UpdateNotificationSubscriptionsRequest,
 } from "./updateNotificationSubscriptionsRequest";
@@ -903,4 +907,5 @@ export {
     NotificationEventKeySchema,
     type NotificationEventKey,
 } from "./notificationEventKey";
+export { StrictBoolSchema, type StrictBool } from "./strictBool";
 export { StrictIntSchema, type StrictInt } from "./strictInt";

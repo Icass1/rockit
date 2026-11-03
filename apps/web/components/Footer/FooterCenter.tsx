@@ -26,6 +26,9 @@ const ICON_BTN =
 const ACTIVE = "text-(--color-rockit-pink)";
 
 export default function FooterCenter(): JSX.Element {
+    const showListeningHeatmap = useStore(
+        rockIt.userManager.showListeningHeatmapAtom
+    );
     const duration = useStore(rockIt.mediaPlayerManager.durationAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
@@ -176,11 +179,13 @@ export default function FooterCenter(): JSX.Element {
                     <div className="relative flex-1">
                         <div className="absolute inset-x-0 bottom-full pb-1">
                             <div className="relative">
-                                <ListeningHeatmap
-                                    publicId={$currentMedia.publicId}
-                                    duration={duration}
-                                    currentTime={$currentTime ?? 0}
-                                />
+                                {showListeningHeatmap && (
+                                    <ListeningHeatmap
+                                        publicId={$currentMedia.publicId}
+                                        duration={duration}
+                                        currentTime={$currentTime ?? 0}
+                                    />
+                                )}
                                 {$showBookmarkPopup && (
                                     <BookmarkPopup
                                         className="absolute inset-x-0 bottom-full z-50 mb-4 rounded-xl border border-white/10 bg-neutral-900 p-3 shadow-2xl md:mb-14"

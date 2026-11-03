@@ -51,7 +51,12 @@ async def handle_current_time(
     time_diff_ms = current_time - playback_state.last_time_ms
 
     # logger.debug(
-    #     f"[current_time] user={user_id} media={media_public_id} current_time_ms={current_time} is_new_media={is_new_media} time_diff_ms={time_diff_ms} already_reached_threshold={playback_state.has_reached_listen_threshold}"
+    #     f"[current_time] user={user_id} "
+    #     f"media={media_public_id} "
+    #     f"current_time_ms={current_time} "
+    #     f"is_new_media={is_new_media} "
+    #     f"time_diff_ms={time_diff_ms} "
+    #     f"already_reached_threshold={playback_state.has_reached_listen_threshold}"
     # )
 
     if is_new_media:

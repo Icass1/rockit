@@ -17,6 +17,9 @@ interface PlayerProgressBarProps {
 export default function PlayerProgressBar({
     onSeek,
 }: PlayerProgressBarProps): JSX.Element {
+    const showListeningHeatmap = useStore(
+        rockIt.userManager.showListeningHeatmapAtom
+    );
     const { currentTime, duration } = usePlayerTime();
     const media = useStore(rockIt.queueManager.currentMediaAtom);
     const $bookmarks = useStore(
@@ -30,11 +33,13 @@ export default function PlayerProgressBar({
 
     return (
         <div className="w-full px-1">
-            <ListeningHeatmap
-                publicId={media?.publicId}
-                duration={duration}
-                currentTime={displayTime}
-            />
+            {showListeningHeatmap && (
+                <ListeningHeatmap
+                    publicId={media?.publicId}
+                    duration={duration}
+                    currentTime={displayTime}
+                />
+            )}
             <div className="relative flex h-8 items-center">
                 <Slider
                     id="default-slider"

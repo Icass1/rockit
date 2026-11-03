@@ -1546,6 +1546,17 @@ export class BaseHttp {
         );
     }
 
+    static async updateListeningHeatmap(
+        payload: dto.UpdateListeningHeatmapRequest
+    ) {
+        return this.apiPostAsync(
+            `/user/listening-heatmap`,
+            dto.UpdateListeningHeatmapRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
     static async getNavigationPinsAsync() {
         return this.apiGetAsync(
             `/user/navigation/pins`,

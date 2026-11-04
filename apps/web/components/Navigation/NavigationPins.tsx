@@ -7,9 +7,9 @@ import { usePathname } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import type { NavigationPinResponse } from "@rockit/shared";
 import { CalendarDays, Disc3, Heart, History, Pin } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getNavigationPinName } from "@/lib/utils/navigationPins";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function PinShortcut({
@@ -95,8 +95,9 @@ export default function NavigationPins({
 }: {
     expanded: boolean;
 }): JSX.Element {
-    const pins = useStore(rockIt.navigationPinsManager.pinsAtom);
-    const pending = useStore(rockIt.navigationPinsManager.pendingAtom);
+    const { navigationPinsManager } = useRuntimeServices();
+    const pins = useStore(navigationPinsManager.pinsAtom);
+    const pending = useStore(navigationPinsManager.pendingAtom);
     const vocabulary = useVocabulary();
     // Both empty SSR and the initial client render have no section or divider.
     if (pins.length === 0) return <></>;

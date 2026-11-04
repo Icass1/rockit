@@ -1,4 +1,5 @@
 import type { BookmarkManager } from "@/lib/managers/bookmarkManager";
+import type { NavigationPinsManager } from "@/lib/managers/navigationPinsManager";
 import type { UserManager } from "@/lib/managers/userManager";
 import type { WebSocketManager } from "@/lib/managers/webSocketManger";
 
@@ -8,4 +9,14 @@ export interface RuntimeServices {
     userManager: Pick<UserManager, "sessionAtom" | "seedSession">;
     webSocketManager: Pick<WebSocketManager, "start" | "stop">;
     bookmarkManager: Pick<BookmarkManager, "start" | "stop">;
+    navigationPinsManager: Pick<
+        NavigationPinsManager,
+        | "start"
+        | "stop"
+        | "pinsAtom"
+        | "pendingAtom"
+        | "statusAtom"
+        | "refreshAsync"
+        | "setPinnedAsync"
+    >;
 }

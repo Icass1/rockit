@@ -102,6 +102,7 @@ export {default as Footer} from './components/Footer/Footer';
 export {preferredLanguage, completeVocabulary} from './lib/i18n/vocabulary';
 export {QueueProvider, useQueueManager} from './components/providers/QueueProvider';
 export {PlaybackProvider, usePlaybackServices} from './components/providers/PlaybackProvider';
+export {RuntimeProvider, useRuntimeServices} from './components/providers/RuntimeProvider';
 export {usePlayer} from './components/MobilePlayer/hooks/usePlayer';
 export {QueueManager} from './lib/managers/queueManager';
 export {setRockIt} from '../../packages/shared/src/rockit/rockitRef';`,
@@ -467,4 +468,39 @@ test("scoped playback consumers use the provided services without mutating the c
     ]);
     assert.equal(runtime.mediaPlayerManager.playingAtom.get(), false);
     assert.equal(runtime.queueManager.currentMediaAtom.get(), undefined);
+});
+
+test("runtime Context isolates shell services during server rendering without starting integrations", () => {
+    const calls = [];
+    const services = (name) => ({
+        init() {
+            calls.push("init");
+            return Promise.resolve();
+        },
+        navigationPinsManager: { pinsAtom: atom([{ name }]) },
+    });
+    function Probe({ expected }) {
+        const current = vocabulary.useRuntimeServices();
+        assert.equal(current, expected);
+        return createElement(
+            "span",
+            null,
+            current.navigationPinsManager.pinsAtom.get()[0].name
+        );
+    }
+    for (const current of [services("first"), services("second")]) {
+        const html = renderToString(
+            createElement(
+                vocabulary.RuntimeProvider,
+                { services: current },
+                createElement(Probe, { expected: current })
+            )
+        );
+        assert.match(
+            html,
+            new RegExp(current.navigationPinsManager.pinsAtom.get()[0].name)
+        );
+    }
+    assert.deepEqual(calls, []);
+    assert.equal(runtime.navigationPinsManager, undefined);
 });

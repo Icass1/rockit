@@ -25,6 +25,7 @@ export class ConnectionLifecycle {
         this.startup = this.services.init().then(() => {
             if (generation !== this.generation) return;
             this.services.bookmarkManager.start();
+            this.services.navigationPinsManager.start();
             this.ready = true;
             if (this.username) this.services.webSocketManager.start();
         });
@@ -40,5 +41,6 @@ export class ConnectionLifecycle {
         this.startup = undefined;
         this.services.webSocketManager.stop();
         this.services.bookmarkManager.stop();
+        this.services.navigationPinsManager.stop();
     }
 }

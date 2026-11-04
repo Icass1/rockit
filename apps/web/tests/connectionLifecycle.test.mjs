@@ -294,7 +294,18 @@ function lifecycleFixture(initial = { username: "first" }) {
     let listenerCount = 0;
     const sessionAtom = session.getReadonlyAtom();
     const bookmarks = { starts: 0, stops: 0, active: false };
+    const pins = { starts: 0, stops: 0, active: false };
     const services = {
+        navigationPinsManager: {
+            start() {
+                pins.starts++;
+                pins.active = true;
+            },
+            stop() {
+                pins.stops++;
+                pins.active = false;
+            },
+        },
         bookmarkManager: {
             start() {
                 bookmarks.starts++;
@@ -326,6 +337,7 @@ function lifecycleFixture(initial = { username: "first" }) {
         session,
         services,
         bookmarks,
+        pins,
         lifecycle: new fixture.ConnectionLifecycle(services),
         listenerCount: () => listenerCount,
     };
@@ -349,19 +361,23 @@ test("lifecycle registers handlers before connecting and retains a connection ac
     assert.equal(sockets[0].closeCalls, 1);
 });
 
-test("shell owns bookmark startup and cleanup across deferred initialization and restarts", async () => {
+test("shell owns bookmark and pin startup and cleanup across deferred initialization and restarts", async () => {
     for (const restart of [false, true]) {
-        const { lifecycle, startup, bookmarks } = lifecycleFixture();
+        const { lifecycle, startup, bookmarks, pins } = lifecycleFixture();
         const first = lifecycle.start();
         assert.equal(bookmarks.starts, 0);
+        assert.equal(pins.starts, 0);
         lifecycle.stop();
         const second = restart ? lifecycle.start() : Promise.resolve();
         startup.resolve();
         await Promise.all([first, second]);
         assert.equal(bookmarks.starts, restart ? 1 : 0);
         assert.equal(bookmarks.active, restart);
+        assert.equal(pins.starts, restart ? 1 : 0);
+        assert.equal(pins.active, restart);
         lifecycle.stop();
         assert.equal(bookmarks.active, false);
+        assert.equal(pins.active, false);
     }
 });
 

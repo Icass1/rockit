@@ -101,7 +101,6 @@ export class RockIt {
             rockIt.downloaderManager.init(),
             rockIt.playlistManager.init(),
         ]);
-        rockIt.navigationPinsManager.init();
         rockIt.libraryManager.init();
         rockIt.sharingManager.init();
 

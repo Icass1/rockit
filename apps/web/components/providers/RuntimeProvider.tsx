@@ -1,10 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, type JSX, type ReactNode } from "react";
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    type JSX,
+    type ReactNode,
+} from "react";
 import type { SessionResponse } from "@/dto";
 import type { RuntimeServices } from "@/models/interfaces/runtimeServices";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { ConnectionLifecycle } from "@/lib/runtime/connectionLifecycle";
+
+const RuntimeContext = createContext<RuntimeServices | undefined>(undefined);
 
 export function RuntimeProvider({
     children,
@@ -28,5 +37,9 @@ export function RuntimeProvider({
         });
         return () => lifecycle.stop();
     }, [lifecycle]);
-    return <>{children}</>;
+    return <RuntimeContext value={services}>{children}</RuntimeContext>;
+}
+
+export function useRuntimeServices(): RuntimeServices {
+    return useContext(RuntimeContext) ?? rockIt;
 }

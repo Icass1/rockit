@@ -31,6 +31,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Scope playback service consumers and own native media-session/gesture setup and cleanup in the persistent provider.
     - [x] Own socket connections in the persistent provider; cancel stale sends and reconnects.
     - [x] Own bookmark subscriptions in the shell and reject stale account/media work.
+    - [x] Own navigation-pin subscriptions/wake listeners and migrate pin consumers to runtime Context.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -249,14 +250,49 @@ requests, stale account-response rejection, logout clearing, listener cleanup an
 real socket reconnection, with no browser errors. These fixtures do not establish
 full application navigation, real audio or offline acceptance.
 
+### Shell-owned navigation pins and runtime Context — 4 November 2026
+
+NavigationPinsManager now accepts injected services and starts/stops with the
+persistent shell instead of the one-time compatibility bootstrap. It watches the
+session identity through one subscription, with balanced focus, online and
+visibility listeners. Cleanup clears shortcuts, pending operations and status,
+invalidates in-flight responses and cancels queued writes before they reach HTTP.
+Restarting the same account loads fresh state; responses/finalizers from the old
+lifecycle cannot overwrite it or release its pending operations. Session metadata
+changes retain state, and concurrent wake events still coalesce into one request.
+
+RuntimeProvider now exposes stable services through Context. The navigation
+shortcuts and pin/unpin menu actions use the scoped navigation-pin manager while
+retaining narrow Nanostores subscriptions and the existing compatibility fallback
+for consumers outside the shell. No pin state or mutation policy moved into UI.
+
+Checks: all 47 focused pin, connection, bookmark/request-race and server-rendering
+tests passed, including cleanup/restart, deferred startup, queued-write cancellation,
+direct account replacement and isolated server Context delivery without startup.
+Web typecheck and lint, explicit lint of changed manager/runtime/model/test modules
+and formatting passed. The full web suite passed 126 of 128 tests with the same
+two documented adaptive-transition failures. Production build and HTTP SSR smoke
+passed, including translated first-render content, the current queue footer,
+streaming and initial request deduplication. As in the preceding increments, the
+pinned pnpm used temporary PNPM_HOME/XDG_DATA_HOME directories.
+
+Chromium fixture checks passed at 1440×900, 390×844 and 844×390 with the actual
+RuntimeProvider, NavigationPinsManager, navigation list and pin/unpin menu action,
+alongside the bookmark/socket integrations. They exercised injected consumer
+services, pin/unpin interaction, stable rerenders, wake-event coalescing, stale
+account responses, logout and unmount listener cleanup, with no browser errors.
+These fixtures do not establish complete application navigation, real audio,
+assistive-technology, iOS or offline acceptance; parent runtime stages stay open.
+
 ## Current work
 
-The scoped playback/native-lifecycle, socket and bookmark increments are
-implemented and checked. Next runtime work is lifecycle ownership of navigation
-pins and the remaining legacy manager subscriptions, generation guards for their
-asynchronous work and complete account reset. The compatibility runtime still
+The scoped playback/native-lifecycle, socket, bookmark and navigation-pin increments
+are implemented and checked. Next runtime work is lifecycle ownership of the
+remaining legacy manager subscriptions (user/volume, queue/player, social,
+notifications, downloads, playlists, library and sharing), generation guards for
+their asynchronous work and complete account reset. The compatibility runtime still
 initializes the other managers once; the connection lifecycle owns the socket,
-its session subscription and the bookmark integration.
+its session subscription and the bookmark/navigation-pin integrations.
 Full application browser
 verification of playback/navigation, popups, language switching and offline entry
 remains pending, followed by the Library pagination/query stages. The remaining

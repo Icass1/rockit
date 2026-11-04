@@ -3,8 +3,8 @@ I'll explore the docs/ directory to understand what documentation is available.
 ✱ Glob "docs/\*_/_" in . (9 matches)
 Here are the documentation files in docs/:
 File
-AGENTSbackend.md
-AGENTSfrontend.md
+backend-guide.md
+web-guide.md
 EXPOdocs.md
 BUILDINGAPKIPA.md
 DOCKER.md
@@ -23,8 +23,8 @@ The user just said "Todos" — let me check the current todo list status. There'
   ▣ Plan · GLM-5.1 · 8.2s
   Lee todo para enterarte de como funciona el proyecto
   I'll read all the docs and the AGENTS.md to fully understand how the project works.
-  → Read docs/AGENTSbackend.md
-  → Read docs/AGENTSfrontend.md
+  → Read docs/backend-guide.md
+  → Read docs/web-guide.md
   → Read docs/EXPOdocs.md
   → Read docs/BUILDINGAPKIPA.md
   → Read docs/DOCKER.md
@@ -233,7 +233,7 @@ Instructions
 - Go page by page — the user explicitly wants detailed per-page analysis
 - Clean and rewrite absolutely all code — not port the old code, but use it as reference
 - The user wants to proceed step by step, completing one page at a time
-- Follow all project conventions from the docs (AGENTSfrontend.md, AGENTSbackend.md, Rules.md, etc.)
+- Follow all project conventions from the docs (web-guide.md, backend-guide.md, Rules.md, etc.)
   Discoveries
   Project Architecture
 - Backend: FastAPI (async), SQLAlchemy, PostgreSQL, 3-layer architecture (controllers → framework → access), Result pattern, 5 businesses (core, default, spotify, youtube, rockit), providers system
@@ -401,8 +401,8 @@ Instructions
 - /home/nicorebo18/rockit/apps/test/apps/web/components/Friends/ — FriendsClient (commented out)
 - /home/nicorebo18/rockit/apps/test/apps/web/components/RenderList/ — RenderList, RenderListClient
   Project docs
-- /home/nicorebo18/rockit/docs/AGENTSfrontend.md — frontend conventions
-- /home/nicorebo18/rockit/docs/AGENTSbackend.md — backend conventions
+- /home/nicorebo18/rockit/docs/web-guide.md — frontend conventions
+- /home/nicorebo18/rockit/docs/backend-guide.md — backend conventions
 - /home/nicorebo18/rockit/docs/Rules.md — project rules
 - /home/nicorebo18/rockit/docs/CONTRIBUTING.md — contributing guide
 - /home/nicorebo18/rockit/docs/FRONTENDmigration.md — mobile migration guide

@@ -1,4 +1,4 @@
-# AGENTS.md
+# maintenance.md
 
 Operating manual for AI agents working in this repository, or using it from another project.
 
@@ -28,7 +28,7 @@ a generated lookup table, and the script that regenerates all of it.
 | Path | Role | Edit by hand? |
 | --- | --- | --- |
 | `SKILL.md` | The skill: stance, principles, lenses, report format, improvement mode | Yes |
-| `AGENTS.md` | This file | Yes |
+| `maintenance.md` | This file | Yes |
 | `README.md` | Installation and overview for people | Yes |
 | `.cursorrules` | Entry point for Cursor | Yes |
 | `GEMINI.md` | Entry point for Antigravity | Yes |

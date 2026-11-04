@@ -1,3 +1,5 @@
+> Historical reference. Current instructions live in the repository and application AGENTS.md files.
+
 # Rockit — Agent Guidelines
 
 > Read this file before making any change. It covers architecture, conventions,
@@ -205,6 +207,8 @@ Folder naming: `controllers/` (plural), `framework/` (singular), `access/` (sing
 
 All framework and access functions return `Result`, never raise exceptions internally.
 
+> **Rule:** You MUST always check `a_result.is_ok()` / `a_result.is_not_ok()` before calling `a_result.result()`. Never call `.result()` on an unchecked `Result`. When `is_not_ok()`, always log the error with `logger.error(...)` and provide a sensible fallback default or early return.
+
 ```python
 from result import Result, ResultCode
 
@@ -348,14 +352,17 @@ These are the known routes. Use `public_id` for all resource identifiers.
 
 ### User — `/user`
 
-| Method | Path                 | Auth | Description                          |
-| ------ | -------------------- | ---- | ------------------------------------ |
-| GET    | `/user`              | Yes  | Get current user profile             |
-| PATCH  | `/user/lang`         | Yes  | Set language preference              |
-| PATCH  | `/user/crossfade`    | Yes  | Set crossfade seconds                |
-| PATCH  | `/user/random-queue` | Yes  | Toggle random queue                  |
-| PATCH  | `/user/repeat-mode`  | Yes  | Cycle repeat mode                    |
-| GET    | `/user/vocabulary`   | Yes  | Get i18n vocabulary for current lang |
+| Method | Path                               | Auth | Description                                         |
+| ------ | ---------------------------------- | ---- | --------------------------------------------------- |
+| GET    | `/user`                            | Yes  | Get current user profile                            |
+| PATCH  | `/user/lang`                       | Yes  | Set language preference                             |
+| PATCH  | `/user/crossfade`                  | Yes  | Set crossfade seconds                               |
+| PATCH  | `/user/random-queue`               | Yes  | Toggle random queue                                 |
+| PATCH  | `/user/repeat-mode`                | Yes  | Cycle repeat mode                                   |
+| GET    | `/user/notification-events`        | Yes  | List notification types available for subscriptions |
+| GET    | `/user/notification-subscriptions` | Yes  | Get current user's notification preferences         |
+| PATCH  | `/user/notification-subscriptions` | Yes  | Update current user's notification preferences      |
+| GET    | `/user/vocabulary`                 | Yes  | Get i18n vocabulary for current lang                |
 
 ### Media — `/media`
 
@@ -409,16 +416,6 @@ These are the known routes. Use `public_id` for all resource identifiers.
 | POST   | `/downloads/start`                | Yes  | Start a download (Spotify/YouTube URL) |
 | GET    | `/downloads`                      | Yes  | Get all user downloads                 |
 | POST   | `/downloads/mark-seen/{publicId}` | Yes  | Mark download as seen                  |
-
-### Recommendation — `/recommendation`
-
-Local engine always; optional external suggestions (`discover`). See `docs/RECOMMENDATIONS.md`.
-
-| Method | Path                                  | Auth | Description                                        |
-| ------ | ------------------------------------- | ---- | -------------------------------------------------- |
-| GET    | `/recommendation/for-you`             | Yes  | Personalized songs + optional external suggestions |
-| GET    | `/recommendation/playlist/{publicId}` | Yes  | Songs to add to a playlist                         |
-| GET    | `/media/song/{publicId}/related`      | Yes  | Songs similar to one song/video                    |
 
 ### Stats — `/stats`
 
@@ -1049,11 +1046,11 @@ When adding new vocabulary keys:
 
 ## 12. Skills
 
-For practical, focused guidance on implementing features, see the skills in the `skills/` directory:
+For practical, focused guidance on implementing features, see the skills in the `docs/skills/` directory:
 
 ### 12.1 Frontend Web Skill
 
-See `skills/frontend-web.md` for detailed conventions, patterns, and best practices for building the Next.js web application including:
+See `docs/skills/frontend-web.md` for detailed conventions, patterns, and best practices for building the Next.js web application including:
 
 - Server vs Client Components rules
 - Data fetching patterns with `apiFetch` and `useFetch`
@@ -1069,7 +1066,7 @@ See `skills/frontend-web.md` for detailed conventions, patterns, and best practi
 
 ### 12.2 Frontend Mobile Skill
 
-See `skills/frontend-mobile.md` for detailed conventions, patterns, and best practices for building the Expo React Native mobile application including:
+See `docs/skills/frontend-mobile.md` for detailed conventions, patterns, and best practices for building the Expo React Native mobile application including:
 
 - File structure and routing with Expo Router
 - State management with nanostores (shared with web)
@@ -1084,7 +1081,7 @@ See `skills/frontend-mobile.md` for detailed conventions, patterns, and best pra
 
 ### 12.3 Backend Skill
 
-See `skills/backend.md` for detailed conventions, patterns, and best practices for building the FastAPI backend including:
+See `docs/skills/backend.md` for detailed conventions, patterns, and best practices for building the FastAPI backend including:
 
 - Layered architecture (controllers → framework → access)
 - Result pattern for error handling
@@ -1096,13 +1093,11 @@ See `skills/backend.md` for detailed conventions, patterns, and best practices f
 - Key files reference
 - Running the project commands
 
-### 12.4 Frontend Design Skill
-
-See `.opencode/skills/frontend-design/SKILL.md` for guidance on creating distinctive, production-grade frontend interfaces with bold aesthetic direction, covering:
-
-- Design Thinking methodology (purpose, tone, constraints, differentiation)
-- Typography, color, motion, spatial composition, and visual details
-- Avoiding generic AI-generated aesthetics
-- Choosing and committing to a clear conceptual direction
-
 ---
+
+### Apple design reviews
+
+For UI/UX improvements and design reviews, read
+[`docs/skills/apple-design-skill/SKILL.md`](../skills/apple-design-skill/SKILL.md).
+The vendored revision is recorded in `docs/skills/apple-design-skill.source.json`.
+Apply its accessibility and design principles to Rocket's web/PWA conventions.

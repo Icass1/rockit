@@ -30,7 +30,6 @@ const nextConfig: NextConfig = {
             { encoding: "utf8" }
         ).trim(),
     },
-    output: "standalone",
     outputFileTracingRoot: workspaceRoot,
     transpilePackages: ["@rockit/shared"],
     onDemandEntries: {
@@ -135,6 +134,12 @@ const nextConfig: NextConfig = {
             {
                 protocol: "https",
                 hostname: "fs-rockit.rockhosting.org",
+                pathname: "/**",
+            },
+            {
+                protocol: "http",
+                hostname: "rockit.rockhosting.lan",
+                port: "9102",
                 pathname: "/**",
             },
             ...(s3PublicPattern ? [s3PublicPattern] : []),

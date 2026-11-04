@@ -1,5 +1,6 @@
 import type { BookmarkManager } from "@/lib/managers/bookmarkManager";
 import type { NavigationPinsManager } from "@/lib/managers/navigationPinsManager";
+import type { NotificationManager } from "@/lib/managers/notificationManager";
 import type { UserManager } from "@/lib/managers/userManager";
 import type { WebSocketManager } from "@/lib/managers/webSocketManger";
 
@@ -8,6 +9,19 @@ export interface RuntimeServices {
     init(): Promise<void>;
     userManager: Pick<UserManager, "sessionAtom" | "seedSession">;
     webSocketManager: Pick<WebSocketManager, "start" | "stop">;
+    notificationManager: Pick<
+        NotificationManager,
+        | "start"
+        | "stop"
+        | "notificationsAtom"
+        | "unreadCountAtom"
+        | "totalCountAtom"
+        | "errorAtom"
+        | "offset"
+        | "setPage"
+        | "markRead"
+        | "destinationAsync"
+    >;
     bookmarkManager: Pick<BookmarkManager, "start" | "stop">;
     navigationPinsManager: Pick<
         NavigationPinsManager,

@@ -8,7 +8,7 @@ import {
     notificationVocabularyText,
     replaceNotificationGaps,
 } from "@/lib/notifications";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import {
     useLanguage,
     useVocabulary,
@@ -20,7 +20,7 @@ export default function NotificationMenu({
 }: {
     onClose: () => void;
 }): JSX.Element {
-    const manager = rockIt.notificationManager;
+    const { notificationManager: manager } = useRuntimeServices();
     const notifications = useStore(manager.notificationsAtom);
     const unread = useStore(manager.unreadCountAtom);
     const total = useStore(manager.totalCountAtom);

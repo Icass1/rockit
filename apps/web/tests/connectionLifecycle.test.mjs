@@ -295,7 +295,18 @@ function lifecycleFixture(initial = { username: "first" }) {
     const sessionAtom = session.getReadonlyAtom();
     const bookmarks = { starts: 0, stops: 0, active: false };
     const pins = { starts: 0, stops: 0, active: false };
+    const notifications = { starts: 0, stops: 0, active: false };
     const services = {
+        notificationManager: {
+            start() {
+                notifications.starts++;
+                notifications.active = true;
+            },
+            stop() {
+                notifications.stops++;
+                notifications.active = false;
+            },
+        },
         navigationPinsManager: {
             start() {
                 pins.starts++;
@@ -338,6 +349,7 @@ function lifecycleFixture(initial = { username: "first" }) {
         services,
         bookmarks,
         pins,
+        notifications,
         lifecycle: new fixture.ConnectionLifecycle(services),
         listenerCount: () => listenerCount,
     };
@@ -361,21 +373,26 @@ test("lifecycle registers handlers before connecting and retains a connection ac
     assert.equal(sockets[0].closeCalls, 1);
 });
 
-test("shell owns bookmark and pin startup and cleanup across deferred initialization and restarts", async () => {
+test("shell owns notification, bookmark and pin startup and cleanup across deferred initialization and restarts", async () => {
     for (const restart of [false, true]) {
-        const { lifecycle, startup, bookmarks, pins } = lifecycleFixture();
+        const { lifecycle, startup, bookmarks, pins, notifications } =
+            lifecycleFixture();
         const first = lifecycle.start();
+        assert.equal(notifications.starts, 1);
         assert.equal(bookmarks.starts, 0);
         assert.equal(pins.starts, 0);
         lifecycle.stop();
         const second = restart ? lifecycle.start() : Promise.resolve();
         startup.resolve();
         await Promise.all([first, second]);
+        assert.equal(notifications.starts, restart ? 2 : 1);
+        assert.equal(notifications.active, restart);
         assert.equal(bookmarks.starts, restart ? 1 : 0);
         assert.equal(bookmarks.active, restart);
         assert.equal(pins.starts, restart ? 1 : 0);
         assert.equal(pins.active, restart);
         lifecycle.stop();
+        assert.equal(notifications.active, false);
         assert.equal(bookmarks.active, false);
         assert.equal(pins.active, false);
     }

@@ -95,7 +95,6 @@ export class RockIt {
         rockIt.listenTogetherManager.init();
         await rockIt.userManager.init();
         rockIt.friendManager.init();
-        rockIt.notificationManager.init();
         await rockIt.queueManager.init();
         await Promise.all([
             rockIt.downloaderManager.init(),

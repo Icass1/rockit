@@ -32,6 +32,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own socket connections in the persistent provider; cancel stale sends and reconnects.
     - [x] Own bookmark subscriptions in the shell and reject stale account/media work.
     - [x] Own navigation-pin subscriptions/wake listeners and migrate pin consumers to runtime Context.
+    - [x] Own notification subscriptions, scope header consumers and guard stale inbox/navigation work.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -284,15 +285,53 @@ account responses, logout and unmount listener cleanup, with no browser errors.
 These fixtures do not establish complete application navigation, real audio,
 assistive-technology, iOS or offline acceptance; parent runtime stages stay open.
 
+### Shell-owned notifications and scoped inbox consumers — 4 November 2026
+
+NotificationManager now accepts injected session/socket services and has balanced,
+idempotent start/stop methods. The shell starts notification subscriptions before
+legacy asynchronous initialization completes, so opening the inbox during startup
+works, and registers the handler before the socket can connect. Cleanup releases
+both subscriptions, clears the inbox/counts/errors/page/filter, dismisses feedback
+and invalidates pending work. UserManager no longer drives notification identity.
+Session metadata updates retain state; account changes and logout reset it without
+fetching inbox history until requested.
+
+The header badge and notification menu use runtime Context with the existing
+narrow Nanostores subscriptions. Generation guards reject stale page reads,
+mark-read results and destination lookups after cleanup, account replacement or a
+return to the same account. A destination cannot navigate if the account changes
+during the mark-read refresh. Mutation transport failures are handled locally.
+Toast tap/drag/cancel handlers now belong to each rendered toast through React;
+there are no global document listeners to leak, and feedback remains interactive
+on auth pages outside the shell.
+
+Checks: all 58 focused notification, connection, bookmark/request-race, pin and
+server-rendering tests passed, including 11 new notification lifecycle tests.
+Web typecheck and lint, explicit lint of changed manager/runtime/model/test modules,
+formatting, production build and production HTTP SSR smoke passed. The full web
+suite passed 137 of 139 tests with the same two documented adaptive-transition
+failures. The existing crane GIF precache warning remains. The pinned pnpm used
+temporary PNPM_HOME/XDG_DATA_HOME directories as in previous increments.
+
+Chromium fixture checks passed at 1440×900, 390×844 and 844×390 using the actual
+RuntimeProvider, NotificationManager, WebSocketManager, header badge, notification
+menu and toast UI with injected services and a local socket server. They verified
+Strict Mode, lazy inbox fetching, opening during deferred startup, stable rerenders,
+pagination, account reset, cancellation of navigation during an old mark-read
+refresh, unmount subscription cleanup and toast taps inside/outside the shell,
+with no browser errors. These fixtures do not establish full application account
+reset, real playback, iOS, assistive-technology or offline acceptance; parent
+runtime stages remain open.
+
 ## Current work
 
-The scoped playback/native-lifecycle, socket, bookmark and navigation-pin increments
-are implemented and checked. Next runtime work is lifecycle ownership of the
-remaining legacy manager subscriptions (user/volume, queue/player, social,
-notifications, downloads, playlists, library and sharing), generation guards for
-their asynchronous work and complete account reset. The compatibility runtime still
+The scoped playback/native-lifecycle, socket, bookmark, navigation-pin and
+notification increments are implemented and checked. Next runtime work is lifecycle
+ownership of the remaining legacy manager subscriptions (user/volume, queue/player,
+social, downloads, playlists, library and sharing), generation guards for their
+asynchronous work and complete account reset. The compatibility runtime still
 initializes the other managers once; the connection lifecycle owns the socket,
-its session subscription and the bookmark/navigation-pin integrations.
+its session subscription and the bookmark/navigation-pin/notification integrations.
 Full application browser
 verification of playback/navigation, popups, language switching and offline entry
 remains pending, followed by the Library pagination/query stages. The remaining

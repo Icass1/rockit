@@ -37,7 +37,6 @@ export class UserManager extends BaseUserManager {
         this._admin.set(session.admin);
         this._username.set(session.username);
         this._currentTimeMs.set(session.currentTimeMs);
-        rockIt.notificationManager.setUser(session.username);
         this._loggedIn.set(true);
         this._showListeningHeatmap.set(session.showListeningHeatmap);
         this.restoreVolume(session.username, session.volume);
@@ -141,7 +140,6 @@ export class UserManager extends BaseUserManager {
             }
             this._session.set(null);
             this._loggedIn.set(false);
-            rockIt.notificationManager.setUser();
             rockIt.webSocketManager.disconnect();
             if (response.code === 401)
                 await clearSessionOffline().catch(() => {});
@@ -264,7 +262,6 @@ export class UserManager extends BaseUserManager {
             await clearSessionOffline().catch(() => {});
             this._session.set(null);
             this._loggedIn.set(false);
-            rockIt.notificationManager.setUser();
             rockIt.webSocketManager.disconnect();
         } else {
             console.error(

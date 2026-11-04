@@ -4,12 +4,12 @@ import { useCallback, useRef, useState, type JSX } from "react";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Bell } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import NotificationMenu from "@/components/Header/HeaderNotificationMenu";
 import OnlineUserIndicator from "@/components/Header/HeaderOnlineUsers";
 import HeaderRightSkeleton from "@/components/Header/HeaderRightSkeleton";
 import StreakIndicator from "@/components/Header/HeaderStreakIndicator";
 import HeaderUser from "@/components/Header/HeaderUser";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useSession } from "@/components/providers/SessionProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
@@ -18,9 +18,8 @@ export default function HeaderRight(): JSX.Element {
     const bellRef = useRef<HTMLDivElement>(null);
     const session = useSession();
 
-    const notificationCount = useStore(
-        rockIt.notificationManager.unreadCountAtom
-    );
+    const { notificationManager } = useRuntimeServices();
+    const notificationCount = useStore(notificationManager.unreadCountAtom);
     const vocabulary = useVocabulary() as unknown as Record<string, string>;
 
     const closeNotifications = useCallback(

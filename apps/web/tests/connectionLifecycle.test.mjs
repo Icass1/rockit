@@ -361,6 +361,8 @@ function lifecycleFixture(initial = { username: "first" }) {
             },
         },
         userManager: {
+            start() {},
+            stop() {},
             sessionAtom: {
                 subscribe(fn) {
                     listenerCount++;
@@ -500,4 +502,34 @@ test("anonymous or failed startup never opens a socket", async () => {
     assert.equal(failed.sockets.length, 0);
     failed.lifecycle.stop();
     assert.equal(failed.listenerCount(), 0);
+});
+
+test("the socket waits for user startup even when the compatibility runtime has already initialized", async () => {
+    const f = lifecycleFixture();
+    const userStartup = deferred();
+    let starts = 0,
+        stops = 0;
+    f.services.userManager.start = () => {
+        starts++;
+        return userStartup.promise;
+    };
+    f.services.userManager.stop = () => {
+        stops++;
+    };
+    const first = f.lifecycle.start();
+    f.startup.resolve();
+    await flush();
+    assert.equal(starts, 1);
+    assert.equal(f.sockets.length, 0);
+    f.lifecycle.stop();
+    const second = f.lifecycle.start();
+    await flush();
+    assert.equal(starts, 2);
+    assert.equal(stops, 1);
+    assert.equal(f.sockets.length, 0);
+    userStartup.resolve();
+    await Promise.all([first, second]);
+    assert.equal(f.sockets.length, 1);
+    f.lifecycle.stop();
+    assert.equal(stops, 2);
 });

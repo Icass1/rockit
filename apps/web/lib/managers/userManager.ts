@@ -1,5 +1,11 @@
 import type { SessionResponse } from "@/dto";
-import { BaseUserManager, EQueueType, ERepeatMode } from "@rockit/shared";
+import {
+    BaseUserManager,
+    EQueueType,
+    ERepeatMode,
+    EWebSocketMessage,
+} from "@rockit/shared";
+import type { UserSessionServices } from "@/models/interfaces/userSessionServices";
 import { Http } from "@/lib/http";
 import {
     clearSessionOffline,
@@ -15,21 +21,109 @@ import { createAtom, type ReadonlyAtom } from "@/lib/store";
  * touch the web vocabulary and search managers.
  */
 export class UserManager extends BaseUserManager {
+    private _active = false;
+    private _generation = 0;
+    private _accountGeneration = 0;
+    private _sessionRequest = 0;
+    private _initialization?: Promise<void>;
+    private _cacheTask = Promise.resolve();
     private _bootstrapSession?: SessionResponse;
     private _session = createAtom<SessionResponse | null | undefined>();
+
+    constructor(private readonly dependencies?: UserSessionServices) {
+        super();
+    }
+
+    private get services(): UserSessionServices {
+        return (
+            this.dependencies ?? {
+                http: Http,
+                searchManager: rockIt.searchManager,
+                downloaderManager: rockIt.downloaderManager,
+                webSocketManager: rockIt.webSocketManager,
+                queueManager: rockIt.queueManager,
+                sessionCache: {
+                    load: loadSessionOffline,
+                    save: saveSessionOffline,
+                    clear: clearSessionOffline,
+                },
+            }
+        );
+    }
+
+    start(): Promise<void> {
+        if (typeof window === "undefined") return Promise.resolve();
+        if (!this._active) {
+            this._active = true;
+            this.services.webSocketManager.onMessage(
+                EWebSocketMessage.QueueType,
+                this._handleQueueType
+            );
+        }
+        return this.init();
+    }
+
+    stop(): void {
+        if (!this._active) return;
+        this._active = false;
+        this.services.webSocketManager.offMessage(
+            EWebSocketMessage.QueueType,
+            this._handleQueueType
+        );
+        this._generation++;
+        this._sessionRequest++;
+        this._initialization = undefined;
+        this._init = false;
+        this._bootstrapSession = this._session.get() ?? undefined;
+    }
+
+    override init(): Promise<void> {
+        if (!this._initialization) {
+            this._init = true;
+            this._initialization = this.updateAsync();
+        }
+        return this._initialization;
+    }
+
+    protected override _handleQueueType = (data: {
+        queueType: "SORTED" | "RANDOM";
+    }): void => {
+        if (!this._active || !this._session.get()) return;
+        this._queueTypeAtom.set(
+            data.queueType === "RANDOM" ? EQueueType.RANDOM : EQueueType.SORTED
+        );
+        this.services.queueManager.updateQueue();
+    };
+
+    private cacheTask(
+        operation: () => Promise<void>,
+        generation = this._accountGeneration
+    ): Promise<void> {
+        this._cacheTask = this._cacheTask
+            .then(async () => {
+                if (generation === this._accountGeneration) await operation();
+            })
+            .catch(() => {});
+        return this._cacheTask;
+    }
 
     get sessionAtom(): ReadonlyAtom<SessionResponse | null | undefined> {
         return this._session.getReadonlyAtom();
     }
 
     seedSession(session: SessionResponse): void {
-        if (this._init) return;
+        if (this._init || this._session.get() === session) return;
+        this._sessionRequest++;
         this._bootstrapSession = session;
         this.applySession(session);
         this._sessionReady.set(true);
     }
 
     private applySession(session: SessionResponse): void {
+        if (this._session.get()?.username !== session.username) {
+            this._generation++;
+            this._accountGeneration++;
+        }
         this._queueTypeAtom.set(EQueueType[session.queueType]);
         this._repeatModeAtom.set(ERepeatMode[session.repeatMode]);
         this._image.set(session.image);
@@ -39,7 +133,8 @@ export class UserManager extends BaseUserManager {
         this._loggedIn.set(true);
         this._showListeningHeatmap.set(session.showListeningHeatmap);
         this._session.set(session);
-        saveSessionOffline(session).catch(() => {});
+        this._sessionReady.set(true);
+        void this.cacheTask(() => this.services.sessionCache.save(session));
     }
 
     private _showListeningHeatmap = createAtom(true);
@@ -48,34 +143,69 @@ export class UserManager extends BaseUserManager {
         return this._sessionReady.getReadonlyAtom();
     }
 
-    async updateAsync(): Promise<void> {
+    override async updateAsync(): Promise<void> {
+        const generation = this._generation;
+        const request = ++this._sessionRequest;
+        const isCurrent = (): boolean =>
+            generation === this._generation && request === this._sessionRequest;
         try {
             if (this._bootstrapSession) {
-                const session = this._bootstrapSession;
                 this._bootstrapSession = undefined;
-                this.applySession(session);
                 return;
             }
-            const response = await Http.getSession();
+            const response = await this.services.http.getSession();
+            if (!isCurrent()) return;
             if (response.isOk()) {
                 this.applySession(response.result);
                 return;
             }
-            if (response.code !== 401) {
-                const cached = await loadSessionOffline();
-                if (cached) {
-                    this.applySession(cached);
-                    return;
-                }
-            }
-            this._session.set(null);
-            this._loggedIn.set(false);
-            rockIt.webSocketManager.disconnect();
+            if (
+                response.code !== 401 &&
+                (await this.restoreCachedSession(isCurrent))
+            )
+                return;
+            if (!isCurrent()) return;
+            this.clearSession();
             if (response.code === 401)
-                await clearSessionOffline().catch(() => {});
+                await this.cacheTask(() => this.services.sessionCache.clear());
+        } catch (error) {
+            if (!isCurrent()) return;
+            console.error("Cannot refresh session", error);
+            if (await this.restoreCachedSession(isCurrent)) return;
+            if (isCurrent()) this.clearSession();
         } finally {
-            this._sessionReady.set(true);
+            if (request === this._sessionRequest) this._sessionReady.set(true);
         }
+    }
+
+    private async restoreCachedSession(
+        isCurrent: () => boolean
+    ): Promise<boolean> {
+        const cached = await this.services.sessionCache
+            .load()
+            .catch(() => undefined);
+        if (!isCurrent()) return false;
+        const username = this._session.get()?.username;
+        if (!cached || (username && cached.username !== username)) return false;
+        this.applySession(cached);
+        return true;
+    }
+
+    private clearSession(): void {
+        this._generation++;
+        this._accountGeneration++;
+        this._bootstrapSession = undefined;
+        this._queueTypeAtom.set(EQueueType.SORTED);
+        this._repeatModeAtom.set(ERepeatMode.OFF);
+        this._image.set("");
+        this._admin.set(false);
+        this._username.set("");
+        this._currentTimeMs.set(null);
+        this._showListeningHeatmap.set(true);
+        this._loggedIn.set(false);
+        this._session.set(null);
+        this._sessionReady.set(true);
+        this.services.webSocketManager.disconnect();
     }
 
     async uploadProfileImageAsync(file: File): Promise<boolean> {
@@ -182,20 +312,25 @@ export class UserManager extends BaseUserManager {
     }
 
     async signOut(): Promise<void> {
-        const response = await Http.logoutUser();
-        if (response.isOk()) {
-            rockIt.searchManager.clearResults();
-            rockIt.downloaderManager.reset();
-            await clearSessionOffline().catch(() => {});
-            this._session.set(null);
-            this._loggedIn.set(false);
-            rockIt.webSocketManager.disconnect();
-        } else {
-            console.error(
-                "Error logging out",
-                response.message,
-                response.detail
-            );
+        const generation = this._generation;
+        try {
+            const response = await this.services.http.logoutUser();
+            if (generation !== this._generation) return;
+            if (!response.isOk()) {
+                console.error(
+                    "Error logging out",
+                    response.message,
+                    response.detail
+                );
+                return;
+            }
+            this.clearSession();
+            this.services.searchManager.clearResults();
+            this.services.downloaderManager.reset();
+            await this.cacheTask(() => this.services.sessionCache.clear());
+        } catch (error) {
+            if (generation === this._generation)
+                console.error("Cannot log out", error);
         }
     }
 }

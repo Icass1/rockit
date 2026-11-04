@@ -8,12 +8,14 @@ import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import { APP_VERSION } from "@/lib/version";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import Popover from "@/components/ui/Popover";
 
 export default function HeaderUser(): JSX.Element {
     const router = useRouter();
+    const { userManager } = useRuntimeServices();
     const { username: $username, image: $image } = useSettingsUser();
     const $vocabulary = useVocabulary();
     const $networkStatus = useStore(networkStatus);
@@ -24,8 +26,8 @@ export default function HeaderUser(): JSX.Element {
 
     const handleLogOut = async (): Promise<void> => {
         if ($networkStatus === "offline") return;
-        await rockIt.userManager.signOut();
-        if (!rockIt.userManager.loggedInAtom.get()) router.push("/login");
+        await userManager.signOut();
+        if (!userManager.loggedInAtom.get()) router.push("/login");
     };
 
     return (

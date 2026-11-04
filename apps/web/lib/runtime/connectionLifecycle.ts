@@ -22,17 +22,20 @@ export class ConnectionLifecycle {
                 if (this.ready && username)
                     this.services.webSocketManager.start();
             });
+        const userStartup = this.services.userManager.start();
         this.services.notificationManager.start();
         this.services.friendManager.start();
         this.services.sharingManager.start();
         this.services.listenTogetherManager.start();
-        this.startup = this.services.init().then(() => {
-            if (generation !== this.generation) return;
-            this.services.bookmarkManager.start();
-            this.services.navigationPinsManager.start();
-            this.ready = true;
-            if (this.username) this.services.webSocketManager.start();
-        });
+        this.startup = Promise.all([userStartup, this.services.init()]).then(
+            () => {
+                if (generation !== this.generation) return;
+                this.services.bookmarkManager.start();
+                this.services.navigationPinsManager.start();
+                this.ready = true;
+                if (this.username) this.services.webSocketManager.start();
+            }
+        );
         return this.startup;
     }
 
@@ -44,6 +47,7 @@ export class ConnectionLifecycle {
         this.username = undefined;
         this.startup = undefined;
         this.services.webSocketManager.stop();
+        this.services.userManager.stop();
         this.services.listenTogetherManager.stop();
         this.services.sharingManager.stop();
         this.services.friendManager.stop();

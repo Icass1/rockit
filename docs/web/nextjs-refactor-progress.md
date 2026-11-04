@@ -37,6 +37,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own sharing subscriptions, scope inbox/composer consumers and guard stale playback/mutations.
     - [x] Own listen-together subscriptions/heartbeat, scope its consumers and guard stale consent/playback/restoration.
     - [x] Own saved-volume restoration, subscriptions and debounced writes in the playback provider.
+    - [x] Own user queue-type subscriptions, scope logout consumers and guard session reads/logout/cache ordering.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -462,12 +463,50 @@ replacement, stale-save cancellation, logout and unmount subscription cleanup,
 with no browser errors. These checks do not establish real audio, native iOS,
 complete account reset or offline acceptance.
 
+### Shell-owned user session and scoped logout — 4 November 2026
+
+UserManager has injectable session transport/cache, queue, socket and logout-reset
+services. The shell registers/removes its queue-type handler and waits for user
+startup before connecting, including when compatibility startup already completed.
+Initialization reuses the server session without another GET or rewriting it to
+the cache. Strict Mode restart balances the handler, retains established state,
+and permits fresh initialization when a previous startup read was cancelled.
+Header and settings logout controls consume the scoped runtime user service.
+
+Session reads use request revisions and lifecycle/account generations. Older
+successes, 401s, transport failures, offline reads and finalizers cannot replace a
+newer session or a restarted shell. Offline fallback rejects a different account's
+cached session during refresh. Expiry/logout clear user identity, profile,
+privileges, playback preferences and session state immediately. Logout invalidates
+pending refreshes before awaiting cache cleanup, and an old logout cannot clear a
+replacement account's feature state. Cache writes and clears are serialized and
+account-scoped; logout clearing survives unmount and finishes after an old save,
+while a newer account's queued save follows any already-running clear.
+
+Checks: all 25 focused user-session/connection tests passed, including ten new
+user-session tests and a user-startup connection gate. Web typecheck/lint, explicit
+changed-module lint, formatting, production build and production HTTP SSR smoke
+passed. The full web suite passed 182 of 184 tests with the same two documented
+adaptive-transition failures. The existing crane GIF precache warning remains.
+Pinned pnpm used temporary PNPM_HOME/XDG_DATA_HOME paths.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 with the actual runtime,
+playback and session providers, UserManager, WebSocketManager, header user menu
+and settings logout button, using injected HTTP/cache/playback targets. They
+verified Strict Mode, server-session reuse, live queue-type messages without
+duplicate handlers, stable rerenders, stale logout/refresh rejection, account
+replacement, logout cache clearing and unmount cleanup, without browser errors.
+Profile/settings/language mutation guards and consumers remain a separate step;
+complete application account reset, real audio, native and offline entry acceptance
+remain pending.
+
 ## Current work
 
 The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
 notification, friend, sharing, listen-together and volume increments are implemented
-and checked. Next runtime work is lifecycle ownership of user session/queue-type
-subscriptions and session request guards, then queue/player, downloads, playlists and library,
+and checked. User session/queue-type ownership and session read/logout guards are
+also implemented. Next runtime work is user profile/settings/language mutation
+guards and scoped consumers, then queue/player, downloads, playlists and library,
 generation guards for their asynchronous work and complete account reset. The
 compatibility runtime still initializes those other managers once; the connection
 lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing/

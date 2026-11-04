@@ -35,6 +35,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own notification subscriptions, scope header consumers and guard stale inbox/navigation work.
     - [x] Own friend subscriptions, scope social consumers and guard stale reads/mutations.
     - [x] Own sharing subscriptions, scope inbox/composer consumers and guard stale playback/mutations.
+    - [x] Own listen-together subscriptions/heartbeat, scope its consumers and guard stale consent/playback/restoration.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -393,16 +394,51 @@ Playback command targets, peripheral listen-together/activity UI and CSS were
 stubbed. Real audio, visual/accessibility-device verification, complete application
 account reset and offline behavior remain pending.
 
+### Shell-owned listen-together and scoped controls — 4 November 2026
+
+ListenTogetherManager now accepts injected session/socket/playback/feedback services.
+The persistent shell owns its session and playback subscriptions, socket handler,
+visibility listener and heartbeat timer before legacy startup completes. Start/stop
+are balanced and idempotent. Metadata updates retain guest consent; account
+replacement, logout and same-account restarts clear it and discard the old queue
+snapshot without restoring another account's queue. Guests still explicitly join;
+snapshots and heartbeats do not poll session history or autojoin invitations.
+
+Lifecycle generations reject stale invites/joins/leaves, sync completions, media
+loads and restoration seeks. Old finalizers cannot release a replacement request's
+loading/sync state. New snapshots supersede pending playback; repeated empty
+snapshots preserve a pending valid restoration. Normal leave/termination restores
+the saved queue and position, while stale-host pause and expiry remain intact.
+The session panel and invitation controls consume runtime Context; player controls
+and session identity use their scoped providers.
+
+Checks: all 46 focused listen-together, connection, sharing and friend tests passed,
+including seven new lifecycle/race cases. The final 13 listen-together tests passed
+after the repeated-empty-snapshot restoration fix. Web typecheck and lint, explicit
+lint of changed runtime/manager/model/test modules, formatting, production build
+and production HTTP SSR smoke passed. The full web suite passed 163 of 165 tests
+with the same two documented adaptive-transition failures. The existing crane GIF
+precache warning remains. Pinned pnpm used temporary PNPM_HOME/XDG_DATA_HOME paths.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 with the actual provider,
+ListenTogetherManager, WebSocketManager, session panel and invitation UI. They
+verified Strict Mode, invites during deferred startup, explicit guest consent,
+play/pause commands, stable rerenders, queue/position restoration, account round
+trips, stale playback cancellation and logout/unmount subscription/timer cleanup,
+without browser errors. Playback targets, session/playback provider hooks and CSS
+were fixture adapters. Real audio/queue progression, visual/device accessibility,
+complete application account reset and offline behavior remain pending.
+
 ## Current work
 
 The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
-notification, friend and sharing increments are implemented and checked. Next runtime
-work is lifecycle ownership of listen-together, then the remaining legacy
-manager subscriptions (user/volume, queue/player, downloads, playlists and library),
+notification, friend, sharing and listen-together increments are implemented and
+checked. Next runtime work is lifecycle ownership of user volume preferences,
+then user session requests, queue/player, downloads, playlists and library,
 generation guards for their asynchronous work and complete account reset. The
 compatibility runtime still initializes those other managers once; the connection
-lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing
-integrations.
+lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing/
+listen-together integrations.
 Full application browser verification of playback/navigation, popups, language
 switching and offline entry remains pending, followed by the Library pagination/query
 stages. Remaining routes and UI migrations are tracked above. Parent stages stay

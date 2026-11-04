@@ -1,5 +1,6 @@
 import type { BookmarkManager } from "@/lib/managers/bookmarkManager";
 import type { FriendManager } from "@/lib/managers/friendManager";
+import type { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
 import type { NavigationPinsManager } from "@/lib/managers/navigationPinsManager";
 import type { NotificationManager } from "@/lib/managers/notificationManager";
 import type { SharingManager } from "@/lib/managers/sharingManager";
@@ -11,6 +12,7 @@ export interface RuntimeServices {
     init(): Promise<void>;
     friendManager: FriendManager;
     sharingManager: SharingManager;
+    listenTogetherManager: ListenTogetherManager;
     userManager: Pick<UserManager, "sessionAtom" | "seedSession">;
     webSocketManager: Pick<WebSocketManager, "start" | "stop">;
     notificationManager: Pick<

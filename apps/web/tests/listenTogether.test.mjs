@@ -93,7 +93,9 @@ function setup(username = "guest") {
             return ok();
         },
     };
-    const intervals = [];
+    const intervals = new Map();
+    const listeners = new Set();
+    let timerId = 0;
     const errors = [];
     let now = Date.now();
     class Clock extends Date {
@@ -107,18 +109,23 @@ function setup(username = "guest") {
         Date: Clock,
         process: { env: {} },
         console: { error: (...args) => errors.push(args) },
-        window: {
-            setInterval: (fn) => intervals.push(fn),
-            addEventListener() {},
+        setInterval: (fn) => {
+            const id = ++timerId;
+            intervals.set(id, fn);
+            return id;
         },
-        document: { addEventListener() {} },
+        clearInterval: (id) => intervals.delete(id),
+        window: {},
+        document: {
+            addEventListener: (_event, fn) => listeners.add(fn),
+            removeEventListener: (_event, fn) => listeners.delete(fn),
+        },
     });
     vm.runInContext(outputFiles[0].text, context);
     const { createAtom, WebSocketManager, ListenTogetherManager } =
         context.module;
     rockIt.userManager = {
-        loggedInAtom: createAtom(true),
-        usernameAtom: createAtom(username),
+        sessionAtom: createAtom({ username }),
     };
     rockIt.mediaPlayerManager = {
         playingAtom: createAtom(false),
@@ -127,7 +134,10 @@ function setup(username = "guest") {
         isPlaybackOwner: true,
         pause: () => calls.pauses++,
         play: () => calls.plays++,
-        setCurrentTime() {},
+        setCurrentTime(time) {
+            calls.seeks ??= [];
+            calls.seeks.push(time);
+        },
         setMedia: async () => {},
     };
     rockIt.queueManager = {
@@ -136,8 +146,14 @@ function setup(username = "guest") {
         restoreListeningQueue: () => calls.restores++,
     };
     rockIt.webSocketManager = new WebSocketManager();
-    const manager = new ListenTogetherManager();
-    manager.init();
+    rockIt.notificationManager = {
+        notifyError: (message) => errors.push(message),
+    };
+    rockIt.vocabularyManager = {
+        vocabulary: { FRIENDS_SESSION_ERROR: "session error" },
+    };
+    const manager = new ListenTogetherManager(rockIt);
+    manager.start();
     const receive = (sessions) =>
         rockIt.webSocketManager._onMessageHandler({
             data: JSON.stringify({ type: "listen_together_sync", sessions }),
@@ -147,7 +163,17 @@ function setup(username = "guest") {
         intervals.forEach((fn) => fn());
         await flush();
     };
-    return { manager, rockIt, calls, receive, tick, http, errors };
+    return {
+        manager,
+        rockIt,
+        calls,
+        receive,
+        tick,
+        http,
+        errors,
+        intervals,
+        listeners,
+    };
 }
 
 test("initial and reconnect snapshots update sessions without periodic GETs or guest autoplay", async () => {
@@ -211,7 +237,7 @@ test("malformed session messages cannot replace validated state and logout ignor
     receive([{ publicId: "invalid" }]);
     assert.equal(errors.length, 1);
     assert.equal(manager.sessionsAtom.get()[0].publicId, "session");
-    rockIt.userManager.loggedInAtom.set(false);
+    rockIt.userManager.sessionAtom.set(null);
     receive([session()]);
     assert.equal(manager.sessionsAtom.get().length, 0);
 });
@@ -241,4 +267,197 @@ test("a newer snapshot supersedes playback that is still loading", async () => {
     assert.equal(calls.plays, 0);
     assert.equal(calls.pauses, 2);
     assert.equal(manager.activeSessionAtom.get().isPlaying, false);
+});
+
+function deferred() {
+    let resolve, reject;
+    const promise = new Promise((yes, no) => {
+        resolve = yes;
+        reject = no;
+    });
+    return { promise, resolve, reject };
+}
+
+test("start/stop balance the heartbeat, visibility, session, playback and socket listeners", async () => {
+    const f = setup();
+    const atoms = [
+        f.rockIt.userManager.sessionAtom,
+        f.rockIt.mediaPlayerManager.playingAtom,
+        f.rockIt.mediaPlayerManager.currentTimeAtom,
+        f.rockIt.queueManager.currentMediaAtom,
+    ];
+    f.manager.start();
+    assert.equal(f.intervals.size, 1);
+    assert.equal(f.listeners.size, 1);
+    for (const atom of atoms) assert.equal(atom.lc, 1);
+    f.manager.stop();
+    f.manager.stop();
+    assert.equal(f.intervals.size, 0);
+    assert.equal(f.listeners.size, 0);
+    for (const atom of atoms) assert.equal(atom.lc, 0);
+    f.receive([session()]);
+    assert.equal(f.manager.sessionsAtom.get().length, 0);
+    assert.equal(await f.manager.join("session"), false);
+    f.manager.start();
+    f.receive([session()]);
+    assert.equal(f.manager.sessionsAtom.get().length, 1);
+    assert.equal(f.intervals.size, 1);
+    assert.equal(f.listeners.size, 1);
+    for (const atom of atoms) assert.equal(atom.lc, 1);
+    f.manager.stop();
+});
+
+test("metadata retains consent but account round trips discard guest queues without restoring them", async () => {
+    const f = setup();
+    f.receive([session()]);
+    await f.manager.join("session");
+    f.rockIt.userManager.sessionAtom.set({
+        username: "guest",
+        image: "updated",
+    });
+    assert.equal(f.manager.activeSessionAtom.get().publicId, "session");
+    for (const username of ["replacement", "guest"]) {
+        f.rockIt.userManager.sessionAtom.set({ username });
+        assert.equal(f.manager.sessionsAtom.get().length, 0);
+        assert.equal(f.manager.activeSessionAtom.get(), null);
+    }
+    f.receive([session()]);
+    assert.equal(f.manager.activeSessionAtom.get(), null);
+    assert.equal(f.calls.restores, 0);
+    f.manager.stop();
+});
+
+test("old mutations cannot join, restore, report errors or release a new account's loading state", async () => {
+    for (const method of ["invite", "join", "leave"])
+        for (const reject of [true, false]) {
+            const f = setup();
+            const old = deferred(),
+                current = deferred();
+            const endpoint = {
+                invite: "inviteToSession",
+                join: "joinSession",
+                leave: "leaveSession",
+            }[method];
+            f.http[endpoint] = () => old.promise;
+            const pending = f.manager[method]("session");
+            f.manager.stop();
+            f.manager.start();
+            f.http.joinSession = () => current.promise;
+            const fresh = f.manager.join("current");
+            if (reject) old.reject(new Error("old failure"));
+            else old.resolve(ok());
+            assert.equal(await pending, false);
+            assert.equal(f.manager.loadingAtom.get(), true);
+            assert.equal(f.manager.activeSessionAtom.get(), null);
+            assert.equal(f.calls.restores, 0);
+            assert.equal(f.errors.length, 0);
+            current.resolve(ok());
+            assert.equal(await fresh, true);
+            assert.equal(f.manager.loadingAtom.get(), false);
+            f.manager.stop();
+        }
+});
+
+test("old host sync completion cannot unlock or throttle replacement lifecycle heartbeats", async () => {
+    const f = setup("host");
+    const old = deferred(),
+        current = deferred();
+    f.http.syncSession = () => {
+        f.calls.syncs.push("old");
+        return old.promise;
+    };
+    f.receive([session()]);
+    f.manager.stop();
+    f.manager.start();
+    f.http.syncSession = () => {
+        f.calls.syncs.push("current");
+        return current.promise;
+    };
+    f.receive([session()]);
+    old.resolve(ok());
+    await flush();
+    await f.tick(5000);
+    assert.equal(f.calls.syncs.length, 2);
+    current.resolve(ok());
+    await flush();
+    await f.tick(5000);
+    assert.equal(f.calls.syncs.length, 3);
+    f.manager.stop();
+});
+
+test("late guest media loads cannot play or seek after account replacement or a same-account restart", async () => {
+    for (const restart of [true, false]) {
+        const f = setup();
+        const load = deferred();
+        f.rockIt.mediaPlayerManager.setMedia = () => load.promise;
+        f.rockIt.queueManager.setMedia = (medias) => {
+            f.rockIt.queueManager.currentMedia = medias[0];
+        };
+        f.rockIt.queueManager.moveToMedia = () => {};
+        await f.manager.join("session");
+        f.receive([
+            session({ currentMedia: { media: station }, currentTimeMs: 9000 }),
+        ]);
+        if (restart) {
+            f.manager.stop();
+            f.manager.start();
+        } else
+            f.rockIt.userManager.sessionAtom.set({ username: "replacement" });
+        load.resolve();
+        await flush();
+        assert.equal(f.calls.plays, 0);
+        assert.equal(f.calls.seeks, undefined);
+        assert.equal(f.calls.restores, 0);
+        assert.equal(f.manager.activeSessionAtom.get(), null);
+        f.manager.stop();
+    }
+});
+
+test("queue restoration seeks only while the original lifecycle and consent remain current", async () => {
+    for (const interrupt of ["none", "account", "join", "stop"]) {
+        const f = setup();
+        f.rockIt.queueManager.currentMedia = station;
+        f.rockIt.queueManager.captureListeningQueue = () => ({
+            currentQueueMediaId: 1,
+            time: 42,
+        });
+        await f.manager.join("session");
+        f.receive([session({ currentMedia: { media: station } })]);
+        await flush();
+        const load = deferred();
+        f.rockIt.mediaPlayerManager.setMedia = () => load.promise;
+        f.receive([]);
+        f.receive([]);
+        if (interrupt === "account")
+            f.rockIt.userManager.sessionAtom.set({ username: "replacement" });
+        if (interrupt === "join") await f.manager.join("another-session");
+        if (interrupt === "stop") f.manager.stop();
+        load.resolve();
+        await flush();
+        assert.deepEqual(f.calls.seeks ?? [], interrupt === "none" ? [42] : []);
+        assert.equal(f.calls.restores, 1);
+        f.manager.stop();
+    }
+});
+
+test("failed leave retains consent and all live action failures use localized feedback", async () => {
+    for (const method of ["invite", "join", "leave"]) {
+        const f = setup();
+        await f.manager.join("session");
+        f.receive([session()]);
+        const endpoint = {
+            invite: "inviteToSession",
+            join: "joinSession",
+            leave: "leaveSession",
+        }[method];
+        f.http[endpoint] = async () => ({
+            isOk: () => false,
+            detail: "failed",
+        });
+        assert.equal(await f.manager[method]("session"), false);
+        assert.equal(f.manager.activeSessionAtom.get().publicId, "session");
+        assert.equal(f.errors.at(-1), "session error");
+        assert.equal(f.manager.loadingAtom.get(), false);
+        f.manager.stop();
+    }
 });

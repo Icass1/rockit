@@ -3,7 +3,7 @@
 import { type JSX } from "react";
 import Image from "next/image";
 import type { Friend } from "@/models/interfaces";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function Waveform(): JSX.Element {
@@ -40,6 +40,7 @@ export default function LivePulseBanner({
 }: {
     friends: Friend[];
 }): JSX.Element {
+    const { listenTogetherManager } = useRuntimeServices();
     const v = useVocabulary();
     const online = friends.filter((f) => f.isOnline);
     const live = online.slice(0, 10);
@@ -63,9 +64,7 @@ export default function LivePulseBanner({
                 <button
                     key={friend.publicId}
                     onClick={() => {
-                        void rockIt.listenTogetherManager.invite(
-                            friend.publicId
-                        );
+                        void listenTogetherManager.invite(friend.publicId);
                     }}
                     className="flex shrink-0 flex-col items-center gap-1.5 outline-none"
                     title={

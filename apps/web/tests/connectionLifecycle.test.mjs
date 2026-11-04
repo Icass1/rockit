@@ -298,7 +298,18 @@ function lifecycleFixture(initial = { username: "first" }) {
     const notifications = { starts: 0, stops: 0, active: false };
     const friends = { starts: 0, stops: 0, active: false };
     const sharing = { starts: 0, stops: 0, active: false };
+    const listening = { starts: 0, stops: 0, active: false };
     const services = {
+        listenTogetherManager: {
+            start() {
+                listening.starts++;
+                listening.active = true;
+            },
+            stop() {
+                listening.stops++;
+                listening.active = false;
+            },
+        },
         sharingManager: {
             start() {
                 sharing.starts++;
@@ -374,6 +385,7 @@ function lifecycleFixture(initial = { username: "first" }) {
         notifications,
         friends,
         sharing,
+        listening,
         lifecycle: new fixture.ConnectionLifecycle(services),
         listenerCount: () => listenerCount,
     };
@@ -407,11 +419,13 @@ test("shell owns friend, sharing, notification, bookmark and pin startup and cle
             notifications,
             friends,
             sharing,
+            listening,
         } = lifecycleFixture();
         const first = lifecycle.start();
         assert.equal(notifications.starts, 1);
         assert.equal(friends.starts, 1);
         assert.equal(sharing.starts, 1);
+        assert.equal(listening.starts, 1);
         assert.equal(bookmarks.starts, 0);
         assert.equal(pins.starts, 0);
         lifecycle.stop();
@@ -422,6 +436,8 @@ test("shell owns friend, sharing, notification, bookmark and pin startup and cle
         assert.equal(notifications.active, restart);
         assert.equal(friends.active, restart);
         assert.equal(sharing.active, restart);
+        assert.equal(listening.active, restart);
+        assert.equal(listening.starts, restart ? 2 : 1);
         assert.equal(sharing.starts, restart ? 2 : 1);
         assert.equal(friends.starts, restart ? 2 : 1);
         assert.equal(bookmarks.starts, restart ? 1 : 0);

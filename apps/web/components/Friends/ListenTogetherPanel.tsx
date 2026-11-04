@@ -4,9 +4,10 @@ import { type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Headphones, LogOut, Pause, Play } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import { useSession } from "@/components/providers/SessionProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function ListenTogetherPanel({
@@ -14,14 +15,15 @@ export default function ListenTogetherPanel({
 }: {
     compact?: boolean;
 }): JSX.Element {
-    const { friendManager } = useRuntimeServices();
-    const sessions = useStore(rockIt.listenTogetherManager.sessionsAtom);
-    const active = useStore(rockIt.listenTogetherManager.activeSessionAtom);
-    const loading = useStore(rockIt.listenTogetherManager.loadingAtom);
+    const { friendManager, listenTogetherManager } = useRuntimeServices();
+    const { mediaPlayerManager } = usePlaybackServices();
+    const sessions = useStore(listenTogetherManager.sessionsAtom);
+    const active = useStore(listenTogetherManager.activeSessionAtom);
+    const loading = useStore(listenTogetherManager.loadingAtom);
     const friends = useStore(friendManager.friendsAtom);
-    const username = useStore(rockIt.userManager.usernameAtom);
+    const username = useSession()?.username;
     const v = useVocabulary();
-    const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const playing = useStore(mediaPlayerManager.playingAtom);
     if (active) {
         const isHost = active.hostUsername === username;
         return (
@@ -59,7 +61,7 @@ export default function ListenTogetherPanel({
                                 aria-label={playing ? v.PAUSE : v.PLAY}
                                 disabled={!isHost && !active.isPlaying}
                                 onClick={() => {
-                                    rockIt.mediaPlayerManager.togglePlayPause();
+                                    mediaPlayerManager.togglePlayPause();
                                 }}
                                 className={styles.play}
                             >
@@ -73,7 +75,7 @@ export default function ListenTogetherPanel({
                         <button
                             disabled={loading}
                             onClick={() => {
-                                void rockIt.listenTogetherManager.leave(
+                                void listenTogetherManager.leave(
                                     active.publicId
                                 );
                             }}
@@ -98,9 +100,7 @@ export default function ListenTogetherPanel({
                     <button
                         disabled={loading}
                         onClick={() => {
-                            void rockIt.listenTogetherManager.join(
-                                session.publicId
-                            );
+                            void listenTogetherManager.join(session.publicId);
                         }}
                         className={styles.joinSession}
                     >
@@ -109,9 +109,7 @@ export default function ListenTogetherPanel({
                     <button
                         disabled={loading}
                         onClick={() => {
-                            void rockIt.listenTogetherManager.leave(
-                                session.publicId
-                            );
+                            void listenTogetherManager.leave(session.publicId);
                         }}
                         className="text-sm text-neutral-400"
                     >
@@ -144,7 +142,7 @@ export default function ListenTogetherPanel({
                                 key={friend.publicId}
                                 disabled={loading}
                                 onClick={() => {
-                                    void rockIt.listenTogetherManager.invite(
+                                    void listenTogetherManager.invite(
                                         friend.publicId
                                     );
                                 }}

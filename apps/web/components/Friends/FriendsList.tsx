@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Headphones, MoreHorizontal, Search, UserPlus, X } from "lucide-react";
 import type { Friend } from "@/models/interfaces";
-import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
@@ -46,7 +45,7 @@ export default function FriendsList({
 }: {
     friends: Friend[];
 }): JSX.Element {
-    const { friendManager } = useRuntimeServices();
+    const { friendManager, listenTogetherManager } = useRuntimeServices();
     const blocked = useStore(friendManager.blockedAtom);
     const v = useVocabulary();
     const results = useStore(friendManager.searchResultsAtom);
@@ -210,7 +209,7 @@ export default function FriendsList({
                                         aria-label={`${v.FRIENDS_INVITE}: ${friend.username}`}
                                         onClick={() => {
                                             void run(friend.publicId, () =>
-                                                rockIt.listenTogetherManager.invite(
+                                                listenTogetherManager.invite(
                                                     friend.publicId
                                                 )
                                             );

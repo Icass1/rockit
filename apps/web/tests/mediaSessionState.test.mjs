@@ -30,6 +30,10 @@ function atom(initial) {
             value = next;
             for (const fn of listeners) fn(value);
         },
+        listen(fn) {
+            listeners.add(fn);
+            return () => listeners.delete(fn);
+        },
         subscribe(fn) {
             listeners.add(fn);
             fn(value);
@@ -107,6 +111,7 @@ function setup({
     const sessionAtom = atom(sessionSnapshot);
     const player = {
         playingAtom,
+        volumeAtom: atom(1),
         currentTimeAtom,
         currentTime: 0,
         play: () => transport.play++,
@@ -129,6 +134,8 @@ function setup({
     };
     const context = vm.createContext({
         process: { env: {} },
+        setTimeout,
+        clearTimeout,
         window: {},
         document,
         navigator: supported
@@ -364,7 +371,7 @@ test("lifecycle waits for a session and balances Strict Mode setup cleanup setup
     e.sessionAtom.set(undefined);
     e.lifecycle.start();
     e.lifecycle.start();
-    assert.equal(e.sessionAtom.listenerCount, 1);
+    assert.equal(e.sessionAtom.listenerCount, 2);
     assert.equal(e.currentMedia.listenerCount, 0);
     e.sessionAtom.set({ username: "fixture" });
     assert.equal(e.currentMedia.listenerCount, 1);
@@ -376,7 +383,7 @@ test("lifecycle waits for a session and balances Strict Mode setup cleanup setup
     for (const listeners of e.documentListeners.values())
         assert.equal(listeners.size, 0);
     e.lifecycle.start();
-    assert.equal(e.sessionAtom.listenerCount, 1);
+    assert.equal(e.sessionAtom.listenerCount, 2);
     assert.equal(e.currentMedia.listenerCount, 1);
     assert.equal(e.session.metadata.title, "first");
     assertTransportUntouched(e);

@@ -36,6 +36,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own friend subscriptions, scope social consumers and guard stale reads/mutations.
     - [x] Own sharing subscriptions, scope inbox/composer consumers and guard stale playback/mutations.
     - [x] Own listen-together subscriptions/heartbeat, scope its consumers and guard stale consent/playback/restoration.
+    - [x] Own saved-volume restoration, subscriptions and debounced writes in the playback provider.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -429,12 +430,44 @@ without browser errors. Playback targets, session/playback provider hooks and CS
 were fixture adapters. Real audio/queue progression, visual/device accessibility,
 complete application account reset and offline behavior remain pending.
 
+### Playback-owned volume preference lifecycle — 4 November 2026
+
+Moved saved-volume restoration and the volume-change subscription/debounce timer
+from one-time UserManager startup into an injectable VolumePreferenceLifecycle
+owned by PlaybackProvider. Construction is inert; repeated setup/cleanup balances
+both session and volume subscriptions. Account replacement and logout cancel
+queued writes and invalidate in-flight completion. Stale finalizers cannot unlock
+or drain a replacement account's pending save. Existing debounce/coalescing,
+transport-failure recovery, invalid-value fallback and iOS fixed-volume behavior
+are preserved.
+
+Session metadata and same-account lifecycle restarts retain the active volume;
+new account identities restore their saved preferences. Restored values are not
+written back as user edits, including when Nanostores defers a volume callback
+until after the session subscriber returns. Logout observed during a shell restart
+also clears restoration identity before the next same-account login.
+
+Checks: all 36 focused volume, native lifecycle and server-rendering tests passed,
+including eight new volume tests. Web typecheck/lint, explicit changed-module lint,
+formatting, production build and production HTTP SSR smoke passed. The full web
+suite passed 171 of 173 tests with the same two documented adaptive-transition
+failures. The existing crane GIF precache warning remains. Pinned pnpm used
+temporary PNPM_HOME/XDG_DATA_HOME paths.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 with the actual playback
+provider, player/keyboard hooks, queue provider and volume slider, using injected
+playback targets and HTTP responses. They exercised Strict Mode, volume restore
+and edit/save, stable navigation/rerenders, metadata retention, account preference
+replacement, stale-save cancellation, logout and unmount subscription cleanup,
+with no browser errors. These checks do not establish real audio, native iOS,
+complete account reset or offline acceptance.
+
 ## Current work
 
 The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
-notification, friend, sharing and listen-together increments are implemented and
-checked. Next runtime work is lifecycle ownership of user volume preferences,
-then user session requests, queue/player, downloads, playlists and library,
+notification, friend, sharing, listen-together and volume increments are implemented
+and checked. Next runtime work is lifecycle ownership of user session/queue-type
+subscriptions and session request guards, then queue/player, downloads, playlists and library,
 generation guards for their asynchronous work and complete account reset. The
 compatibility runtime still initializes those other managers once; the connection
 lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing/

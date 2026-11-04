@@ -1,18 +1,22 @@
 import type { PlaybackServices } from "@/models/interfaces/playbackServices";
 import { MediaSessionManager } from "@/lib/managers/mediaSessionManager";
+import { VolumePreferenceLifecycle } from "@/lib/runtime/volumePreferenceLifecycle";
 
 /** Owns native playback reporting and gesture listeners for one mounted shell. */
 export class PlaybackLifecycle {
     private readonly mediaSession: MediaSessionManager;
+    private readonly volume: VolumePreferenceLifecycle;
     private unsubscribeSession?: () => void;
     private active = false;
 
     constructor(private readonly services: PlaybackServices) {
         this.mediaSession = new MediaSessionManager(services);
+        this.volume = new VolumePreferenceLifecycle(services);
     }
 
     start(): void {
         if (this.unsubscribeSession || typeof document === "undefined") return;
+        this.volume.start();
         this.unsubscribeSession =
             this.services.userManager.sessionAtom.subscribe((session) => {
                 if (session) this.activate();
@@ -24,6 +28,7 @@ export class PlaybackLifecycle {
     }
 
     stop(): void {
+        this.volume.stop();
         this.unsubscribeSession?.();
         this.unsubscribeSession = undefined;
         this.deactivate();

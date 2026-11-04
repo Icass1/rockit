@@ -608,23 +608,35 @@ remaining runtime acceptance stays open.
 
 ## Current work
 
-The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
-notification, friend, sharing, listen-together and volume increments are implemented
-and checked. User session/queue-type ownership and session read/logout guards are
-also implemented, along with guarded profile/settings/language mutations and their
-active scoped consumers. Web player browser-listener ownership is also implemented.
-Shared player socket/visibility ownership is also implemented. Next runtime work
-is queue subscriptions and stale queue/source-loading work, then downloads, playlists
-and library,
-generation guards for their asynchronous work and complete account reset. The
-compatibility runtime still initializes those other managers once; the connection
-lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing/
-listen-together integrations.
-Full application browser verification of playback/navigation, popups, language
-switching and offline entry remains pending, followed by the Library pagination/query
-stages. Remaining routes and UI migrations are tracked above. Parent stages stay
-unchecked until their complete acceptance gates pass; the entire refactor is not
-complete.
+Paused on 5 November 2026 at the user's request after the shared-player
+synchronization step (`4f4d2ef57`). All six implementation steps in this
+continuation were validated and committed separately. No queue migration changes
+have been started.
+
+The scoped playback/native lifecycle, socket, bookmark, navigation-pin,
+notification, friend, sharing, listen-together, volume and user-session increments
+are implemented and checked. User profile/preferences/language mutations and active
+settings consumers are scoped and guarded. PlaybackProvider owns web browser
+listeners and shared player socket/visibility synchronization. The connection
+lifecycle owns socket startup and bookmark/navigation-pin/notification/friend/
+sharing/listen-together integration; compatibility startup still initializes the
+remaining queue/download/playlist/library managers.
+
+Resume with queue subscription ownership in BaseQueueManager: balance the
+CurrentQueue/CurrentMedia handlers and current-media/playing/repeat subscriptions,
+cancel autoplay timers, and guard stale queue refresh/page work while preserving
+the server-seeded queue, pagination and progression. Then address remaining
+source-loading work, downloads, playlists, library and complete account reset.
+
+Latest checks: web/mobile/shared typechecks, web lint, changed-module lint,
+formatting, production build and production HTTP SSR smoke passed. The full web
+suite passed 197 of 199 tests with the two documented baseline adaptive-transition
+failures. Chromium lifecycle fixtures passed at all three viewport sizes.
+Real audio/queue progression, native iOS/Android devices, complete application
+navigation/account reset and offline acceptance remain pending. Full application
+popup/language verification and Library pagination/query stages also remain open.
+Parent stages stay unchecked until their complete acceptance gates pass; the
+entire refactor is not complete.
 
 ## Verification log
 

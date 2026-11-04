@@ -1,12 +1,11 @@
 "use client";
 
 import { JSX, useState } from "react";
-import { useStore } from "@nanostores/react";
 import { EServiceWorkerAction } from "@/models/enums/serviceWorkerAction";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function ServiceWorkerInfo(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [status, setStatus] = useState<string>($vocabulary.NO_DATA);
 
     const handleAction = async (

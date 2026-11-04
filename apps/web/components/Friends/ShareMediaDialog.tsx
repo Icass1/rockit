@@ -5,11 +5,12 @@ import { useStore } from "@nanostores/react";
 import { LoaderCircle } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function ShareForm({ publicId }: { publicId: string }): JSX.Element {
     const ref = useRef<HTMLDialogElement>(null);
     const friends = useStore(rockIt.friendManager.friendsAtom);
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [recipient, setRecipient] = useState("");
     const [message, setMessage] = useState("");
     const [sending, setSending] = useState(false);

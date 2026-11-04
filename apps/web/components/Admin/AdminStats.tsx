@@ -2,7 +2,6 @@
 
 import { JSX, useEffect, useState } from "react";
 import { type RequestLogStatsResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import {
     Activity,
     BarChart3,
@@ -29,7 +28,7 @@ import {
     YAxis,
 } from "recharts";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 const STATUS_COLORS: Record<string, string> = {
     "2": "#22c55e",
@@ -97,7 +96,7 @@ export default function AdminStats(): JSX.Element {
     const [data, setData] = useState<RequestLogStatsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     useEffect((): void => {
         const fetchStats = async (): Promise<void> => {

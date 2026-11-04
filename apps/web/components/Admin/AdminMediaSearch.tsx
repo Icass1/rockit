@@ -1,7 +1,6 @@
 "use client";
 
 import { JSX, useCallback, useEffect, useRef, useState } from "react";
-import { useStore } from "@nanostores/react";
 import {
     EMediaType,
     type AdminSearchResultItem,
@@ -18,7 +17,7 @@ import {
     Video,
 } from "lucide-react";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 type MediaTypeMeta = {
     icon: typeof Music2;
@@ -65,7 +64,7 @@ const TYPE_META: Record<EMediaType, MediaTypeMeta> = {
 };
 
 function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const meta = TYPE_META[item.type as EMediaType];
     const Icon = meta.icon;
     const [imgError, setImgError] = useState(false);
@@ -121,7 +120,7 @@ function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
 }
 
 export default function AdminMediaSearch(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<AdminSearchResultItem[] | null>(

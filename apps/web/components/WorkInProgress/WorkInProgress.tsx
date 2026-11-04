@@ -3,11 +3,10 @@
 import { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function WorkInProgress(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     return (
         <div className="relative flex h-screen w-full flex-col items-center justify-center bg-linear-to-r from-(--color-gradient-start) to-(--color-gradient-end) select-none">

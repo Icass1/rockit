@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { rockIt } from "@/lib/rockit/rockIt";
 import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
 import HeroBackgroundDrift from "@/components/Home/HeroBackgroundDrift";
 import QuickAccessCard from "@/components/Home/QuickAccessCard";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface HeroSlot {
     eyebrow: string;
@@ -35,7 +34,7 @@ export default function HomeHero({
     const sectionRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
     const [heroVisible, setHeroVisible] = useState(true);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     useEffect(() => {
         const sentinel = sentinelRef.current;

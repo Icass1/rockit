@@ -4,6 +4,7 @@ import { useEffect, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import { useSearchResults } from "@/components/Search/hooks/useSearchResults";
 import SearchBarInput from "@/components/Search/SearchBarInput";
 import AlbumsSection from "@/components/Search/sections/AlbumsSection";
@@ -14,7 +15,7 @@ import SongsSection from "@/components/Search/sections/SongsSection";
 import VideosSection from "@/components/Search/sections/VideosSection";
 
 function EmptyState(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     return (
         <section className="flex flex-col items-center justify-center px-7 py-36 text-center text-white md:pl-12">
@@ -41,7 +42,7 @@ function EmptyState(): JSX.Element {
 function SearchResults(): JSX.Element {
     const { results, searching, query } = useSearchResults();
 
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const error = useStore(rockIt.searchManager.errorAtom);
     const providers = useStore(rockIt.searchManager.providersAtom);
 

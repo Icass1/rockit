@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type JSX } from "react";
+import { useCallback, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
@@ -8,35 +8,19 @@ import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { networkStatus } from "@/lib/stores/networkStatus";
 import { APP_VERSION } from "@/lib/version";
-import HeaderPopover from "@/components/Header/HeaderPopover";
-import { useClickOutside } from "@/components/Header/hooks/useClickOutside";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
+import Popover from "@/components/ui/Popover";
 
 export default function HeaderUser(): JSX.Element {
     const router = useRouter();
-    const $username = useStore(rockIt.userManager.usernameAtom);
-    const $image = useStore(rockIt.userManager.imageAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const { username: $username, image: $image } = useSettingsUser();
+    const $vocabulary = useVocabulary();
     const $networkStatus = useStore(networkStatus);
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
     const close = useCallback((): void => setOpen(false), []);
-    useClickOutside(ref, close);
-
-    useEffect(() => {
-        if (!open) return;
-        ref.current
-            ?.querySelector<HTMLButtonElement>("#header-user-menu button")
-            ?.focus();
-        const handleKey = (event: KeyboardEvent): void => {
-            if (event.key === "Escape") {
-                setOpen(false);
-                buttonRef.current?.focus();
-            }
-        };
-        document.addEventListener("keydown", handleKey);
-        return () => document.removeEventListener("keydown", handleKey);
-    }, [open]);
 
     const handleLogOut = async (): Promise<void> => {
         if ($networkStatus === "offline") return;
@@ -74,9 +58,10 @@ export default function HeaderUser(): JSX.Element {
                 </span>
             </button>
             {open && (
-                <HeaderPopover
+                <Popover
                     id="header-user-menu"
                     label={$username}
+                    onClose={close}
                     className="w-64 max-w-[calc(100vw-2rem)]"
                 >
                     <div className="border-b border-white/10 px-4 py-3">
@@ -107,7 +92,7 @@ export default function HeaderUser(): JSX.Element {
                             {$vocabulary.LOG_OUT}
                         </button>
                     </div>
-                </HeaderPopover>
+                </Popover>
             )}
         </div>
     );

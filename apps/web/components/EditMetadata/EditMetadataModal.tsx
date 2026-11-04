@@ -2,7 +2,6 @@
 
 import { useState, type JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import {
     getMediaArtistsString,
     getMediaSubtitle,
@@ -13,8 +12,8 @@ import {
 import { Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { LyricsCorrectionEditor } from "@/components/Lyrics/LyricsCorrectionEditor";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface EditMetadataModalProps {
     media: TMediaWithSearch;
@@ -114,7 +113,7 @@ export default function EditMetadataModal({
     media,
     onClose,
 }: EditMetadataModalProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [fields, setFields] = useState<FieldDef[]>(() =>
         getOtherFields(media)
     );

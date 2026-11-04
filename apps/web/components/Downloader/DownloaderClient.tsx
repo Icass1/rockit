@@ -12,6 +12,7 @@ import DownloadInputBar from "@/components/Downloader/DownloadInputBar";
 import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
 import DownloadSkeleton from "@/components/Downloader/DownloadSkeleton";
 import DownloadStats from "@/components/Downloader/DownloadStats";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloaderClient(): JSX.Element {
     const groups = useStore(rockIt.downloaderManager.groupsAtom);
@@ -21,7 +22,7 @@ export default function DownloaderClient(): JSX.Element {
     const refreshing = useStore(rockIt.downloaderManager.refreshingAtom);
     const error = useStore(rockIt.downloaderManager.errorAtom);
     const hasMore = useStore(rockIt.downloaderManager.hasMoreAtom);
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [search, setSearch] = useState(view.query);
     useEffect(() => {
         void rockIt.downloaderManager.init();

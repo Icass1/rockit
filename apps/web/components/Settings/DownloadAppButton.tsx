@@ -3,11 +3,11 @@
 import { JSX, useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { CloudOff, Wifi } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { networkStatus } from "@/lib/stores/networkStatus";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadAppButton(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const $network = useStore(networkStatus);
     const [swReady, setSwReady] = useState(false);
 

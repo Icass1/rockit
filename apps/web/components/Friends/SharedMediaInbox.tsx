@@ -7,9 +7,10 @@ import { useStore } from "@nanostores/react";
 import { Inbox, Play, Send, Trash2 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function SharedMediaInbox(): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [view, setView] = useState<"inbox" | "sent">("inbox");
     const $inbox = useStore(rockIt.sharingManager.inboxAtom);
     const $sent = useStore(rockIt.sharingManager.sentAtom);

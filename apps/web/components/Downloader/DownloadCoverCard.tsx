@@ -18,21 +18,22 @@ import {
 } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
-import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
-import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
-import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import ContextMenuContent from "@/components/ui/ContextMenu/Content";
+import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
+import ContextMenuSplitter from "@/components/ui/ContextMenu/Splitter";
+import SubContextMenuContent from "@/components/ui/ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ui/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ui/ContextMenu/SubContextMenu/Trigger";
+import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
 
 function DownloadCoverCard({
     item,
 }: {
     item: DownloadItemResponse;
 }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [menuCover, setMenuCover] = useState<string | undefined>();
     const [menuTitle, setMenuTitle] = useState<string | undefined>();
     const [menuSubtitle, setMenuSubtitle] = useState<string | undefined>();

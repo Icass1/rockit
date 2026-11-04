@@ -4,11 +4,12 @@ import { useId, type JSX } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function SearchBarInput(): JSX.Element {
     const value = useStore(rockIt.searchManager.inputAtom);
     const id = useId();
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const pathname = usePathname();
     const router = useRouter();
     const searching = useStore(rockIt.searchManager.searchingAtom);

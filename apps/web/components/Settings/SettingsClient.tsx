@@ -2,11 +2,10 @@
 
 import { JSX } from "react";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { Vocabulary } from "@rockit/shared";
 import { ChartLine, Download, Lock } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
@@ -134,7 +133,7 @@ function DisplayNameInput({
 }
 
 export default function SettingsClient(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     return (
         <div className="mx-auto max-w-4xl px-4 md:px-8 md:py-10 md:pb-10">

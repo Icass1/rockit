@@ -1,11 +1,14 @@
 "use client";
 
-import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 export function useSettingsFeedback(): (saved?: boolean) => void {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     return (saved = true): void => {
         const key = saved ? "SETTINGS_SAVED" : "SETTINGS_NOT_PERSISTED";
         const translated = (vocabulary as unknown as Record<string, string>)[

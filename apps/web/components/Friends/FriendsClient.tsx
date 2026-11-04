@@ -11,9 +11,10 @@ import styles from "@/components/Friends/Friends.module.css";
 import FriendsList from "@/components/Friends/FriendsList";
 import ListenTogetherPanel from "@/components/Friends/ListenTogetherPanel";
 import SharedMediaInbox from "@/components/Friends/SharedMediaInbox";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function FriendsClient(): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const friends = useStore(rockIt.friendManager.friendsAtom);
     const activity = useStore(rockIt.friendManager.activityAtom);
     const error = useStore(rockIt.friendManager.errorAtom);

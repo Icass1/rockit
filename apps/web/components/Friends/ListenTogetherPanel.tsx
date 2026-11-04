@@ -6,6 +6,7 @@ import { useStore } from "@nanostores/react";
 import { Headphones, LogOut, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function ListenTogetherPanel({
     compact = false,
@@ -17,7 +18,7 @@ export default function ListenTogetherPanel({
     const loading = useStore(rockIt.listenTogetherManager.loadingAtom);
     const friends = useStore(rockIt.friendManager.friendsAtom);
     const username = useStore(rockIt.userManager.usernameAtom);
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     if (active) {
         const isHost = active.hostUsername === username;

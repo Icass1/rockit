@@ -2,8 +2,8 @@ import type { JSX } from "react";
 import { isSearchResult } from "@rockit/shared";
 import { Send } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 export default function ShareAction({
     media,

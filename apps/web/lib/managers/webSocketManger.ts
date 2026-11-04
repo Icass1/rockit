@@ -163,9 +163,11 @@ export class WebSocketManager {
         const generation = this._connectionGeneration;
 
         while (retries < maxRetries) {
-            await new Promise((resolve): NodeJS.Timeout =>
-                setTimeout(resolve, Math.max(2000 * retries, 2000))
-            );
+            if (retries > 0) {
+                await new Promise((resolve): NodeJS.Timeout =>
+                    setTimeout(resolve, Math.min(2000 * retries, 10000))
+                );
+            }
             if (generation !== this._connectionGeneration) return;
             if (!rockIt.userManager.loggedInAtom.get()) {
                 this.initializing = false;

@@ -1,22 +1,9 @@
 import { JSX } from "react";
 import { notFound } from "next/navigation";
-import {
-    BasePlaylistWithMediasResponse,
-    EMediaType,
-    TMedia,
-} from "@rockit/shared";
-import { getPlaylistAsync } from "@/lib/services/mediaService";
+import { EMediaType, TMedia } from "@rockit/shared";
+import { getPlaylist } from "@/lib/server/resources";
 import PlaylistRecommendations from "@/components/Playlist/PlaylistRecommendations";
 import RenderListClient from "@/components/RenderList/RenderListClient";
-
-async function getPlaylist(
-    publicId: string
-): Promise<BasePlaylistWithMediasResponse | undefined> {
-    const playlist = await getPlaylistAsync(publicId).catch(
-        (): undefined => undefined
-    );
-    return playlist;
-}
 
 export async function generateMetadata({
     params,

@@ -2,10 +2,13 @@
 
 import { useRef, useState, type JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import { ImageUp, LoaderCircle } from "lucide-react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { rockIt } from "@/lib/rockit/rockIt";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 export default function ProfileImageInput({
     image,
@@ -17,8 +20,8 @@ export default function ProfileImageInput({
     const input = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
     const [failedImage, setFailedImage] = useState<string | null>(null);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     const notifySaved = useSettingsFeedback();
     const text = (key: string, english: string, spanish: string): string => {
         const value = (vocabulary as unknown as Record<string, string>)[key];

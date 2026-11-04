@@ -5,9 +5,10 @@ import { useStore } from "@nanostores/react";
 import { LogOut } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { networkStatus } from "@/lib/stores/networkStatus";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function LogOutButton(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const $networkStatus = useStore(networkStatus);
 
     return (

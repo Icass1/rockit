@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import StreakFlame from "@/components/Header/StreakFlame";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function StreakIndicator(): JSX.Element | null {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [streak, setStreak] = useState<number | null>(null);
 
     useEffect(() => {

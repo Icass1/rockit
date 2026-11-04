@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { CollectionPager } from "@rockit/shared";
 import { Search, X } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function CollectionControls({
     pager,
@@ -14,7 +14,7 @@ export default function CollectionControls({
     showSearch?: boolean;
 }): JSX.Element {
     const state = useStore(pager.state);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [open, setOpen] = useState<boolean>(false);
     const inputRef = useRef<HTMLInputElement>(null);
     // Keep the pill expanded while a query is active, even if the row is

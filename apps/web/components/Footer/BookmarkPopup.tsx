@@ -18,6 +18,7 @@ import {
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 enum EBookmarkModes {
     Nothing = "NOTHING",
@@ -43,7 +44,7 @@ function BookmarkEditForm({
     bookmark: BookmarkResponse | null;
     onBack: () => void;
 }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
 
     const [description, setDescription] = useState(bookmark?.description ?? "");
@@ -245,7 +246,7 @@ export default function BookmarkPopup({
     const $editingBookmark = useStore(
         rockIt.bookmarkManager.editingBookmarkAtom
     );
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const [userOverride, setUserOverride] = useState<
         BookmarkResponse | "new" | null | undefined

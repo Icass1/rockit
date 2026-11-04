@@ -2,9 +2,9 @@
 
 import { type JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import type { Friend } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function Waveform(): JSX.Element {
     return (
@@ -40,7 +40,7 @@ export default function LivePulseBanner({
 }: {
     friends: Friend[];
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const online = friends.filter((f) => f.isOnline);
     const live = online.slice(0, 10);
 

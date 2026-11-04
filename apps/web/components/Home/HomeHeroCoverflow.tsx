@@ -13,12 +13,14 @@ import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import useMedia from "@/hooks/useMedia";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useCoverflow } from "@/components/Home/hooks/useCoverflow";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import { useHomeSubtitle } from "@/components/Home/hooks/useHomeSubtitle";
 import PlayButton from "@/components/Home/PlayButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -76,9 +78,8 @@ function CoverflowCardComponent({
     const song = useMedia(card.song);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const isCenter = delta === 0;
-    const [imgLoaded, setImgLoaded] = useState(false);
     const isThisPlaying =
         isCenter && $currentMedia?.publicId === song.publicId && $playing;
 
@@ -100,10 +101,9 @@ function CoverflowCardComponent({
                 alt=""
                 fill
                 sizes={`${Math.ceil(cardSize)}px`}
-                className={`object-cover transition-opacity duration-500 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+                className={`object-cover opacity-100 transition-opacity duration-500`}
                 draggable={false}
                 aria-hidden="true"
-                onLoad={(): void => setImgLoaded(true)}
             />
 
             {/* Dark gradient overlay — dark at bottom for text readability */}
@@ -158,11 +158,6 @@ function CoverflowCardComponent({
 
 // ─── Main Component ─────────────────────────────────────
 
-function getInitialReducedMotion(): boolean {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 export default function HomeHeroCoverflow({
     greetingName,
     streak,
@@ -174,7 +169,7 @@ export default function HomeHeroCoverflow({
 
     const [menuOpen, setMenuOpen] = useState(false);
     const [stageWidth, setStageWidth] = useState(0);
-    const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
+    const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
     const stageRef = useRef<HTMLDivElement>(null);
 
     const { center, next, prev, goTo, startAuto, stopAuto } = useCoverflow({
@@ -193,15 +188,6 @@ export default function HomeHeroCoverflow({
     }, [dominantColor, onColorChange]);
 
     // ── reduced-motion listener ──
-    useEffect(() => {
-        const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-        const handler = (e: MediaQueryListEvent): void =>
-            setReducedMotion(e.matches);
-        mq.addEventListener("change", handler);
-        return () => mq.removeEventListener("change", handler);
-    }, []);
-
-    // ── layout config ──
     const config = useMemo(() => getConfig(stageWidth), [stageWidth]);
 
     // ── IntersectionObserver: pause auto-advance off-screen ──
@@ -298,7 +284,7 @@ export default function HomeHeroCoverflow({
         streak,
         minutesThisWeek,
     });
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     // Early return after all hooks
     if (cards.length === 0) return null;

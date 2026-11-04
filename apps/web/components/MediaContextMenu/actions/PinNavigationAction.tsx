@@ -4,8 +4,8 @@ import type { Vocabulary } from "@rockit/shared";
 import { LoaderCircle, Pin, PinOff, RefreshCw } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { isPinnableMedia } from "@/lib/utils/navigationPins";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 export default function PinNavigationAction({
     media,

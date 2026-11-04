@@ -2,16 +2,15 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { CalendarDays, Disc3, Heart, History } from "lucide-react";
 import type { RockitListKey } from "@/models/types/navigationPins";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getRockitListName } from "@/lib/utils/navigationPins";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /** Rockit's dynamic personal lists: right-click, long press or Shift+F10 to anchor. */
 export default function RockitFeaturedLists(): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const keys: RockitListKey[] = [
         "liked",
         "most-listened",

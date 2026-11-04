@@ -5,13 +5,14 @@ import { useStore } from "@nanostores/react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
 import { LoaderCircle, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function SearchSongPlayButton({
     song,
 }: {
     song: BaseSearchResultsItem;
 }): JSX.Element | null {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const [loading, setLoading] = useState(false);

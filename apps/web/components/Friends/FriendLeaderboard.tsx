@@ -8,11 +8,10 @@ import type { LeaderboardEntry } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
 import EmblemCollection from "@/components/Friends/EmblemCollection";
 import styles from "@/components/Friends/Friends.module.css";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function FriendLeaderboard(): JSX.Element {
-    const v = useStore(
-        rockIt.vocabularyManager.vocabularyAtom
-    ) as unknown as Record<string, string>;
+    const v = useVocabulary() as unknown as Record<string, string>;
     const friends = useStore(rockIt.friendManager.friendsAtom);
     const activity = useStore(rockIt.friendManager.activityAtom);
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);

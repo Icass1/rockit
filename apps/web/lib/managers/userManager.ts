@@ -1,3 +1,4 @@
+import type { SessionResponse } from "@/dto";
 import { BaseUserManager, EQueueType, ERepeatMode } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import {
@@ -15,6 +16,35 @@ import { isIOS } from "@/lib/utils/isIOS";
  * touch the web vocabulary and search managers.
  */
 export class UserManager extends BaseUserManager {
+    private _bootstrapSession?: SessionResponse;
+    private _session = createAtom<SessionResponse | null | undefined>();
+
+    get sessionAtom(): ReadonlyAtom<SessionResponse | null | undefined> {
+        return this._session.getReadonlyAtom();
+    }
+
+    seedSession(session: SessionResponse): void {
+        if (this._init) return;
+        this._bootstrapSession = session;
+        this.applySession(session);
+        this._sessionReady.set(true);
+    }
+
+    private applySession(session: SessionResponse): void {
+        this._queueTypeAtom.set(EQueueType[session.queueType]);
+        this._repeatModeAtom.set(ERepeatMode[session.repeatMode]);
+        this._image.set(session.image);
+        this._admin.set(session.admin);
+        this._username.set(session.username);
+        this._currentTimeMs.set(session.currentTimeMs);
+        rockIt.notificationManager.setUser(session.username);
+        this._loggedIn.set(true);
+        this._showListeningHeatmap.set(session.showListeningHeatmap);
+        this.restoreVolume(session.username, session.volume);
+        this._session.set(session);
+        saveSessionOffline(session).catch(() => {});
+    }
+
     private _showListeningHeatmap = createAtom(true);
     private _sessionReady = createAtom(false);
     private _volumeUser?: string;
@@ -91,47 +121,30 @@ export class UserManager extends BaseUserManager {
 
     async updateAsync(): Promise<void> {
         try {
-            const res = await rockIt.http.getSession();
-
-            if (res.isOk()) {
-                this._queueTypeAtom.set(EQueueType[res.result.queueType]);
-                this._repeatModeAtom.set(ERepeatMode[res.result.repeatMode]);
-                this._image.set(res.result.image);
-                this._admin.set(res.result.admin);
-                this._username.set(res.result.username);
-                this._currentTimeMs.set(res.result.currentTimeMs);
-                rockIt.notificationManager.setUser(res.result.username);
-                this._loggedIn.set(true);
-                this._showListeningHeatmap.set(res.result.showListeningHeatmap);
-                this.restoreVolume(res.result.username, res.result.volume);
-                saveSessionOffline(res.result).catch(() => {});
-            } else if (res.code !== 401) {
+            if (this._bootstrapSession) {
+                const session = this._bootstrapSession;
+                this._bootstrapSession = undefined;
+                this.applySession(session);
+                return;
+            }
+            const response = await Http.getSession();
+            if (response.isOk()) {
+                this.applySession(response.result);
+                return;
+            }
+            if (response.code !== 401) {
                 const cached = await loadSessionOffline();
                 if (cached) {
-                    this._queueTypeAtom.set(EQueueType[cached.queueType]);
-                    this._repeatModeAtom.set(ERepeatMode[cached.repeatMode]);
-                    this._image.set(cached.image);
-                    this._admin.set(cached.admin);
-                    this._username.set(cached.username);
-                    this._currentTimeMs.set(cached.currentTimeMs);
-                    rockIt.notificationManager.setUser(cached.username);
-                    this._loggedIn.set(true);
-                    this._showListeningHeatmap.set(
-                        cached.showListeningHeatmap ?? true
-                    );
-                    this.restoreVolume(cached.username, cached.volume);
-                } else {
-                    this._loggedIn.set(false);
-                    rockIt.notificationManager.setUser();
-                    rockIt.webSocketManager.disconnect();
+                    this.applySession(cached);
+                    return;
                 }
-            } else {
-                this._loggedIn.set(false);
-                rockIt.notificationManager.setUser();
-                rockIt.webSocketManager.disconnect();
-                clearSessionOffline().catch(() => {});
-                console.error(res.detail);
             }
+            this._session.set(null);
+            this._loggedIn.set(false);
+            rockIt.notificationManager.setUser();
+            rockIt.webSocketManager.disconnect();
+            if (response.code === 401)
+                await clearSessionOffline().catch(() => {});
         } finally {
             this._sessionReady.set(true);
         }
@@ -157,6 +170,7 @@ export class UserManager extends BaseUserManager {
             )
                 return false;
             this._image.set(session.result.image);
+            this._session.set(session.result);
             void saveSessionOffline(session.result).catch(() => {});
             return true;
         } catch (error) {
@@ -204,6 +218,7 @@ export class UserManager extends BaseUserManager {
                 rockIt.vocabularyManager.vocabulary.LANGUAGE_CHANGED
             );
             await rockIt.vocabularyManager.init();
+            window.dispatchEvent(new Event("rockit:language-changed"));
         } else {
             rockIt.notificationManager.notifyError(
                 rockIt.vocabularyManager.vocabulary.ERROR_CHANGING_LANGUAGE
@@ -223,6 +238,7 @@ export class UserManager extends BaseUserManager {
             rockIt.searchManager.clearResults();
             rockIt.downloaderManager.reset();
             await clearSessionOffline().catch(() => {});
+            this._session.set(null);
             this._loggedIn.set(false);
             rockIt.notificationManager.setUser();
             rockIt.webSocketManager.disconnect();

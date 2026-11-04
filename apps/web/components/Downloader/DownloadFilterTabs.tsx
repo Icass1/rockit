@@ -2,9 +2,8 @@
 
 import type { JSX } from "react";
 import type { DownloadTotalsResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import type { DownloadFilter } from "@/models/types/downloadBrowser";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export type { DownloadFilter } from "@/models/types/downloadBrowser";
 
@@ -17,7 +16,7 @@ export default function DownloadFilterTabs({
     onChange: (filter: DownloadFilter) => void;
     totals: DownloadTotalsResponse;
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const tabs: { key: DownloadFilter; label: string; count: number }[] = [
         { key: "all", label: v.ALL, count: totals.total },
         { key: "active", label: v.DOWNLOADING, count: totals.active },

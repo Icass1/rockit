@@ -28,6 +28,7 @@ import {
     isLibraryDragSource,
 } from "@/lib/utils/libraryDragDrop";
 import { useLibrarySelection } from "@/components/Library/LibrarySelectionContext";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 const DragContext = createContext<LibraryDragDropState | undefined>(undefined);
 
@@ -40,7 +41,7 @@ export function LibraryDragDropProvider({
 }): JSX.Element {
     const { selectionMode } = useLibrarySelection();
     const playlists = useStore(rockIt.playlistManager.playlistsAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const ownedIds = useMemo(
         () => new Set(playlists.map((item) => item.publicId)),
         [playlists]
@@ -330,7 +331,7 @@ export function LibraryDragDropSurface({
     onClickCapture?: MouseEventHandler<HTMLDivElement>;
 }): JSX.Element {
     const context = useContext(DragContext);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const id = "publicId" in media ? media.publicId : null;
     const draggable = context?.enabled && isLibraryDragSource(media);
     const owned =

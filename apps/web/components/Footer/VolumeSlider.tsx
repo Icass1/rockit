@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import Slider from "@/components/Slider/Slider";
+import Slider from "@/components/ui/Slider/Slider";
 
 function VolumeIcon({ volume }: { volume: number }): JSX.Element {
     const className =

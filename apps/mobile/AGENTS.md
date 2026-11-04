@@ -90,3 +90,14 @@ pnpm build:all:production
 Prebuild generates native projects; inspect its diff. EAS builds require the
 configured account/credentials. Do not treat a TypeScript check as native build
 or device verification.
+
+## User-facing text
+
+- Always use vocabulary keys for user-facing text. Never hardcode labels,
+  headings, button text, placeholders, validation/error/success messages, empty
+  states, tooltips, or accessibility names such as `aria-label`/`accessibilityLabel`.
+- Add missing keys to `Vocabulary.xlsx` and provide translations in every supported
+  language, then regenerate vocabulary artifacts. Do not use inline English or
+  other language strings as fallback labels; use the vocabulary fallback system.
+- Product names, user-provided content, provider names, and numeric/symbol-only
+  output may remain data. Localize surrounding descriptions and formatting.

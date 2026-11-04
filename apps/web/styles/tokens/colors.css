@@ -1,45 +1,55 @@
 html {
-  /* Base background y superficie */
-  --color-bg:          #0b0b0b;
-  --color-surface:     #151515;
+    --color-media-accent-default: #787882;
+    --color-success-subtle: #14532d;
+    --color-success-foreground: #bbf7d0;
+    --color-error-subtle: #7f1d1d;
+    --color-error-foreground: #fecaca;
+    --color-warning-subtle: #713f12;
+    --color-warning-foreground: #fef08a;
+    --color-on-primary: #ffffff;
+    --color-border-default: #404040;
+    --color-overlay: rgb(0 0 0 / 70%);
+    /* Base background y superficie */
+    --color-bg: #0b0b0b;
+    --color-surface: #151515;
 
-  /* Textos */
-  --color-text:        #e0e0e0;
-  --color-muted:       #a0a0a0;
+    /* Textos */
+    --color-text: #e0e0e0;
+    --color-text-muted: #a0a0a0;
 
-  /* Colores de acento (provenientes de globals.css) */
-  --color-accent:      rgb(136, 58, 234);
-  --color-accent-light: rgb(224, 204, 250);
-  --color-accent-dark:  rgb(49, 10, 101);
-  --color-accent-gradient: linear-gradient(
-    45deg,
-    rgb(var(--color-accent)),
-    rgb(var(--color-accent-light)) 30%,
-    white 60%
-  );
+    /* Colores de acento (provenientes de globals.css) */
+    --color-accent: rgb(136, 58, 234);
+    --color-accent-light: rgb(224, 204, 250);
+    --color-accent-dark: rgb(49, 10, 101);
+    --color-accent-gradient: linear-gradient(
+        45deg,
+        rgb(var(--color-accent)),
+        rgb(var(--color-accent-light)) 30%,
+        white 60%
+    );
 
-  /* Colores Rockit específicos */
-  --color-rockit-pink:          #ee1086;
-  --color-rockit-pink-mid:       #f53a76;
-  --color-rockit-pink-light:     #fb6467;
+    /* Colores Rockit específicos */
+    --color-rockit-pink: #ee1086;
+    --color-rockit-pink-mid: #f53a76;
+    --color-rockit-pink-light: #fb6467;
 
-  /* Estados */
-  --color-success:   #1cad60;   /* Verde descarga completada */
-  --color-error:     #ed4337;   /* Rojo error */
-  --color-warning:   #fbbf24;   /* Ámbar advertencia */
+    /* Estados */
+    --color-success: #1cad60; /* Verde descarga completada */
+    --color-error: #ed4337; /* Rojo error */
+    --color-warning: #fbbf24; /* Ámbar advertencia */
 
-  /* Superficies */
-  --color-elevated:  #1a1a1a;   /* Footer, miniplayer, popups */
-  --color-input-bg:  #202020;   /* Input fields */
+    /* Superficies */
+    --color-elevated: #1a1a1a; /* Footer, miniplayer, popups */
+    --color-input-bg: #202020; /* Input fields */
 
-  /* Hover states */
-  --color-hover-bg:     #414141;   /* Nav item hover */
-  --color-hover-bg-alt: #272727;   /* Header user hover */
+    /* Hover states */
+    --color-hover-bg: #414141; /* Nav item hover */
+    --color-hover-bg-alt: #272727; /* Header user hover */
 
-  /* Gradients */
-  --color-gradient-start: #d185ca;   /* Purple for decorative gradients */
-  --color-gradient-end:   #ffbb9e;   /* Peach for decorative gradients */
+    /* Gradients */
+    --color-gradient-start: #d185ca; /* Purple for decorative gradients */
+    --color-gradient-end: #ffbb9e; /* Peach for decorative gradients */
 
-  /* Otros colores auxiliares (si se necesitan) */
-  --color-primary:   #00ffea;   /* Cian neón para glow */
+    /* Otros colores auxiliares (si se necesitan) */
+    --color-primary: #00ffea; /* Cian neón para glow */
 }

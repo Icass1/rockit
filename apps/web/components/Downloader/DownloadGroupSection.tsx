@@ -18,12 +18,13 @@ import {
     Trash2,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import { useContextMenu } from "@/components/ContextMenu/context";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import DownloadCoverCard from "@/components/Downloader/DownloadCoverCard";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import ContextMenuContent from "@/components/ui/ContextMenu/Content";
+import { useContextMenu } from "@/components/ui/ContextMenu/context";
+import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
 
 function GroupMenuButton({
     label,
@@ -58,7 +59,7 @@ function DownloadGroupSection({
 }: {
     group: DownloadBrowseGroupResponse;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const detail = useStore(rockIt.downloaderManager.detailAtom);
     const pending = useStore(rockIt.downloaderManager.groupPendingAtom)[
         group.publicId

@@ -18,11 +18,12 @@ import {
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import NavigationPins from "@/components/Navigation/NavigationPins";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function Navigation(): JSX.Element {
     const [open, setOpen] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const activePage = usePathname();
     const $admin = useStore(rockIt.userManager.admin);
 

@@ -2,8 +2,7 @@
 
 import { JSX, useEffect, useRef, useState } from "react";
 import type { StatsSummaryResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function formatNumber(num: number): string {
     if (num >= 1_000_000) {
@@ -70,7 +69,7 @@ interface SummaryCardsProps {
 export default function SummaryCards({
     summary,
 }: SummaryCardsProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [showMinutes, setShowMinutes] = useState(false);
 
     const minutesDisplay = showMinutes

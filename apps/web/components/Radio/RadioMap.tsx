@@ -15,8 +15,8 @@ import {
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldData from "world-atlas/countries-110m.json";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import "leaflet/dist/leaflet.css";
-import { useStore } from "@nanostores/react";
 import type { BaseStationResponse } from "@rockit/shared";
 import { Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -359,7 +359,7 @@ export default function RadioMap({
         }
         return icons;
     }, [savedStations, worldRadius]);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const countries: FeatureCollection | null = useMemo(() => {
         try {
             const topology = worldData as unknown as Topology;

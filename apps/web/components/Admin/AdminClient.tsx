@@ -2,7 +2,6 @@
 
 import { JSX, useRef, useState } from "react";
 import { BuildResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import {
     BarChart3,
     Download,
@@ -19,10 +18,10 @@ import {
 } from "lucide-react";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import AdminMediaSearch from "@/components/Admin/AdminMediaSearch";
 import AdminRequests from "@/components/Admin/AdminRequests";
 import AdminStats from "@/components/Admin/AdminStats";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface AdminClientProps {
     builds: BuildResponse[];
@@ -31,7 +30,7 @@ interface AdminClientProps {
 export default function AdminClient({
     builds: initialBuilds,
 }: AdminClientProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [builds, setBuilds] = useState<BuildResponse[]>(initialBuilds);
     const [activeTab, setActiveTab] = useState<EAdminClientTab>(
         EAdminClientTab.BUILDS

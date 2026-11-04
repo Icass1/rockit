@@ -2,11 +2,11 @@
 
 import { useId, useState, type JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import { Heart, ListPlus, Music2, Play, Share2 } from "lucide-react";
 import type { FriendActivity } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function timeAgo(date: string, now: string, units: string[]): string {
     const minutes = Math.max(
@@ -25,7 +25,7 @@ function timeAgo(date: string, now: string, units: string[]): string {
 }
 
 function ActivitySleeve({ item }: { item: FriendActivity }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [busy, setBusy] = useState(false);
     const [failedImage, setFailedImage] = useState<string | null>(null);
     const [failedAvatar, setFailedAvatar] = useState<string | null>(null);
@@ -141,7 +141,7 @@ export default function FriendActivityFeed({
 }: {
     activities: FriendActivity[];
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [expanded, setExpanded] = useState(false);
     const listId = useId();
     const visibleActivities = expanded ? activities : activities.slice(0, 4);

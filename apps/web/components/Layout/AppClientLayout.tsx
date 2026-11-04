@@ -4,9 +4,7 @@ import { useEffect, type JSX } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { VocabularyResponse } from "@/dto";
-import { Http } from "@/lib/http";
-import { loadVocabularyOffline } from "@/lib/offline/db";
+import { SessionResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ShareMediaDialog from "@/components/Friends/ShareMediaDialog";
 import Header from "@/components/Header/Header";
@@ -14,6 +12,7 @@ import KeyboardHandler from "@/components/KeyboardHandler/KeyboardHandler";
 import MobileBottomNav from "@/components/Navigation/MobileBottomNav";
 import Navigation from "@/components/Navigation/Navigation";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 
 const MobilePlayer = dynamic(
     () => import("@/components/MobilePlayer/MobilePlayer"),
@@ -27,13 +26,15 @@ const Footer = dynamic(() => import("@/components/Footer/Footer"), {
 });
 
 export default function AppClientLayout({
-    vocabulary,
+    session,
     children,
 }: {
-    vocabulary: VocabularyResponse;
+    session?: SessionResponse;
     children: React.ReactNode;
 }): JSX.Element {
-    useEffect((): void => {
+    useEffect((): (() => void) => {
+        if (session) rockIt.userManager.seedSession(session);
+        void rockIt.init();
         rockIt.mediaPlayerManager.initializeTransitionSettings();
         rockIt.mediaManager.fetchLikedMedia();
 
@@ -46,36 +47,20 @@ export default function AppClientLayout({
             navigator.storage.persist().catch(() => {});
         }
 
-        const hasVocab =
-            vocabulary.vocabulary &&
-            Object.keys(vocabulary.vocabulary).length > 0;
-
-        if (hasVocab) {
-            rockIt.vocabularyManager.setVocabulary(vocabulary);
-        } else {
-            Http.getUserVocabulary().then((res) => {
-                if (res.isOk()) {
-                    rockIt.vocabularyManager.setVocabulary(res.result);
-                    return;
-                }
-                loadVocabularyOffline().then((cached) => {
-                    if (cached) {
-                        rockIt.vocabularyManager.setVocabulary(cached);
-                    }
-                });
-            });
-        }
-
         const onFirstGesture = (): void => {
             rockIt.mediaSessionManager.activateOnGesture();
             rockIt.mediaPlayerManager.activateTransitionsOnGesture();
         };
         document.addEventListener("pointerup", onFirstGesture, { once: true });
         document.addEventListener("keydown", onFirstGesture, { once: true });
-    }, [vocabulary]);
+        return (): void => {
+            document.removeEventListener("pointerup", onFirstGesture);
+            document.removeEventListener("keydown", onFirstGesture);
+        };
+    }, [session]);
 
     return (
-        <>
+        <SessionProvider initial={session}>
             <KeyboardHandler />
 
             {/* Hidden video container — keeps <video> in the DOM for mobile playback */}
@@ -133,6 +118,6 @@ export default function AppClientLayout({
             {/* Mobile Player (MiniPlayerBar + MobilePlayerSheet) - después de MobileBottomNav para que el MiniPlayerBar quede encima */}
             <MobilePlayer />
             <ShareMediaDialog />
-        </>
+        </SessionProvider>
     );
 }

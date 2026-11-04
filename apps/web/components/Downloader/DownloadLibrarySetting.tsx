@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import useFetch from "@/hooks/useFetch";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadLibrarySetting(): JSX.Element {
     const { data, loading, error, update } = useFetch(Http.getDownloadSettings);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const notifySaved = useSettingsFeedback();
     const [saving, setSaving] = useState(false);
     const change = async (autoAddToLibrary: boolean): Promise<void> => {

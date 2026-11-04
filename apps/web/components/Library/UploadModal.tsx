@@ -3,7 +3,6 @@
 import { useCallback, useRef, useState, type JSX } from "react";
 import { UploadResponseSchema, type UploadSongRequest } from "@/dto";
 import { BACKEND_URL } from "@/environment";
-import { useStore } from "@nanostores/react";
 import {
     Clapperboard,
     DiscAlbum,
@@ -21,6 +20,7 @@ import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { extractMp3Cover } from "@/lib/utils/extractMp3Cover";
 import UploadCoverPreview from "@/components/Library/UploadCoverPreview";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 // Types.
 
@@ -185,7 +185,7 @@ export default function UploadModal({
     isOpen,
     onClose,
 }: UploadModalProps): JSX.Element | null {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [uploadType, setUploadType] = useState<UploadType>("song");
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);

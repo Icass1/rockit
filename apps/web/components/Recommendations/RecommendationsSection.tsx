@@ -7,17 +7,17 @@ import type {
     BaseSongWithAlbumResponse,
     SongListResponse,
 } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation, isDiscoverItemInLibrary } from "@rockit/shared";
 import { Download, Music, Play } from "lucide-react";
 import { isDownloadable, isQueueable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import ContextMenuContent from "@/components/ui/ContextMenu/Content";
+import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
 
 /** Queue identifier used when playing straight from a recommendation card
  * (BentoSection uses "bento" the same way). */
@@ -34,7 +34,7 @@ function KnownSongCard({
     queue: BaseSongWithAlbumResponse[];
 }): JSX.Element {
     const $song = useMedia(_song);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const downloaded = !isDownloadable($song) || $song.downloaded === true;
 
@@ -74,7 +74,7 @@ function KnownSongCard({
  * instance already has downloaded (flagged in the backend with
  * downloaded=true + publicId) play right away. */
 function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const inLibrary = isDiscoverItemInLibrary(item);
 
     const handleClick = useCallback((): void => {
@@ -169,7 +169,7 @@ function RecommendationCard({
     hint?: string;
     onClick?: () => void;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     return (
         <div
             className={`group relative w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${dimmed ? "opacity-50" : ""}`}
@@ -223,7 +223,7 @@ export default function RecommendationsSection({
     discoverProvider?: string | null;
     discoverStatus?: SongListResponse["discoverStatus"];
 }): JSX.Element | null {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     if (songs.length === 0 && discover.length === 0) return null;
 

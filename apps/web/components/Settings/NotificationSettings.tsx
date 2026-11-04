@@ -1,17 +1,16 @@
 "use client";
 
 import { JSX, useEffect, useState } from "react";
-import { useStore } from "@nanostores/react";
 import type {
     NotificationEventKey,
     NotificationEventResponse,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { notificationVocabularyText } from "@/lib/notifications";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function NotificationSettings(): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [events, setEvents] = useState<NotificationEventResponse[]>([]);
     const [eventKeys, setEventKeys] = useState<NotificationEventKey[]>([]);
     const [savedEventKeys, setSavedEventKeys] = useState<

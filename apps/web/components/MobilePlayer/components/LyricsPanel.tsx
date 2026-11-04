@@ -2,11 +2,10 @@
 
 import type { JSX } from "react";
 import { useEffect, useMemo, useRef } from "react";
-import { useStore } from "@nanostores/react";
 import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { usePlayer } from "@/lib/PlayerContext";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface LyricsPanelProps {
     currentTime: number;
@@ -25,7 +24,7 @@ export default function LyricsPanel({
     const loading = snapshot.loading;
     const activeLineRef = useRef<HTMLParagraphElement>(null);
 
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const currentIndex = useMemo(() => {
         if (!lyrics || !lyrics.lines) return null;
@@ -49,7 +48,7 @@ export default function LyricsPanel({
     if (loading) {
         return (
             <div className="flex h-full items-center justify-center">
-                <p className="text-base text-(--color-muted)">
+                <p className="text-muted-foreground text-base">
                     Cargando letra...
                 </p>
             </div>

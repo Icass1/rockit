@@ -18,6 +18,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function FooterLeftForMedia({
     currentMedia,
@@ -139,7 +140,7 @@ function FooterLeftForStation({
     currentStation: BaseStationResponse;
 }): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [failedCover, setFailedCover] = useState<string | null>(null);
 
     return (
@@ -203,7 +204,7 @@ function FooterLeftForStation({
 
 export default function FooterLeft(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     if ($currentMedia) {
         if (isStation($currentMedia)) {

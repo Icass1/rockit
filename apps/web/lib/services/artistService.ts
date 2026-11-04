@@ -3,7 +3,13 @@ import type { BaseAlbumWithoutSongsResponse } from "@/dto";
 import type { ArtistAccent } from "@/models/artistCatalog";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { normalizeArtistPageName } from "@/lib/utils/artistRoute";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
+
+export {
+    normalizeArtistPageName,
+    artistNameFromRoute,
+} from "@/lib/utils/artistRoute";
 
 export async function getArtistPageAsync(
     publicId?: string,
@@ -26,20 +32,6 @@ export function playArtistSongs(
     rockIt.queueManager.setMedia(playable, "");
     rockIt.queueManager.moveToMedia(selected ?? playable[0].publicId);
     rockIt.mediaPlayerManager.play();
-}
-
-export function normalizeArtistPageName(name: string): string {
-    return name.normalize("NFC").replace(/\s+/g, " ").trim();
-}
-
-// Decode encoded route segments at the page boundary, never in provider
-// matching or on names supplied directly by search results.
-export function artistNameFromRoute(segment: string): string {
-    try {
-        return normalizeArtistPageName(decodeURIComponent(segment));
-    } catch {
-        return normalizeArtistPageName(segment);
-    }
 }
 
 export function artistPageUrl(name: string, url?: string | null): string {

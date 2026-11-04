@@ -6,13 +6,14 @@ import { useStore } from "@nanostores/react";
 import { ERepeatMode, getMediaArtistsString } from "@rockit/shared";
 import { Download, ListPlus } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /** Shared by the desktop player and the compact PWA player. */
 export default function AutoplayRecommendations(): JSX.Element {
     const items = useStore(rockIt.queueManager.autoplayRecommendationsAtom);
     const current = useStore(rockIt.queueManager.currentMediaAtom);
     const repeat = useStore(rockIt.userManager.repeatModeAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const loading = useStore(rockIt.queueManager.autoplayLoadingAtom);
 
     useEffect(() => {
@@ -24,7 +25,7 @@ export default function AutoplayRecommendations(): JSX.Element {
             className="mt-4 border-t border-white/10 pt-4"
             aria-busy={loading}
         >
-            <h3 className="px-4 pb-3 text-sm font-semibold text-(--color-muted)">
+            <h3 className="text-muted-foreground px-4 pb-3 text-sm font-semibold">
                 {repeat === ERepeatMode.OFF
                     ? vocabulary.AUTOPLAY_ON
                     : vocabulary.RECOMMENDED_SONGS}
@@ -45,7 +46,7 @@ export default function AutoplayRecommendations(): JSX.Element {
                     </div>
                 ))}
             {!loading && items.length === 0 && (
-                <p className="px-4 py-2 text-sm text-(--color-muted)">
+                <p className="text-muted-foreground px-4 py-2 text-sm">
                     {vocabulary.NO_SIMILAR_SONGS_FOUND}
                 </p>
             )}
@@ -86,7 +87,7 @@ export default function AutoplayRecommendations(): JSX.Element {
                             <span className="block truncate text-sm font-semibold text-white">
                                 {media.name}
                             </span>
-                            <span className="block truncate text-xs text-(--color-muted)">
+                            <span className="text-muted-foreground block truncate text-xs">
                                 {getMediaArtistsString(media) ||
                                     vocabulary.UNKNOWN}
                             </span>
@@ -98,7 +99,7 @@ export default function AutoplayRecommendations(): JSX.Element {
                             />
                         ) : (
                             <Download
-                                className="h-4 w-4 shrink-0 text-(--color-muted)"
+                                className="text-muted-foreground h-4 w-4 shrink-0"
                                 aria-label={vocabulary.CLICK_TO_DOWNLOAD}
                             />
                         )}

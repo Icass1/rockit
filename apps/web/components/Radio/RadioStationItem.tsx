@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function RadioStationItem({
     station,
@@ -33,7 +34,7 @@ export default function RadioStationItem({
     saved: boolean;
     onSaved: () => void;
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const current = useStore(rockIt.queueManager.currentMediaAtom);
     const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const loading = useStore(rockIt.mediaPlayerManager.loadingAtom);

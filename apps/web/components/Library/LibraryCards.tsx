@@ -10,7 +10,6 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
     TMediaWithSearch,
@@ -29,6 +28,7 @@ import {
 } from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -99,7 +99,7 @@ function LibraryCard({
     undownloadedCount,
     children,
 }: LibraryCardProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const linkClass = `library-item relative flex flex-col select-none transition-transform [-webkit-touch-callout:none] md:hover:scale-105 ${className}`;
     const isVideo = aspectRatio === "video";
     const fallbackImage =
@@ -459,7 +459,7 @@ export function StationCard({
 }: {
     station: BaseStationResponse;
 }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const $station = useMedia(_station);
 
     const handlePlay = (): void => {

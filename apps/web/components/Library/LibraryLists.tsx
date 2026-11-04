@@ -18,7 +18,6 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { Play } from "lucide-react";
 import { EContentType } from "@/models/enums/contentType";
 import { EViewMode } from "@/models/enums/viewMode";
@@ -54,6 +53,7 @@ import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
 import RockitFeaturedLists from "@/components/Library/RockitFeaturedLists";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
@@ -453,7 +453,7 @@ export function LibraryLists({
     activeType,
     viewMode,
 }: ILibraryListsProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const { filtered, loading, librarySongIds } = useLibraryData({
         filterMode,
         searchQuery,

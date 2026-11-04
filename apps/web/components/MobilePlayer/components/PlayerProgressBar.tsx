@@ -8,7 +8,7 @@ import { usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ListeningHeatmap from "@/components/ListeningHeatmap/ListeningHeatmap";
 import { formatTime } from "@/components/MobilePlayer/utils/format";
-import Slider from "@/components/Slider/Slider";
+import Slider from "@/components/ui/Slider/Slider";
 
 interface PlayerProgressBarProps {
     onSeek: (seconds: number) => void;

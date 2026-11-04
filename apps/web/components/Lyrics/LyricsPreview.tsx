@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import type { LyricsSnapshot } from "@/models/interfaces/lyricsSnapshot";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export function LyricsPreview({
     mediaPublicId,
@@ -16,7 +16,7 @@ export function LyricsPreview({
     lines: LyricsSnapshot["lines"];
     offset: number;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const audio = useRef<HTMLAudioElement>(null);
     const [url, setUrl] = useState<string>();
     const [time, setTime] = useState(0);

@@ -1,17 +1,16 @@
 "use client";
 
 import { type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import RecommendationsSection from "@/components/Recommendations/RecommendationsSection";
 
 /** Personalized picks from /recommendation/for-you. Self-contained: fetches
  * its own data independently of useHomeData/HomeStatsResponse, so changing
  * the backend algorithm never touches this file. */
 export default function ForYouSection(): JSX.Element | null {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const { data } = useFetch(Http.getRecommendationsForYou);
 
     if (!data) return null;

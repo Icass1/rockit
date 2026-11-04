@@ -1,0 +1,21 @@
+/* Semantic roles. Literal palette values remain in the central color token file. */
+@theme inline {
+    --color-background: var(--color-bg);
+    --color-foreground: var(--color-text);
+    --color-muted: var(--color-input-bg);
+    --color-muted-foreground: var(--color-text-muted);
+    --color-primary: var(--rockit-pink);
+    --color-primary-foreground: var(--color-on-primary);
+    --color-secondary: var(--color-elevated);
+    --color-secondary-foreground: var(--color-text);
+    --color-accent: var(--color-hover-bg-alt);
+    --color-accent-foreground: var(--color-text);
+    --color-popover: var(--color-elevated);
+    --color-popover-foreground: var(--color-text);
+    --color-input: var(--color-input-bg);
+    --color-border: var(--color-border-default);
+    --color-ring: var(--rockit-pink-light);
+    --color-destructive: var(--color-error);
+    --color-destructive-foreground: var(--color-on-primary);
+    --color-scrim: var(--color-overlay);
+}

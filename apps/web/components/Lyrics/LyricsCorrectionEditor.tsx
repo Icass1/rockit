@@ -2,18 +2,17 @@
 
 import { useEffect, useId, useState, type JSX } from "react";
 import type { LyricsCorrectionContextResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { lyricsCorrectionSchema } from "@/models/schemas/lyricsCorrection";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { LyricsPreview } from "@/components/Lyrics/LyricsPreview";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export function LyricsCorrectionEditor({
     mediaPublicId,
 }: {
     mediaPublicId: string;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [snapshot, setSnapshot] = useState<LyricsCorrectionContextResponse>();
     const [failed, setFailed] = useState(false);
     useEffect(() => {
@@ -56,7 +55,7 @@ function CorrectionForm({
     mediaPublicId: string;
     snapshot: LyricsCorrectionContextResponse;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const id = useId();
     const [offset, setOffset] = useState(snapshot.offset);
     const [lines, setLines] = useState(

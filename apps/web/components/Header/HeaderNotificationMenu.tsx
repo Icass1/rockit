@@ -9,7 +9,11 @@ import {
     replaceNotificationGaps,
 } from "@/lib/notifications";
 import { rockIt } from "@/lib/rockit/rockIt";
-import HeaderPopover from "@/components/Header/HeaderPopover";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
+import Popover from "@/components/ui/Popover";
 
 export default function NotificationMenu({
     onClose,
@@ -21,17 +25,18 @@ export default function NotificationMenu({
     const unread = useStore(manager.unreadCountAtom);
     const total = useStore(manager.totalCountAtom);
     const error = useStore(manager.errorAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     const [unreadOnly, setUnreadOnly] = useState(false);
     const router = useRouter();
     useEffect(() => {
         manager.setPage(0, unreadOnly);
     }, [manager, unreadOnly]);
     return (
-        <HeaderPopover
+        <Popover
             id="notification-center"
             label={vocabulary.NOTIFICATIONS_TITLE}
+            onClose={onClose}
             className="w-[min(25rem,calc(100vw-2rem))]"
         >
             <div className="flex items-center gap-2 p-4">
@@ -141,6 +146,6 @@ export default function NotificationMenu({
                     {vocabulary.NOTIFICATIONS_NEXT}
                 </button>
             </div>
-        </HeaderPopover>
+        </Popover>
     );
 }

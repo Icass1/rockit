@@ -11,12 +11,13 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import PlayerUILyrics from "@/components/PlayerUI/Lyrics";
 import PlayerUIMain from "@/components/PlayerUI/Main";
 import PlayerUIQueue from "@/components/PlayerUI/Queue";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function PlayerUIContent(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
 
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const divRef = useRef<HTMLDivElement>(null);
 

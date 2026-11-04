@@ -2,11 +2,10 @@
 
 import { useEffect, useState, type JSX } from "react";
 import type { LyricsCorrectionContextResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { lyricsCorrectionSchema } from "@/models/schemas/lyricsCorrection";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { LyricsPreview } from "@/components/Lyrics/LyricsPreview";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function LoadedProposalPreview({
     payload,
@@ -15,7 +14,7 @@ function LoadedProposalPreview({
     payload: string;
     mediaPublicId: string;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [current, setCurrent] = useState<LyricsCorrectionContextResponse>();
     const [after, setAfter] = useState(true);
     const [failed, setFailed] = useState(false);
@@ -90,7 +89,7 @@ export function LyricsProposalPreview({
     payload: string;
     mediaPublicId: string;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [open, setOpen] = useState(false);
     return (
         <details onToggle={(event) => setOpen(event.currentTarget.open)}>

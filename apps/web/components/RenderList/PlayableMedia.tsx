@@ -19,6 +19,7 @@ import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStat
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 function getArtistNames(
@@ -50,7 +51,7 @@ export function PlayableMedia({
     listPublicId?: string;
 }): JSX.Element {
     const $media = useMedia(_media);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
     const isLiked = $likedMedias.includes($media.publicId);
 

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import dynamic from "next/dynamic";
-import { useStore } from "@nanostores/react";
 import {
     EEvent,
     isSearchResult,
@@ -14,6 +13,7 @@ import worldData from "world-atlas/countries-110m.json";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import RadioStationItem from "@/components/Radio/RadioStationItem";
 
 const RadioMap = dynamic(() => import("@/components/Radio/RadioMap"), {
@@ -26,7 +26,7 @@ const countryNames = worldData.objects.countries.geometries
     .sort();
 
 export default function RadioClient(): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [query, setQuery] = useState("");
     const [country, setCountry] = useState<string | null>(null);
     const [savedOnly, setSavedOnly] = useState(false);

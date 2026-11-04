@@ -19,6 +19,7 @@ import {
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { LyricsProposalPreview } from "@/components/Lyrics/LyricsProposalPreview";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 type RequestStatus = "ALL" | "PENDING" | "ACCEPTED" | "REJECTED";
 
@@ -53,7 +54,7 @@ const REQUEST_TYPE_ICONS: Record<string, string> = {
 export default function AdminRequests(): JSX.Element {
     const [requests, setRequests] = useState<UserRequestResponse[]>([]);
     const [stats, setStats] = useState<AdminRequestStatsResponse | null>(null);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const isAdmin = useStore(rockIt.userManager.admin);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

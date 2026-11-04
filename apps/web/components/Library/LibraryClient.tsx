@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     ArrowDownAZ,
@@ -19,7 +18,6 @@ import {
 import { EContentType } from "@/models/enums/contentType";
 import { EFilterMode } from "@/models/enums/filterMode";
 import { EViewMode } from "@/models/enums/viewMode";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { downloadMediaAsZip } from "@/lib/services/downloadZip";
 import { cycleEnum } from "@/lib/utils/cycleEnum";
 import { LibraryDragDropProvider } from "@/components/Library/LibraryDragDrop";
@@ -30,11 +28,12 @@ import {
     useLibrarySelection,
 } from "@/components/Library/LibrarySelectionContext";
 import UploadModal from "@/components/Library/UploadModal";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function LibrarySelectionBar(): JSX.Element {
     const { selectionMode, selectedMedia, clearSelection } =
         useLibrarySelection();
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [downloading, setDownloading] = useState(false);
 
     // Packaging runs on the server and can take a while, so the button stays
@@ -120,7 +119,7 @@ function LibrarySelectionBar(): JSX.Element {
 
 function LibrarySelectionButton(): JSX.Element {
     const { selectionMode, enterSelectionMode } = useLibrarySelection();
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     if (selectionMode) return <></>;
 
@@ -170,7 +169,7 @@ export default function LibraryClient(): JSX.Element {
     );
     const [viewMode, setViewMode] = useState<EViewMode>(EViewMode.Masonry);
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const cycleSortMode = (): void =>
         setFilterMode((m): EFilterMode => cycleEnum(EFilterMode, m));

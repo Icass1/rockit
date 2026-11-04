@@ -2,12 +2,12 @@
 
 import { JSX, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { EWebSocketMessage } from "@rockit/shared";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getLocalEndOfDay, getLocalStartOfDay } from "@/lib/utils/dateUtils";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import UserStatsV2 from "@/components/Stats/UserStatsV2";
 
 type Range = "7d" | "30d" | "1y" | "all" | "custom";
@@ -70,7 +70,7 @@ function LoadingSkeleton(): JSX.Element {
 }
 
 export default function StatsClientV2(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [range, setRange] = useState<Range>("7d");
     const [customStart, setCustomStart] = useState("");
     const [customEnd, setCustomEnd] = useState("");

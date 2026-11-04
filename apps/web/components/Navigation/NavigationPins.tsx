@@ -10,6 +10,7 @@ import { CalendarDays, Disc3, Heart, History, Pin } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getNavigationPinName } from "@/lib/utils/navigationPins";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function PinShortcut({
     pin,
@@ -21,7 +22,7 @@ function PinShortcut({
     busy: boolean;
 }): JSX.Element {
     const activePage = usePathname();
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const name = getNavigationPinName(pin, vocabulary);
     const BuiltinIcon =
         pin.builtinKey === "liked"
@@ -96,7 +97,7 @@ export default function NavigationPins({
 }): JSX.Element {
     const pins = useStore(rockIt.navigationPinsManager.pinsAtom);
     const pending = useStore(rockIt.navigationPinsManager.pendingAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     // Both empty SSR and the initial client render have no section or divider.
     if (pins.length === 0) return <></>;
     return (

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { Download, LoaderCircle } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadLibraryButton(): JSX.Element {
     const [loading, setLoading] = useState(false);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handleClick = async (): Promise<void> => {
         if (loading) return;

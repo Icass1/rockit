@@ -3,13 +3,13 @@
 import { useCallback, type JSX } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import { Download } from "lucide-react";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function QuickSelectionsSong({
     song,
@@ -19,7 +19,7 @@ export default function QuickSelectionsSong({
     songs: BaseSongWithAlbumResponse[];
 }): JSX.Element {
     const $song = useMedia(song);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handleClick = useCallback((): void => {
         void rockIt.queueManager.playRecommendedSongAsync($song, songs);

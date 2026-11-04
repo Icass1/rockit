@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BaseSearchResultsItem } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { LoaderCircle } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
@@ -13,6 +12,7 @@ import {
     rememberArtistPortrait,
     resolveArtistPageUrl,
 } from "@/lib/services/artistService";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import SearchRail from "@/components/Search/SearchRail";
 
 export default function ArtistsSection({
@@ -29,7 +29,7 @@ export default function ArtistsSection({
         },
         []
     );
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     if (artists.length === 0) return null;
 

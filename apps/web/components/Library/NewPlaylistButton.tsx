@@ -3,10 +3,9 @@
 import { useState, type JSX } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useStore } from "@nanostores/react";
 import { Plus } from "lucide-react";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function NewPlaylistButton({
     variant = "card",
@@ -19,7 +18,7 @@ export default function NewPlaylistButton({
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handleCreate = async (): Promise<void> => {
         if (!name.trim()) {

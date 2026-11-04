@@ -19,7 +19,8 @@ import { getTime } from "@/lib/utils/getTime";
 import Bookmarks from "@/components/Bookmark/Bookmarks";
 import BookmarkPopup from "@/components/Footer/BookmarkPopup";
 import ListeningHeatmap from "@/components/ListeningHeatmap/ListeningHeatmap";
-import Slider from "@/components/Slider/Slider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import Slider from "@/components/ui/Slider/Slider";
 
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
@@ -37,7 +38,7 @@ export default function FooterCenter(): JSX.Element {
     const $queueType = useStore(rockIt.userManager.queueTypeAtom);
     const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
 
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
     );

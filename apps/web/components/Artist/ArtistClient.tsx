@@ -11,7 +11,6 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import type { ArtistPageResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EEvent, EMediaContextLocation } from "@rockit/shared";
 import {
     ArrowUpRight,
@@ -35,6 +34,7 @@ import {
 import { getTime } from "@/lib/utils/getTime";
 import { isPinnableMedia } from "@/lib/utils/navigationPins";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import "@/components/Artist/artist.css";
 import ArtistMetadataClient from "@/components/Artist/ArtistMetadataClient";
 
@@ -45,7 +45,7 @@ export default function ArtistClient({
     initialPage: ArtistPageResponse;
     artistName?: string;
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [page, setPage] = useState(initialPage);
     const [metadataPortrait, setMetadataPortrait] = useState("");
     const [collectionExpanded, setCollectionExpanded] = useState(false);

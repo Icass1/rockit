@@ -2,7 +2,6 @@
 
 import { JSX, useMemo } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { toLocalHHMM } from "@rockit/shared";
 import {
     Bar,
@@ -13,7 +12,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface MinutesBarChartProps {
     data: StatsMinutesEntryResponse[];
@@ -78,7 +77,7 @@ export default function MinutesBarChart({
     data: _data,
     range = "30d",
 }: MinutesBarChartProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const data = useMemo(() => {
         return _data.map((entry) => {

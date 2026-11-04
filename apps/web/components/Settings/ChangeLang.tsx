@@ -1,8 +1,11 @@
 "use client";
 
 import { JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 const LANGUAGES = [
     { value: "en", label: "English" },
@@ -17,8 +20,8 @@ const LANGUAGES = [
 ];
 
 export default function ChangeLang(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const $lang = useStore(rockIt.vocabularyManager.langAtom);
+    const $vocabulary = useVocabulary();
+    const $lang = useLanguage();
 
     return (
         <div className="flex flex-col gap-1.5">

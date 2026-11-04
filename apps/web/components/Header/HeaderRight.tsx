@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type JSX } from "react";
+import { useCallback, useRef, useState, type JSX } from "react";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Bell } from "lucide-react";
@@ -10,49 +10,25 @@ import OnlineUserIndicator from "@/components/Header/HeaderOnlineUsers";
 import HeaderRightSkeleton from "@/components/Header/HeaderRightSkeleton";
 import StreakIndicator from "@/components/Header/HeaderStreakIndicator";
 import HeaderUser from "@/components/Header/HeaderUser";
-import { useClickOutside } from "@/components/Header/hooks/useClickOutside";
+import { useSession } from "@/components/providers/SessionProvider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function HeaderRight(): JSX.Element {
     const [showNotifications, setShowNotifications] = useState(false);
-    const [isUserLoaded, setIsUserLoaded] = useState(false);
     const bellRef = useRef<HTMLDivElement>(null);
-    const $loggedIn = useStore(rockIt.userManager.loggedInAtom);
-    const $sessionReady = useStore(rockIt.userManager.sessionReadyAtom);
-
-    useEffect((): void => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setIsUserLoaded(true);
-    }, []);
+    const session = useSession();
 
     const notificationCount = useStore(
         rockIt.notificationManager.unreadCountAtom
     );
-    const vocabulary = useStore(
-        rockIt.vocabularyManager.vocabularyAtom
-    ) as unknown as Record<string, string>;
-
-    useEffect(() => {
-        if (!showNotifications) return;
-        bellRef.current
-            ?.querySelector<HTMLElement>("#notification-center button")
-            ?.focus();
-        const onKey = (event: KeyboardEvent): void => {
-            if (event.key === "Escape") {
-                setShowNotifications(false);
-                bellRef.current?.querySelector("button")?.focus();
-            }
-        };
-        document.addEventListener("keydown", onKey);
-        return () => document.removeEventListener("keydown", onKey);
-    }, [showNotifications]);
+    const vocabulary = useVocabulary() as unknown as Record<string, string>;
 
     const closeNotifications = useCallback(
         (): void => setShowNotifications(false),
         []
     );
-    useClickOutside(bellRef, closeNotifications);
 
-    if (!isUserLoaded || !$sessionReady) return <HeaderRightSkeleton />;
+    if (session === undefined) return <HeaderRightSkeleton />;
 
     return (
         <div className="relative ml-auto flex items-center gap-3 xl:gap-5">
@@ -89,7 +65,7 @@ export default function HeaderRight(): JSX.Element {
             </div>
 
             {/* User / Login */}
-            {$loggedIn ? (
+            {session ? (
                 <HeaderUser />
             ) : (
                 <Link

@@ -9,6 +9,10 @@ import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
 import VinylTransition from "@/components/PlayerUI/VinylTransition";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 interface PlayerCoverArtProps {
     uri: string | undefined;
@@ -36,8 +40,8 @@ export default function PlayerCoverArt({
     const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const reducedMotion = useReducedMotion();
     const vinylMode = useStore(rockIt.playerUIManager.vinylModeAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     const canShowVinyl = media?.type === "song" && !!coverUri;
     const showVinyl = canShowVinyl && vinylMode;
     const labelKey = vinylMode ? "PLAYER_SHOW_COVER" : "PLAYER_SHOW_VINYL";

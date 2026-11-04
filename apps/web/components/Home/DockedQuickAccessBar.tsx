@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import PlayButton from "@/components/Home/PlayButton";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface DockedItem {
     song: BaseSongWithAlbumResponse;
@@ -26,7 +27,7 @@ export default function DockedQuickAccessBar({
 }: DockedQuickAccessBarProps): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     function handleClick(
         song: BaseSongWithAlbumResponse,

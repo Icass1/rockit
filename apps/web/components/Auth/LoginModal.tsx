@@ -1,171 +1,114 @@
 "use client";
 
-import { JSX, useCallback, useEffect, useState } from "react";
+import { useState, type FormEvent, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Field } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Input";
 
 export default function LoginModal(): JSX.Element {
     const router = useRouter();
-
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-
+    const vocabulary = useVocabulary();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    useEffect((): void => {
-        rockIt.authManager.isLoggedInAsync().then((loggedIn) => {
-            if (loggedIn) router.push("/");
-        });
-    }, [router]);
 
-    useEffect(() => {
-        const language =
-            navigator.language.split(/[-_]/)[0]?.toLowerCase() || "en";
-        const func = async (): Promise<void> => {
-            const b =
-                await rockIt.vocabularyManager.getVocabularyAsync(language);
-            if (b.isOk()) rockIt.vocabularyManager.setVocabulary(b.result);
-        };
-        func();
-    }, []);
-
-    const handleSubmit = useCallback(async (): Promise<void> => {
+    async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
+        event.preventDefault();
         if (loading) return;
-
         setError("");
-
         if (!username || !password) {
-            setError(
-                rockIt.vocabularyManager.vocabulary
-                    .USER_NAME_AND_PASSWORD_REQUIRED
-            );
+            setError(vocabulary.USER_NAME_AND_PASSWORD_REQUIRED);
             return;
         }
-
         setLoading(true);
-
-        const result = await rockIt.authManager.loginAsync(
-            username,
-            password,
-            rememberMe
-        );
-
-        if (!result.success) {
-            setError(
-                result.error || rockIt.vocabularyManager.vocabulary.ERROR_LOGIN
+        try {
+            const result = await rockIt.authManager.loginAsync(
+                username,
+                password,
+                rememberMe
             );
-            setLoading(false);
-            return;
-        }
-
-        router.push("/");
-        router.refresh();
-    }, [username, password, rememberMe, router, loading]);
-
-    useEffect((): (() => void) => {
-        const handleKeyDown = (event: KeyboardEvent): void => {
-            if (event.key === "Enter") {
-                handleSubmit();
+            if (!result.success) {
+                setError(result.error || vocabulary.ERROR_LOGIN);
+                return;
             }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return (): void =>
-            document.removeEventListener("keydown", handleKeyDown);
-    }, [handleSubmit]);
+            router.replace("/");
+            router.refresh();
+        } catch {
+            setError(vocabulary.ERROR_LOGIN);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
-        <div className="absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black/70 p-8 text-center shadow-lg backdrop-blur-2xl md:w-full">
-            <div id="login-form">
-                <div className="flex items-center justify-center space-x-2">
-                    <h2 className="text-foreground text-3xl font-extrabold">
-                        {$vocabulary.LOG_IN_TO}
-                    </h2>
-                    <Image
-                        width={1024}
-                        height={307}
-                        src="/logo-banner.png"
-                        className="w-1/2"
-                        alt="RockIt!"
-                        priority
-                    />
-                </div>
-
-                <p className="mt-2 text-sm">
-                    <Link
-                        href="/register"
-                        className="text-primary md:hover:text-primary/80 font-bold"
-                    >
-                        {$vocabulary.OR_CREATE_ACCOUNT}
-                    </Link>
-                </p>
-
-                <div className="mt-5 space-y-6">
-                    <div className="space-y-4">
-                        <input
-                            type="text"
-                            placeholder={$vocabulary.USERNAME}
-                            className="text-1xl mt-1 w-4/5 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
-                            autoComplete="username"
-                            value={username}
-                            onChange={(e): void =>
-                                setUsername(e.currentTarget.value)
-                            }
-                        />
-
-                        <input
-                            type="password"
-                            placeholder={$vocabulary.PASSWORD}
-                            className="text-1xl mt-1 w-4/5 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(e): void =>
-                                setPassword(e.currentTarget.value)
-                            }
-                        />
-                    </div>
-
-                    {error && (
-                        <p className="mx-auto w-fit rounded-md bg-(--color-error) px-3 py-1 text-white">
-                            {error}
-                        </p>
-                    )}
-
-                    <label
-                        htmlFor="remember-me"
-                        className="flex cursor-pointer items-center justify-center gap-2 text-sm text-neutral-400"
-                    >
-                        <input
-                            id="remember-me"
-                            type="checkbox"
-                            checked={rememberMe}
-                            onChange={(e): void =>
-                                setRememberMe(e.target.checked)
-                            }
-                            className="size-4 accent-green-600"
-                        />
-                        {$vocabulary.REMEMBER_ME}
-                    </label>
-
-                    <div className="flex justify-center">
-                        <button
-                            type="button"
-                            disabled={loading}
-                            onClick={handleSubmit}
-                            className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold disabled:opacity-50 md:hover:bg-green-800"
-                        >
-                            {loading
-                                ? $vocabulary.LOGGING_IN
-                                : $vocabulary.LOG_IN}
-                        </button>
-                    </div>
-                </div>
+        <div className="bg-scrim text-foreground absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl p-8 text-center shadow-xl backdrop-blur-2xl">
+            <div className="flex items-center justify-center gap-2">
+                <h1 className="text-3xl font-bold">{vocabulary.LOG_IN_TO}</h1>
+                <Image
+                    width={1024}
+                    height={307}
+                    src="/logo-banner.png"
+                    className="w-1/2"
+                    alt="RockIt!"
+                    priority
+                />
             </div>
+            <Link
+                href="/register"
+                className="text-primary focus-visible:outline-ring mt-3 inline-block font-semibold focus-visible:outline-2"
+            >
+                {vocabulary.OR_CREATE_ACCOUNT}
+            </Link>
+            <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
+                <Field id="login-username" label={vocabulary.USERNAME}>
+                    <Input
+                        id="login-username"
+                        autoComplete="username"
+                        required
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                    />
+                </Field>
+                <Field id="login-password" label={vocabulary.PASSWORD}>
+                    <Input
+                        id="login-password"
+                        type="password"
+                        autoComplete="current-password"
+                        required
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                    />
+                </Field>
+                <label
+                    htmlFor="remember-me"
+                    className="text-muted-foreground flex min-h-11 cursor-pointer items-center gap-2 text-sm"
+                >
+                    <Checkbox
+                        id="remember-me"
+                        checked={rememberMe}
+                        onChange={(event) =>
+                            setRememberMe(event.target.checked)
+                        }
+                    />
+                    {vocabulary.REMEMBER_ME}
+                </label>
+                {error && (
+                    <p role="alert" className="text-destructive text-sm">
+                        {error}
+                    </p>
+                )}
+                <Button type="submit" loading={loading}>
+                    {loading ? vocabulary.LOGGING_IN : vocabulary.LOG_IN}
+                </Button>
+            </form>
         </div>
     );
 }

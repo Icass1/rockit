@@ -79,7 +79,7 @@ export default function QueueRow({
                             />
                         )}
                     </div>
-                    <p className="truncate text-xs text-(--color-muted)">
+                    <p className="text-muted-foreground truncate text-xs">
                         {getMediaArtistsString(media)}
                     </p>
                 </div>

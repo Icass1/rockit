@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import type { Vocabulary } from "@rockit/shared";
 import { Activity, ChevronDown, X } from "lucide-react";
 import { useListeningHeatmap } from "@/hooks/useListeningHeatmap";
 import { listeningHeatmapManager } from "@/lib/managers/listeningHeatmapManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface ListeningHeatmapProps {
     publicId?: string;
@@ -20,7 +20,7 @@ export default function ListeningHeatmap({
     duration,
     currentTime,
 }: ListeningHeatmapProps): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const text = (key: keyof Vocabulary, fallback: string): string => {
         const value = vocabulary[key];
         return value && value !== key ? value : fallback;

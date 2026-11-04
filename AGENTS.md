@@ -35,7 +35,8 @@ Application instructions supplement this file within their application directory
 - Follow existing patterns and keep changes focused on the requested behavior.
 - Use configured absolute imports. Do not add production `console.log` or
   `console.warn` statements.
-- Keep business logic in managers or backend framework classes, outside UI components.
+- Keep business logic in domain services, playback managers, or backend framework
+  classes, outside UI components. Web rendering and state follow its application guide.
 - Keep credentials out of source control and logs. Use environment configuration.
 - Use public UUID identifiers in client APIs; database integer IDs stay internal.
 - Validate API responses with the generated Zod schemas and use the existing HTTP
@@ -43,9 +44,9 @@ Application instructions supplement this file within their application directory
 - Never edit `packages/shared/src/dto/` by hand. Change backend models and regenerate
   from the repository root:
 
-  ```sh
-  uv run --project apps/backend python -m apps.backend models
-  ```
+    ```sh
+    uv run --project apps/backend python -m apps.backend models
+    ```
 
 - Place shared TypeScript types, interfaces, and enums in
   `packages/shared/src/models/`; application-specific ones belong in
@@ -53,8 +54,9 @@ Application instructions supplement this file within their application directory
   the component. Use the aliases configured in each application's `tsconfig.json`.
 - Shared code must remain compatible with web and native runtimes. Keep browser
   APIs and native integrations in their application adapters.
-- Use the vocabulary managers for user-facing strings. Add feature-prefixed keys
-  to the backend vocabulary and update the relevant languages.
+- Source user-facing text from the backend vocabulary. Web uses its server resolver
+  and vocabulary Context; mobile uses its vocabulary manager/provider. Add
+  feature-prefixed keys to the backend vocabulary and update all relevant languages.
 
 ## Development and verification
 

@@ -2,15 +2,14 @@
 
 import type { JSX } from "react";
 import type { DownloadTotalsResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadStats({
     totals,
 }: {
     totals: DownloadTotalsResponse;
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     return (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[

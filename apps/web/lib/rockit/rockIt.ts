@@ -1,4 +1,4 @@
-import { EventManager, EWebSocketMessage, setRockIt } from "@rockit/shared";
+import { EventManager, setRockIt } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
@@ -80,8 +80,9 @@ export class RockIt {
     async refreshSessionAsync(): Promise<void> {
         // Finish startup first so an older anonymous response cannot overwrite
         // the authenticated state and all message handlers are registered.
+        const alreadyInitialized = this._initialization !== undefined;
         await this.init();
-        await this.userManager.updateAsync();
+        if (alreadyInitialized) await this.userManager.updateAsync();
         await this.vocabularyManager.init();
         await this.webSocketManager.reconnectAsync();
         await this.queueManager.refreshAsync();
@@ -122,7 +123,3 @@ export class RockIt {
 }
 
 export const rockIt = new RockIt();
-
-if (typeof window !== "undefined") {
-    rockIt.init();
-}

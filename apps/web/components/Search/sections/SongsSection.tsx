@@ -3,8 +3,8 @@
 import { JSX } from "react";
 import Image from "next/image";
 import { BaseSearchResultsItem } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import SearchRail from "@/components/Search/SearchRail";
 import SearchResultCard from "@/components/Search/SearchResultCard";
 import SearchSongPlayButton from "@/components/Search/SearchSongPlayButton";
@@ -14,7 +14,7 @@ export default function SongsSection({
 }: {
     songs: BaseSearchResultsItem[];
 }): JSX.Element | null {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     if (songs.length === 0) return null;
 

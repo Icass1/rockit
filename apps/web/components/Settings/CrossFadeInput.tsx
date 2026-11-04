@@ -4,12 +4,16 @@ import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { rockIt } from "@/lib/rockit/rockIt";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 export default function CrossFadeInput(): JSX.Element {
     const notifySaved = useSettingsFeedback();
     const settings = useStore(rockIt.mediaPlayerManager.transitionSettingsAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     const es = lang.startsWith("es");
     const [duration, setDuration] = useState<string | null>(null);
     const saveDuration = (): void => {

@@ -6,9 +6,10 @@ import { useStore } from "@nanostores/react";
 import { Check, X } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function FriendRequests(): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const $incoming = useStore(rockIt.friendManager.incomingRequestsAtom);
 
     if ($incoming.length === 0) return <></>;

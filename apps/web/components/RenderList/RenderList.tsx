@@ -3,7 +3,6 @@
 import { useCallback, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import type { CollectionPager } from "@rockit/shared";
 import { MoreHorizontal, Play } from "lucide-react";
@@ -17,6 +16,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import DurationToggle from "@/components/DurationToggle";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 export default function RenderList({
@@ -48,7 +48,7 @@ export default function RenderList({
 }): JSX.Element {
     const playableMedia = getAllPlayableMedia(media);
 
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handlePlay = useCallback((): void => {
         if (listPublicId) void rockIt.queueManager.playCollection(listPublicId);

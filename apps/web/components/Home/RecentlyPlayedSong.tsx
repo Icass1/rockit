@@ -3,13 +3,13 @@
 import { JSX } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function RecentlyPlayedSong({
     song,
@@ -21,7 +21,7 @@ export default function RecentlyPlayedSong({
     className?: string;
 }): JSX.Element {
     const $song = useMedia(song);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handleClick = (): void => {
         // Set the queue with all songs

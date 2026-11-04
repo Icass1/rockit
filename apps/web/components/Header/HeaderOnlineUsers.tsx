@@ -4,10 +4,11 @@ import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { User } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function OnlineUserIndicator(): JSX.Element {
     const onlineUsers = useStore(rockIt.webSocketManager.onlineUsersAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const available = onlineUsers !== undefined;
     return (
         <div

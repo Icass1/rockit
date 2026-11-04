@@ -56,7 +56,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
                     <p className="truncate text-base font-semibold text-white">
                         {currentMedia.name}
                     </p>
-                    <p className="truncate text-sm text-(--color-muted)">
+                    <p className="text-muted-foreground truncate text-sm">
                         {getMediaArtistsString(currentMedia)}
                     </p>
                 </div>

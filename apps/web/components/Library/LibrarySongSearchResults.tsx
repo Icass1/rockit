@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
     type BaseSongWithAlbumResponse,
@@ -9,10 +8,10 @@ import {
 import { LoaderCircle } from "lucide-react";
 import { EFilterMode } from "@/models/enums/filterMode";
 import { EViewMode } from "@/models/enums/viewMode";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useLibrarySongSearch } from "@/components/Library/hooks/useLibrarySongSearch";
 import { SongCard } from "@/components/Library/LibraryCards";
 import { SongRow } from "@/components/Library/LibraryRows";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export function LibrarySongSearchResults({
     query,
@@ -27,7 +26,7 @@ export function LibrarySongSearchResults({
     directSongs: BaseSongWithAlbumResponse[];
     librarySongIds: string[];
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const search = useLibrarySongSearch(query, filterMode, true);
     const direct = useMemo(() => new Set(librarySongIds), [librarySongIds]);
     // An unavailable server is not an empty Library. Keep already known direct

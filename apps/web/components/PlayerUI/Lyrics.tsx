@@ -7,6 +7,7 @@ import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export default function PlayerUILyrics(): JSX.Element {
@@ -93,7 +94,7 @@ function smoothScrollTo(
 function DynamicLyrics(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const snapshot = useLyricsSnapshot(
         $currentMedia?.type === "song" ? $currentMedia.publicId : undefined

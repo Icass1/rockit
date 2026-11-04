@@ -1,9 +1,8 @@
 "use client";
 
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { EContentType } from "@/models/enums/contentType";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export function LibraryFilters({
     activeType,
@@ -12,7 +11,7 @@ export function LibraryFilters({
     activeType: EContentType;
     setActiveType: (type: EContentType) => void;
 }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const pills: { key: EContentType; label: string }[] = [
         { key: EContentType.All, label: $vocabulary.ALL },

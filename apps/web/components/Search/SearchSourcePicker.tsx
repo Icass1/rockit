@@ -1,10 +1,9 @@
 "use client";
 
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { EProviders, type BaseSearchResultsItem } from "@rockit/shared";
 import { Check } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export default function SearchSourcePicker({
@@ -16,7 +15,7 @@ export default function SearchSourcePicker({
     selected: string;
     onSelect: (url: string) => void;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     return (
         <section className="mb-2 border-b border-neutral-600 pb-3 md:max-w-sm">
             <p className="px-2 py-2 text-sm font-semibold text-neutral-300">

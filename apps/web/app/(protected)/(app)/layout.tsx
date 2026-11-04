@@ -1,34 +1,18 @@
-import { JSX } from "react";
-import { redirect } from "next/navigation";
-import { rockIt } from "@/lib/rockit/rockIt";
+import type { JSX, ReactNode } from "react";
+import { getUserInServer } from "@/lib/getUserInServer";
 import AppClientLayout from "@/components/Layout/AppClientLayout";
 
 export default async function AppLayout({
     children,
 }: {
-    children: React.ReactNode;
+    children: ReactNode;
 }): Promise<JSX.Element> {
-    const vocabularyData = await rockIt.vocabularyManager.getVocabularyAsync();
-
-    if (vocabularyData.isNotOk()) {
-        if (vocabularyData.code === 401) {
-            return redirect("/login");
-        }
-        console.error(
-            "Error fetching vocabulary in AppLayout: ",
-            vocabularyData.message,
-            vocabularyData.detail
-        );
-    }
-
-    const vocabulary = vocabularyData.isOk()
-        ? vocabularyData.result
-        : {
-              vocabulary: {},
-              currentLang: "en",
-          };
-
+    const user = await getUserInServer();
     return (
-        <AppClientLayout vocabulary={vocabulary}>{children}</AppClientLayout>
+        <AppClientLayout
+            session={user && user !== "offline" ? user : undefined}
+        >
+            {children}
+        </AppClientLayout>
     );
 }

@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import type { SearchMediaType } from "@/models/search";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function SearchRail({
     kind,
@@ -14,7 +15,7 @@ export default function SearchRail({
 }): JSX.Element {
     const providers = useStore(rockIt.searchManager.providersAtom);
     const searching = useStore(rockIt.searchManager.searchingAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const loading = providers.some((provider) =>
         provider.loadingTypes.includes(kind)
     );

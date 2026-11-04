@@ -7,6 +7,7 @@ import { Headphones, MoreHorizontal, Search, UserPlus, X } from "lucide-react";
 import type { Friend } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function Avatar({
     imageUrl,
@@ -45,7 +46,7 @@ export default function FriendsList({
     friends: Friend[];
 }): JSX.Element {
     const blocked = useStore(rockIt.friendManager.blockedAtom);
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const results = useStore(rockIt.friendManager.searchResultsAtom);
     const [query, setQuery] = useState("");
     const [expanded, setExpanded] = useState(false);

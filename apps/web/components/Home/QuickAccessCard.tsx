@@ -8,6 +8,7 @@ import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import PlayButton from "@/components/Home/PlayButton";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface QuickAccessCardProps {
     eyebrow: string;
@@ -26,7 +27,7 @@ export default function QuickAccessCard({
 }: QuickAccessCardProps): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const isThisPlaying = $currentMedia?.publicId === song.publicId && $playing;
     const { hex } = parseDominantColor(song.dominantColor);

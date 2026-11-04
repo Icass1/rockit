@@ -2,11 +2,11 @@
 
 import { useCallback, type JSX } from "react";
 import type { StatsRankedItemResponse, UserStatsV2Response } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { isQueueable } from "@rockit/shared/models/types/media";
 import type { TPlayableMedia } from "@rockit/shared/models/types/media";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
 import MinutesBarChart from "@/components/Stats/Charts/MinutesBarChart";
 import StatsInsights from "@/components/Stats/StatsInsights";
@@ -24,7 +24,7 @@ export default function UserStatsV2({
     range,
     rangeLabel,
 }: UserStatsV2Props): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handlePlayMedia = useCallback(
         async (item: StatsRankedItemResponse): Promise<void> => {

@@ -35,7 +35,12 @@ const { outputFiles } = await build({
 async function flush() {
     for (let i = 0; i < 40; i++) await Promise.resolve();
 }
-function setup({ connected = false, sameAlbum = false } = {}) {
+function setup({
+    connected = false,
+    sameAlbum = false,
+    browserLifecycle = true,
+    initializePlayer = true,
+} = {}) {
     let level = 0.3,
         serial = 0,
         repeat = "OFF";
@@ -99,7 +104,9 @@ function setup({ connected = false, sameAlbum = false } = {}) {
         srcObject = null;
         style = {};
         buffered = { length: 1, start: () => 0, end: () => 10 };
+        playCalls = 0;
         play() {
+            this.playCalls++;
             this.paused = false;
             this.onplaying?.();
             return Promise.resolve();
@@ -119,10 +126,18 @@ function setup({ connected = false, sameAlbum = false } = {}) {
             if (n === "src") this.src = "";
         }
     }
+    const documentListeners = new Map();
     const document = {
         hidden: false,
         createElement: () => new Element(),
-        addEventListener() {},
+        addEventListener(name, handler) {
+            if (!documentListeners.has(name))
+                documentListeners.set(name, new Set());
+            documentListeners.get(name).add(handler);
+        },
+        removeEventListener(name, handler) {
+            documentListeners.get(name)?.delete(handler);
+        },
         getElementById: () => null,
         body: { appendChild() {} },
     };
@@ -199,8 +214,11 @@ function setup({ connected = false, sameAlbum = false } = {}) {
             vocabulary: { ERROR_LOADING_MEDIA_FILE: "file unavailable" },
         },
     });
-    player.init();
+    if (initializePlayer) player.init();
+    if (browserLifecycle) player.startBrowserLifecycle();
     return {
+        document,
+        documentListeners,
         player,
         queue,
         timers,
@@ -484,4 +502,85 @@ test("native resource duration keeps the playback clock moving beyond catalog le
     audio.ondurationchange();
     assert.equal(e.player.durationAtom.get(), 320);
     e.player.pause();
+});
+
+test("player construction installs no visibility listener; the shell balances browser setup and cleanup", () => {
+    const e = setup({ browserLifecycle: false, initializePlayer: false });
+    assert.equal(e.documentListeners.get("visibilitychange")?.size ?? 0, 0);
+    e.player.startBrowserLifecycle();
+    e.player.startBrowserLifecycle();
+    assert.equal(e.documentListeners.get("visibilitychange").size, 1);
+    e.player.stopBrowserLifecycle();
+    e.player.stopBrowserLifecycle();
+    assert.equal(e.documentListeners.get("visibilitychange").size, 0);
+    e.player.startBrowserLifecycle();
+    assert.equal(e.documentListeners.get("visibilitychange").size, 1);
+    e.player.stopBrowserLifecycle();
+});
+
+test("visibility cleanup cancels iOS ended polling and late callbacks cannot advance playback", () => {
+    const e = setup({ initializePlayer: false });
+    const handler = [...e.documentListeners.get("visibilitychange")][0];
+    e.document.hidden = true;
+    handler();
+    assert.equal(e.timers.size, 1);
+    const poll = [...e.timers.values()][0];
+    const audio = e.player.audioElement;
+    audio.paused = false;
+    audio.currentTime = audio.duration;
+    let ended = 0;
+    e.player.onNativeEnded = () => ended++;
+    e.player.stopBrowserLifecycle();
+    assert.equal(e.timers.size, 0);
+    poll();
+    handler();
+    assert.equal(ended, 0);
+    assert.equal(e.timers.size, 0);
+    assert.equal(audio.paused, false);
+    e.player.startBrowserLifecycle();
+    assert.equal(e.timers.size, 0);
+    handler();
+    assert.equal(e.timers.size, 1);
+    poll();
+    assert.equal(ended, 0);
+    e.document.hidden = false;
+    e.player.activateTransitionsOnGesture = () => {};
+    e.player.preloadNextTrack = async () => {};
+    handler();
+    assert.equal(e.timers.size, 0);
+    e.player.stopBrowserLifecycle();
+});
+
+test("autoplay retries have one gesture owner and cannot play after cleanup or supersession", () => {
+    const e = setup({ initializePlayer: false });
+    const player = e.player,
+        audio = player.audioElement;
+    player._playRequested = true;
+    player._syncOwner = true;
+    player._retryPlayOnGesture("audio");
+    const old = [...e.documentListeners.get("pointerup")][0];
+    player._retryPlayOnGesture("audio");
+    assert.equal(e.documentListeners.get("pointerup").size, 1);
+    assert.equal(e.documentListeners.get("keydown").size, 1);
+    old();
+    assert.equal(audio.playCalls, 0);
+    assert.equal(e.documentListeners.get("pointerup").size, 1);
+    const current = [...e.documentListeners.get("pointerup")][0];
+    current();
+    assert.equal(audio.playCalls, 1);
+    assert.equal(e.documentListeners.get("pointerup").size, 0);
+    assert.equal(e.documentListeners.get("keydown").size, 0);
+    audio.paused = true;
+    player._retryPlayOnGesture("audio");
+    const late = [...e.documentListeners.get("pointerup")][0];
+    player.stopBrowserLifecycle();
+    late();
+    assert.equal(audio.playCalls, 1);
+    assert.equal(e.documentListeners.get("pointerup").size, 0);
+    player._retryPlayOnGesture("audio");
+    assert.equal(e.documentListeners.get("pointerup").size, 0);
+    player.startBrowserLifecycle();
+    late();
+    assert.equal(audio.playCalls, 1);
+    player.stopBrowserLifecycle();
 });

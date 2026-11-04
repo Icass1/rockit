@@ -39,6 +39,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own saved-volume restoration, subscriptions and debounced writes in the playback provider.
     - [x] Own user queue-type subscriptions, scope logout consumers and guard session reads/logout/cache ordering.
     - [x] Scope user profile/preferences/language mutations and reset their active settings consumers across account changes.
+    - [x] Own web player visibility, autoplay-retry gestures and iOS ended polling in the playback provider.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -540,14 +541,45 @@ settings controls were fixture adapters. Remaining settings localization/UI
 consolidation, full navigation, actual media playback, native devices and offline
 entry acceptance remain open.
 
+### Playback-owned web player browser listeners — 5 November 2026
+
+Removed the web MediaPlayerManager constructor's process-wide visibility binding.
+PlaybackProvider now owns explicit, idempotent browser start/stop methods. Visibility
+recovery, background-video switching, next-track preloading and iOS ended polling
+keep their existing behavior while the authenticated playback scope is active.
+Cleanup removes the visibility handler, stops ended polling and releases pending
+play-permission gesture retries without pausing the transport.
+
+Repeated rejected plays now replace the previous retry handler. Superseded or
+stopped handlers cannot play, remove a replacement handler or survive logout and
+same-account restarts. Poll generations reject already-queued callbacks after a
+restart, and late play completion cannot create polling while stopped.
+
+Checks: the 38 focused adaptive-transition/native-lifecycle tests passed 36 tests
+with the same two documented adaptive-transition failures; all three new browser
+lifecycle tests passed. Web typecheck/lint, explicit changed manager/runtime/test
+lint, formatting, production build and production HTTP SSR smoke passed. The full
+web suite passed 193 of 195 tests with those same baseline failures. The existing
+crane GIF precache warning remains. Pinned pnpm used temporary home directories.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 with the actual playback
+provider, MediaPlayerManager and native integration. They verified no constructor
+visibility listener, Strict Mode, balanced visibility setup, stable rerenders,
+single retry ownership, stale retry rejection and logout/restart/unmount cleanup,
+without browser errors. Media-source playback was stubbed; iOS ended polling used
+unit fixtures. Real media/queue progression and native-device acceptance remain
+open. Shared BaseMediaPlayerManager still owns separate one-time socket and
+visibility handlers; moving those is the next bounded runtime step.
+
 ## Current work
 
 The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
 notification, friend, sharing, listen-together and volume increments are implemented
 and checked. User session/queue-type ownership and session read/logout guards are
 also implemented, along with guarded profile/settings/language mutations and their
-active scoped consumers. Next runtime work is queue/player subscriptions, downloads,
-playlists and library,
+active scoped consumers. Web player browser-listener ownership is also implemented.
+Next runtime work is shared player socket/visibility subscriptions, then queue
+subscriptions, downloads, playlists and library,
 generation guards for their asynchronous work and complete account reset. The
 compatibility runtime still initializes those other managers once; the connection
 lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing/

@@ -22,8 +22,6 @@ import {
 import { resolveOfflineAudioUrl } from "@/lib/offline/store";
 import { isIOS } from "@/lib/utils/isIOS";
 
-let _visibilityBound = false;
-
 /**
  * Web media player: implements the shared BaseMediaPlayerManager primitives
  * against HTML <audio>/<video> elements. All playback/queue orchestration lives
@@ -77,6 +75,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _preloadedForQueueMediaId?: number;
     private _endedPollTimer?: ReturnType<typeof setInterval>;
     private _lastEndedTime = 0;
+    private _browserActive = false;
+    private _browserGeneration = 0;
+    private _retryPlayGesture?: () => void;
 
     private _transitionSettings = createAtom<WebTransitionSettings>({
         ...DEFAULT_TRANSITIONS,
@@ -232,27 +233,43 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._preloadAudio.muted = true;
         this._preloadAudio.volume = 0;
 
-        if (typeof document !== "undefined" && !_visibilityBound) {
-            _visibilityBound = true;
-            document.addEventListener("visibilitychange", (): void => {
-                if (this._usesAudioForVideo()) {
-                    if (document.hidden) this._switchToBackgroundAudio();
-                    else this._restoreForegroundVideo();
-                }
-                if (!document.hidden) {
-                    this.activateTransitionsOnGesture();
-                    void this.preloadNextTrack();
-                    this._stopEndedPoll();
-                } else if (MediaPlayerManager._isiOS()) {
-                    this._startEndedPoll();
-                }
-            });
-        }
-
         MediaPlayerManager.#instance = this;
 
         return MediaPlayerManager.#instance;
     }
+
+    startBrowserLifecycle(): void {
+        if (this._browserActive || typeof document === "undefined") return;
+        this._browserActive = true;
+        this._browserGeneration++;
+        document.addEventListener("visibilitychange", this._handleVisibility);
+        if (document.hidden && this._playingAtom.get()) this._startEndedPoll();
+    }
+
+    stopBrowserLifecycle(): void {
+        this._browserActive = false;
+        this._browserGeneration++;
+        if (typeof document !== "undefined")
+            document.removeEventListener(
+                "visibilitychange",
+                this._handleVisibility
+            );
+        this._clearRetryPlayGesture();
+        this._stopEndedPoll();
+    }
+
+    private _handleVisibility = (): void => {
+        if (!this._browserActive) return;
+        if (this._usesAudioForVideo()) {
+            if (document.hidden) this._switchToBackgroundAudio();
+            else this._restoreForegroundVideo();
+        }
+        if (!document.hidden) {
+            this.activateTransitionsOnGesture();
+            void this.preloadNextTrack();
+            this._stopEndedPoll();
+        } else if (MediaPlayerManager._isiOS()) this._startEndedPoll();
+    };
 
     private _createAudio(): HTMLAudioElement {
         const el = new Audio();
@@ -993,10 +1010,13 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     private _retryPlayOnGesture(kind: TMediaKind): void {
+        if (!this._browserActive) return;
+        this._clearRetryPlayGesture();
         const playbackId = this._playbackId;
         const handler = (): void => {
-            document.removeEventListener("pointerup", handler);
-            document.removeEventListener("keydown", handler);
+            if (this._retryPlayGesture !== handler || !this._browserActive)
+                return;
+            this._clearRetryPlayGesture();
             const el = this._el(kind);
             if (
                 el?.paused &&
@@ -1011,14 +1031,30 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 );
             }
         };
+        this._retryPlayGesture = handler;
         document.addEventListener("pointerup", handler, { once: true });
         document.addEventListener("keydown", handler, { once: true });
     }
 
-    private _startEndedPoll(): void {
-        if (!MediaPlayerManager._isiOS() || this._endedPollTimer) return;
+    private _clearRetryPlayGesture(): void {
+        if (!this._retryPlayGesture) return;
+        document.removeEventListener("pointerup", this._retryPlayGesture);
+        document.removeEventListener("keydown", this._retryPlayGesture);
+        this._retryPlayGesture = undefined;
+    }
 
+    private _startEndedPoll(): void {
+        if (
+            !this._browserActive ||
+            !MediaPlayerManager._isiOS() ||
+            this._endedPollTimer
+        )
+            return;
+
+        const generation = this._browserGeneration;
         this._endedPollTimer = setInterval((): void => {
+            if (!this._browserActive || generation !== this._browserGeneration)
+                return;
             const el = this._audio;
             if (!el || el.paused || !el.duration || isNaN(el.duration)) return;
 

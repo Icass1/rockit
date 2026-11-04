@@ -117,6 +117,8 @@ function setup({
         play: () => transport.play++,
         pause: () => transport.pause++,
         setCurrentTime: () => transport.seek++,
+        startBrowserLifecycle() {},
+        stopBrowserLifecycle() {},
         initializeTransitionSettings: () => activation.settings++,
         activateTransitionsOnGesture: () => activation.transitions++,
     };

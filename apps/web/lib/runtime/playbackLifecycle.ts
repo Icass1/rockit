@@ -37,6 +37,7 @@ export class PlaybackLifecycle {
     private activate(): void {
         if (this.active) return;
         this.active = true;
+        this.services.mediaPlayerManager.startBrowserLifecycle();
         this.services.mediaPlayerManager.initializeTransitionSettings();
         this.mediaSession.init();
         document.addEventListener("pointerup", this.onFirstGesture);
@@ -46,6 +47,7 @@ export class PlaybackLifecycle {
     private deactivate(): void {
         if (!this.active) return;
         this.active = false;
+        this.services.mediaPlayerManager.stopBrowserLifecycle();
         this.removeGestureListeners();
         this.mediaSession.destroy();
     }

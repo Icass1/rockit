@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { Headphones, Music2, Send, Users } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import FriendActivityFeed from "@/components/Friends/FriendActivityFeed";
 import FriendLeaderboard from "@/components/Friends/FriendLeaderboard";
 import FriendRequests from "@/components/Friends/FriendRequests";
@@ -21,31 +20,15 @@ export default function FriendsClient(): JSX.Element {
 }
 
 function FriendsContent(): JSX.Element {
-    const { friendManager } = useRuntimeServices();
+    const { friendManager, sharingManager } = useRuntimeServices();
     const v = useVocabulary();
     const friends = useStore(friendManager.friendsAtom);
     const activity = useStore(friendManager.activityAtom);
     const error = useStore(friendManager.errorAtom);
     const loading = useStore(friendManager.loadingAtom);
     const requests = useStore(friendManager.incomingRequestsAtom);
-    const [ready, setReady] = useState(false);
+    const loadingShares = useStore(sharingManager.loadingAtom);
     const onlineCount = friends.filter((friend) => friend.isOnline).length;
-    useEffect(() => {
-        let live = true;
-        void Promise.allSettled([
-            rockIt.sharingManager.fetchInbox(),
-            rockIt.sharingManager.fetchSent(),
-        ]).finally(() => {
-            if (live) setReady(true);
-        });
-        const unsubscribe = friendManager.friendsAtom.subscribe((value) => {
-            if (value.length > 0) setReady(true);
-        });
-        return () => {
-            live = false;
-            unsubscribe();
-        };
-    }, [friendManager]);
     return (
         <div className={styles.root}>
             <header className={styles.header}>
@@ -163,7 +146,7 @@ function FriendsContent(): JSX.Element {
                     >
                         {v.FRIENDS_RECENT_LISTENS}
                     </h2>
-                    {!ready && activity.length === 0 ? (
+                    {loadingShares && activity.length === 0 ? (
                         <div
                             className={styles.directorySkeleton}
                             aria-busy="true"

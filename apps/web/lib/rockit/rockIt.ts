@@ -100,7 +100,6 @@ export class RockIt {
             rockIt.playlistManager.init(),
         ]);
         rockIt.libraryManager.init();
-        rockIt.sharingManager.init();
 
         cleanupLegacyIndexedDB();
         cleanupLegacyServiceWorker();

@@ -5,15 +5,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Inbox, Play, Send, Trash2 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function SharedMediaInbox(): JSX.Element {
+    const { sharingManager } = useRuntimeServices();
     const v = useVocabulary();
+    const error = useStore(sharingManager.errorAtom);
+    const loading = useStore(sharingManager.loadingAtom);
     const [view, setView] = useState<"inbox" | "sent">("inbox");
-    const $inbox = useStore(rockIt.sharingManager.inboxAtom);
-    const $sent = useStore(rockIt.sharingManager.sentAtom);
+    const $inbox = useStore(sharingManager.inboxAtom);
+    const $sent = useStore(sharingManager.sentAtom);
     const items = view === "inbox" ? $inbox : $sent;
     const [expanded, setExpanded] = useState(false);
     const listId = useId();
@@ -22,7 +25,8 @@ export default function SharedMediaInbox(): JSX.Element {
     const unreadCount = $inbox.filter((i) => !i.seen).length;
 
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3" aria-busy={loading}>
+            {error && <p role="alert">{error}</p>}
             <div className={styles.inboxNavigation}>
                 <button
                     aria-pressed={view === "inbox"}
@@ -100,34 +104,28 @@ export default function SharedMediaInbox(): JSX.Element {
                                         href={`/${item.mediaType}/${item.mediaPublicId}`}
                                         onClick={() => {
                                             if (!item.seen && view === "inbox")
-                                                void rockIt.sharingManager.markAsSeen(
+                                                void sharingManager.markAsSeen(
                                                     item.publicId
                                                 );
                                         }}
                                         className="text-sm text-[#ee1086]"
                                     >
-                                        {
-                                            rockIt.vocabularyManager.vocabulary
-                                                .FRIENDS_OPEN
-                                        }
+                                        {v.FRIENDS_OPEN}
                                     </Link>
                                 ) : (
                                     <button
                                         onClick={() => {
                                             if (!item.seen && view === "inbox")
-                                                void rockIt.sharingManager.markAsSeen(
+                                                void sharingManager.markAsSeen(
                                                     item.publicId
                                                 );
-                                            void rockIt.sharingManager.playSharedMedia(
+                                            void sharingManager.playSharedMedia(
                                                 item.mediaPublicId
                                             );
                                         }}
                                         className="text-sm text-[#ee1086]"
                                     >
-                                        {
-                                            rockIt.vocabularyManager.vocabulary
-                                                .PLAY
-                                        }
+                                        {v.PLAY}
                                     </button>
                                 )}
                                 <p className="truncate text-sm font-medium text-white">
@@ -154,7 +152,7 @@ export default function SharedMediaInbox(): JSX.Element {
                                 aria-label={v.DELETE}
                                 onClick={(event) => {
                                     event.stopPropagation();
-                                    void rockIt.sharingManager.deleteShare(
+                                    void sharingManager.deleteShare(
                                         item.publicId
                                     );
                                 }}

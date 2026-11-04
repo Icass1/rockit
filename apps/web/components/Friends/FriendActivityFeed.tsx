@@ -6,6 +6,7 @@ import { Heart, ListPlus, Music2, Play, Share2 } from "lucide-react";
 import type { FriendActivity } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function timeAgo(date: string, now: string, units: string[]): string {
@@ -25,6 +26,7 @@ function timeAgo(date: string, now: string, units: string[]): string {
 }
 
 function ActivitySleeve({ item }: { item: FriendActivity }): JSX.Element {
+    const { sharingManager } = useRuntimeServices();
     const v = useVocabulary();
     const [busy, setBusy] = useState(false);
     const [failedImage, setFailedImage] = useState<string | null>(null);
@@ -32,7 +34,7 @@ function ActivitySleeve({ item }: { item: FriendActivity }): JSX.Element {
     const play = async (): Promise<void> => {
         setBusy(true);
         try {
-            await rockIt.sharingManager.playSharedMedia(item.mediaPublicId);
+            await sharingManager.playSharedMedia(item.mediaPublicId);
         } finally {
             setBusy(false);
         }
@@ -105,7 +107,7 @@ function ActivitySleeve({ item }: { item: FriendActivity }): JSX.Element {
                             icon: ListPlus,
                             label: v.ADD_TO_QUEUE,
                             action: () =>
-                                rockIt.sharingManager.queueSharedMedia(
+                                sharingManager.queueSharedMedia(
                                     item.mediaPublicId
                                 ),
                         },
@@ -113,9 +115,7 @@ function ActivitySleeve({ item }: { item: FriendActivity }): JSX.Element {
                             icon: Share2,
                             label: v.FRIENDS_SHARE,
                             action: () =>
-                                rockIt.sharingManager.compose(
-                                    item.mediaPublicId
-                                ),
+                                sharingManager.compose(item.mediaPublicId),
                         },
                     ].map(({ icon: Icon, label, action }) => (
                         <button

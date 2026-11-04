@@ -34,6 +34,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own navigation-pin subscriptions/wake listeners and migrate pin consumers to runtime Context.
     - [x] Own notification subscriptions, scope header consumers and guard stale inbox/navigation work.
     - [x] Own friend subscriptions, scope social consumers and guard stale reads/mutations.
+    - [x] Own sharing subscriptions, scope inbox/composer consumers and guard stale playback/mutations.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -357,15 +358,51 @@ cleanup, without browser errors. Peripheral sharing/listen-together UI and CSS w
 stubbed: these are interaction checks, not visual, real playback, complete account
 reset, iOS, assistive-technology or offline acceptance.
 
+### Shell-owned sharing and scoped inbox/composer — 4 November 2026
+
+SharingManager now accepts injected session/socket, media lookup, queue, player and
+feedback services. The persistent shell balances its session/socket subscriptions;
+account replacement, logout and cleanup clear inbox/sent items, loading/errors and
+the composer. Request and lifecycle generations prevent stale reads and finalizers
+from changing a replacement account or a restarted lifecycle. Reads and mutations
+handle unsuccessful Results and transport failures; inbox errors are visible in
+the shared-media UI. Mark-seen failures cannot launch a success refresh.
+
+Shared media lookup/play/queue commands check their lifecycle after awaiting media
+metadata, preventing old lookups from changing a replacement account's playback.
+Share submissions check again after refreshing sent items. A replaced composer
+also invalidates old submit completion, so it cannot close or notify over the new
+form. The inbox, composer, activity actions and context-menu share action consume
+runtime Context; inbox labels use the vocabulary Context. The Friends page no
+longer duplicates the manager's initial inbox/sent requests. Composer fields now
+have explicit accessible label associations.
+
+Checks: all 44 focused friend/sharing/notification/connection tests passed, including
+10 new sharing lifecycle tests. Web typecheck and lint, explicit lint of changed
+runtime/manager/model/test modules, formatting, production build and production
+HTTP SSR smoke passed. The full web suite passed 156 of 158 tests, with the same
+two documented adaptive-transition failures. The existing crane GIF precache
+warning remains.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 with the actual provider,
+friend/sharing/socket managers and friend/inbox/composer UI. They verified Strict
+Mode, deferred startup, scoped consumer interaction, send/refresh/close behavior,
+inbox playback commands, stable rerenders, account round trips, stale playback
+cancellation, composer clearing and logout/unmount cleanup, without browser errors.
+Playback command targets, peripheral listen-together/activity UI and CSS were
+stubbed. Real audio, visual/accessibility-device verification, complete application
+account reset and offline behavior remain pending.
+
 ## Current work
 
 The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
-notification and friend increments are implemented and checked. Next runtime work
-is lifecycle ownership of sharing and listen-together, then the remaining legacy
+notification, friend and sharing increments are implemented and checked. Next runtime
+work is lifecycle ownership of listen-together, then the remaining legacy
 manager subscriptions (user/volume, queue/player, downloads, playlists and library),
 generation guards for their asynchronous work and complete account reset. The
 compatibility runtime still initializes those other managers once; the connection
-lifecycle owns the socket and bookmark/navigation-pin/notification/friend integrations.
+lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing
+integrations.
 Full application browser verification of playback/navigation, popups, language
 switching and offline entry remains pending, followed by the Library pagination/query
 stages. Remaining routes and UI migrations are tracked above. Parent stages stay

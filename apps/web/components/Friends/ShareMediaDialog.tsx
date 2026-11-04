@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, type JSX } from "react";
+import { useEffect, useId, useRef, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { LoaderCircle } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function ShareForm({ publicId }: { publicId: string }): JSX.Element {
-    const { friendManager } = useRuntimeServices();
+    const { friendManager, sharingManager } = useRuntimeServices();
+    const recipientId = useId();
+    const messageId = useId();
     const ref = useRef<HTMLDialogElement>(null);
     const friends = useStore(friendManager.friendsAtom);
     const v = useVocabulary();
@@ -28,7 +29,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
         <dialog
             ref={ref}
             aria-labelledby="share-media-title"
-            onCancel={() => rockIt.sharingManager.closeComposer()}
+            onCancel={() => sharingManager.closeComposer()}
             className={styles.dialog}
         >
             <form
@@ -39,22 +40,26 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                     setSending(true);
                     try {
                         if (
-                            await rockIt.sharingManager.shareMedia(
+                            await sharingManager.shareMedia(
                                 recipient,
                                 publicId,
                                 message || undefined
                             )
                         )
-                            rockIt.sharingManager.closeComposer();
+                            sharingManager.closeComposer();
                     } finally {
                         setSending(false);
                     }
                 }}
             >
                 <h2 id="share-media-title">{v.FRIENDS_SHARE}</h2>
-                <label className="flex flex-col gap-2 text-sm">
+                <label
+                    htmlFor={recipientId}
+                    className="flex flex-col gap-2 text-sm"
+                >
                     {v.FRIENDS_SHARE_TO}
                     <select
+                        id={recipientId}
                         required
                         value={recipient}
                         onChange={(event) => setRecipient(event.target.value)}
@@ -78,9 +83,13 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                         {v.FRIENDS_NO_FRIENDS}
                     </p>
                 )}
-                <label className="flex flex-col gap-2 text-sm">
+                <label
+                    htmlFor={messageId}
+                    className="flex flex-col gap-2 text-sm"
+                >
                     {v.FRIENDS_SHARE_MESSAGE}
                     <textarea
+                        id={messageId}
                         maxLength={2000}
                         value={message}
                         onChange={(event) => setMessage(event.target.value)}
@@ -90,7 +99,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                 <div className="flex justify-end gap-3">
                     <button
                         type="button"
-                        onClick={() => rockIt.sharingManager.closeComposer()}
+                        onClick={() => sharingManager.closeComposer()}
                         className="rounded-full px-4 py-2"
                     >
                         {v.CANCEL}
@@ -116,9 +125,9 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
 }
 
 export default function ShareMediaDialog(): JSX.Element | null {
-    const { friendManager } = useRuntimeServices();
+    const { friendManager, sharingManager } = useRuntimeServices();
     const scope = useStore(friendManager.scopeAtom);
-    const publicId = useStore(rockIt.sharingManager.composeMediaAtom);
+    const publicId = useStore(sharingManager.composeMediaAtom);
     return publicId ? (
         <ShareForm key={`${scope}:${publicId}`} publicId={publicId} />
     ) : null;

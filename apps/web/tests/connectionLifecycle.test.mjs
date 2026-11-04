@@ -297,7 +297,18 @@ function lifecycleFixture(initial = { username: "first" }) {
     const pins = { starts: 0, stops: 0, active: false };
     const notifications = { starts: 0, stops: 0, active: false };
     const friends = { starts: 0, stops: 0, active: false };
+    const sharing = { starts: 0, stops: 0, active: false };
     const services = {
+        sharingManager: {
+            start() {
+                sharing.starts++;
+                sharing.active = true;
+            },
+            stop() {
+                sharing.stops++;
+                sharing.active = false;
+            },
+        },
         friendManager: {
             start() {
                 friends.starts++;
@@ -362,6 +373,7 @@ function lifecycleFixture(initial = { username: "first" }) {
         pins,
         notifications,
         friends,
+        sharing,
         lifecycle: new fixture.ConnectionLifecycle(services),
         listenerCount: () => listenerCount,
     };
@@ -385,13 +397,21 @@ test("lifecycle registers handlers before connecting and retains a connection ac
     assert.equal(sockets[0].closeCalls, 1);
 });
 
-test("shell owns friend, notification, bookmark and pin startup and cleanup across deferred initialization and restarts", async () => {
+test("shell owns friend, sharing, notification, bookmark and pin startup and cleanup across deferred initialization and restarts", async () => {
     for (const restart of [false, true]) {
-        const { lifecycle, startup, bookmarks, pins, notifications, friends } =
-            lifecycleFixture();
+        const {
+            lifecycle,
+            startup,
+            bookmarks,
+            pins,
+            notifications,
+            friends,
+            sharing,
+        } = lifecycleFixture();
         const first = lifecycle.start();
         assert.equal(notifications.starts, 1);
         assert.equal(friends.starts, 1);
+        assert.equal(sharing.starts, 1);
         assert.equal(bookmarks.starts, 0);
         assert.equal(pins.starts, 0);
         lifecycle.stop();
@@ -401,6 +421,8 @@ test("shell owns friend, notification, bookmark and pin startup and cleanup acro
         assert.equal(notifications.starts, restart ? 2 : 1);
         assert.equal(notifications.active, restart);
         assert.equal(friends.active, restart);
+        assert.equal(sharing.active, restart);
+        assert.equal(sharing.starts, restart ? 2 : 1);
         assert.equal(friends.starts, restart ? 2 : 1);
         assert.equal(bookmarks.starts, restart ? 1 : 0);
         assert.equal(bookmarks.active, restart);
@@ -409,6 +431,7 @@ test("shell owns friend, notification, bookmark and pin startup and cleanup acro
         lifecycle.stop();
         assert.equal(notifications.active, false);
         assert.equal(friends.active, false);
+        assert.equal(sharing.active, false);
         assert.equal(bookmarks.active, false);
         assert.equal(pins.active, false);
     }

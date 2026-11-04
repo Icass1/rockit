@@ -74,6 +74,8 @@ async def deliver_notifications(session: AsyncSession) -> None:
             if kind == "social_changed":
                 await ws_manager.send_social_snapshot_async(user_id=user_id)
                 continue
+            if kind == "listen_together_sync":
+                await ws_manager.send_listen_together_snapshot_async(user_id=user_id)
         except Exception:
             logger.exception("Unable to deliver social update for user %s", user_id)
 

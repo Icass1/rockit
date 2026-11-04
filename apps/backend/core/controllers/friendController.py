@@ -14,7 +14,6 @@ from core.framework.friend.sharing import Sharing
 from core.framework.friend.streakBattle import StreakBattle
 from core.framework.friend.vibe import Vibe
 from core.framework.media.image import Image
-from core.framework.media.media import Media
 from core.framework.stats import Stats as StatsFramework
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -48,7 +47,6 @@ from core.responses.friend.friendStatsResponse import (
 )
 from core.responses.friend.listenTogetherResponse import (
     ListenTogetherListResponse,
-    ListenTogetherSessionResponse,
 )
 from core.responses.friend.sharedMediaResponse import (
     SharedMediaInboxResponse,
@@ -566,45 +564,13 @@ async def get_active_sessions(request: Request) -> ListenTogetherListResponse:
         logger.error(f"Error getting active sessions: {a_result.info()}")
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
-    sessions: list[ListenTogetherSessionResponse] = []
-    for s in a_result.result():
-        host = s.host
-        guest = s.guest
-        current_media = s.current_media
-        resolved = None
-        if current_media:
-            a_resolved = await Media.get_media_async(session, current_media.public_id, user.id)
-            if a_resolved.is_ok():
-                resolved = a_resolved.result()
-            else:
-                logger.error(f"Error resolving session media. {a_resolved.info()}")
-        sessions.append(
-            ListenTogetherSessionResponse(
-                publicId=s.public_id,
-                hostPublicId=host.public_id,
-                hostUsername=host.username,
-                hostImageUrl=await _get_image_url_async(host.image),
-                guestPublicId=guest.public_id,
-                guestUsername=guest.username,
-                guestImageUrl=await _get_image_url_async(guest.image),
-                currentMediaPublicId=current_media.public_id if current_media else None,
-                currentMediaName=resolved.media.name if resolved else None,
-                currentMediaImageUrl=resolved.media.imageUrl if resolved else None,
-                currentMedia=resolved,
-                updatedAt=s.date_updated,
-                currentTimeMs=s.current_time_ms,
-                isPlaying=s.is_playing,
-                status=(
-                    "active"
-                    if s.status.name == "ACTIVE"
-                    else "invited"
-                    if s.status.name == "INVITED"
-                    else "ended"
-                ),
-            )
-        )
-
-    return ListenTogetherListResponse(sessions=sessions)
+    response = await ListenTogether.build_sessions_response_async(
+        session=session, user_id=user.id, rows=a_result.result()
+    )
+    if response.is_not_ok():
+        logger.error("Error resolving active sessions: %s", response.info())
+        raise HTTPException(status_code=response.get_http_code(), detail=response.message())
+    return response.result()
 
 
 # ─── Stats & Compare ─────────────────────────────────────────────────────────

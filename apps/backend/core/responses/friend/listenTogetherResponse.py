@@ -26,3 +26,7 @@ class ListenTogetherSessionResponse(BaseModel):
 
 class ListenTogetherListResponse(BaseModel):
     sessions: list[ListenTogetherSessionResponse]
+
+
+class ListenTogetherSyncMessage(ListenTogetherListResponse):
+    type: Literal["listen_together_sync"] = "listen_together_sync"

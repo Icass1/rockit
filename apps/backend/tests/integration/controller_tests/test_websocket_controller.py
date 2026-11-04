@@ -10,7 +10,7 @@ from core.controllers import wsController
 from core.framework.websocket.webSocketManager import ws_manager
 
 
-def test_authenticated_connection_receives_social_and_notification_snapshots(
+def test_authenticated_connection_receives_social_notification_and_session_snapshots(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     app = FastAPI()
@@ -43,11 +43,17 @@ def test_authenticated_connection_receives_social_and_notification_snapshots(
         assert user_id == 42
         await websocket.send_json({"type": "notification_state", "unreadCount": 3, "totalCount": 9})
 
+    async def send_listen_together_snapshot_async(user_id: int, websocket: WebSocket) -> None:
+        assert user_id == 42
+        await websocket.send_json({"type": "listen_together_sync", "sessions": []})
+
     send_social = AsyncMock(side_effect=send_social_snapshot_async)
     send_notifications = AsyncMock(side_effect=send_notification_state_async)
+    send_sessions = AsyncMock(side_effect=send_listen_together_snapshot_async)
     disconnect = AsyncMock()
     monkeypatch.setattr(ws_manager, "send_social_snapshot_async", send_social)
     monkeypatch.setattr(ws_manager, "send_notification_state_async", send_notifications)
+    monkeypatch.setattr(ws_manager, "send_listen_together_snapshot_async", send_sessions)
     monkeypatch.setattr(ws_manager, "disconnect_async", disconnect)
 
     test_client = TestClient(app)
@@ -64,11 +70,13 @@ def test_authenticated_connection_receives_social_and_notification_snapshots(
             "unreadCount": 3,
             "totalCount": 9,
         }
+        assert websocket.receive_json() == {"type": "listen_together_sync", "sessions": []}
 
     authenticate.assert_awaited_once()
     connect.assert_awaited_once()
     send_social.assert_awaited_once()
     send_notifications.assert_awaited_once()
+    send_sessions.assert_awaited_once()
     disconnect.assert_awaited_once()
     assert disconnect.await_args is not None
     assert disconnect.await_args.args == (42, accepted_sockets[0])

@@ -26,7 +26,6 @@ export default function FriendsClient(): JSX.Element {
         void Promise.allSettled([
             rockIt.sharingManager.fetchInbox(),
             rockIt.sharingManager.fetchSent(),
-            rockIt.listenTogetherManager.fetchSessions(),
         ]).finally(() => setReady(true));
         const unsubscribe = rockIt.friendManager.friendsAtom.subscribe(
             (value) => {

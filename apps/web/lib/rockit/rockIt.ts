@@ -94,6 +94,7 @@ export class RockIt {
 
     private async initializeAsync(): Promise<void> {
         rockIt.mediaPlayerManager.init();
+        rockIt.listenTogetherManager.init();
         await rockIt.userManager.init();
         rockIt.friendManager.init();
         rockIt.notificationManager.init();
@@ -109,7 +110,6 @@ export class RockIt {
         rockIt.navigationPinsManager.init();
         rockIt.libraryManager.init();
         rockIt.sharingManager.init();
-        rockIt.listenTogetherManager.init();
         rockIt.mediaSessionManager.init();
 
         cleanupLegacyIndexedDB();

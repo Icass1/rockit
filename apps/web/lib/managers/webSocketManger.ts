@@ -7,6 +7,7 @@ import {
     CurrentTimeMessageSchema,
     EWebSocketMessage,
     FriendsPresenceChangedMessageSchema,
+    ListenTogetherSyncMessageSchema,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
     MediaExpandedMessageRequest,
@@ -59,6 +60,8 @@ export class WebSocketManager {
                         data.nowPlaying
                     );
                 }
+            } else if (data.type === EWebSocketMessage.ListenTogetherSync) {
+                data = ListenTogetherSyncMessageSchema.parse(data);
             } else if (data.type === EWebSocketMessage.CurrentMedia) {
                 data = CurrentMediaMessageSchema.parse(data);
                 // An earlier local selection may be acknowledged after another skip.

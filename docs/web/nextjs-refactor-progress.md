@@ -81,6 +81,25 @@ Protected document/RSC responses now use network-only worker delivery. Previous 
 
 Both menu families live under `components/ui/ContextMenu` and `components/ui/PopupMenu`. Generic popovers, loading indicators, the toaster and sliders also live under `components/ui/` alongside the new controls and shared Popup. All imports were updated; no imports of their former locations remain. Added an explicit web AGENTS.md rule requiring reusable base elements in this directory, while feature action policies stay with their features. Closed popups no longer subscribe to browser events; context-menu open callbacks run only when the menu opens. The 17 focused popup, gesture, HTTP and server-rendering tests passed after these changes. Additional lint checks for the new server/API/i18n modules passed, as did the final production build, backend type check and repeated production SSR smoke check.
 
+### Listen-together WebSocket state — 4 November 2026
+
+Removed all web session-list GET calls, including the 15-second fallback and the
+Friends mount refresh. The backend sends typed participant-specific session
+snapshots on connection/reconnection and after committed changes. The web runtime
+registers its handler before connecting and validates snapshots with generated
+Zod schemas. Guest consent, queue restoration, host heartbeats, local stale-host
+pause and session expiry remain in place. Newer snapshots supersede playback
+that is still loading.
+
+Checks: six focused web tests and twelve backend social/WebSocket tests passed.
+Web, mobile and shared TypeScript checks, web lint (including changed runtime
+files), backend Ruff checks and Pyright passed. Regenerated DTOs and reviewed the
+diff. The full web suite passed 88 of 90 tests, with the same two previously
+documented adaptive-transition failures. The full backend suite passed 562 tests
+and failed the existing search vocabulary test, which references the removed
+`components/ContextMenu/Content.tsx` path. Browser playback and real connection-loss
+verification remain pending; social and runtime acceptance stages stay unchecked.
+
 ## Current work
 
 The first implementation increment is implemented and checked. Next work is real browser verification of popups, language switching, navigation and offline entry, then lifecycle-owned runtime services and the Library pagination/query stages. The remaining routes and UI migrations are tracked above. Parent stages stay unchecked until their complete acceptance gates pass; the entire refactor is not complete.

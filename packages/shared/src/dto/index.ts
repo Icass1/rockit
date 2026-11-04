@@ -382,6 +382,10 @@ export {
     type ListenTogetherSessionResponse,
 } from "./listenTogetherSessionResponse";
 export {
+    ListenTogetherSyncMessageSchema,
+    type ListenTogetherSyncMessage,
+} from "./listenTogetherSyncMessage";
+export {
     ListenTogetherSyncRequestSchema,
     type ListenTogetherSyncRequest,
 } from "./listenTogetherSyncRequest";

@@ -11,7 +11,7 @@ restore the friendship. Blocked accounts can be managed from the Friends tab.
 A session has one host and one guest. Each account can have one open invitation
 or session at a time. The guest must explicitly join; receiving an invitation
 never starts playback. The host controls track changes, pause/resume and seek.
-The guest can pause locally; periodic refreshes do not force it to resume.
+The guest can pause locally; subsequent session updates do not force it to resume.
 The guest uses the normal authenticated Rocket player and its playback ownership
 acknowledgements. Another host device that does not own playback cannot publish.
 On leaving, the guest's original queue (including duplicate entries, list ids,
@@ -20,10 +20,11 @@ A page reload requires the guest to join again rather than auto-starting audio.
 
 State changes and seeks publish immediately; ongoing playback publishes at most
 once every five seconds. Native progress events also drive publication when
-browser timers are throttled. WebSocket invalidations are sent after commit;
-a 15-second refresh repairs missed notifications. Guests correct drift above
+browser timers are throttled. WebSocket session snapshots are sent on every
+connection and after committed session changes; the frontend does not poll the
+sessions endpoint. Reconnecting restores the latest state. Guests correct drift above
 1.5 seconds and cap position extrapolation at six seconds. If the host stops
-updating, guests pause; sessions expire after two minutes without a host update.
+updating, guests pause locally; sessions expire after two minutes without a host update.
 Unanswered invitations expire after a day. No audio is uploaded or mixed on the
 server; each participant streams the same media using their own session.
 

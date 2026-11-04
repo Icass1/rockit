@@ -10,8 +10,6 @@ export class ListenTogetherManager {
     private _activeSessionAtom = createAtom<ListenSession | null>(null);
     private _loadingAtom = createAtom(false);
     private _initialized = false;
-    private _fetching = false;
-    private _fetchAgain = false;
     private _syncing = false;
     private _applying = false;
     private _joinedId: string | null = null;
@@ -19,7 +17,6 @@ export class ListenTogetherManager {
     private _lastPublished = "";
     private _remotePlaybackState = "";
     private _lastPublishTime = 0;
-    private _lastFetchTime = 0;
 
     get isHost(): boolean {
         return (
@@ -33,13 +30,12 @@ export class ListenTogetherManager {
         this._initialized = true;
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.ListenTogetherSync,
-            () => {
-                void this.fetchSessions();
+            (message) => {
+                void this.updateSessions(message.sessions);
             }
         );
         rockIt.userManager.loggedInAtom.subscribe((loggedIn) => {
-            if (loggedIn) void this.fetchSessions();
-            else {
+            if (!loggedIn) {
                 this._joinedId = null;
                 this._sessionsAtom.set([]);
                 this._snapshot = undefined;
@@ -55,68 +51,58 @@ export class ListenTogetherManager {
         rockIt.queueManager.currentMediaAtom.listen(() => {
             void this.publish();
         });
-        window.addEventListener("online", () => {
-            void this.fetchSessions();
-        });
         document.addEventListener("visibilitychange", () => {
             if (!document.hidden) {
-                void this.fetchSessions();
                 void this.publish(true);
             }
         });
-        // Repair missed notifications/reconnects; playback itself uses the existing native player.
+        // Publish host heartbeats and stop stale guest playback without polling sessions.
         window.setInterval(() => {
             if (!rockIt.userManager.loggedInAtom.get()) return;
-            if (Date.now() - this._lastFetchTime >= 15000)
-                void this.fetchSessions();
+            const sessions = this._sessionsAtom.get();
+            const now = Date.now();
+            const unexpired = sessions.filter(
+                (session) =>
+                    now - Date.parse(session.updatedAt) <
+                    (session.status === "invited" ? 86400000 : 120000)
+            );
+            if (unexpired.length !== sessions.length) {
+                void this.updateSessions(unexpired);
+            }
+            const active = this._activeSessionAtom.get();
+            if (
+                active &&
+                active.guestUsername ===
+                    rockIt.userManager.usernameAtom.get() &&
+                now - Date.parse(active.updatedAt) >= 20000
+            ) {
+                void this.apply(active);
+            }
             void this.publish();
         }, 1000);
     }
 
-    async fetchSessions(): Promise<void> {
+    private async updateSessions(sessions: ListenSession[]): Promise<void> {
         if (!rockIt.userManager.loggedInAtom.get()) return;
-        if (this._fetching) {
-            this._fetchAgain = true;
+        this._sessionsAtom.set(sessions);
+        const username = rockIt.userManager.usernameAtom.get();
+        const selected =
+            sessions.find((s) => s.publicId === this._joinedId) ??
+            sessions.find((s) => s.hostUsername === username);
+        if (!selected) {
+            this.stopFollowing();
             return;
         }
-        this._fetching = true;
-        const requestingUser = rockIt.userManager.usernameAtom.get();
-        try {
-            const res = await Http.getActiveSessions();
-            if (
-                !res.isOk() ||
-                !rockIt.userManager.loggedInAtom.get() ||
-                requestingUser !== rockIt.userManager.usernameAtom.get()
-            )
-                return;
-            this._lastFetchTime = Date.now();
-            this._sessionsAtom.set(res.result.sessions);
-            const username = rockIt.userManager.usernameAtom.get();
-            const selected =
-                res.result.sessions.find(
-                    (s) => s.publicId === this._joinedId
-                ) ??
-                res.result.sessions.find((s) => s.hostUsername === username);
-            if (!selected) {
-                this.stopFollowing();
-                return;
-            }
-            this._activeSessionAtom.set(selected);
-            if (
-                selected.guestUsername === username &&
-                selected.status === "active" &&
-                this._joinedId === selected.publicId
-            ) {
-                await this.apply(selected);
-            }
-        } catch (error) {
-            console.error("Unable to refresh listening session", error);
-        } finally {
-            this._fetching = false;
-            if (this._fetchAgain) {
-                this._fetchAgain = false;
-                void this.fetchSessions();
-            }
+        const previous = this._activeSessionAtom.get();
+        this._activeSessionAtom.set(selected);
+        if (selected.hostUsername === username) {
+            if (previous?.publicId !== selected.publicId)
+                void this.publish(true);
+        } else if (
+            selected.status === "active" &&
+            this._joinedId === selected.publicId
+        ) {
+            await this.apply(selected);
         }
     }
 
@@ -126,7 +112,6 @@ export class ListenTogetherManager {
         try {
             const res = await Http.inviteToSession({ userPublicId });
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchSessions();
             await this.publish(true);
             return true;
         } catch (error) {
@@ -145,7 +130,12 @@ export class ListenTogetherManager {
             if (!res.isOk()) throw new Error(String(res.detail));
             this._snapshot ??= rockIt.queueManager.captureListeningQueue();
             this._joinedId = sessionPublicId;
-            await this.fetchSessions();
+            const sessions = this._sessionsAtom.get();
+            if (
+                sessions.some((session) => session.publicId === sessionPublicId)
+            ) {
+                await this.updateSessions(sessions);
+            }
             return true;
         } catch (error) {
             this.showError(error);
@@ -160,7 +150,6 @@ export class ListenTogetherManager {
             const res = await Http.leaveSession({ sessionPublicId });
             if (!res.isOk()) throw new Error(String(res.detail));
             this.stopFollowing();
-            await this.fetchSessions();
             return true;
         } catch (error) {
             this.showError(error);
@@ -204,7 +193,6 @@ export class ListenTogetherManager {
                 this._lastPublishTime = now;
             } else {
                 console.error("Session sync rejected", res.detail);
-                await this.fetchSessions();
             }
         } catch (error) {
             console.error("Session sync failed", error);
@@ -231,7 +219,11 @@ export class ListenTogetherManager {
                 queue.moveToMedia(media.publicId);
                 await player.setMedia();
             }
-            if (this._joinedId !== session.publicId) return;
+            if (
+                this._joinedId !== session.publicId ||
+                this._activeSessionAtom.get() !== session
+            )
+                return;
             // Cap extrapolation when a host disappears instead of seeking indefinitely.
             const elapsed = session.isPlaying
                 ? Math.min(
@@ -255,6 +247,15 @@ export class ListenTogetherManager {
             this.showError(error);
         } finally {
             this._applying = false;
+            const latest = this._activeSessionAtom.get();
+            if (
+                latest &&
+                latest !== session &&
+                latest.publicId === this._joinedId &&
+                latest.status === "active"
+            ) {
+                void this.apply(latest);
+            }
         }
     }
 

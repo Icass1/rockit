@@ -1,4 +1,9 @@
 import type {
+    FriendsPresenceChangedMessage,
+    ListenTogetherSyncMessage,
+    NotificationStateMessage,
+} from "@/dto";
+import type {
     CurrentMediaMessage,
     CurrentQueueMessage,
     CurrentTimeMessage,
@@ -14,10 +19,8 @@ import type {
     PlaylistRenamedMessage,
     QueueTypeMessage,
 } from "@rockit/shared";
-import type {
-    FriendsPresenceChangedMessage,
-    NotificationStateMessage,
-} from "../../dto";
+
+export type { ListenTogetherSyncMessage } from "@/dto";
 
 export interface FriendActivityMessage {
     type: "friend_activity";
@@ -30,9 +33,6 @@ export interface FriendActivityMessage {
     listenedAt: string;
 }
 
-export interface ListenTogetherSyncMessage {
-    type: "listen_together_sync";
-}
 export interface SocialChangedMessage {
     type: "social_changed";
     friends: import("../interfaces/friend").Friend[];

@@ -91,7 +91,6 @@ export class RockIt {
     }
 
     private async initializeAsync(): Promise<void> {
-        rockIt.mediaPlayerManager.init();
         await rockIt.userManager.init();
         await rockIt.queueManager.init();
         await Promise.all([

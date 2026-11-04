@@ -198,7 +198,13 @@ function setup({
         queueManager: queue,
         webSocketManager: {
             isConnected: connected,
-            onMessage: (n, fn) => handlers.set(n, fn),
+            onMessage: (n, fn) => {
+                assert.equal(handlers.has(n), false);
+                handlers.set(n, fn);
+            },
+            offMessage: (n, fn) => {
+                if (handlers.get(n) === fn) handlers.delete(n);
+            },
             sendCurrentMedia: (d) => messages.push({ kind: "current", ...d }),
             sendMediaEnded: (d) => messages.push({ kind: "ended", ...d }),
             sendCurrentTime() {},
@@ -583,4 +589,74 @@ test("autoplay retries have one gesture owner and cannot play after cleanup or s
     late();
     assert.equal(audio.playCalls, 1);
     player.stopBrowserLifecycle();
+});
+
+test("shared player synchronization balances socket and visibility handlers across restarts", () => {
+    const e = setup();
+    e.player.init();
+    assert.equal(e.handlers.size, 2);
+    assert.equal(e.documentListeners.get("visibilitychange").size, 2);
+    e.player.stopSynchronization();
+    e.player.stopSynchronization();
+    assert.equal(e.handlers.size, 0);
+    assert.equal(e.documentListeners.get("visibilitychange").size, 1);
+    e.player.init();
+    e.player.init();
+    assert.equal(e.handlers.size, 2);
+    assert.equal(e.documentListeners.get("visibilitychange").size, 2);
+    e.player.stopSynchronization();
+    e.player.stopBrowserLifecycle();
+    assert.equal(e.documentListeners.get("visibilitychange").size, 0);
+});
+
+test("old ownership callbacks cannot pause or resume a restarted synchronization scope", async () => {
+    const e = setup();
+    const old = e.handlers.get("current_media");
+    e.player._playbackId = "same";
+    const pending = old({ isPlaybackOwner: true, playbackId: "same" });
+    e.player.stopSynchronization();
+    e.player.init();
+    e.player._syncOwner = false;
+    await pending;
+    assert.equal(e.player._syncOwner, false);
+    e.player.audioElement.paused = false;
+    await old({ isPlaybackOwner: false, playbackId: "same" });
+    assert.equal(e.player.audioElement.paused, false);
+    assert.equal(e.player.audioElement.playCalls, 0);
+    e.player.stopSynchronization();
+    e.player.stopBrowserLifecycle();
+});
+
+test("pending media-load acknowledgements and remote clocks cannot cross synchronization cleanup", async () => {
+    const e = setup();
+    let finish;
+    e.player._playbackId = "same";
+    e.player._pendingPlaybackId = "same";
+    e.player._mediaLoadPromise = new Promise((resolve) => {
+        finish = resolve;
+    });
+    const pending = e.handlers.get("current_media")({
+        isPlaybackOwner: true,
+        playbackId: "same",
+    });
+    const oldTime = e.handlers.get("current_time");
+    await flush();
+    e.player.stopSynchronization();
+    e.player.init();
+    e.player._syncOwner = false;
+    finish();
+    await pending;
+    assert.equal(e.player.audioElement.playCalls, 0);
+    const message = {
+        mediaPublicId: "a",
+        queueMediaId: 1,
+        playbackId: "same",
+        currentTimeMs: 7000,
+    };
+    oldTime(message);
+    assert.equal(e.player.currentTime, 0);
+    e.handlers.get("current_time")(message);
+    assert.equal(e.player.currentTime, 7);
+    e.player.stopSynchronization();
+    e.player.stopBrowserLifecycle();
 });

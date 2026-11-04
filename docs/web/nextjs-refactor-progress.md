@@ -40,6 +40,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own user queue-type subscriptions, scope logout consumers and guard session reads/logout/cache ordering.
     - [x] Scope user profile/preferences/language mutations and reset their active settings consumers across account changes.
     - [x] Own web player visibility, autoplay-retry gestures and iOS ended polling in the playback provider.
+    - [x] Own shared player socket/visibility synchronization and reject stale acknowledgements across cleanup/account changes.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -571,6 +572,40 @@ unit fixtures. Real media/queue progression and native-device acceptance remain
 open. Shared BaseMediaPlayerManager still owns separate one-time socket and
 visibility handlers; moving those is the next bounded runtime step.
 
+### Playback-owned shared player synchronization — 5 November 2026
+
+BaseMediaPlayerManager now retains balanced socket/visibility cleanup and exposes
+idempotent stopSynchronization(). Initialization keeps its existing mobile API;
+web PlaybackProvider owns setup/cleanup instead of compatibility startup. Repeated
+setup cannot duplicate current-media/current-time handlers, and cleanup detaches
+from the socket instance used for setup. Ordinary shell restarts release listeners
+without stopping the transport. Session metadata retains integration; direct
+account replacement tears down synchronization, pauses the prior transport and
+starts the replacement scope. Logout releases listeners before pausing playback.
+
+Synchronization generations reject old callbacks at entry, after the queue-handler
+microtask and after media loading. Late ownership acknowledgements cannot pause or
+resume a restarted player, and old remote clocks cannot change its current time.
+Existing acknowledgement order, seek validation, playback confirmation and native
+recovery behavior remain in place. This does not complete queue/account state reset
+or cancellation of every transport/source-loading operation.
+
+Checks: all four new ownership/synchronization tests passed. The 42 focused
+adaptive-transition/native-lifecycle tests passed 40 tests with the same two
+baseline adaptive-transition failures. Web, mobile and shared TypeScript checks,
+web lint, explicit changed runtime/test lint, formatting, production build and
+production HTTP SSR smoke passed. The full web suite passed 197 of 199 tests with
+the same baseline failures. The existing crane GIF precache warning remains.
+Pinned pnpm used temporary PNPM_HOME/XDG_DATA_HOME paths.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 with the actual playback
+provider, shared/web player and native integration. They verified Strict Mode,
+balanced socket and visibility handlers, stale acknowledgement/retry rejection,
+stable rerenders, logout, restart and unmount cleanup, without browser errors.
+HTTP/media-source targets were fixture adapters. Actual audio, queue progression,
+native iOS/Android devices and full offline entry were not verified by these fixtures;
+remaining runtime acceptance stays open.
+
 ## Current work
 
 The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
@@ -578,8 +613,9 @@ notification, friend, sharing, listen-together and volume increments are impleme
 and checked. User session/queue-type ownership and session read/logout guards are
 also implemented, along with guarded profile/settings/language mutations and their
 active scoped consumers. Web player browser-listener ownership is also implemented.
-Next runtime work is shared player socket/visibility subscriptions, then queue
-subscriptions, downloads, playlists and library,
+Shared player socket/visibility ownership is also implemented. Next runtime work
+is queue subscriptions and stale queue/source-loading work, then downloads, playlists
+and library,
 generation guards for their asynchronous work and complete account reset. The
 compatibility runtime still initializes those other managers once; the connection
 lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing/

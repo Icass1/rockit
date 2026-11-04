@@ -104,6 +104,8 @@ function setup({
     };
     const activation = {
         settings: 0,
+        syncStarts: 0,
+        syncStops: 0,
         transitions: 0,
         keepalives: 0,
         closed: 0,
@@ -117,6 +119,12 @@ function setup({
         play: () => transport.play++,
         pause: () => transport.pause++,
         setCurrentTime: () => transport.seek++,
+        init() {
+            activation.syncStarts++;
+        },
+        stopSynchronization() {
+            activation.syncStops++;
+        },
         startBrowserLifecycle() {},
         stopBrowserLifecycle() {},
         initializeTransitionSettings: () => activation.settings++,
@@ -447,4 +455,21 @@ test("late keepalive recovery cannot restart audio after cleanup or tear down a 
     assert.equal(e.activation.closed, 1);
     e.lifecycle.stop();
     assert.equal(e.activation.closed, 2);
+});
+
+test("playback synchronization retains metadata updates and replaces ownership on account changes", () => {
+    const e = setup({ initialize: false });
+    e.lifecycle.start();
+    assert.equal(e.activation.syncStarts, 1);
+    e.sessionAtom.set({ username: "fixture", volume: 0.5 });
+    assert.equal(e.activation.syncStarts, 1);
+    assert.equal(e.activation.syncStops, 0);
+    e.sessionAtom.set({ username: "replacement" });
+    assert.equal(e.activation.syncStarts, 2);
+    assert.equal(e.activation.syncStops, 1);
+    assert.equal(e.transport.pause, 1);
+    e.sessionAtom.set(null);
+    assert.equal(e.activation.syncStops, 2);
+    e.lifecycle.stop();
+    assert.equal(e.activation.syncStops, 2);
 });

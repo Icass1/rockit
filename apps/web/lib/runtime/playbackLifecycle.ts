@@ -8,6 +8,7 @@ export class PlaybackLifecycle {
     private readonly volume: VolumePreferenceLifecycle;
     private unsubscribeSession?: () => void;
     private active = false;
+    private username?: string;
 
     constructor(private readonly services: PlaybackServices) {
         this.mediaSession = new MediaSessionManager(services);
@@ -19,8 +20,15 @@ export class PlaybackLifecycle {
         this.volume.start();
         this.unsubscribeSession =
             this.services.userManager.sessionAtom.subscribe((session) => {
-                if (session) this.activate();
-                else if (session === null) {
+                if (session) {
+                    if (this.username && this.username !== session.username) {
+                        this.deactivate();
+                        this.services.mediaPlayerManager.pause();
+                    }
+                    this.username = session.username;
+                    this.activate();
+                } else if (session === null) {
+                    this.username = undefined;
                     this.deactivate();
                     this.services.mediaPlayerManager.pause();
                 }
@@ -31,12 +39,14 @@ export class PlaybackLifecycle {
         this.volume.stop();
         this.unsubscribeSession?.();
         this.unsubscribeSession = undefined;
+        this.username = undefined;
         this.deactivate();
     }
 
     private activate(): void {
         if (this.active) return;
         this.active = true;
+        this.services.mediaPlayerManager.init();
         this.services.mediaPlayerManager.startBrowserLifecycle();
         this.services.mediaPlayerManager.initializeTransitionSettings();
         this.mediaSession.init();
@@ -47,6 +57,7 @@ export class PlaybackLifecycle {
     private deactivate(): void {
         if (!this.active) return;
         this.active = false;
+        this.services.mediaPlayerManager.stopSynchronization();
         this.services.mediaPlayerManager.stopBrowserLifecycle();
         this.removeGestureListeners();
         this.mediaSession.destroy();

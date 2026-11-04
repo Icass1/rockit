@@ -1,6 +1,6 @@
 import type { RuntimeServices } from "@/models/interfaces/runtimeServices";
 
-/** Waits for legacy handlers before connecting; owns only the live connection. */
+/** Owns shell integrations after the remaining legacy handlers are ready. */
 export class ConnectionLifecycle {
     private unsubscribeSession?: () => void;
     private generation = 0;
@@ -24,6 +24,7 @@ export class ConnectionLifecycle {
             });
         this.startup = this.services.init().then(() => {
             if (generation !== this.generation) return;
+            this.services.bookmarkManager.start();
             this.ready = true;
             if (this.username) this.services.webSocketManager.start();
         });
@@ -38,5 +39,6 @@ export class ConnectionLifecycle {
         this.username = undefined;
         this.startup = undefined;
         this.services.webSocketManager.stop();
+        this.services.bookmarkManager.stop();
     }
 }

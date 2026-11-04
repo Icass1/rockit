@@ -1,3 +1,4 @@
+import type { BookmarkManager } from "@/lib/managers/bookmarkManager";
 import type { UserManager } from "@/lib/managers/userManager";
 import type { WebSocketManager } from "@/lib/managers/webSocketManger";
 
@@ -6,4 +7,5 @@ export interface RuntimeServices {
     init(): Promise<void>;
     userManager: Pick<UserManager, "sessionAtom" | "seedSession">;
     webSocketManager: Pick<WebSocketManager, "start" | "stop">;
+    bookmarkManager: Pick<BookmarkManager, "start" | "stop">;
 }

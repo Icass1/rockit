@@ -99,7 +99,6 @@ export class RockIt {
         await rockIt.queueManager.init();
         await Promise.all([
             rockIt.downloaderManager.init(),
-            rockIt.bookmarkManager.init(),
             rockIt.playlistManager.init(),
         ]);
         rockIt.navigationPinsManager.init();

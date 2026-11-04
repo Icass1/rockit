@@ -293,7 +293,18 @@ function lifecycleFixture(initial = { username: "first" }) {
     const session = fixture.createAtom(initial);
     let listenerCount = 0;
     const sessionAtom = session.getReadonlyAtom();
+    const bookmarks = { starts: 0, stops: 0, active: false };
     const services = {
+        bookmarkManager: {
+            start() {
+                bookmarks.starts++;
+                bookmarks.active = true;
+            },
+            stop() {
+                bookmarks.stops++;
+                bookmarks.active = false;
+            },
+        },
         userManager: {
             sessionAtom: {
                 subscribe(fn) {
@@ -314,6 +325,7 @@ function lifecycleFixture(initial = { username: "first" }) {
         startup,
         session,
         services,
+        bookmarks,
         lifecycle: new fixture.ConnectionLifecycle(services),
         listenerCount: () => listenerCount,
     };
@@ -335,6 +347,22 @@ test("lifecycle registers handlers before connecting and retains a connection ac
     lifecycle.stop();
     assert.equal(listenerCount(), 0);
     assert.equal(sockets[0].closeCalls, 1);
+});
+
+test("shell owns bookmark startup and cleanup across deferred initialization and restarts", async () => {
+    for (const restart of [false, true]) {
+        const { lifecycle, startup, bookmarks } = lifecycleFixture();
+        const first = lifecycle.start();
+        assert.equal(bookmarks.starts, 0);
+        lifecycle.stop();
+        const second = restart ? lifecycle.start() : Promise.resolve();
+        startup.resolve();
+        await Promise.all([first, second]);
+        assert.equal(bookmarks.starts, restart ? 1 : 0);
+        assert.equal(bookmarks.active, restart);
+        lifecycle.stop();
+        assert.equal(bookmarks.active, false);
+    }
 });
 
 test("late startup cannot reconnect after unmount or duplicate Strict Mode setup", async () => {

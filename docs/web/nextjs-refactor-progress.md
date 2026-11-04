@@ -30,6 +30,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Remove import-time startup; seed session and connect without initial backoff.
     - [x] Scope playback service consumers and own native media-session/gesture setup and cleanup in the persistent provider.
     - [x] Own socket connections in the persistent provider; cancel stale sends and reconnects.
+    - [x] Own bookmark subscriptions in the shell and reject stale account/media work.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -221,13 +222,41 @@ with no browser errors. These fixture checks do not establish full application
 account reset, legacy manager cleanup, real audio playback or offline acceptance.
 The pinned pnpm ran with temporary PNPM_HOME/XDG_DATA_HOME paths as before.
 
+### Shell-owned bookmark lifecycle — 4 November 2026
+
+Moved bookmark startup out of the compatibility runtime and into the persistent
+shell after legacy startup completes. BookmarkManager now accepts injected state
+owners and has balanced, idempotent start/stop methods. It subscribes to session
+identity and current media, clears bookmarks and the editor on account/track
+changes, and releases both subscriptions on unmount. Metadata-only session updates
+retain the current request. Lifecycle/request generations reject late reads and
+create/update/delete responses after cleanup, account replacement or track changes,
+including a return to the same account or track. Stale mutations cannot display
+notifications in the replacement context. Playback and bookmark state keep their
+existing owners.
+
+Checks: all 21 focused connection/bookmark/request-race tests passed. Web typecheck
+and lint, explicit lint of changed manager/runtime/model/test modules and formatting
+passed. The full web suite passed 120 of 122 tests with the same two documented
+adaptive-transition failures. Production build and HTTP SSR smoke passed, including
+translated first-render content, the current queue footer, streaming and initial
+request deduplication.
+
+Chromium fixture checks passed at 1440×900, 390×844 and 844×390 using the actual
+RuntimeProvider, BookmarkManager and WebSocketManager with injected services.
+They verified Strict Mode, stable shell rerenders without duplicate bookmark
+requests, stale account-response rejection, logout clearing, listener cleanup and
+real socket reconnection, with no browser errors. These fixtures do not establish
+full application navigation, real audio or offline acceptance.
+
 ## Current work
 
-The scoped playback/native-lifecycle and shell-owned socket increments are
-implemented and checked. Next runtime work is lifecycle ownership of legacy
-manager subscriptions, generation guards for their asynchronous work and complete
-account reset. The compatibility runtime still initializes those managers once;
-the new connection lifecycle owns only the socket and its session subscription.
+The scoped playback/native-lifecycle, socket and bookmark increments are
+implemented and checked. Next runtime work is lifecycle ownership of navigation
+pins and the remaining legacy manager subscriptions, generation guards for their
+asynchronous work and complete account reset. The compatibility runtime still
+initializes the other managers once; the connection lifecycle owns the socket,
+its session subscription and the bookmark integration.
 Full application browser
 verification of playback/navigation, popups, language switching and offline entry
 remains pending, followed by the Library pagination/query stages. The remaining

@@ -118,24 +118,33 @@ The production web build passed. The production SSR smoke check failed twice wit
 `ECONNRESET` on its initial request to the local frontend fixture. Browser
 interaction and native device verification remain pending.
 
-### Footer first-render vocabulary — 4 November 2026
+### Server-rendered current playback and queue Context — 4 November 2026
 
-Removed the footer's `ssr: false` boundary. Its initial HTML now displays the
-dictionary supplied by the root Server Component through vocabulary Context.
-Live playback controls mount after hydration so a queue restored early in the
-browser cannot change the initial server/client markup. No additional browser
-vocabulary request is needed. Key-valued translation placeholders such as
-`NO_MEDIA_PLAYING` now use the workbook English fallback, alongside missing and
-blank translations.
+The application Server Component now fetches the authenticated, bounded queue
+page centered on current playback through the typed server transport. QueueProvider
+supplies that request snapshot and a stable reference to the existing queue
+manager. Footer subscriptions use the request snapshot for server rendering and
+hydration, then follow the manager's existing Nanostores. The footer has no
+mounted-state branch: the current track, artwork, artist, album and transport
+controls are present in the initial HTML. Empty-state text is used only when the
+server queue has no current media. Key-valued translation placeholders still use
+the workbook fallback.
 
-Checks: all seven focused server-rendering tests passed, including Spanish and
-French footer text and missing/blank/key-placeholder fallbacks. Web TypeScript,
-web lint, changed i18n-module lint, formatting and the production build passed.
-The production SSR smoke test passed with a key-placeholder backend fixture,
-asserting readable footer text in actual server HTML and one initial vocabulary
-request. The full web suite passed 91 of 93 tests; the two failures are the
-previously documented adaptive-transition failures. Real browser hydration,
-playback and viewport verification remain pending.
+The provider seeds the existing runtime on the client. Queue startup reuses that
+page, including its offset and total, without a second queue GET or overwriting
+changes made after seeding. Pagination, queue refreshes and WebSocket playback
+synchronization retain their existing ownership. The runtime compatibility
+singleton remains for other consumers; this is an incremental Context migration.
+
+Checks: all ten focused server-rendering/bootstrap tests passed, covering current
+song details, radio, empty queues, snapshot isolation, duplicate initialization,
+no repeated startup queue request, pagination and subsequent queue clearing.
+Web, mobile and shared TypeScript checks, web lint, changed hook/server/manager
+module lint and formatting passed. The production build and HTTP SSR smoke passed;
+the latter checks the current track and controls in server HTML, isolated empty
+queue rendering and one initial server queue request. The full web suite passed
+94 of 96 tests with the same two documented adaptive-transition failures. Real
+browser hydration, playback and viewport verification remain pending.
 
 ## Current work
 

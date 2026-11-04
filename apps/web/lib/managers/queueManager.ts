@@ -5,11 +5,26 @@ import {
 } from "@rockit/shared";
 import type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listenTogetherState";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { createAtom, type ReadonlyAtom } from "@/lib/store";
 
 /**
  * Shared queue orchestration with browser caching for offline collection playback.
  */
 export class QueueManager extends BaseQueueManager {
+    private _readyAtom = createAtom(false);
+
+    get readyAtom(): ReadonlyAtom<boolean> {
+        return this._readyAtom.getReadonlyAtom();
+    }
+
+    protected override _applyQueueResponse(
+        queue: QueueResponse,
+        updateCurrentMedia = true
+    ): void {
+        super._applyQueueResponse(queue, updateCurrentMedia);
+        this._readyAtom.set(true);
+    }
+
     override updateQueue(shuffleRandom?: boolean): void {
         super.updateQueue(shuffleRandom);
         // Appends can change the next random item while the current one plays.

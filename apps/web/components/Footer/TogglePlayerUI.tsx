@@ -1,12 +1,15 @@
 "use client";
 
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { ChevronUp } from "lucide-react";
+import { usePlaybackStore } from "@/hooks/usePlaybackStore";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function TogglePlayerUI(): JSX.Element {
-    const $visible = useStore(rockIt.playerUIManager.visibleAtom);
+    const $visible = usePlaybackStore(
+        rockIt.playerUIManager.visibleAtom,
+        false
+    );
 
     return (
         <button

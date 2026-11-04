@@ -1,8 +1,10 @@
 "use client";
 
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
+import type { BookmarkResponse } from "@/dto";
 import { ERepeatMode, isStation } from "@rockit/shared";
+import { getMediaDuration } from "@/models/types/media";
+import { useCurrentMedia, usePlaybackStore } from "@/hooks/usePlaybackStore";
 import {
     BOOKMARK_MODE_COLORS,
     BOOKMARK_MODE_MUTED_COLORS,
@@ -10,16 +12,30 @@ import {
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import BookmarkTooltip from "@/components/Bookmark/BookmarkTooltip";
+import { useInitialPlayback } from "@/components/providers/QueueProvider";
+
+const EMPTY_BOOKMARKS: BookmarkResponse[] = [];
+const EMPTY_IDS: string[] = [];
 
 export default function Bookmarks(): JSX.Element {
-    const duration = useStore(rockIt.mediaPlayerManager.durationAtom) || 1;
-    const $bookmarks = useStore(
-        rockIt.bookmarkManager.currentMediaBookmarksAtom
+    const { session } = useInitialPlayback();
+    const $currentMedia = useCurrentMedia();
+    const duration =
+        usePlaybackStore(
+            rockIt.mediaPlayerManager.durationAtom,
+            getMediaDuration($currentMedia) ?? 0
+        ) || 1;
+    const $bookmarks = usePlaybackStore(
+        rockIt.bookmarkManager.currentMediaBookmarksAtom,
+        EMPTY_BOOKMARKS
     );
-    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
-    const $triggeredPublicIds = useStore(
-        rockIt.mediaPlayerManager.triggeredBookmarkPublicIdsAtom
+    const $repeatMode = usePlaybackStore(
+        rockIt.userManager.repeatModeAtom,
+        ERepeatMode[session?.repeatMode ?? "OFF"]
+    );
+    const $triggeredPublicIds = usePlaybackStore(
+        rockIt.mediaPlayerManager.triggeredBookmarkPublicIdsAtom,
+        EMPTY_IDS
     );
     const isLiveStation = $currentMedia && isStation($currentMedia);
 

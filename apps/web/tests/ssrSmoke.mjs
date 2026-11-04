@@ -80,20 +80,34 @@ try {
         footer,
         "Footer must be present in server HTML before JavaScript runs"
     );
-    assert.match(footer, /No media playing/);
-    assert.doesNotMatch(footer, /NO_MEDIA_PLAYING/);
+    assert.match(footer, /SSR current song/);
+    assert.match(footer, /Fixture artist/);
+    assert.match(footer, /Fixture album/);
+    assert.match(footer, /1:00/);
+    assert.doesNotMatch(footer, /NO_MEDIA_PLAYING|No media playing/);
     assert.notEqual(firstContentMs, undefined);
     const state = await (
         await fetch(`http://127.0.0.1:${backend}/fixture/status`)
     ).json();
     for (const route of [
         "/user/session",
+        "/user/queue",
         "/stats/home",
         "/vocabulary/user",
         "/recommendation/for-you?external=false",
         "/recommendation/for-you?external=true",
     ])
         assert.equal(state.calls[route], 1, route);
+    const emptyResponse = await fetch(`http://127.0.0.1:${frontend}/`, {
+        headers: { cookie: "session_id=fixture-empty" },
+        signal: AbortSignal.timeout(15000),
+    });
+    assert.equal(emptyResponse.status, 200);
+    const emptyHtml = await emptyResponse.text();
+    const emptyFooter = emptyHtml.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
+    assert.ok(emptyFooter);
+    assert.match(emptyFooter, /No media playing/);
+    assert.doesNotMatch(emptyFooter, /SSR current song|NO_MEDIA_PLAYING/);
     const login = await fetch(`http://127.0.0.1:${frontend}/login`);
     assert.equal(login.status, 200);
     const loginHtml = await login.text();
@@ -106,6 +120,7 @@ try {
             {
                 passed: true,
                 translatedServerHtml: true,
+                currentMediaInServerFooter: true,
                 coreContentBeforeDiscovery: true,
                 deduplicatedServerRequests: true,
                 nativeAuthForm: true,

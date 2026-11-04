@@ -87,6 +87,28 @@ const server = http.createServer((req, res) => {
                 NO_MEDIA_PLAYING: "NO_MEDIA_PLAYING",
             },
         });
+    if (url.pathname === "/user/queue") {
+        if (!req.headers.cookie?.includes("session_id=fixture"))
+            return send({ detail: "Login required" }, 401);
+        const empty = req.headers.cookie.includes("session_id=fixture-empty");
+        return send({
+            currentQueueMediaId: empty ? null : 42,
+            queueType: "RANDOM",
+            offset: empty ? 0 : 150,
+            total: empty ? 0 : 200,
+            queue: empty
+                ? []
+                : [
+                      {
+                          queueMediaId: 42,
+                          listPublicId: album.publicId,
+                          media: { ...song, name: "SSR current song" },
+                          randomIndex: 150,
+                          sortedIndex: 42,
+                      },
+                  ],
+        });
+    }
     if (url.pathname === "/stats/home")
         return send({
             songsByTimePlayed: [song],

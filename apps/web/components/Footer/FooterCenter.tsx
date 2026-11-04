@@ -1,7 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
+import type { BookmarkResponse } from "@/dto";
 import { EQueueType, ERepeatMode, isStation } from "@rockit/shared";
 import {
     Bookmark,
@@ -13,12 +13,18 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
+import { getMediaDuration } from "@/models/types/media";
+import { useCurrentMedia, usePlaybackStore } from "@/hooks/usePlaybackStore";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Bookmarks from "@/components/Bookmark/Bookmarks";
 import BookmarkPopup from "@/components/Footer/BookmarkPopup";
 import ListeningHeatmap from "@/components/ListeningHeatmap/ListeningHeatmap";
+import {
+    useInitialPlayback,
+    useQueueManager,
+} from "@/components/providers/QueueProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import Slider from "@/components/ui/Slider/Slider";
 
@@ -26,23 +32,53 @@ const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
 const ACTIVE = "text-(--color-rockit-pink)";
 
+const EMPTY_BOOKMARKS: BookmarkResponse[] = [];
+
 export default function FooterCenter(): JSX.Element {
-    const showListeningHeatmap = useStore(
-        rockIt.userManager.showListeningHeatmapAtom
+    const { session, queue } = useInitialPlayback();
+    const queueManager = useQueueManager();
+    const $currentMedia = useCurrentMedia();
+    const showListeningHeatmap = usePlaybackStore(
+        rockIt.userManager.showListeningHeatmapAtom,
+        session?.showListeningHeatmap ?? true
     );
-    const duration = useStore(rockIt.mediaPlayerManager.durationAtom);
-    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const $loading = useStore(rockIt.mediaPlayerManager.loadingAtom);
-    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $queueType = useStore(rockIt.userManager.queueTypeAtom);
-    const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
+    const duration =
+        usePlaybackStore(
+            rockIt.mediaPlayerManager.durationAtom,
+            getMediaDuration($currentMedia) ?? 0
+        ) ||
+        getMediaDuration($currentMedia) ||
+        0;
+    const $playing = usePlaybackStore(
+        rockIt.mediaPlayerManager.playingAtom,
+        false
+    );
+    const $currentTime = usePlaybackStore(
+        rockIt.mediaPlayerManager.currentTimeAtom,
+        (session?.currentTimeMs ?? 0) / 1000
+    );
+    const $loading = usePlaybackStore(
+        rockIt.mediaPlayerManager.loadingAtom,
+        false
+    );
+    const $queueType = usePlaybackStore(
+        rockIt.userManager.queueTypeAtom,
+        EQueueType[queue?.queueType ?? session?.queueType ?? "SORTED"]
+    );
+    const $repeatMode = usePlaybackStore(
+        rockIt.userManager.repeatModeAtom,
+        ERepeatMode[session?.repeatMode ?? "OFF"]
+    );
 
     const $vocabulary = useVocabulary();
-    const $bookmarks = useStore(
-        rockIt.bookmarkManager.currentMediaBookmarksAtom
+    const $bookmarks = usePlaybackStore(
+        rockIt.bookmarkManager.currentMediaBookmarksAtom,
+        EMPTY_BOOKMARKS
     );
-    const $showBookmarkPopup = useStore(rockIt.bookmarkManager.showPopupAtom);
+    const $showBookmarkPopup = usePlaybackStore(
+        rockIt.bookmarkManager.showPopupAtom,
+        false
+    );
     const isLiveStation = $currentMedia && isStation($currentMedia);
 
     if (!$currentMedia) return <div className="hidden w-1/3 md:block" />;
@@ -84,7 +120,7 @@ export default function FooterCenter(): JSX.Element {
 
                 <button
                     aria-label={$vocabulary.PREVIOUS_MEDIA}
-                    onClick={(): void => rockIt.queueManager.skipBack()}
+                    onClick={(): void => queueManager.skipBack()}
                 >
                     <SkipBack
                         className={`h-5.5 w-5.5 fill-current ${ICON_BTN}`}
@@ -114,7 +150,7 @@ export default function FooterCenter(): JSX.Element {
 
                 <button
                     aria-label={$vocabulary.NEXT_MEDIA}
-                    onClick={(): void => rockIt.queueManager.skipForward()}
+                    onClick={(): void => queueManager.skipForward()}
                 >
                     <SkipForward
                         className={`h-5.5 w-5.5 fill-current ${ICON_BTN}`}

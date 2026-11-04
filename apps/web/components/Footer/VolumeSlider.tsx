@@ -1,9 +1,10 @@
 "use client";
 
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
+import { usePlaybackStore } from "@/hooks/usePlaybackStore";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useInitialPlayback } from "@/components/providers/QueueProvider";
 import Slider from "@/components/ui/Slider/Slider";
 
 function VolumeIcon({ volume }: { volume: number }): JSX.Element {
@@ -19,7 +20,11 @@ function VolumeIcon({ volume }: { volume: number }): JSX.Element {
 }
 
 export default function VolumeSlider(): JSX.Element {
-    const $volume = useStore(rockIt.mediaPlayerManager.volumeAtom);
+    const { session } = useInitialPlayback();
+    const $volume = usePlaybackStore(
+        rockIt.mediaPlayerManager.volumeAtom,
+        session?.volume ?? 1
+    );
     const volume = $volume ?? 0;
 
     return (

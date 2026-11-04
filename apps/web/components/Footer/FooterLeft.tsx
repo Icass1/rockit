@@ -4,7 +4,6 @@ import type { JSX } from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation, isStation } from "@rockit/shared";
 import type { BaseStationResponse } from "@rockit/shared";
 import { Ellipsis, Pause, PauseIcon, Play, PlayIcon } from "lucide-react";
@@ -13,6 +12,7 @@ import {
     getMediaArtists,
     TPlayableMedia,
 } from "@/models/types/media";
+import { useCurrentMedia, usePlaybackStore } from "@/hooks/usePlaybackStore";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
@@ -25,8 +25,10 @@ function FooterLeftForMedia({
 }: {
     currentMedia: TPlayableMedia;
 }): JSX.Element {
-    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $queue = useStore(rockIt.queueManager.queueAtom);
+    const $playing = usePlaybackStore(
+        rockIt.mediaPlayerManager.playingAtom,
+        false
+    );
     const [offlineCover, setOfflineCover] = useState<{
         publicId: string;
         url: string;
@@ -50,12 +52,6 @@ function FooterLeftForMedia({
         offlineCover?.publicId === currentMedia.publicId
             ? offlineCover.url
             : currentMedia.imageUrl;
-
-    if (!$queue) {
-        return (
-            <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 opacity-0 md:w-1/3" />
-        );
-    }
 
     const album = getMediaAlbum(currentMedia);
 
@@ -139,7 +135,10 @@ function FooterLeftForStation({
 }: {
     currentStation: BaseStationResponse;
 }): JSX.Element {
-    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const $playing = usePlaybackStore(
+        rockIt.mediaPlayerManager.playingAtom,
+        false
+    );
     const vocabulary = useVocabulary();
     const [failedCover, setFailedCover] = useState<string | null>(null);
 
@@ -203,7 +202,7 @@ function FooterLeftForStation({
 }
 
 export default function FooterLeft(): JSX.Element {
-    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
+    const $currentMedia = useCurrentMedia();
     const $vocabulary = useVocabulary();
 
     if ($currentMedia) {

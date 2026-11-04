@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import test from "node:test";
 import { createElement } from "react";
 import { build } from "esbuild";
+import { atom } from "nanostores";
 import { renderToString } from "react-dom/server";
 
 async function load(source, globals = {}) {
@@ -25,20 +26,20 @@ async function load(source, globals = {}) {
                 setup(builder) {
                     builder.onResolve(
                         {
-                            filter: /^@\/components\/Footer\/(FooterLeft|FooterCenter|VolumeSlider|TogglePlayerUI|PictureInPicture\/PictureInPicture)$/,
+                            filter: /^@\/components\/(LikeButton\/LikeButton|MediaContextMenu\/MediaContextMenu|ListeningHeatmap\/ListeningHeatmap|Footer\/BookmarkPopup|Footer\/PictureInPicture\/PictureInPicture)$/,
                         },
-                        ({ path }) => ({ path, namespace: "live-footer" })
+                        ({ path }) => ({ path, namespace: "peripheral" })
                     );
                     builder.onLoad(
-                        { filter: /.*/, namespace: "live-footer" },
+                        { filter: /.*/, namespace: "peripheral" },
                         () => ({
                             contents:
-                                "export default function LiveFooter() { throw new Error('Live playback must wait for hydration'); }",
+                                "export default function Peripheral({children}) { return children ?? null; }",
                         })
                     );
                     builder.onResolve(
                         {
-                            filter: /^(server-only|next\/headers|next\/navigation|@\/lib\/rockit\/rockIt)$/,
+                            filter: /^(server-only|next\/headers|next\/navigation|next\/image|next\/link|@\/lib\/rockit\/rockIt)$/,
                         },
                         ({ path }) => ({ path, namespace: "fixture" })
                     );
@@ -47,12 +48,16 @@ async function load(source, globals = {}) {
                         ({ path }) => ({
                             contents: {
                                 "server-only": "",
+                                "next/image":
+                                    "import {createElement} from 'react'; export default function Image({src, alt, width, height, className}) { return createElement('img', {src, alt, width, height, className}); }",
+                                "next/link":
+                                    "import {createElement} from 'react'; export default function Link({children, href, className}) { return createElement('a', {href, className}, children); }",
                                 "next/headers":
                                     "export const cookies = () => globals.cookies(); export const headers = () => globals.headers();",
                                 "next/navigation":
                                     "export const useRouter = () => ({ refresh() {} }); export const redirect = (url) => { throw new Error('redirect:' + url); }; export const notFound = () => { throw new Error('not-found'); };",
                                 "@/lib/rockit/rockIt":
-                                    "export const rockIt = {};",
+                                    "export const rockIt = globals.rockIt;",
                             }[path],
                         })
                     );
@@ -70,10 +75,36 @@ async function load(source, globals = {}) {
     )(createRequire(import.meta.url), module, module.exports, globals);
     return module.exports;
 }
-const vocabulary =
-    await load(`export {VocabularyProvider, useVocabulary, useLanguage} from './components/providers/VocabularyProvider';
+const runtime = {
+    queueManager: { readyAtom: atom(false), currentMediaAtom: atom(undefined) },
+    mediaPlayerManager: {
+        playingAtom: atom(false),
+        durationAtom: atom(0),
+        currentTimeAtom: atom(0),
+        loadingAtom: atom(false),
+        volumeAtom: atom(1),
+        triggeredBookmarkPublicIdsAtom: atom([]),
+    },
+    userManager: {
+        showListeningHeatmapAtom: atom(true),
+        queueTypeAtom: atom("SORTED"),
+        repeatModeAtom: atom("OFF"),
+    },
+    bookmarkManager: {
+        currentMediaBookmarksAtom: atom([]),
+        showPopupAtom: atom(false),
+    },
+    playerUIManager: { visibleAtom: atom(false) },
+};
+const vocabulary = await load(
+    `export {VocabularyProvider, useVocabulary, useLanguage} from './components/providers/VocabularyProvider';
 export {default as Footer} from './components/Footer/Footer';
-export {preferredLanguage, completeVocabulary} from './lib/i18n/vocabulary';`);
+export {preferredLanguage, completeVocabulary} from './lib/i18n/vocabulary';
+export {QueueProvider} from './components/providers/QueueProvider';
+export {QueueManager} from './lib/managers/queueManager';
+export {setRockIt} from '../../packages/shared/src/rockit/rockitRef';`,
+    { rockIt: runtime }
+);
 function Heading() {
     const text = vocabulary.useVocabulary();
     return createElement(
@@ -82,12 +113,16 @@ function Heading() {
         `${text.LIBRARY} / ${text.LOG_IN}`
     );
 }
-function render(lang, text, component = Heading) {
+function render(lang, text, component = Heading, initial = {}) {
     return renderToString(
         createElement(
             vocabulary.VocabularyProvider,
             { initial: { currentLang: lang, vocabulary: text } },
-            createElement(component)
+            createElement(
+                vocabulary.QueueProvider,
+                { initial },
+                createElement(component)
+            )
         )
     );
 }
@@ -145,6 +180,155 @@ test("footer falls back to workbook text for missing, blank and key-placeholder 
         );
         assert.match(html, /No media playing/);
         assert.doesNotMatch(html, /NO_MEDIA_PLAYING/);
+    }
+});
+const serverSong = {
+    type: "song",
+    publicId: "server-song",
+    name: "Server current song",
+    imageUrl: "/logo-192.png",
+    duration_ms: 120000,
+    artists: [
+        { publicId: "artist", name: "Server artist", url: "/artist/artist" },
+    ],
+    album: { name: "Server album", url: "/album/album" },
+};
+function queueFor(media) {
+    return {
+        currentQueueMediaId: 42,
+        queueType: "RANDOM",
+        offset: 150,
+        total: 200,
+        queue: [
+            {
+                queueMediaId: 41,
+                listPublicId: "album",
+                media: { ...serverSong, name: "Earlier track" },
+                sortedIndex: 1,
+                randomIndex: 150,
+            },
+            {
+                queueMediaId: 42,
+                listPublicId: "album",
+                media,
+                sortedIndex: 0,
+                randomIndex: 151,
+            },
+        ],
+    };
+}
+test("current song, artwork, artist, album and controls render on the server without seeding runtime state", () => {
+    const html = render("en", {}, vocabulary.Footer, {
+        queue: queueFor(serverSong),
+        session: { currentTimeMs: 30000, volume: 0.25, repeatMode: "ONE" },
+    });
+    for (const text of [
+        "Server current song",
+        "Server artist",
+        "Server album",
+        "0:30",
+        "2:00",
+    ])
+        assert.ok(html.includes(text), text);
+    assert.match(html, /src="\/logo-192.png"/);
+    assert.match(html, /type="range"/);
+    assert.doesNotMatch(
+        html,
+        /No media playing|NO_MEDIA_PLAYING|Earlier track/
+    );
+    assert.equal(runtime.queueManager.currentMediaAtom.get(), undefined);
+    assert.equal(runtime.queueManager.readyAtom.get(), false);
+});
+test("radio station renders immediately and request snapshots remain isolated from live browser state", () => {
+    runtime.queueManager.currentMediaAtom.set(serverSong);
+    runtime.queueManager.readyAtom.set(true);
+    try {
+        const html = render("en", {}, vocabulary.Footer, {
+            queue: queueFor({
+                type: "station",
+                name: "Server station",
+                country: "Spain",
+                imageUrl: "/radio-placeholder.png",
+            }),
+        });
+        assert.match(html, /Server station/);
+        assert.match(html, /Spain/);
+        assert.doesNotMatch(html, /Server current song|No media playing/);
+        const empty = render("en", {}, vocabulary.Footer, {
+            queue: {
+                queue: [],
+                currentQueueMediaId: null,
+                queueType: "SORTED",
+                offset: 0,
+                total: 0,
+            },
+        });
+        assert.match(empty, /No media playing/);
+        assert.doesNotMatch(empty, /Server current song|Server station/);
+    } finally {
+        runtime.queueManager.currentMediaAtom.set(undefined);
+        runtime.queueManager.readyAtom.set(false);
+    }
+});
+test("queue startup reuses the server page, preserves pagination and accepts subsequent refreshes", async () => {
+    const previous = runtime.queueManager;
+    const manager = new vocabulary.QueueManager();
+    const requests = [];
+    let playbackRequests = 0;
+    runtime.queueManager = manager;
+    runtime.webSocketManager = {
+        onMessage() {},
+        requestPlaybackState() {
+            playbackRequests++;
+        },
+    };
+    runtime.mediaPlayerManager.setMedia = async () => {};
+    runtime.http = {
+        getQueue: async (offset, limit) => {
+            requests.push({ offset, limit });
+            return {
+                isOk: () => true,
+                isNotOk: () => false,
+                result:
+                    offset === undefined
+                        ? {
+                              queue: [],
+                              currentQueueMediaId: null,
+                              queueType: "SORTED",
+                              offset: 0,
+                              total: 0,
+                          }
+                        : { ...queueFor(serverSong), offset, queue: [] },
+            };
+        },
+    };
+    vocabulary.setRockIt(runtime);
+    try {
+        manager.seedQueue(queueFor(serverSong));
+        assert.equal(manager.currentMedia.name, "Server current song");
+        assert.equal(manager.currentList, "album");
+        assert.equal(manager.queueTotalCount, 200);
+        assert.equal(manager.readyAtom.get(), true);
+        await manager.init();
+        await manager.init();
+        assert.equal(
+            requests.length,
+            0,
+            "Startup must not repeat the server queue request"
+        );
+        assert.equal(playbackRequests, 1);
+        manager.seedQueue(
+            queueFor({ ...serverSong, name: "Stale server snapshot" })
+        );
+        assert.equal(manager.currentMedia.name, "Server current song");
+        await manager.loadPreviousQueuePageAsync();
+        assert.deepEqual(requests, [{ offset: 100, limit: 50 }]);
+        await manager.refreshAsync();
+        assert.equal(manager.currentMedia, undefined);
+        assert.equal(manager.queue.length, 0);
+        assert.equal(manager.readyAtom.get(), true);
+    } finally {
+        runtime.queueManager = previous;
     }
 });
 test("locale negotiation respects quality, regional subtags and supported languages", () => {

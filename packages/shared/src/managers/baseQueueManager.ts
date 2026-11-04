@@ -72,6 +72,7 @@ export class BaseQueueManager {
 
     protected _lastNavigationDirection: 1 | -1 = 1;
     protected _init = false;
+    private _hasInitialQueue = false;
 
     protected sortedQueue: QueueMediaItem[] = [];
     protected randomQueue: QueueMediaItem[] = [];
@@ -80,11 +81,19 @@ export class BaseQueueManager {
 
     // #region: Constructor
 
+    seedQueue(queue: QueueResponse): void {
+        if (this._init) return;
+        this._applyQueueResponse(queue);
+        this._hasInitialQueue = true;
+    }
+
     async init(): Promise<void> {
         if (this._init) return;
         this._init = true;
 
-        await this._refreshQueueAsync();
+        if (this._hasInitialQueue) {
+            void getRockIt().mediaPlayerManager.setMedia(true);
+        } else await this._refreshQueueAsync();
 
         getRockIt().webSocketManager.onMessage(
             EWebSocketMessage.CurrentQueue,
@@ -156,42 +165,45 @@ export class BaseQueueManager {
         }
 
         if (response.isOk()) {
-            this._queueGeneration += 1;
-            this._queuePages.clear();
-            this._queuePageLoads.clear();
-            this._queuePages.set(response.result.offset, response.result.queue);
-            this._queueTotalAtom.set(response.result.total);
-            if (updateCurrentMedia)
-                this._currentQueueMediaIdAtom.set(
-                    response.result.currentQueueMediaId
-                );
-
-            this.sortedQueue = [...response.result.queue]
-                .sort((a, b): number => a.sortedIndex - b.sortedIndex)
-                .map(({ ...item }): QueueMediaItem => item);
-            this.randomQueue = [...response.result.queue]
-                .sort((a, b): number => a.randomIndex - b.randomIndex)
-                .map(({ ...item }): QueueMediaItem => item);
-
-            if (response.result.queueType === EQueueType.RANDOM)
-                this._queueAtom.set(this.randomQueue);
-            else if (response.result.queueType === EQueueType.SORTED)
-                this._queueAtom.set(this.sortedQueue);
-
-            const currentMedia = this._queueAtom
-                .get()
-                .find(
-                    (media): boolean =>
-                        media.queueMediaId ===
-                        this._currentQueueMediaIdAtom.get()
-                );
-
-            if (updateCurrentMedia)
-                this._currentMediaAtom.set(currentMedia?.media);
-            this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
+            this._applyQueueResponse(response.result, updateCurrentMedia);
             if (updateCurrentMedia)
                 void getRockIt().mediaPlayerManager.setMedia(true);
         }
+    }
+
+    protected _applyQueueResponse(
+        queue: QueueResponse,
+        updateCurrentMedia: boolean = true
+    ): void {
+        this._queueGeneration += 1;
+        this._queuePages.clear();
+        this._queuePageLoads.clear();
+        this._queuePages.set(queue.offset, queue.queue);
+        this._queueTotalAtom.set(queue.total);
+        if (updateCurrentMedia)
+            this._currentQueueMediaIdAtom.set(queue.currentQueueMediaId);
+
+        this.sortedQueue = [...queue.queue]
+            .sort((a, b): number => a.sortedIndex - b.sortedIndex)
+            .map(({ ...item }): QueueMediaItem => item);
+        this.randomQueue = [...queue.queue]
+            .sort((a, b): number => a.randomIndex - b.randomIndex)
+            .map(({ ...item }): QueueMediaItem => item);
+
+        if (queue.queueType === EQueueType.RANDOM)
+            this._queueAtom.set(this.randomQueue);
+        else if (queue.queueType === EQueueType.SORTED)
+            this._queueAtom.set(this.sortedQueue);
+
+        const currentMedia = this._queueAtom
+            .get()
+            .find(
+                (media): boolean =>
+                    media.queueMediaId === this._currentQueueMediaIdAtom.get()
+            );
+
+        if (updateCurrentMedia) this._currentMediaAtom.set(currentMedia?.media);
+        this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
     }
 
     /** Load the page after the currently loaded range for playback or scrolling. */

@@ -13,20 +13,15 @@ export interface RuntimeServices {
     friendManager: FriendManager;
     sharingManager: SharingManager;
     listenTogetherManager: ListenTogetherManager;
-    userManager: Pick<
-        UserManager,
-        | "sessionAtom"
-        | "seedSession"
-        | "start"
-        | "stop"
-        | "signOut"
-        | "loggedInAtom"
-    >;
+    userManager: UserManager;
     webSocketManager: Pick<WebSocketManager, "start" | "stop">;
     notificationManager: Pick<
         NotificationManager,
         | "start"
         | "stop"
+        | "notifyError"
+        | "notifySuccess"
+        | "notifyWarn"
         | "notificationsAtom"
         | "unreadCountAtom"
         | "totalCountAtom"

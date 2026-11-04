@@ -3,10 +3,11 @@
 import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 
 export default function ListeningHistorySetting(): JSX.Element {
-    const enabled = useStore(rockIt.userManager.showListeningHeatmapAtom);
+    const { userManager } = useRuntimeServices();
+    const enabled = useStore(userManager.showListeningHeatmapAtom);
     const [saving, setSaving] = useState(false);
     const notifySaved = useSettingsFeedback();
 
@@ -34,7 +35,7 @@ export default function ListeningHistorySetting(): JSX.Element {
                     setSaving(true);
                     try {
                         if (
-                            await rockIt.userManager.setListeningHeatmapAsync(
+                            await userManager.setListeningHeatmapAsync(
                                 event.target.checked
                             )
                         )

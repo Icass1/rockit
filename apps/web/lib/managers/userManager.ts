@@ -5,7 +5,11 @@ import {
     ERepeatMode,
     EWebSocketMessage,
 } from "@rockit/shared";
-import type { UserSessionServices } from "@/models/interfaces/userSessionServices";
+import type {
+    UserPreferenceMutation,
+    UserSessionPatch,
+    UserSessionServices,
+} from "@/models/interfaces/userSessionServices";
 import { Http } from "@/lib/http";
 import {
     clearSessionOffline,
@@ -24,6 +28,13 @@ export class UserManager extends BaseUserManager {
     private _active = false;
     private _generation = 0;
     private _accountGeneration = 0;
+    private _scopeAtom = createAtom(0);
+    private _mutationRevisions = {
+        profile: 0,
+        download: 0,
+        heatmap: 0,
+        language: 0,
+    };
     private _sessionRequest = 0;
     private _initialization?: Promise<void>;
     private _cacheTask = Promise.resolve();
@@ -38,6 +49,8 @@ export class UserManager extends BaseUserManager {
         return (
             this.dependencies ?? {
                 http: Http,
+                notificationManager: rockIt.notificationManager,
+                vocabularyManager: rockIt.vocabularyManager,
                 searchManager: rockIt.searchManager,
                 downloaderManager: rockIt.downloaderManager,
                 webSocketManager: rockIt.webSocketManager,
@@ -71,6 +84,7 @@ export class UserManager extends BaseUserManager {
             this._handleQueueType
         );
         this._generation++;
+        this._scopeAtom.set(this._generation);
         this._sessionRequest++;
         this._initialization = undefined;
         this._init = false;
@@ -122,6 +136,7 @@ export class UserManager extends BaseUserManager {
     private applySession(session: SessionResponse): void {
         if (this._session.get()?.username !== session.username) {
             this._generation++;
+            this._scopeAtom.set(this._generation);
             this._accountGeneration++;
         }
         this._queueTypeAtom.set(EQueueType[session.queueType]);
@@ -193,6 +208,7 @@ export class UserManager extends BaseUserManager {
 
     private clearSession(): void {
         this._generation++;
+        this._scopeAtom.set(this._generation);
         this._accountGeneration++;
         this._bootstrapSession = undefined;
         this._queueTypeAtom.set(EQueueType.SORTED);
@@ -208,31 +224,67 @@ export class UserManager extends BaseUserManager {
         this.services.webSocketManager.disconnect();
     }
 
+    get scopeAtom(): ReadonlyAtom<number> {
+        return this._scopeAtom.getReadonlyAtom();
+    }
+
+    private isCurrentMutation(
+        generation: number,
+        kind: UserPreferenceMutation,
+        revision: number
+    ): boolean {
+        return (
+            this._active &&
+            generation === this._generation &&
+            !!this._session.get() &&
+            revision === this._mutationRevisions[kind]
+        );
+    }
+
+    private patchSession(patch: UserSessionPatch): Promise<void> {
+        const current = this._session.get();
+        if (!current) return Promise.resolve();
+        const updated = { ...current, ...patch };
+        // A read begun before this successful mutation cannot restore old preferences.
+        this._sessionRequest++;
+        if (patch.image !== undefined) this._image.set(patch.image);
+        if (patch.showListeningHeatmap !== undefined)
+            this._showListeningHeatmap.set(patch.showListeningHeatmap);
+        this._session.set(updated);
+        return this.cacheTask(() => this.services.sessionCache.save(updated));
+    }
+
     async uploadProfileImageAsync(file: File): Promise<boolean> {
-        const username = this._username.get();
         if (
-            !this._loggedIn.get() ||
+            !this._session.get() ||
             !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
             file.size === 0 ||
             file.size > 5 * 1024 * 1024
         )
             return false;
+        const generation = this._generation;
+        const revision = ++this._mutationRevisions.profile;
+        const isCurrent = (): boolean =>
+            this.isCurrentMutation(generation, "profile", revision);
+        if (!isCurrent()) return false;
         try {
-            const upload = await Http.uploadProfileImage(file, file.name);
-            if (upload.isNotOk()) return false;
-            const session = await Http.getSession();
+            const upload = await this.services.http.uploadProfileImage(
+                file,
+                file.name
+            );
+            if (!isCurrent() || !upload.isOk()) return false;
+            const session = await this.services.http.getSession();
             if (
+                !isCurrent() ||
                 !session.isOk() ||
-                !this._loggedIn.get() ||
-                this._username.get() !== username
+                session.result.username !== this._session.get()?.username
             )
                 return false;
-            this._image.set(session.result.image);
-            this._session.set(session.result);
-            void saveSessionOffline(session.result).catch(() => {});
-            return true;
+            await this.patchSession({ image: session.result.image });
+            return isCurrent();
         } catch (error) {
-            console.error("Cannot upload profile image", error);
+            if (isCurrent())
+                console.error("Cannot upload profile image", error);
             return false;
         }
     }
@@ -242,73 +294,82 @@ export class UserManager extends BaseUserManager {
     }
 
     async setDownloadAutoAddToLibraryAsync(enabled: boolean): Promise<boolean> {
-        const session = this._session.get();
-        if (!session) return false;
-        try {
-            const result = await Http.updateDownloadSettings({
-                autoAddToLibrary: enabled,
-            });
-            const current = this._session.get();
-            if (!current || current.username !== session.username) return false;
-            if (!result.isOk()) throw new Error(result.message);
-            const updated = { ...current, autoAddToLibrary: enabled };
-            this._session.set(updated);
-            await saveSessionOffline(updated).catch(() => {});
-            return true;
-        } catch (error) {
-            rockIt.notificationManager.notifyError(
-                error instanceof Error
-                    ? error.message
-                    : rockIt.vocabularyManager.vocabulary.ERROR
-            );
-            return false;
-        }
+        return this.savePreference(
+            "download",
+            () =>
+                this.services.http.updateDownloadSettings({
+                    autoAddToLibrary: enabled,
+                }),
+            { autoAddToLibrary: enabled }
+        );
     }
 
     async setListeningHeatmapAsync(enabled: boolean): Promise<boolean> {
+        return this.savePreference(
+            "heatmap",
+            () => this.services.http.updateListeningHeatmap({ enabled }),
+            { showListeningHeatmap: enabled }
+        );
+    }
+
+    private async savePreference(
+        kind: "download" | "heatmap",
+        request: () => Promise<{ isOk(): boolean }>,
+        patch: UserSessionPatch
+    ): Promise<boolean> {
+        const generation = this._generation;
+        const revision = ++this._mutationRevisions[kind];
+        const isCurrent = (): boolean =>
+            this.isCurrentMutation(generation, kind, revision);
+        if (!isCurrent()) return false;
         try {
-            const result = await Http.updateListeningHeatmap({ enabled });
-            if (!result.isOk()) {
-                rockIt.notificationManager.notifyError(
-                    "Could not save listening history preference"
+            const result = await request();
+            if (!isCurrent()) return false;
+            if (!result.isOk()) throw new Error("Preference update rejected");
+            await this.patchSession(patch);
+            return isCurrent();
+        } catch {
+            if (isCurrent())
+                this.services.notificationManager.notifyError(
+                    this.services.vocabularyManager.vocabulary.ERROR
                 );
-                return false;
-            }
-            this._showListeningHeatmap.set(enabled);
-            const cached = await loadSessionOffline().catch(() => undefined);
-            if (cached && cached.username === this._username.get()) {
-                await saveSessionOffline({
-                    ...cached,
-                    showListeningHeatmap: enabled,
-                }).catch(() => {});
-            }
-            return true;
-        } catch (error) {
-            console.error("Cannot save listening history preference", error);
-            rockIt.notificationManager.notifyError(
-                "Could not save listening history preference"
-            );
             return false;
         }
     }
 
     async setLangAsync(langCode: string): Promise<boolean> {
-        const res = await Http.updateLang({ lang: langCode });
-
-        if (res.isOk()) {
-            rockIt.notificationManager.notifySuccess(
-                rockIt.vocabularyManager.vocabulary.LANGUAGE_CHANGED
+        const generation = this._generation;
+        const revision = ++this._mutationRevisions.language;
+        const isCurrent = (): boolean =>
+            this.isCurrentMutation(generation, "language", revision);
+        if (!isCurrent()) return false;
+        try {
+            const result = await this.services.http.updateLang({
+                lang: langCode,
+            });
+            if (!isCurrent()) return false;
+            if (!result.isOk()) throw new Error("Language update rejected");
+            const vocabulary =
+                await this.services.vocabularyManager.getVocabularyAsync(
+                    langCode
+                );
+            if (!isCurrent()) return false;
+            if (!vocabulary.isOk())
+                throw new Error("Vocabulary refresh rejected");
+            this.services.vocabularyManager.setVocabulary(vocabulary.result);
+            this.services.notificationManager.notifySuccess(
+                this.services.vocabularyManager.vocabulary.LANGUAGE_CHANGED
             );
-            await rockIt.vocabularyManager.init();
             window.dispatchEvent(new Event("rockit:language-changed"));
-        } else {
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.ERROR_CHANGING_LANGUAGE
-            );
-            console.error("Error changing language", res.message, res.detail);
+            return true;
+        } catch {
+            if (isCurrent())
+                this.services.notificationManager.notifyError(
+                    this.services.vocabularyManager.vocabulary
+                        .ERROR_CHANGING_LANGUAGE
+                );
+            return false;
         }
-
-        return res.isOk();
     }
 
     async signOut(): Promise<void> {

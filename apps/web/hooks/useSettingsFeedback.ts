@@ -1,12 +1,13 @@
 "use client";
 
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import {
     useLanguage,
     useVocabulary,
 } from "@/components/providers/VocabularyProvider";
 
 export function useSettingsFeedback(): (saved?: boolean) => void {
+    const { notificationManager } = useRuntimeServices();
     const vocabulary = useVocabulary();
     const lang = useLanguage();
     return (saved = true): void => {
@@ -24,7 +25,7 @@ export function useSettingsFeedback(): (saved?: boolean) => void {
                   : saved
                     ? "Settings saved"
                     : "Settings applied for this session, but could not be saved on this device";
-        if (saved) rockIt.notificationManager.notifySuccess(message);
-        else rockIt.notificationManager.notifyWarn(message);
+        if (saved) notificationManager.notifySuccess(message);
+        else notificationManager.notifyWarn(message);
     };
 }

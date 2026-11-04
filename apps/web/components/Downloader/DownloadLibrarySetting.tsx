@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, type JSX } from "react";
+import { useStore } from "@nanostores/react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useSession } from "@/components/providers/SessionProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
-export default function DownloadLibrarySetting(): JSX.Element {
+function DownloadLibrarySettingContent(): JSX.Element {
+    const { userManager } = useRuntimeServices();
     const session = useSession();
     const vocabulary = useVocabulary();
     const notifySaved = useSettingsFeedback();
@@ -15,7 +17,7 @@ export default function DownloadLibrarySetting(): JSX.Element {
         setSaving(true);
         try {
             if (
-                await rockIt.userManager.setDownloadAutoAddToLibraryAsync(
+                await userManager.setDownloadAutoAddToLibraryAsync(
                     autoAddToLibrary
                 )
             )
@@ -42,4 +44,10 @@ export default function DownloadLibrarySetting(): JSX.Element {
             </label>
         </div>
     );
+}
+
+export default function DownloadLibrarySetting(): JSX.Element {
+    const { userManager } = useRuntimeServices();
+    const scope = useStore(userManager.scopeAtom);
+    return <DownloadLibrarySettingContent key={scope} />;
 }

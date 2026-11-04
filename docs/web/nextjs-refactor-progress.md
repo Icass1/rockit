@@ -38,6 +38,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own listen-together subscriptions/heartbeat, scope its consumers and guard stale consent/playback/restoration.
     - [x] Own saved-volume restoration, subscriptions and debounced writes in the playback provider.
     - [x] Own user queue-type subscriptions, scope logout consumers and guard session reads/logout/cache ordering.
+    - [x] Scope user profile/preferences/language mutations and reset their active settings consumers across account changes.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -500,13 +501,53 @@ Profile/settings/language mutation guards and consumers remain a separate step;
 complete application account reset, real audio, native and offline entry acceptance
 remain pending.
 
+### Scoped user profile, preferences and language mutations — 5 November 2026
+
+UserManager now uses its injected typed HTTP, vocabulary and feedback services
+for profile uploads, download preferences, listening-history preferences and
+language changes. Lifecycle/account generations and per-operation revisions reject
+stale successes, failures and follow-up reads, including account round trips and
+same-account restarts. Stopped managers cannot launch settings mutations. Profile
+refresh validates the returned identity and patches only the image, preserving
+newer settings. Successful preference patches update both session state and the
+serialized offline snapshot and invalidate earlier session reads. Completion after
+cache persistence checks scope again before reporting success.
+
+Language changes fetch the requested dictionary, verify current scope before
+installing it, and emit feedback/the refresh event only after success. Rejected
+updates or vocabulary refreshes keep the current dictionary and use translated
+feedback. Removed the manager's hardcoded listening-history error message in favor
+of the existing vocabulary error. Active settings/profile/language/download
+controls and settings feedback use runtime Context. A user scope resets settings
+and download forms across account/lifecycle changes; the profile callback also
+checks scope before showing upload feedback.
+
+Checks: all 18 user-session/profile/preference tests passed, including eight new
+mutation tests. Web typecheck/lint, explicit changed runtime/model/hook/test lint,
+formatting, production build and production HTTP SSR smoke passed. The full web
+suite passed 190 of 192 tests with the same two documented adaptive-transition
+failures. The existing crane GIF precache warning remains. Pinned pnpm used
+temporary PNPM_HOME/XDG_DATA_HOME paths.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 with the actual runtime,
+playback/session/vocabulary providers, user/vocabulary/socket managers, settings
+page, profile uploader, preference controls, language selector and logout UI.
+They checked preference and cache updates, image-only patching, live language
+Context/document/cookie updates, form reset, suppressed stale upload feedback,
+Strict Mode, account replacement and logout/unmount cleanup, without browser
+errors. HTTP/cache/playback targets, the dictionary response and peripheral
+settings controls were fixture adapters. Remaining settings localization/UI
+consolidation, full navigation, actual media playback, native devices and offline
+entry acceptance remain open.
+
 ## Current work
 
 The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
 notification, friend, sharing, listen-together and volume increments are implemented
 and checked. User session/queue-type ownership and session read/logout guards are
-also implemented. Next runtime work is user profile/settings/language mutation
-guards and scoped consumers, then queue/player, downloads, playlists and library,
+also implemented, along with guarded profile/settings/language mutations and their
+active scoped consumers. Next runtime work is queue/player subscriptions, downloads,
+playlists and library,
 generation guards for their asynchronous work and complete account reset. The
 compatibility runtime still initializes those other managers once; the connection
 lifecycle owns the socket and bookmark/navigation-pin/notification/friend/sharing/

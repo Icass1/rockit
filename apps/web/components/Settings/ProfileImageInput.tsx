@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ImageUp, LoaderCircle } from "lucide-react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import {
     useLanguage,
     useVocabulary,
@@ -17,6 +18,7 @@ export default function ProfileImageInput({
     image: string;
     username: string;
 }): JSX.Element {
+    const { userManager, notificationManager } = useRuntimeServices();
     const input = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
     const [failedImage, setFailedImage] = useState<string | null>(null);
@@ -79,15 +81,15 @@ export default function ProfileImageInput({
                         const file = event.currentTarget.files?.[0];
                         event.currentTarget.value = "";
                         if (!file || uploading) return;
+                        const scope = userManager.scopeAtom.get();
                         setUploading(true);
                         try {
                             const saved =
-                                await rockIt.userManager.uploadProfileImageAsync(
-                                    file
-                                );
+                                await userManager.uploadProfileImageAsync(file);
+                            if (scope !== userManager.scopeAtom.get()) return;
                             if (saved) notifySaved();
                             else
-                                rockIt.notificationManager.notifyError(
+                                notificationManager.notifyError(
                                     text(
                                         "SETTINGS_PROFILE_IMAGE_ERROR",
                                         "Could not save the image. Use JPG, PNG or WebP up to 5 MB.",

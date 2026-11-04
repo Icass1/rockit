@@ -1,7 +1,7 @@
 "use client";
 
 import { JSX } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import {
     useLanguage,
     useVocabulary,
@@ -20,6 +20,7 @@ const LANGUAGES = [
 ];
 
 export default function ChangeLang(): JSX.Element {
+    const { userManager } = useRuntimeServices();
     const $vocabulary = useVocabulary();
     const $lang = useLanguage();
 
@@ -35,7 +36,7 @@ export default function ChangeLang(): JSX.Element {
                 id="lang-select"
                 value={$lang}
                 onChange={(e): Promise<boolean> =>
-                    rockIt.userManager.setLangAsync(e.currentTarget.value)
+                    userManager.setLangAsync(e.currentTarget.value)
                 }
                 className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none"
             >

@@ -2,9 +2,11 @@
 
 import { JSX } from "react";
 import Link from "next/link";
+import { useStore } from "@nanostores/react";
 import { Vocabulary } from "@rockit/shared";
 import { ChartLine, Download, Lock } from "lucide-react";
 import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
@@ -132,7 +134,7 @@ function DisplayNameInput({
     );
 }
 
-export default function SettingsClient(): JSX.Element {
+function SettingsContent(): JSX.Element {
     const $vocabulary = useVocabulary();
 
     return (
@@ -192,4 +194,10 @@ export default function SettingsClient(): JSX.Element {
             </div>
         </div>
     );
+}
+
+export default function SettingsClient(): JSX.Element {
+    const { userManager } = useRuntimeServices();
+    const scope = useStore(userManager.scopeAtom);
+    return <SettingsContent key={scope} />;
 }

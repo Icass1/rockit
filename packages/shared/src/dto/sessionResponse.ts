@@ -12,6 +12,7 @@ export const SessionResponseSchema = z.object({
     repeatMode: z.enum(["OFF", "ONE", "ALL"]),
     currentTimeMs: z.number().nullable(),
     volume: z.number().default(1),
+    autoAddToLibrary: z.boolean().default(false),
 });
 
 export type SessionResponse = z.infer<typeof SessionResponseSchema>;

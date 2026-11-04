@@ -529,22 +529,6 @@ export class BaseHttp {
         );
     }
 
-    static async getDownloadSettings() {
-        return this.apiGetAsync(
-            `/downloader/settings`,
-            dto.DownloadSettingsResponseSchema
-        );
-    }
-
-    static async updateDownloadSettings(payload: dto.DownloadSettingsResponse) {
-        return this.apiPostAsync(
-            `/downloader/settings`,
-            dto.DownloadSettingsResponseSchema,
-            dto.OkResponseSchema,
-            payload
-        );
-    }
-
     static async startDownload(payload: dto.StartDownloadRequest) {
         return this.apiPostAsync(
             `/downloader/start-downloads`,
@@ -1461,6 +1445,17 @@ export class BaseHttp {
         return this.apiPostAsync(
             `/user/crossfade`,
             dto.UpdateCrossfadeRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async updateDownloadSettings(
+        payload: dto.UpdateDownloadSettingsRequest
+    ) {
+        return this.apiPostAsync(
+            `/user/download-settings`,
+            dto.UpdateDownloadSettingsRequestSchema,
             dto.OkResponseSchema,
             payload
         );

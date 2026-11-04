@@ -25,6 +25,19 @@ async function load(source, globals = {}) {
                 setup(builder) {
                     builder.onResolve(
                         {
+                            filter: /^@\/components\/Footer\/(FooterLeft|FooterCenter|VolumeSlider|TogglePlayerUI|PictureInPicture\/PictureInPicture)$/,
+                        },
+                        ({ path }) => ({ path, namespace: "live-footer" })
+                    );
+                    builder.onLoad(
+                        { filter: /.*/, namespace: "live-footer" },
+                        () => ({
+                            contents:
+                                "export default function LiveFooter() { throw new Error('Live playback must wait for hydration'); }",
+                        })
+                    );
+                    builder.onResolve(
+                        {
                             filter: /^(server-only|next\/headers|next\/navigation|@\/lib\/rockit\/rockIt)$/,
                         },
                         ({ path }) => ({ path, namespace: "fixture" })
@@ -59,6 +72,7 @@ async function load(source, globals = {}) {
 }
 const vocabulary =
     await load(`export {VocabularyProvider, useVocabulary, useLanguage} from './components/providers/VocabularyProvider';
+export {default as Footer} from './components/Footer/Footer';
 export {preferredLanguage, completeVocabulary} from './lib/i18n/vocabulary';`);
 function Heading() {
     const text = vocabulary.useVocabulary();
@@ -68,12 +82,12 @@ function Heading() {
         `${text.LIBRARY} / ${text.LOG_IN}`
     );
 }
-function render(lang, text) {
+function render(lang, text, component = Heading) {
     return renderToString(
         createElement(
             vocabulary.VocabularyProvider,
             { initial: { currentLang: lang, vocabulary: text } },
-            createElement(Heading)
+            createElement(component)
         )
     );
 }
@@ -100,6 +114,38 @@ test("missing and empty translations use workbook English instead of keys", () =
             .vocabulary.LOG_IN.length > 0,
         true
     );
+});
+test("footer text is in the first server render without live playback state", () => {
+    for (const [lang, text] of [
+        ["es", "No se está reproduciendo nada"],
+        ["fr", "Aucun média en cours de lecture"],
+    ]) {
+        const html = render(
+            lang,
+            { NO_MEDIA_PLAYING: text },
+            vocabulary.Footer
+        );
+        assert.match(html, /<footer id="app-footer"/);
+        assert.ok(html.includes(text));
+        assert.doesNotMatch(html, /NO_MEDIA_PLAYING/);
+    }
+});
+test("footer falls back to workbook text for missing, blank and key-placeholder translations", () => {
+    for (const text of [
+        undefined,
+        "",
+        "   ",
+        "NO_MEDIA_PLAYING",
+        " NO_MEDIA_PLAYING ",
+    ]) {
+        const html = render(
+            "es",
+            text === undefined ? {} : { NO_MEDIA_PLAYING: text },
+            vocabulary.Footer
+        );
+        assert.match(html, /No media playing/);
+        assert.doesNotMatch(html, /NO_MEDIA_PLAYING/);
+    }
 });
 test("locale negotiation respects quality, regional subtags and supported languages", () => {
     assert.equal(

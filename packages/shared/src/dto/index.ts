@@ -235,10 +235,6 @@ export {
     type DownloadProgressMessage,
 } from "./downloadProgressMessage";
 export {
-    DownloadSettingsResponseSchema,
-    type DownloadSettingsResponse,
-} from "./downloadSettingsResponse";
-export {
     DownloadTotalsResponseSchema,
     type DownloadTotalsResponse,
 } from "./downloadTotalsResponse";
@@ -772,6 +768,10 @@ export {
     UpdateCrossfadeRequestSchema,
     type UpdateCrossfadeRequest,
 } from "./updateCrossfadeRequest";
+export {
+    UpdateDownloadSettingsRequestSchema,
+    type UpdateDownloadSettingsRequest,
+} from "./updateDownloadSettingsRequest";
 export {
     UpdateLangRequestSchema,
     type UpdateLangRequest,

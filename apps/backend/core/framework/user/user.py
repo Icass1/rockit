@@ -731,6 +731,15 @@ class User:
         )
 
     @staticmethod
+    async def update_download_settings_async(
+        session: AsyncSession, user: UserRow, auto_add: bool
+    ) -> Result[bool]:
+        """Update the download preference through the access layer."""
+        return await UserAccess.update_download_settings_async(
+            session=session, user=user, auto_add=auto_add
+        )
+
+    @staticmethod
     async def update_volume_async(
         session: AsyncSession, user_id: int, volume: float
     ) -> Result[bool]:

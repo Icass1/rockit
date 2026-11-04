@@ -100,6 +100,43 @@ and failed the existing search vocabulary test, which references the removed
 `components/ContextMenu/Content.tsx` path. Browser playback and real connection-loss
 verification remain pending; social and runtime acceptance stages stay unchecked.
 
+### Download preference in the session — 4 November 2026
+
+Moved `autoAddToLibrary` into the authenticated session response and removed both
+`/downloader/settings` routes. Saving now uses `/user/download-settings` with a
+dedicated request model. The checkbox consumes session Context without a mount
+fetch; the user manager updates shared session state and the offline cache after
+a successful save. Regenerated the shared DTOs and HTTP client.
+
+Checks: all eleven new direct-controller tests passed, covering both preference
+values, session serialization, authentication, validation, failed saves and the
+removed routes. Web, mobile and shared TypeScript checks, web lint, backend Ruff
+format/lint and Pyright passed. The full backend suite passed 577 tests with the
+previously documented stale search vocabulary path failure; the full web suite
+passed 91 of 93 tests with the two documented adaptive-transition failures.
+The production web build passed. The production SSR smoke check failed twice with
+`ECONNRESET` on its initial request to the local frontend fixture. Browser
+interaction and native device verification remain pending.
+
+### Footer first-render vocabulary — 4 November 2026
+
+Removed the footer's `ssr: false` boundary. Its initial HTML now displays the
+dictionary supplied by the root Server Component through vocabulary Context.
+Live playback controls mount after hydration so a queue restored early in the
+browser cannot change the initial server/client markup. No additional browser
+vocabulary request is needed. Key-valued translation placeholders such as
+`NO_MEDIA_PLAYING` now use the workbook English fallback, alongside missing and
+blank translations.
+
+Checks: all seven focused server-rendering tests passed, including Spanish and
+French footer text and missing/blank/key-placeholder fallbacks. Web TypeScript,
+web lint, changed i18n-module lint, formatting and the production build passed.
+The production SSR smoke test passed with a key-placeholder backend fixture,
+asserting readable footer text in actual server HTML and one initial vocabulary
+request. The full web suite passed 91 of 93 tests; the two failures are the
+previously documented adaptive-transition failures. Real browser hydration,
+playback and viewport verification remain pending.
+
 ## Current work
 
 The first implementation increment is implemented and checked. Next work is real browser verification of popups, language switching, navigation and offline entry, then lifecycle-owned runtime services and the Library pagination/query stages. The remaining routes and UI migrations are tracked above. Parent stages stay unchecked until their complete acceptance gates pass; the entire refactor is not complete.

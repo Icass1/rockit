@@ -183,6 +183,30 @@ export class UserManager extends BaseUserManager {
         return this._showListeningHeatmap.getReadonlyAtom();
     }
 
+    async setDownloadAutoAddToLibraryAsync(enabled: boolean): Promise<boolean> {
+        const session = this._session.get();
+        if (!session) return false;
+        try {
+            const result = await Http.updateDownloadSettings({
+                autoAddToLibrary: enabled,
+            });
+            const current = this._session.get();
+            if (!current || current.username !== session.username) return false;
+            if (!result.isOk()) throw new Error(result.message);
+            const updated = { ...current, autoAddToLibrary: enabled };
+            this._session.set(updated);
+            await saveSessionOffline(updated).catch(() => {});
+            return true;
+        } catch (error) {
+            rockIt.notificationManager.notifyError(
+                error instanceof Error
+                    ? error.message
+                    : rockIt.vocabularyManager.vocabulary.ERROR
+            );
+            return false;
+        }
+    }
+
     async setListeningHeatmapAsync(enabled: boolean): Promise<boolean> {
         try {
             const result = await Http.updateListeningHeatmap({ enabled });

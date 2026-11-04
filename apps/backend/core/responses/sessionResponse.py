@@ -13,6 +13,7 @@ class SessionResponse(BaseModel):
     repeatMode: RepeatModeEnum
     currentTimeMs: int | None
     volume: float = 1
+    autoAddToLibrary: bool = False
 
     @field_serializer("queueType")
     def serialize_queue_type(self, queue_type: QueueTypeEnum) -> str:

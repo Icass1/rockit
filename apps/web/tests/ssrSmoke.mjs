@@ -73,6 +73,15 @@ try {
     assert.match(html, /<html[^>]*lang="es"/);
     assert.match(html, /Biblioteca de prueba/);
     assert.match(html, /SSR fixture song/);
+    const footer = html.match(
+        /<footer\b[^>]*id="app-footer"[\s\S]*?<\/footer>/
+    )?.[0];
+    assert.ok(
+        footer,
+        "Footer must be present in server HTML before JavaScript runs"
+    );
+    assert.match(footer, /No media playing/);
+    assert.doesNotMatch(footer, /NO_MEDIA_PLAYING/);
     assert.notEqual(firstContentMs, undefined);
     const state = await (
         await fetch(`http://127.0.0.1:${backend}/fixture/status`)

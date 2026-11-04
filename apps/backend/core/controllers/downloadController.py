@@ -15,7 +15,6 @@ from core.responses.downloadBrowseResponse import (
     DownloadBrowseResponse,
     DownloadItemsPageResponse,
 )
-from core.responses.downloadSettingsResponse import DownloadSettingsResponse
 from core.responses.downloadsResponse import DownloadsResponse
 from core.responses.okResponse import OkResponse
 from core.responses.startDownloadFromUrlResponse import (
@@ -197,36 +196,6 @@ async def mark_download_seen(request: Request, public_id: str) -> OkResponse:
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
-    return OkResponse()
-
-
-@router.get("/settings")
-async def get_download_settings(request: Request) -> DownloadSettingsResponse:
-    """Return the signed-in user's download preference."""
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.error(f"Error getting download settings. {user.info()}")
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
-    return DownloadSettingsResponse(autoAddToLibrary=user.result().auto_add_downloads_to_library)
-
-
-@router.post("/settings")
-async def update_download_settings(
-    request: Request, payload: DownloadSettingsResponse
-) -> OkResponse:
-    """Persist the download preference across devices."""
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.error(f"Error updating download settings. {user.info()}")
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
-    result = await Downloader.update_settings_async(
-        session=DBSessionMiddleware.get_session(request=request),
-        user=user.result(),
-        auto_add=payload.autoAddToLibrary,
-    )
-    if result.is_not_ok():
-        logger.error(f"Error saving download settings. {result.info()}")
-        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse()
 
 

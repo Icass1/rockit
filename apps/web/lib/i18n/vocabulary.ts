@@ -7,7 +7,7 @@ export const fallbackVocabulary: VocabularyResponse = {
     currentLang: "en",
 };
 
-/** Empty translations fall back to the workbook, never to internal keys. */
+/** Missing translations and internal-key placeholders fall back to the workbook. */
 export function completeVocabulary(
     data: VocabularyResponse
 ): VocabularyResponse {
@@ -16,8 +16,8 @@ export function completeVocabulary(
         vocabulary: {
             ...english,
             ...Object.fromEntries(
-                Object.entries(data.vocabulary).filter(([, value]) =>
-                    value.trim()
+                Object.entries(data.vocabulary).filter(
+                    ([key, value]) => value.trim() && value.trim() !== key
                 )
             ),
         },

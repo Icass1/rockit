@@ -84,6 +84,7 @@ const server = http.createServer((req, res) => {
                 GOOD_AFTERNOON: "Buenas tardes",
                 GOOD_EVENING: "Buenas noches",
                 FOR_YOU: "Para ti",
+                NO_MEDIA_PLAYING: "NO_MEDIA_PLAYING",
             },
         });
     if (url.pathname === "/stats/home")

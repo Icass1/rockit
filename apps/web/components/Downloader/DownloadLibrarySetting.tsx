@@ -1,36 +1,31 @@
 "use client";
 
 import { useState, type JSX } from "react";
-import useFetch from "@/hooks/useFetch";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
-import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useSession } from "@/components/providers/SessionProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadLibrarySetting(): JSX.Element {
-    const { data, loading, error, update } = useFetch(Http.getDownloadSettings);
+    const session = useSession();
     const vocabulary = useVocabulary();
     const notifySaved = useSettingsFeedback();
     const [saving, setSaving] = useState(false);
     const change = async (autoAddToLibrary: boolean): Promise<void> => {
         setSaving(true);
         try {
-            const result = await Http.updateDownloadSettings({
-                autoAddToLibrary,
-            });
-            if (!result.isOk()) throw new Error(result.message);
-            notifySaved();
-            update();
-        } catch (error) {
-            rockIt.notificationManager.notifyError(
-                error instanceof Error ? error.message : vocabulary.ERROR
-            );
+            if (
+                await rockIt.userManager.setDownloadAutoAddToLibraryAsync(
+                    autoAddToLibrary
+                )
+            )
+                notifySaved();
         } finally {
             setSaving(false);
         }
     };
     return (
-        <div className="text-sm text-neutral-300" aria-busy={loading || saving}>
+        <div className="text-sm text-neutral-300" aria-busy={saving}>
             <label
                 htmlFor="download-auto-library"
                 className="flex items-center gap-2"
@@ -38,18 +33,13 @@ export default function DownloadLibrarySetting(): JSX.Element {
                 <input
                     id="download-auto-library"
                     type="checkbox"
-                    checked={data?.autoAddToLibrary ?? false}
-                    disabled={loading || saving || !!error}
+                    checked={session?.autoAddToLibrary ?? false}
+                    disabled={!session || saving}
                     onChange={(event) => void change(event.target.checked)}
                 />
                 {vocabulary.DOWNLOADER_AUTO_LIBRARY}
                 {saving && <span role="status">{vocabulary.SAVING}</span>}
             </label>
-            {error && (
-                <button className="text-red-400" onClick={update}>
-                    {vocabulary.RETRY}
-                </button>
-            )}
         </div>
     );
 }

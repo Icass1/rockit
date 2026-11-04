@@ -3,10 +3,10 @@
 
 import { z } from "zod";
 
-export const DownloadSettingsResponseSchema = z.object({
+export const UpdateDownloadSettingsRequestSchema = z.object({
     autoAddToLibrary: z.boolean(),
 });
 
-export type DownloadSettingsResponse = z.infer<
-    typeof DownloadSettingsResponseSchema
+export type UpdateDownloadSettingsRequest = z.infer<
+    typeof UpdateDownloadSettingsRequestSchema
 >;

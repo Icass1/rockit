@@ -33,6 +33,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Own bookmark subscriptions in the shell and reject stale account/media work.
     - [x] Own navigation-pin subscriptions/wake listeners and migrate pin consumers to runtime Context.
     - [x] Own notification subscriptions, scope header consumers and guard stale inbox/navigation work.
+    - [x] Own friend subscriptions, scope social consumers and guard stale reads/mutations.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -323,20 +324,53 @@ with no browser errors. These fixtures do not establish full application account
 reset, real playback, iOS, assistive-technology or offline acceptance; parent
 runtime stages remain open.
 
+### Shell-owned friends and scoped social consumers — 4 November 2026
+
+FriendManager now accepts injected session/socket/feedback services and starts and
+stops with the persistent shell before asynchronous legacy startup completes.
+Cleanup balances the session and three socket subscriptions and clears friends,
+blocked users, requests, activity, search results, errors and loading state.
+Session metadata retains work; identity changes, logout and same-account lifecycle
+restarts invalidate every read and mutation, including leaderboard responses and
+follow-up refreshes. Stale failures cannot show feedback in a replacement context.
+Socket snapshots supersede pending list reads; completed mutations invalidate
+older reads that could restore removed friends or pending requests. Presence can
+clear a previous now-playing value.
+
+Friend consumers use runtime Context with narrow store subscriptions. A lifecycle
+scope resets local social form, search, confirmation and leaderboard state across
+account transitions. Short search queries invalidate pending results. Sharing and
+listen-together still use their existing owners and are separate pending migrations.
+
+Checks: all 23 focused friend/connection tests passed, including nine new friend
+lifecycle tests. Web typecheck and lint, explicit lint of changed runtime/manager/
+model/test modules, formatting, production build and production HTTP SSR smoke
+passed. The full web suite passed 146 of 148 tests, with the same two documented
+adaptive-transition failures. The existing crane GIF precache warning remains.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 using the actual provider,
+FriendManager, WebSocketManager and friend/search/request/leaderboard UI with
+injected services and a local socket server. They exercised Strict Mode, search
+and mutations during deferred startup, socket snapshots, stable rerenders, account
+round trips, stale search rejection, local form reset, logout and subscription
+cleanup, without browser errors. Peripheral sharing/listen-together UI and CSS were
+stubbed: these are interaction checks, not visual, real playback, complete account
+reset, iOS, assistive-technology or offline acceptance.
+
 ## Current work
 
-The scoped playback/native-lifecycle, socket, bookmark, navigation-pin and
-notification increments are implemented and checked. Next runtime work is lifecycle
-ownership of the remaining legacy manager subscriptions (user/volume, queue/player,
-social, downloads, playlists, library and sharing), generation guards for their
-asynchronous work and complete account reset. The compatibility runtime still
-initializes the other managers once; the connection lifecycle owns the socket,
-its session subscription and the bookmark/navigation-pin/notification integrations.
-Full application browser
-verification of playback/navigation, popups, language switching and offline entry
-remains pending, followed by the Library pagination/query stages. The remaining
-routes and UI migrations are tracked above. Parent stages stay unchecked until
-their complete acceptance gates pass; the entire refactor is not complete.
+The scoped playback/native-lifecycle, socket, bookmark, navigation-pin,
+notification and friend increments are implemented and checked. Next runtime work
+is lifecycle ownership of sharing and listen-together, then the remaining legacy
+manager subscriptions (user/volume, queue/player, downloads, playlists and library),
+generation guards for their asynchronous work and complete account reset. The
+compatibility runtime still initializes those other managers once; the connection
+lifecycle owns the socket and bookmark/navigation-pin/notification/friend integrations.
+Full application browser verification of playback/navigation, popups, language
+switching and offline entry remains pending, followed by the Library pagination/query
+stages. Remaining routes and UI migrations are tracked above. Parent stages stay
+unchecked until their complete acceptance gates pass; the entire refactor is not
+complete.
 
 ## Verification log
 

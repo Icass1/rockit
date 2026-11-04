@@ -23,6 +23,7 @@ export class ConnectionLifecycle {
                     this.services.webSocketManager.start();
             });
         this.services.notificationManager.start();
+        this.services.friendManager.start();
         this.startup = this.services.init().then(() => {
             if (generation !== this.generation) return;
             this.services.bookmarkManager.start();
@@ -41,6 +42,7 @@ export class ConnectionLifecycle {
         this.username = undefined;
         this.startup = undefined;
         this.services.webSocketManager.stop();
+        this.services.friendManager.stop();
         this.services.notificationManager.stop();
         this.services.bookmarkManager.stop();
         this.services.navigationPinsManager.stop();

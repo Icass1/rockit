@@ -11,29 +11,41 @@ import styles from "@/components/Friends/Friends.module.css";
 import FriendsList from "@/components/Friends/FriendsList";
 import ListenTogetherPanel from "@/components/Friends/ListenTogetherPanel";
 import SharedMediaInbox from "@/components/Friends/SharedMediaInbox";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function FriendsClient(): JSX.Element {
+    const { friendManager } = useRuntimeServices();
+    const scope = useStore(friendManager.scopeAtom);
+    return <FriendsContent key={scope} />;
+}
+
+function FriendsContent(): JSX.Element {
+    const { friendManager } = useRuntimeServices();
     const v = useVocabulary();
-    const friends = useStore(rockIt.friendManager.friendsAtom);
-    const activity = useStore(rockIt.friendManager.activityAtom);
-    const error = useStore(rockIt.friendManager.errorAtom);
-    const loading = useStore(rockIt.friendManager.loadingAtom);
-    const requests = useStore(rockIt.friendManager.incomingRequestsAtom);
+    const friends = useStore(friendManager.friendsAtom);
+    const activity = useStore(friendManager.activityAtom);
+    const error = useStore(friendManager.errorAtom);
+    const loading = useStore(friendManager.loadingAtom);
+    const requests = useStore(friendManager.incomingRequestsAtom);
     const [ready, setReady] = useState(false);
     const onlineCount = friends.filter((friend) => friend.isOnline).length;
     useEffect(() => {
+        let live = true;
         void Promise.allSettled([
             rockIt.sharingManager.fetchInbox(),
             rockIt.sharingManager.fetchSent(),
-        ]).finally(() => setReady(true));
-        const unsubscribe = rockIt.friendManager.friendsAtom.subscribe(
-            (value) => {
-                if (value.length > 0) setReady(true);
-            }
-        );
-        return unsubscribe;
-    }, []);
+        ]).finally(() => {
+            if (live) setReady(true);
+        });
+        const unsubscribe = friendManager.friendsAtom.subscribe((value) => {
+            if (value.length > 0) setReady(true);
+        });
+        return () => {
+            live = false;
+            unsubscribe();
+        };
+    }, [friendManager]);
     return (
         <div className={styles.root}>
             <header className={styles.header}>
@@ -88,7 +100,7 @@ export default function FriendsClient(): JSX.Element {
                     <p>{error}</p>
                     <button
                         onClick={() => {
-                            void rockIt.friendManager.fetchFriends();
+                            void friendManager.fetchFriends();
                         }}
                     >
                         {v.SOCIAL_RETRY}

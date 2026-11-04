@@ -4,13 +4,14 @@ import { type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Check, X } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function FriendRequests(): JSX.Element {
+    const { friendManager } = useRuntimeServices();
     const v = useVocabulary();
-    const $incoming = useStore(rockIt.friendManager.incomingRequestsAtom);
+    const $incoming = useStore(friendManager.incomingRequestsAtom);
 
     if ($incoming.length === 0) return <></>;
 
@@ -54,9 +55,7 @@ export default function FriendRequests(): JSX.Element {
                         <div className="flex gap-1.5">
                             <button
                                 onClick={() =>
-                                    rockIt.friendManager.acceptRequest(
-                                        req.publicId
-                                    )
+                                    friendManager.acceptRequest(req.publicId)
                                 }
                                 aria-label={v.FRIENDS_ACCEPT}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10 text-green-400 transition-colors hover:bg-green-500/20"
@@ -65,9 +64,7 @@ export default function FriendRequests(): JSX.Element {
                             </button>
                             <button
                                 onClick={() =>
-                                    rockIt.friendManager.rejectRequest(
-                                        req.publicId
-                                    )
+                                    friendManager.rejectRequest(req.publicId)
                                 }
                                 aria-label={v.FRIENDS_DECLINE}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-neutral-500 transition-colors hover:bg-white/10 hover:text-white"

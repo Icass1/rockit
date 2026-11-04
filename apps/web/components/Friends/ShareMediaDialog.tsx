@@ -5,11 +5,13 @@ import { useStore } from "@nanostores/react";
 import { LoaderCircle } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function ShareForm({ publicId }: { publicId: string }): JSX.Element {
+    const { friendManager } = useRuntimeServices();
     const ref = useRef<HTMLDialogElement>(null);
-    const friends = useStore(rockIt.friendManager.friendsAtom);
+    const friends = useStore(friendManager.friendsAtom);
     const v = useVocabulary();
     const [recipient, setRecipient] = useState("");
     const [message, setMessage] = useState("");
@@ -17,11 +19,11 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
     useEffect(() => {
         const dialog = ref.current;
         dialog?.showModal();
-        void rockIt.friendManager.fetchFriends();
+        void friendManager.fetchFriends();
         return () => {
             if (dialog?.open) dialog.close();
         };
-    }, []);
+    }, [friendManager]);
     return (
         <dialog
             ref={ref}
@@ -114,6 +116,10 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
 }
 
 export default function ShareMediaDialog(): JSX.Element | null {
+    const { friendManager } = useRuntimeServices();
+    const scope = useStore(friendManager.scopeAtom);
     const publicId = useStore(rockIt.sharingManager.composeMediaAtom);
-    return publicId ? <ShareForm key={publicId} publicId={publicId} /> : null;
+    return publicId ? (
+        <ShareForm key={`${scope}:${publicId}`} publicId={publicId} />
+    ) : null;
 }

@@ -65,15 +65,15 @@ async function load(source, globals = {}) {
             },
         ],
     });
-    const module = { exports: {} };
+    const testModule = { exports: {} };
     new Function(
         "require",
         "module",
         "exports",
         "globals",
         outputFiles[0].text
-    )(createRequire(import.meta.url), module, module.exports, globals);
-    return module.exports;
+    )(createRequire(import.meta.url), testModule, testModule.exports, globals);
+    return testModule.exports;
 }
 const runtime = {
     queueManager: { readyAtom: atom(false), currentMediaAtom: atom(undefined) },
@@ -100,7 +100,9 @@ const vocabulary = await load(
     `export {VocabularyProvider, useVocabulary, useLanguage} from './components/providers/VocabularyProvider';
 export {default as Footer} from './components/Footer/Footer';
 export {preferredLanguage, completeVocabulary} from './lib/i18n/vocabulary';
-export {QueueProvider} from './components/providers/QueueProvider';
+export {QueueProvider, useQueueManager} from './components/providers/QueueProvider';
+export {PlaybackProvider, usePlaybackServices} from './components/providers/PlaybackProvider';
+export {usePlayer} from './components/MobilePlayer/hooks/usePlayer';
 export {QueueManager} from './lib/managers/queueManager';
 export {setRockIt} from '../../packages/shared/src/rockit/rockitRef';`,
     { rockIt: runtime }
@@ -403,4 +405,66 @@ test("route response classification distinguishes missing content from upstream 
     assert.throws(() => requireResult(fail(503)), /AppError: 503/);
     assert.throws(() => requireResult(fail(403)), /AppError: 403/);
     assert.throws(() => requireResult(fail(200)), /AppError: 503/);
+});
+
+test("scoped playback consumers use the provided services without mutating the compatibility runtime", () => {
+    const calls = [];
+    function captureServices(name) {
+        const media = { ...serverSong, name };
+        return {
+            ...runtime,
+            mediaPlayerManager: {
+                ...runtime.mediaPlayerManager,
+                playingAtom: atom(true),
+                togglePlayPause: () => calls.push(`${name}:play`),
+                setCurrentTime: (time) => calls.push(`${name}:seek:${time}`),
+            },
+            queueManager: {
+                ...runtime.queueManager,
+                currentMediaAtom: atom(media),
+                queueAtom: atom([]),
+                skipForward: () => calls.push(`${name}:next`),
+            },
+        };
+    }
+    const first = captureServices("first");
+    const second = captureServices("second");
+    function Probe({ expected }) {
+        const services = vocabulary.usePlaybackServices();
+        const queue = vocabulary.useQueueManager();
+        const player = vocabulary.usePlayer();
+        assert.equal(services, expected);
+        assert.equal(queue, expected.queueManager);
+        player.togglePlayPause();
+        player.skipForward();
+        player.seekTo(12);
+        return createElement("span", null, player.currentMedia.name);
+    }
+    for (const services of [first, second]) {
+        const html = renderToString(
+            createElement(
+                vocabulary.PlaybackProvider,
+                { services },
+                createElement(
+                    vocabulary.QueueProvider,
+                    { initial: {} },
+                    createElement(Probe, { expected: services })
+                )
+            )
+        );
+        assert.match(
+            html,
+            new RegExp(services.queueManager.currentMediaAtom.get().name)
+        );
+    }
+    assert.deepEqual(calls, [
+        "first:play",
+        "first:next",
+        "first:seek:12",
+        "second:play",
+        "second:next",
+        "second:seek:12",
+    ]);
+    assert.equal(runtime.mediaPlayerManager.playingAtom.get(), false);
+    assert.equal(runtime.queueManager.currentMediaAtom.get(), undefined);
 });

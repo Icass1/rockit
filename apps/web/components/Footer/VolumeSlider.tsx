@@ -3,14 +3,15 @@
 import type { JSX } from "react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
 import { usePlaybackStore } from "@/hooks/usePlaybackStore";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 import { useInitialPlayback } from "@/components/providers/QueueProvider";
 import Slider from "@/components/ui/Slider/Slider";
 
 function VolumeIcon({ volume }: { volume: number }): JSX.Element {
+    const { mediaPlayerManager } = usePlaybackServices();
     const className =
         "h-5.5 w-5.5 cursor-pointer text-gray-400 md:hover:text-white";
-    const onClick = (): void => rockIt.mediaPlayerManager.toggleMute();
+    const onClick = (): void => mediaPlayerManager.toggleMute();
 
     if (volume === 0)
         return <VolumeOff className={className} onClick={onClick} />;
@@ -20,9 +21,10 @@ function VolumeIcon({ volume }: { volume: number }): JSX.Element {
 }
 
 export default function VolumeSlider(): JSX.Element {
+    const { mediaPlayerManager } = usePlaybackServices();
     const { session } = useInitialPlayback();
     const $volume = usePlaybackStore(
-        rockIt.mediaPlayerManager.volumeAtom,
+        mediaPlayerManager.volumeAtom,
         session?.volume ?? 1
     );
     const volume = $volume ?? 0;
@@ -38,8 +40,7 @@ export default function VolumeSlider(): JSX.Element {
                 max={1}
                 step={0.001}
                 onChange={(e): void => {
-                    rockIt.mediaPlayerManager.volume =
-                        Number(e.target.value) ** 2;
+                    mediaPlayerManager.setVolume(Number(e.target.value) ** 2);
                 }}
             />
         </div>

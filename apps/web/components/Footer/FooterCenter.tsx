@@ -16,11 +16,11 @@ import {
 import { getMediaDuration } from "@/models/types/media";
 import { useCurrentMedia, usePlaybackStore } from "@/hooks/usePlaybackStore";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Bookmarks from "@/components/Bookmark/Bookmarks";
 import BookmarkPopup from "@/components/Footer/BookmarkPopup";
 import ListeningHeatmap from "@/components/ListeningHeatmap/ListeningHeatmap";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 import {
     useInitialPlayback,
     useQueueManager,
@@ -35,48 +35,44 @@ const ACTIVE = "text-(--color-rockit-pink)";
 const EMPTY_BOOKMARKS: BookmarkResponse[] = [];
 
 export default function FooterCenter(): JSX.Element {
+    const { mediaPlayerManager, userManager, bookmarkManager } =
+        usePlaybackServices();
     const { session, queue } = useInitialPlayback();
     const queueManager = useQueueManager();
     const $currentMedia = useCurrentMedia();
     const showListeningHeatmap = usePlaybackStore(
-        rockIt.userManager.showListeningHeatmapAtom,
+        userManager.showListeningHeatmapAtom,
         session?.showListeningHeatmap ?? true
     );
     const duration =
         usePlaybackStore(
-            rockIt.mediaPlayerManager.durationAtom,
+            mediaPlayerManager.durationAtom,
             getMediaDuration($currentMedia) ?? 0
         ) ||
         getMediaDuration($currentMedia) ||
         0;
-    const $playing = usePlaybackStore(
-        rockIt.mediaPlayerManager.playingAtom,
-        false
-    );
+    const $playing = usePlaybackStore(mediaPlayerManager.playingAtom, false);
     const $currentTime = usePlaybackStore(
-        rockIt.mediaPlayerManager.currentTimeAtom,
+        mediaPlayerManager.currentTimeAtom,
         (session?.currentTimeMs ?? 0) / 1000
     );
-    const $loading = usePlaybackStore(
-        rockIt.mediaPlayerManager.loadingAtom,
-        false
-    );
+    const $loading = usePlaybackStore(mediaPlayerManager.loadingAtom, false);
     const $queueType = usePlaybackStore(
-        rockIt.userManager.queueTypeAtom,
+        userManager.queueTypeAtom,
         EQueueType[queue?.queueType ?? session?.queueType ?? "SORTED"]
     );
     const $repeatMode = usePlaybackStore(
-        rockIt.userManager.repeatModeAtom,
+        userManager.repeatModeAtom,
         ERepeatMode[session?.repeatMode ?? "OFF"]
     );
 
     const $vocabulary = useVocabulary();
     const $bookmarks = usePlaybackStore(
-        rockIt.bookmarkManager.currentMediaBookmarksAtom,
+        bookmarkManager.currentMediaBookmarksAtom,
         EMPTY_BOOKMARKS
     );
     const $showBookmarkPopup = usePlaybackStore(
-        rockIt.bookmarkManager.showPopupAtom,
+        bookmarkManager.showPopupAtom,
         false
     );
     const isLiveStation = $currentMedia && isStation($currentMedia);
@@ -111,7 +107,7 @@ export default function FooterCenter(): JSX.Element {
                             : $vocabulary.PLAYER_ENABLE_SHUFFLE
                     }
                     aria-pressed={$queueType === EQueueType.RANDOM}
-                    onClick={(): void => rockIt.userManager.toggleRandomQueue()}
+                    onClick={(): void => userManager.toggleRandomQueue()}
                 >
                     <Shuffle
                         className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType === EQueueType.RANDOM ? ACTIVE : "text-gray-400"}`}
@@ -136,8 +132,8 @@ export default function FooterCenter(): JSX.Element {
                         }
                         onClick={(): void =>
                             $playing
-                                ? rockIt.mediaPlayerManager.pause()
-                                : rockIt.mediaPlayerManager.play()
+                                ? mediaPlayerManager.pause()
+                                : mediaPlayerManager.play()
                         }
                     >
                         {$playing ? (
@@ -160,7 +156,7 @@ export default function FooterCenter(): JSX.Element {
                 <button
                     aria-label={repeatLabel}
                     aria-pressed={isRepeatActive}
-                    onClick={(): void => rockIt.userManager.cycleRepeatMode()}
+                    onClick={(): void => userManager.cycleRepeatMode()}
                 >
                     <RepeatIcon
                         className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${isRepeatActive ? ACTIVE : "text-gray-400"}`}
@@ -170,9 +166,7 @@ export default function FooterCenter(): JSX.Element {
                 <div className="relative flex items-center justify-center">
                     <button
                         aria-label={$vocabulary.BOOKMARKS}
-                        onClick={(): void =>
-                            rockIt.bookmarkManager.togglePopup()
-                        }
+                        onClick={(): void => bookmarkManager.togglePopup()}
                     >
                         <Bookmark
                             className={`h-5 w-5 transition-all md:hover:scale-105 ${
@@ -227,7 +221,7 @@ export default function FooterCenter(): JSX.Element {
                                     <BookmarkPopup
                                         className="absolute inset-x-0 bottom-full z-50 mb-4 rounded-xl border border-white/10 bg-neutral-900 p-3 shadow-2xl md:mb-14"
                                         onClose={(): void =>
-                                            rockIt.bookmarkManager.hidePopup()
+                                            bookmarkManager.hidePopup()
                                         }
                                     />
                                 )}
@@ -241,16 +235,16 @@ export default function FooterCenter(): JSX.Element {
                             max={duration || 1}
                             disabled={duration <= 0}
                             onChange={(e): void =>
-                                rockIt.mediaPlayerManager.setCurrentTime(
+                                mediaPlayerManager.setCurrentTime(
                                     Number(e.target.value),
                                     false
                                 )
                             }
                             onPointerDown={(): void =>
-                                rockIt.mediaPlayerManager.beginSeek()
+                                mediaPlayerManager.beginSeek()
                             }
                             onPointerUp={(e): void =>
-                                rockIt.mediaPlayerManager.endSeek(
+                                mediaPlayerManager.endSeek(
                                     Number(e.currentTarget.value)
                                 )
                             }

@@ -372,6 +372,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         return el;
     }
 
+    setVolume(value: number): void {
+        this.volume = value;
+    }
+
     initializeTransitionSettings(): void {
         if (this._settingsInitialized || typeof window === "undefined") return;
         this._settingsInitialized = true;

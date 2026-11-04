@@ -10,7 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import type { SessionResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 
 const SessionContext = createContext<SessionResponse | undefined>(undefined);
 
@@ -22,21 +22,23 @@ export function SessionProvider({
     children: ReactNode;
 }): JSX.Element {
     const router = useRouter();
+    const { userManager } = usePlaybackServices();
     useEffect(
         () =>
-            rockIt.userManager.sessionAtom.listen((session) => {
+            userManager.sessionAtom.listen((session) => {
                 if (session === null) {
                     router.replace("/login");
                     router.refresh();
                 }
             }),
-        [router]
+        [router, userManager]
     );
     return <SessionContext value={initial}>{children}</SessionContext>;
 }
 
 export function useSession(): SessionResponse | null | undefined {
     const initial = useContext(SessionContext);
-    const current = useStore(rockIt.userManager.sessionAtom);
+    const { userManager } = usePlaybackServices();
+    const current = useStore(userManager.sessionAtom);
     return current === undefined ? initial : current;
 }

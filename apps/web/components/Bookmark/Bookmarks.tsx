@@ -9,32 +9,34 @@ import {
     BOOKMARK_MODE_COLORS,
     BOOKMARK_MODE_MUTED_COLORS,
 } from "@/lib/managers/bookmarkManager";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import BookmarkTooltip from "@/components/Bookmark/BookmarkTooltip";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 import { useInitialPlayback } from "@/components/providers/QueueProvider";
 
 const EMPTY_BOOKMARKS: BookmarkResponse[] = [];
 const EMPTY_IDS: string[] = [];
 
 export default function Bookmarks(): JSX.Element {
+    const { mediaPlayerManager, userManager, bookmarkManager } =
+        usePlaybackServices();
     const { session } = useInitialPlayback();
     const $currentMedia = useCurrentMedia();
     const duration =
         usePlaybackStore(
-            rockIt.mediaPlayerManager.durationAtom,
+            mediaPlayerManager.durationAtom,
             getMediaDuration($currentMedia) ?? 0
         ) || 1;
     const $bookmarks = usePlaybackStore(
-        rockIt.bookmarkManager.currentMediaBookmarksAtom,
+        bookmarkManager.currentMediaBookmarksAtom,
         EMPTY_BOOKMARKS
     );
     const $repeatMode = usePlaybackStore(
-        rockIt.userManager.repeatModeAtom,
+        userManager.repeatModeAtom,
         ERepeatMode[session?.repeatMode ?? "OFF"]
     );
     const $triggeredPublicIds = usePlaybackStore(
-        rockIt.mediaPlayerManager.triggeredBookmarkPublicIdsAtom,
+        mediaPlayerManager.triggeredBookmarkPublicIdsAtom,
         EMPTY_IDS
     );
     const isLiveStation = $currentMedia && isStation($currentMedia);
@@ -70,16 +72,11 @@ export default function Bookmarks(): JSX.Element {
                             left,
                         }}
                         onClick={(): void =>
-                            rockIt.mediaPlayerManager.setCurrentTime(
-                                b.timestamp,
-                                true
-                            )
+                            mediaPlayerManager.setCurrentTime(b.timestamp, true)
                         }
                         onContextMenu={(e): void => {
                             e.preventDefault();
-                            rockIt.bookmarkManager.openEditForBookmark(
-                                b.publicId
-                            );
+                            bookmarkManager.openEditForBookmark(b.publicId);
                         }}
                     >
                         <div

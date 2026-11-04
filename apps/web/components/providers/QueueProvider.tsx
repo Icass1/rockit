@@ -13,7 +13,7 @@ import type {
     QueueContextValue,
 } from "@/models/interfaces/initialPlayback";
 import type { QueueManager } from "@/lib/managers/queueManager";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 
 const QueueContext = createContext<QueueContextValue | undefined>(undefined);
 const EMPTY_INITIAL: InitialPlayback = {};
@@ -21,12 +21,14 @@ const EMPTY_INITIAL: InitialPlayback = {};
 export function QueueProvider({
     initial,
     children,
-    manager = rockIt.queueManager,
+    manager: suppliedManager,
 }: {
     initial: InitialPlayback;
     children: ReactNode;
     manager?: QueueManager;
 }): JSX.Element {
+    const services = usePlaybackServices();
+    const manager = suppliedManager ?? services.queueManager;
     const value = useMemo(() => ({ initial, manager }), [initial, manager]);
     useEffect(() => {
         if (initial.queue) manager.seedQueue(initial.queue);
@@ -39,5 +41,6 @@ export function useInitialPlayback(): InitialPlayback {
 }
 
 export function useQueueManager(): QueueManager {
-    return useContext(QueueContext)?.manager ?? rockIt.queueManager;
+    const services = usePlaybackServices();
+    return useContext(QueueContext)?.manager ?? services.queueManager;
 }

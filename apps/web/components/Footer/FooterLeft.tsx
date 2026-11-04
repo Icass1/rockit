@@ -14,10 +14,10 @@ import {
 } from "@/models/types/media";
 import { useCurrentMedia, usePlaybackStore } from "@/hooks/usePlaybackStore";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
-import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function FooterLeftForMedia({
@@ -25,10 +25,8 @@ function FooterLeftForMedia({
 }: {
     currentMedia: TPlayableMedia;
 }): JSX.Element {
-    const $playing = usePlaybackStore(
-        rockIt.mediaPlayerManager.playingAtom,
-        false
-    );
+    const { mediaPlayerManager, playerUIManager } = usePlaybackServices();
+    const $playing = usePlaybackStore(mediaPlayerManager.playingAtom, false);
     const [offlineCover, setOfflineCover] = useState<{
         publicId: string;
         url: string;
@@ -61,7 +59,7 @@ function FooterLeftForMedia({
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
                 onClick={(): void =>
-                    rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia()
+                    mediaPlayerManager.togglePlayPauseOrSetMedia()
                 }
             >
                 <Image
@@ -113,7 +111,7 @@ function FooterLeftForMedia({
                                         href={album.url}
                                         prefetch={false}
                                         onClick={(): void =>
-                                            rockIt.playerUIManager.hide()
+                                            playerUIManager.hide()
                                         }
                                         className="hidden truncate md:inline-block md:hover:underline"
                                     >
@@ -135,10 +133,8 @@ function FooterLeftForStation({
 }: {
     currentStation: BaseStationResponse;
 }): JSX.Element {
-    const $playing = usePlaybackStore(
-        rockIt.mediaPlayerManager.playingAtom,
-        false
-    );
+    const { mediaPlayerManager } = usePlaybackServices();
+    const $playing = usePlaybackStore(mediaPlayerManager.playingAtom, false);
     const vocabulary = useVocabulary();
     const [failedCover, setFailedCover] = useState<string | null>(null);
 
@@ -146,9 +142,7 @@ function FooterLeftForStation({
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
             <button
                 aria-label={$playing ? vocabulary.PAUSE : vocabulary.PLAY}
-                onClick={(): void =>
-                    rockIt.mediaPlayerManager.togglePlayPause()
-                }
+                onClick={(): void => mediaPlayerManager.togglePlayPause()}
                 className="group relative h-11 w-11 shrink-0 cursor-pointer overflow-hidden rounded-md md:h-16 md:w-16"
             >
                 <Image

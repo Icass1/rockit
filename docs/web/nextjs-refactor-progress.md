@@ -4,6 +4,8 @@ Branch: `refactor/nextjs-web`. Started 4 November 2026. Architecture and accepta
 
 Update this file immediately after completing each implementation step. A completed substep does not mean its parent stage or the whole refactor is complete. Record checks, limitations, and the next concrete action. Preserve playback, native compatibility, authorization, and offline data throughout migration.
 
+Verify, record and commit each completed refactor step separately.
+
 ## Checklist
 
 - [x] Create the requested branch and preserve the plan/inventory.
@@ -26,6 +28,7 @@ Update this file immediately after completing each implementation step. A comple
     - [ ] Add accessibility/visual verification and architecture/color enforcement.
 - [ ] 4. Persistent runtime and shell.
     - [x] Remove import-time startup; seed session and connect without initial backoff.
+    - [x] Scope playback service consumers and own native media-session/gesture setup and cleanup in the persistent provider.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -146,9 +149,50 @@ queue rendering and one initial server queue request. The full web suite passed
 94 of 96 tests with the same two documented adaptive-transition failures. Real
 browser hydration, playback and viewport verification remain pending.
 
+### Scoped playback services and native lifecycle — 4 November 2026
+
+Added a persistent PlaybackProvider with stable, injectable playback service
+references. Footer controls, bookmark markers, keyboard controls, the web mobile
+player hooks, and session/queue providers consume those references while retaining
+the existing managers and narrow Nanostores subscriptions. No playback or queue
+state has a second owner. Standalone consumers retain a compatibility fallback.
+
+The provider owns a side-effect-free PlaybackLifecycle and an injected
+MediaSessionManager. Native action handlers, metadata reporting, visibility
+recovery, iOS keepalives and first-gesture listeners now have balanced setup and
+cleanup. Repeated initialization is idempotent; cleanup permits Strict Mode
+setup/cleanup/setup without pausing the transport. Ordinary session updates retain
+the active integration. Logout immediately clears native controls and pauses the
+player. Generation and context-identity checks prevent stale keepalive recovery
+from restarting audio or closing a replacement context after cleanup. Removed
+native media-session startup from the compatibility singleton and the duplicated
+shell storage-persistence request; the existing runtime persistence request stays.
+
+Checks: all 27 focused media-session/lifecycle/server-rendering tests passed,
+including service injection and isolation from the compatibility runtime. Web
+TypeScript, web lint, explicit lint of changed runtime/manager/model/test modules,
+formatting, production build and production HTTP SSR smoke passed. The full web
+suite passed 102 of 104 tests with the same two documented adaptive-transition
+failures. The pinned pnpm 11.0.8 ran with temporary PNPM_HOME/XDG_DATA_HOME paths
+because the default shim attempted to write outside the workspace.
+
+Chromium fixture checks passed at 1440×900, 390×844 and 844×390, with no browser
+errors. They exercised the actual provider and player/keyboard hooks in React
+Strict Mode, stable parent rerenders, one-time gesture activation, keyboard
+commands, logout and unmount cleanup, using injected fixture services. These are
+not full application navigation, real audio or iOS device acceptance. The socket,
+legacy manager listeners, complete account replacement, popups, language switching
+and offline upgrade/reload checks remain pending; runtime acceptance stays open.
+
 ## Current work
 
-The first implementation increment is implemented and checked. Next work is real browser verification of popups, language switching, navigation and offline entry, then lifecycle-owned runtime services and the Library pagination/query stages. The remaining routes and UI migrations are tracked above. Parent stages stay unchecked until their complete acceptance gates pass; the entire refactor is not complete.
+The scoped playback/native-lifecycle increment is implemented and checked. Next
+runtime work is lifecycle ownership of sockets and legacy manager subscriptions,
+session-generation guards and complete account reset. Full application browser
+verification of playback/navigation, popups, language switching and offline entry
+remains pending, followed by the Library pagination/query stages. The remaining
+routes and UI migrations are tracked above. Parent stages stay unchecked until
+their complete acceptance gates pass; the entire refactor is not complete.
 
 ## Verification log
 

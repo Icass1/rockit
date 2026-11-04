@@ -10,7 +10,6 @@ import { LibraryPlaybackManager } from "@/lib/managers/libraryPlaybackManager";
 import { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
-import { MediaSessionManager } from "@/lib/managers/mediaSessionManager";
 import { NavigationPinsManager } from "@/lib/managers/navigationPinsManager";
 import { NotificationManager } from "@/lib/managers/notificationManager";
 import { OfflineManager } from "@/lib/managers/offlineManager";
@@ -64,7 +63,6 @@ export class RockIt {
     listenTogetherManager = new ListenTogetherManager();
     sharingManager = new SharingManager();
     offlineManager = new OfflineManager();
-    mediaSessionManager = new MediaSessionManager();
     http = Http;
 
     constructor() {
@@ -110,7 +108,6 @@ export class RockIt {
         rockIt.navigationPinsManager.init();
         rockIt.libraryManager.init();
         rockIt.sharingManager.init();
-        rockIt.mediaSessionManager.init();
 
         cleanupLegacyIndexedDB();
         cleanupLegacyServiceWorker();

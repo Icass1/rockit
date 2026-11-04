@@ -3,19 +3,17 @@
 import type { JSX } from "react";
 import { ChevronUp } from "lucide-react";
 import { usePlaybackStore } from "@/hooks/usePlaybackStore";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 
 export default function TogglePlayerUI(): JSX.Element {
-    const $visible = usePlaybackStore(
-        rockIt.playerUIManager.visibleAtom,
-        false
-    );
+    const { playerUIManager } = usePlaybackServices();
+    const $visible = usePlaybackStore(playerUIManager.visibleAtom, false);
 
     return (
         <button
             aria-label={$visible ? "Hide player" : "Show player"}
             className="relative h-6 w-6 rounded border-[2.4px] border-gray-400 text-gray-400 transition-all md:hover:border-white md:hover:text-white"
-            onClick={(): void => rockIt.playerUIManager.toggle()}
+            onClick={(): void => playerUIManager.toggle()}
         >
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                 <ChevronUp

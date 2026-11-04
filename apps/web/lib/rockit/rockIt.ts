@@ -96,9 +96,6 @@ export class RockIt {
         await rockIt.userManager.init();
         rockIt.friendManager.init();
         rockIt.notificationManager.init();
-        if (rockIt.userManager.loggedInAtom.get()) {
-            await rockIt.webSocketManager.init();
-        }
         await rockIt.queueManager.init();
         await Promise.all([
             rockIt.downloaderManager.init(),

@@ -29,6 +29,7 @@ Verify, record and commit each completed refactor step separately.
 - [ ] 4. Persistent runtime and shell.
     - [x] Remove import-time startup; seed session and connect without initial backoff.
     - [x] Scope playback service consumers and own native media-session/gesture setup and cleanup in the persistent provider.
+    - [x] Own socket connections in the persistent provider; cancel stale sends and reconnects.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -184,11 +185,50 @@ not full application navigation, real audio or iOS device acceptance. The socket
 legacy manager listeners, complete account replacement, popups, language switching
 and offline upgrade/reload checks remain pending; runtime acceptance stays open.
 
+### Shell-owned WebSocket lifecycle — 4 November 2026
+
+Added an injectable RuntimeProvider and ConnectionLifecycle around the persistent
+shell. The provider seeds the server session before startup; the lifecycle waits
+for existing manager handlers to initialize before enabling the socket. Startup
+completed after unmount cannot connect. Strict Mode setup/cleanup/setup retains
+one session subscription and one active connection. Session metadata updates and
+shell rerenders retain the connection; username changes and logout close it and
+invalidate pending sends. Removed socket startup from the compatibility runtime.
+
+WebSocketManager no longer returns a process-wide instance. Its explicit
+start/stop lifecycle gates legacy init/reconnect/send calls. Disconnect detaches
+native callbacks, cancels retry and connection-wait timers, clears playback
+acknowledgement state and releases suspended sends. Connection-generation and
+socket-identity guards reject late callbacks and prevent queued sends crossing
+session boundaries. The first attempt is immediate; failures use cancellable
+backoff, including asynchronous transport closes. Opening/reopening a socket
+replays the latest local playback selection once or requests authoritative state.
+Presence updates now have one owner in FriendManager instead of being applied
+twice by the transport and feature handler.
+
+Checks: all 22 focused connection, request-race and listen-together tests passed,
+including 13 new connection/lifecycle tests. Web typecheck and lint, explicit lint
+of changed runtime/manager/model/test modules, formatting, production build and
+production HTTP SSR smoke passed. The full web suite passed 115 of 117 tests,
+with the same two documented adaptive-transition failures.
+
+Chromium checks passed at 1440×900, 390×844 and 844×390 using the actual provider
+and WebSocketManager with injected startup/session services and a local WebSocket
+server. They verified session seeding before startup, deferred handler readiness,
+Strict Mode cleanup, stable shell rerenders, real server-side connection loss and
+recovery, playback-state resync, account connection replacement and logout cleanup,
+with no browser errors. These fixture checks do not establish full application
+account reset, legacy manager cleanup, real audio playback or offline acceptance.
+The pinned pnpm ran with temporary PNPM_HOME/XDG_DATA_HOME paths as before.
+
 ## Current work
 
-The scoped playback/native-lifecycle increment is implemented and checked. Next
-runtime work is lifecycle ownership of sockets and legacy manager subscriptions,
-session-generation guards and complete account reset. Full application browser
+The scoped playback/native-lifecycle and shell-owned socket increments are
+implemented and checked. Next runtime work is lifecycle ownership of legacy
+manager subscriptions, generation guards for their asynchronous work and complete
+account reset. The compatibility runtime still initializes those managers once;
+the new connection lifecycle owns only the socket and its session subscription.
+Full application browser
 verification of playback/navigation, popups, language switching and offline entry
 remains pending, followed by the Library pagination/query stages. The remaining
 routes and UI migrations are tracked above. Parent stages stay unchecked until

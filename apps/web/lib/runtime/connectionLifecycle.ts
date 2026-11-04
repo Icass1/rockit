@@ -1,0 +1,42 @@
+import type { RuntimeServices } from "@/models/interfaces/runtimeServices";
+
+/** Waits for legacy handlers before connecting; owns only the live connection. */
+export class ConnectionLifecycle {
+    private unsubscribeSession?: () => void;
+    private generation = 0;
+    private ready = false;
+    private username?: string;
+    private startup?: Promise<void>;
+
+    constructor(private readonly services: RuntimeServices) {}
+
+    start(): Promise<void> {
+        if (this.unsubscribeSession) return this.startup ?? Promise.resolve();
+        const generation = ++this.generation;
+        this.unsubscribeSession =
+            this.services.userManager.sessionAtom.subscribe((session) => {
+                const username = session?.username;
+                if (username === this.username) return;
+                this.services.webSocketManager.stop();
+                this.username = username;
+                if (this.ready && username)
+                    this.services.webSocketManager.start();
+            });
+        this.startup = this.services.init().then(() => {
+            if (generation !== this.generation) return;
+            this.ready = true;
+            if (this.username) this.services.webSocketManager.start();
+        });
+        return this.startup;
+    }
+
+    stop(): void {
+        this.generation++;
+        this.unsubscribeSession?.();
+        this.unsubscribeSession = undefined;
+        this.ready = false;
+        this.username = undefined;
+        this.startup = undefined;
+        this.services.webSocketManager.stop();
+    }
+}

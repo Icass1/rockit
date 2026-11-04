@@ -44,7 +44,7 @@ your project and keep its `.cursorrules` next to your own rules. Then ask Cursor
 ### Codex
 
 Install with `npx skills add dickwu/apple-design-skill -a codex`, or add the repository as a
-submodule and point `AGENTS.md` at it:
+submodule and point `maintenance.md` at it:
 
 ```bash
 git submodule add https://github.com/dickwu/apple-design-skill.git .design-rules
@@ -133,7 +133,7 @@ polish.
 ```text
 apple-design-skill/
 ├── SKILL.md                     # The skill: stance, principles, lenses, report format, improvement mode
-├── AGENTS.md                    # Operating manual for agents and contributors
+├── maintenance.md                    # Operating manual for agents and contributors
 ├── .cursorrules                 # Cursor entry point
 ├── GEMINI.md                    # Antigravity entry point
 ├── scripts/
@@ -181,7 +181,7 @@ renders each page from the same JSON Apple's site uses, writes `references/hig/*
 raw JSON for instant re-runs, and `--no-prune` to keep files the crawl no longer finds. Running the
 script twice produces identical output, so a clean `git status` after a second run is the test.
 
-`AGENTS.md` lists the checks to run before committing a refresh.
+`maintenance.md` lists the checks to run before committing a refresh.
 
 ## Sponsor
 

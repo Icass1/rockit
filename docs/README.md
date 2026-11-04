@@ -49,7 +49,7 @@ pnpm check:backend
 pnpm check:frontend
 ```
 
-PRs targeting `develop` or `main` run the same backend and TypeScript quality gates as app-template. Unit tests and direct-controller integration tests run without external services. `apps/backend/tests/system_tests` is intentionally empty, and Rockit has no system-test workflow. See [backend tests](apps/backend/tests/README.md).
+PRs targeting `develop` or `main` run the same backend and TypeScript quality gates as app-template. Unit tests and direct-controller integration tests run without external services. `apps/backend/tests/system_tests` is intentionally empty, and Rockit has no system-test workflow. See [backend tests](backend/tests.md).
 
 ### Containers
 
@@ -64,4 +64,19 @@ Backend maintenance scripts live in `apps/backend/scripts` and can be invoked fr
 
 ### Notifications
 
-Rockit uses app-template’s event/subscription notification system, with recipient-scoped personal events and admin subscription controls. Existing history migrates on startup. See [notification documentation](docs/notifications.md).
+Rockit uses app-template’s event/subscription notification system, with recipient-scoped personal events and admin subscription controls. Existing history migrates on startup. See [notification documentation](notifications.md).
+
+### Documentation layout
+
+- [Web implementation reference](web-guide.md) and [backend implementation reference](backend-guide.md).
+- [Web product context](web/product.md), [Friends design context](web/friends.md), and [formatting setup](web/prettier.md).
+- [Backend testing guide](backend/tests.md).
+- [Project board](Kanban.md).
+- [Web patterns](skills/frontend-web.md), [mobile patterns](skills/frontend-mobile.md), and [backend patterns](skills/backend.md).
+- [Apple design references](skills/apple-design-skill/README.md) and [frontend design reference](skills/frontend-design/SKILL.md).
+- `features/` and `research/` contain focused technical references.
+- `archive/` preserves the previous combined agent guides for historical context;
+  their commands and paths may be outdated.
+
+Active coding rules and verification workflows live in the root and application
+`AGENTS.md` files. These supplementary documents are maintained separately.

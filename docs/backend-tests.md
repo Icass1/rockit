@@ -1,3 +1,3 @@
 # Backend tests
 
-See [the backend test guide](../apps/backend/tests/README.md).
+See [the backend test guide](backend/tests.md).

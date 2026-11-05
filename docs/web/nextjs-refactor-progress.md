@@ -45,6 +45,7 @@ any failures; do not accept baseline test failures as a passing gate.
     - [x] Own shared player socket/visibility synchronization and reject stale acknowledgements across cleanup/account changes.
     - [x] Own queue subscriptions, cancel autoplay timers and guard stale refresh/page/recommendation work.
     - [x] Guard explicit collection/recommendation selection, list insertion and delayed collection cache opening.
+    - [x] Invalidate pending shared-player source loads and playback continuations; recover interrupted loads on shell restart.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -718,6 +719,31 @@ lifecycle scenarios, without browser errors. HTTP/player/socket targets remain
 fixture adapters; actual media, native devices and full offline acceptance remain
 pending. Existing crane GIF precache warning remains.
 
+### Scoped shared-player source loading and continuations — 5 November 2026
+
+Shared player cleanup now invalidates pending source resolution and post-load
+volume/seek/hooks independently of playback identity. An interrupted load restarts
+once in the new shell without waiting for the discarded lookup; rapid Strict Mode
+restarts preserve that recovery. Only the same selected object/occurrence can
+resume; account/queue replacement rejects it. Completed transport playback is
+preserved across ordinary cleanup. Existing native initialization remains intact.
+
+Deferred play, toggle, audio-only and autoplay completions check their lifecycle
+and selected item before affecting playback. File-error and repeat-one retries
+share one cancellable timer; pause, replacement errors and cleanup release it,
+and already-queued callbacks cannot revive a replaced request. The intentional
+60-second skip delay and one-second repeat-one delay remain unchanged.
+
+Checks: all 40 adaptive-transition/source tests passed; the complete web suite
+passed 239 of 239 tests. Web/mobile/shared TypeScript, web lint, changed-test lint,
+formatting, production build and production HTTP SSR smoke passed. Chromium
+fixtures passed at 1440×900, 390×844 and 844×390 with the actual PlaybackProvider,
+web/shared player and native integration, verifying navigation, rapid restart,
+stale lookup rejection, logout/new-account isolation and cleanup without browser
+errors. Source-resolution/native-load/play targets were fixture adapters. Actual
+media and native devices remain unverified; already-running platform I/O is not
+physically aborted by these generation checks. Existing precache warning remains.
+
 ## Current work
 
 Queue subscription ownership is implemented. The scoped playback/native lifecycle,
@@ -725,15 +751,14 @@ socket, bookmarks, pins, notifications, friends, sharing, listen-together, volum
 user session/preferences and queue increments are checked. Library initial data
 continues to render on the server without skeletons or mount requests.
 
-Next bounded step: cancel outstanding player source-loading work and protect
-playback continuations across cleanup/account changes. Queue actions and delayed
-collection cache opening are now guarded.
+Next bounded step: scope web preloads, optional audio-bounds retries, foreground
+video restoration and late native play promises. Shared source loads and playback
+continuations now reject stale work and recover across ordinary restarts.
 Compatibility startup still initializes download/playlist/library managers. Finish
 those lifecycles and complete account reset before claiming runtime migration done.
 
-Latest checks: the full web suite passes 229 of 229 tests, including the repaired
-adaptive-transition baseline. Workspace TypeScript, web lint, production build/SSR
-smoke and Chromium queue fixtures passed for the queue-action step.
+Latest checks: the full web suite passes 239 of 239 tests. Workspace TypeScript,
+web lint, production build/SSR smoke and Chromium source-loading fixtures passed.
 Actual audio, native devices, full navigation/account isolation and offline worker
 acceptance remain pending. Parent stages stay unchecked until all acceptance gates
 pass; the entire refactor is not complete.

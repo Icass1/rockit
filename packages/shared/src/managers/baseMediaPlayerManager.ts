@@ -64,6 +64,12 @@ export abstract class BaseMediaPlayerManager {
     private _hasRemotePlayback = false;
     protected _loadingPlayback = false;
     private _mediaLoadPromise?: Promise<void>;
+    private _workGeneration = 0;
+    private _loadRequest = 0;
+    private _pendingMediaResume?: () => Promise<boolean>;
+    private _resumeMediaAfterRestart = false;
+    private _errorTimer?: ReturnType<typeof setTimeout>;
+    private _errorRequest = 0;
     private _init = false;
     private _synchronizationGeneration = 0;
     private _synchronizationCleanup?: () => void;
@@ -285,6 +291,26 @@ export abstract class BaseMediaPlayerManager {
         socket.onMessage(EWebSocketMessage.CurrentTime, onCurrentTime);
         if (typeof document !== "undefined")
             document.addEventListener("visibilitychange", onVisibility);
+        if (this._resumeMediaAfterRestart) {
+            const resume = this._pendingMediaResume;
+            void Promise.resolve()
+                .then(async (): Promise<void> => {
+                    if (!isCurrent() || !resume) return;
+                    this._resumeMediaAfterRestart = false;
+                    const resumed = await resume();
+                    if (!resumed && this._pendingMediaResume === resume)
+                        this._pendingMediaResume = undefined;
+                    if (resumed && isCurrent() && this._playRequested)
+                        this.play();
+                })
+                .catch((error: unknown): void => {
+                    if (isCurrent())
+                        console.error(
+                            "MediaPlayerManager: resumed load failed",
+                            error
+                        );
+                });
+        }
         this._synchronizationCleanup = (): void => {
             socket.offMessage(EWebSocketMessage.CurrentMedia, onCurrentMedia);
             socket.offMessage(EWebSocketMessage.CurrentTime, onCurrentTime);
@@ -297,6 +323,15 @@ export abstract class BaseMediaPlayerManager {
     stopSynchronization(): void {
         this._init = false;
         this._synchronizationGeneration++;
+        this._workGeneration++;
+        this._cancelErrorRetry();
+        if (this._loadingPlayback) {
+            this._resumeMediaAfterRestart = true;
+            this._playbackId = "";
+            this._mediaLoadPromise = undefined;
+            this._loadingPlayback = false;
+            this._loadingAtom.set(false);
+        }
         this._synchronizationCleanup?.();
         this._synchronizationCleanup = undefined;
     }
@@ -307,10 +342,13 @@ export abstract class BaseMediaPlayerManager {
         this._playRequested = true;
 
         if (!this._syncOwner && this._loadingPlayback) {
+            const generation = this._workGeneration;
             const mediaId = currentMedia.publicId;
             const queueId = getRockIt().queueManager.currentQueueMediaId;
             void this._mediaLoadPromise?.then((): void => {
                 if (
+                    generation === this._workGeneration &&
+                    this._playRequested &&
                     getRockIt().queueManager.currentMedia?.publicId ===
                         mediaId &&
                     getRockIt().queueManager.currentQueueMediaId === queueId
@@ -352,10 +390,12 @@ export abstract class BaseMediaPlayerManager {
     }
 
     protected async _playAudio(): Promise<void> {
+        const generation = this._workGeneration;
         const media = getRockIt().queueManager.currentMedia;
         const queueId = getRockIt().queueManager.currentQueueMediaId;
         await this.setMedia();
         if (
+            generation === this._workGeneration &&
             !this._loadingPlayback &&
             this._syncOwner &&
             (this._playbackConfirmed ||
@@ -369,10 +409,12 @@ export abstract class BaseMediaPlayerManager {
     }
 
     protected async _playVideo(): Promise<void> {
+        const generation = this._workGeneration;
         const media = getRockIt().queueManager.currentMedia;
         const queueId = getRockIt().queueManager.currentQueueMediaId;
         await this.setMedia();
         if (
+            generation === this._workGeneration &&
             !this._loadingPlayback &&
             this._syncOwner &&
             (this._playbackConfirmed ||
@@ -386,6 +428,7 @@ export abstract class BaseMediaPlayerManager {
     }
 
     pause(): void {
+        this._cancelErrorRetry();
         this._playRequested = false;
         this._pendingPlaybackId = undefined;
         const currentMedia = getRockIt().queueManager.currentMedia;
@@ -409,10 +452,18 @@ export abstract class BaseMediaPlayerManager {
     }
 
     protected async _togglePlayPauseOrSetMedia(): Promise<void> {
+        const generation = this._workGeneration;
+        const queueId = getRockIt().queueManager.currentQueueMediaId;
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
         await this.setMedia();
+        if (
+            generation !== this._workGeneration ||
+            currentMedia !== getRockIt().queueManager.currentMedia ||
+            queueId !== getRockIt().queueManager.currentQueueMediaId
+        )
+            return;
         const kind = this._effectiveKind(currentMedia);
         if (this.isNativePaused(kind)) this.play();
         else this.pause();
@@ -531,6 +582,8 @@ export abstract class BaseMediaPlayerManager {
             return;
         }
 
+        const generation = this._workGeneration;
+        const queueId = getRockIt().queueManager.currentQueueMediaId;
         const wasPlaying = this._playingAtom.get();
         const position = this.getNativePosition(
             this._effectiveKind(currentMedia)
@@ -542,6 +595,12 @@ export abstract class BaseMediaPlayerManager {
         // deck), restore the playhead, then resume if we were playing.
         this._playbackId = "";
         await this.setMedia();
+        if (
+            generation !== this._workGeneration ||
+            currentMedia !== getRockIt().queueManager.currentMedia ||
+            queueId !== getRockIt().queueManager.currentQueueMediaId
+        )
+            return;
         this.setCurrentTime(position, false);
         if (wasPlaying) this.play();
     }
@@ -600,6 +659,32 @@ export abstract class BaseMediaPlayerManager {
         )
             this._sendCurrentMedia(currentMedia);
         const playbackId = this._playbackId;
+        const generation = this._workGeneration;
+        const request = ++this._loadRequest;
+        const isCurrent = (): boolean =>
+            generation === this._workGeneration &&
+            this._playbackId === playbackId &&
+            currentMedia.publicId ===
+                getRockIt().queueManager.currentMedia?.publicId &&
+            queueId === getRockIt().queueManager.currentQueueMediaId;
+        this._pendingMediaResume = async (): Promise<boolean> => {
+            if (
+                request !== this._loadRequest ||
+                currentMedia !== getRockIt().queueManager.currentMedia ||
+                queueId !== getRockIt().queueManager.currentQueueMediaId
+            )
+                return false;
+            await this.setMedia(
+                useSavedCurrentTime,
+                remotePlaybackId,
+                remoteTimeMs,
+                isPlaybackOwner
+            );
+            return (
+                currentMedia === getRockIt().queueManager.currentMedia &&
+                queueId === getRockIt().queueManager.currentQueueMediaId
+            );
+        };
         const previousLoad = this._mediaLoadPromise;
         this._mediaLoadPromise = (async (): Promise<void> => {
             await previousLoad?.catch((error): void => {
@@ -608,27 +693,27 @@ export abstract class BaseMediaPlayerManager {
                     error
                 );
             });
-            if (this._playbackId !== playbackId) return;
-            await this._loadMedia(currentMedia, playbackId, startAt);
+            if (!isCurrent()) return;
+            await this._loadMedia(currentMedia, startAt, isCurrent);
         })();
         await this._mediaLoadPromise;
     }
 
     private async _loadMedia(
         media: TPlayableMedia,
-        playbackId: string,
-        startAt: number
+        startAt: number,
+        isCurrent: () => boolean
     ): Promise<void> {
         const kind = this._effectiveKind(media);
         try {
             const uri = await this.resolveMediaUriAsync(media, kind);
-            if (!uri || this._playbackId !== playbackId) return;
+            if (!uri || !isCurrent()) return;
             if (kind === "audio") this._clearVideo();
             else this._clearAudio();
             if (kind === "audio") this._loadedAudioUri = uri;
             else this._loadedVideoUri = uri;
             await this.loadNativeSource(kind, uri);
-            if (this._playbackId !== playbackId) return;
+            if (!isCurrent()) return;
             this.setNativeVolume(kind, this._volumeAtom.get());
             this.seekNative(
                 kind,
@@ -636,7 +721,10 @@ export abstract class BaseMediaPlayerManager {
             );
             await this.afterMediaLoadedAsync(media, kind, uri);
         } finally {
-            if (this._playbackId === playbackId) this._loadingPlayback = false;
+            if (isCurrent()) {
+                this._loadingPlayback = false;
+                this._pendingMediaResume = undefined;
+            }
         }
     }
 
@@ -784,7 +872,16 @@ export abstract class BaseMediaPlayerManager {
         }
     }
 
+    private _cancelErrorRetry(): void {
+        this._errorRequest++;
+        clearTimeout(this._errorTimer);
+        this._errorTimer = undefined;
+    }
+
     protected _handleMediaError(): void {
+        this._cancelErrorRetry();
+        const generation = this._workGeneration;
+        const request = this._errorRequest;
         this._loadingAtom.set(false);
 
         const repeat = getRockIt().userManager.repeatModeAtom.get();
@@ -833,15 +930,22 @@ export abstract class BaseMediaPlayerManager {
             // Retain backoff for repeat-one retries, and never revive an old
             // request after the user pauses or selects another track.
             const playbackId = this._playbackId;
-            setTimeout((): void => {
+            this._errorTimer = setTimeout((): void => {
                 if (
+                    generation !== this._workGeneration ||
+                    request !== this._errorRequest ||
                     this._playbackId !== playbackId ||
                     getRockIt().queueManager.queueIdentity !== identity ||
                     !this._playRequested
                 )
                     return;
+                this._errorTimer = undefined;
                 void this.setMedia().then((): void => {
-                    if (this._playbackId === playbackId && this._playRequested)
+                    if (
+                        generation === this._workGeneration &&
+                        this._playbackId === playbackId &&
+                        this._playRequested
+                    )
                         this.play();
                 });
             }, 1000);
@@ -851,15 +955,18 @@ export abstract class BaseMediaPlayerManager {
             // queue replacement during the delay takes precedence.
             const playbackId = this._playbackId;
             const queueId = currentId;
-            setTimeout((): void => {
+            this._errorTimer = setTimeout((): void => {
                 const queueManager = getRockIt().queueManager;
                 if (
+                    generation !== this._workGeneration ||
+                    request !== this._errorRequest ||
                     this._playbackId !== playbackId ||
                     queueManager.queueIdentity !== identity ||
                     queueManager.currentQueueMediaId !== queueId ||
                     !this._playRequested
                 )
                     return;
+                this._errorTimer = undefined;
                 queueManager.setQueueMediaId(nextId, direction);
                 this.play();
             }, MEDIA_ERROR_SKIP_DELAY_MS);
@@ -909,11 +1016,14 @@ export abstract class BaseMediaPlayerManager {
             getRockIt().queueManager.setQueueMediaId(nextId, 1);
             this.play();
         } else if (action === EQueueAction.AUTOPLAY) {
+            const generation = this._workGeneration;
             const identity = getRockIt().queueManager.queueIdentity;
             void getRockIt()
                 .queueManager.startAutoplayAsync()
                 .then((started): void => {
                     if (
+                        generation !== this._workGeneration ||
+                        !this._playRequested ||
                         getRockIt().queueManager.queueIdentity !== identity ||
                         (currentId !==
                             getRockIt().queueManager.currentQueueMediaId &&
@@ -928,6 +1038,7 @@ export abstract class BaseMediaPlayerManager {
                 })
                 .catch((): void => {
                     if (
+                        generation === this._workGeneration &&
                         getRockIt().queueManager.queueIdentity === identity &&
                         currentId ===
                             getRockIt().queueManager.currentQueueMediaId

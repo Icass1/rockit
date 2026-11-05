@@ -738,3 +738,227 @@ test("pending media-load acknowledgements and remote clocks cannot cross synchro
     e.player.stopSynchronization();
     e.player.stopBrowserLifecycle();
 });
+
+function pendingResult() {
+    let resolve;
+    const promise = new Promise((yes) => {
+        resolve = yes;
+    });
+    return { promise, resolve };
+}
+
+test("cleanup rejects a late source lookup without installing or playing it", async () => {
+    const e = setup(),
+        lookup = pendingResult();
+    e.player.resolveMediaUriAsync = () => lookup.promise;
+    e.player.play();
+    await flush();
+    assert.equal(e.player._loadingPlayback, true);
+    e.player.stopSynchronization();
+    e.player.stopBrowserLifecycle();
+    lookup.resolve("https://test/stale");
+    await flush();
+    assert.equal(e.player.audioElement.src, "");
+    assert.equal(e.player.audioElement.playCalls, 0);
+    assert.equal(e.player._loadingPlayback, false);
+});
+
+test("an interrupted source load restarts without waiting for the old lookup", async () => {
+    const e = setup(),
+        reads = [];
+    e.player.resolveMediaUriAsync = () => {
+        const read = pendingResult();
+        reads.push(read);
+        return read.promise;
+    };
+    e.player.play();
+    await flush();
+    assert.equal(reads.length, 1);
+    e.player.stopSynchronization();
+    e.player.stopBrowserLifecycle();
+    e.player.init();
+    e.player.startBrowserLifecycle();
+    await flush();
+    assert.equal(reads.length, 2);
+    reads[0].resolve("https://test/obsolete");
+    await flush();
+    assert.equal(e.player._loadingPlayback, true);
+    assert.equal(e.player.audioElement.src, "");
+    reads[1].resolve("https://test/fresh");
+    await flush();
+    assert.equal(e.player.audioElement.src, "https://test/fresh");
+    assert.equal(e.player.audioElement.playCalls, 1);
+    assert.equal(e.player._loadingPlayback, false);
+    e.player.pause();
+});
+
+test("a replaced queue or logout cannot resume an interrupted source load", async () => {
+    for (const sameId of [false, true]) {
+        const e = setup(),
+            lookup = pendingResult();
+        let reads = 0;
+        e.player.resolveMediaUriAsync = () => {
+            reads++;
+            return lookup.promise;
+        };
+        e.player.play();
+        await flush();
+        e.player.stopSynchronization();
+        e.player.pause();
+        if (sameId) e.queue.currentMedia = { ...e.queue.currentMedia };
+        else e.queue.setQueueMediaId(2);
+        e.player.init();
+        await flush();
+        lookup.resolve("https://test/old-account");
+        await flush();
+        assert.equal(reads, 1);
+        assert.equal(e.player.audioElement.src, "");
+        assert.equal(e.player.audioElement.playCalls, 0);
+    }
+});
+
+test("cleanup during native loading rejects post-load seek, volume and post-load hooks", async () => {
+    const e = setup(),
+        native = pendingResult();
+    const effects = [];
+    e.player.loadNativeSource = () => native.promise;
+    e.player.setNativeVolume = () => effects.push("volume");
+    e.player.seekNative = () => effects.push("seek");
+    e.player.afterMediaLoadedAsync = async () => effects.push("after");
+    const loading = e.player.setMedia();
+    await flush();
+    e.player.stopSynchronization();
+    native.resolve();
+    await loading;
+    assert.deepEqual(effects, []);
+});
+
+test("cleanup and a later play cannot revive an old delayed file-error skip", async () => {
+    const e = setup();
+    e.queue.queueIdentity = {};
+    e.queue.lastNavigationDirection = 1;
+    e.player._playRequested = true;
+    e.player._handleMediaError();
+    const old = [...e.timers.values()][0];
+    e.player.stopSynchronization();
+    assert.equal(e.timers.size, 0);
+    e.player.init();
+    e.player._playRequested = true;
+    old();
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    assert.equal(e.player.audioElement.playCalls, 0);
+});
+
+test("repeat-one errors share one cancellable retry timer", async () => {
+    const e = setup();
+    e.queue.queueIdentity = {};
+    e.player._playRequested = true;
+    e.setRepeat("ONE");
+    e.player._handleMediaError();
+    const old = [...e.timers.values()][0];
+    e.player._handleMediaError();
+    assert.equal(e.timers.size, 1);
+    old();
+    e.player.pause();
+    assert.equal(e.timers.size, 0);
+    await e.advanceTime(1000);
+    assert.equal(e.player.audioElement.playCalls, 0);
+});
+
+test("late toggle and audio-only continuations cannot affect a different selected item", async () => {
+    for (const mode of ["toggle", "audio-only"]) {
+        const e = setup(),
+            loading = pendingResult();
+        e.player.setMedia = () => loading.promise;
+        let plays = 0,
+            seeks = 0;
+        e.player.play = () => plays++;
+        e.player.setCurrentTime = () => seeks++;
+        if (mode === "audio-only") {
+            e.queue.currentMedia = {
+                type: "video",
+                publicId: "video",
+                audioUrl: "https://test/audio",
+                videoUrl: "https://test/video",
+            };
+            e.player._playingAtom.set(true);
+        }
+        const pending =
+            mode === "toggle"
+                ? e.player._togglePlayPauseOrSetMedia()
+                : e.player.setAudioOnly(true);
+        e.queue.setQueueMediaId(2);
+        loading.resolve();
+        await pending;
+        assert.equal(plays + seeks, 0);
+    }
+});
+
+test("late autoplay completion cannot change a restarted player's playing state", async () => {
+    const e = setup(),
+        autoplay = pendingResult();
+    e.queue.setQueueMediaId(3);
+    e.queue.queueIdentity = {};
+    e.queue.startAutoplayAsync = () => autoplay.promise;
+    e.player._playbackMediaId = "c";
+    e.player._playbackQueueId = 3;
+    e.player._syncOwner = true;
+    e.player._playRequested = true;
+    e.player._playingAtom.set(true);
+    e.player._handleEnded();
+    e.player.stopSynchronization();
+    e.player.init();
+    autoplay.resolve(false);
+    await flush();
+    assert.equal(e.player.playingAtom.get(), true);
+    assert.equal(e.player.audioElement.playCalls, 0);
+});
+
+test("rapid cleanup/restart cycles retain a single interrupted-load recovery", async () => {
+    const e = setup(),
+        reads = [];
+    e.player.resolveMediaUriAsync = () => {
+        const read = pendingResult();
+        reads.push(read);
+        return read.promise;
+    };
+    e.player.play();
+    await flush();
+    for (let i = 0; i < 3; i++) {
+        e.player.stopSynchronization();
+        e.player.init();
+    }
+    await flush();
+    assert.equal(reads.length, 2);
+    reads[1].resolve("https://test/resumed");
+    await flush();
+    assert.equal(e.player.audioElement.src, "https://test/resumed");
+    assert.equal(e.player.audioElement.playCalls, 1);
+    reads[0].resolve("https://test/old");
+    await flush();
+    assert.equal(e.player.audioElement.src, "https://test/resumed");
+    e.player.pause();
+});
+
+test("interrupted saved-state loading restores its position without starting playback", async () => {
+    const e = setup(),
+        reads = [];
+    e.player.resolveMediaUriAsync = () => {
+        const read = pendingResult();
+        reads.push(read);
+        return read.promise;
+    };
+    e.player._currentTimeAtom.set(8);
+    const pending = e.player.setMedia(false, "remote-playback", 8000, false);
+    await flush();
+    e.player.stopSynchronization();
+    e.player.init();
+    await flush();
+    reads[1].resolve("https://test/saved");
+    await flush();
+    assert.equal(e.player.audioElement.currentTime, 8);
+    assert.equal(e.player.audioElement.playCalls, 0);
+    reads[0].resolve("https://test/obsolete");
+    await pending;
+    assert.equal(e.queue.currentQueueMediaId, 1);
+});

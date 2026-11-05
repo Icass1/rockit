@@ -7,6 +7,7 @@ import { build } from "esbuild";
 const { outputFiles } = await build({
     stdin: {
         contents: `export {BaseQueueManager} from '../../packages/shared/src/managers/baseQueueManager';
+export {QueueManager as WebQueueManager} from './lib/managers/queueManager';
 export {setRockIt} from '../../packages/shared/src/rockit/rockitRef';
 export {createAtom} from '../../packages/shared/src/lib/store';`,
         resolveDir: new URL("../", import.meta.url).pathname,
@@ -17,6 +18,21 @@ export {createAtom} from '../../packages/shared/src/lib/store';`,
     globalName: "fixture",
     platform: "node",
     tsconfig: new URL("../tsconfig.json", import.meta.url).pathname,
+    plugins: [
+        {
+            name: "runtime-isolation",
+            setup(builder) {
+                builder.onResolve(
+                    { filter: /^@\/lib\/rockit\/rockIt$/ },
+                    () => ({ path: "runtime", namespace: "fixture" })
+                );
+                builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({
+                    contents:
+                        "export const rockIt=new Proxy({}, {get:(_,key)=>globalThis.runtime[key]});",
+                }));
+            },
+        },
+    ],
 });
 const flush = async () => {
     for (let i = 0; i < 30; i++) await Promise.resolve();
@@ -62,7 +78,7 @@ function page({
         })),
     };
 }
-function setup({ seed = page(), playing = false } = {}) {
+function setup({ seed = page(), playing = false, web = false } = {}) {
     const timers = new Map(),
         handlers = new Map(),
         requests = [],
@@ -81,7 +97,9 @@ function setup({ seed = page(), playing = false } = {}) {
     });
     vm.runInContext(outputFiles[0].text, context);
     const { BaseQueueManager, setRockIt, createAtom } = context.fixture;
-    const queue = new BaseQueueManager();
+    const queue = new (
+        web ? context.fixture.WebQueueManager : BaseQueueManager
+    )();
     const calls = { loads: 0, plays: 0, pauses: 0, playback: 0 };
     const socket = {
         onMessage(type, fn) {
@@ -124,9 +142,15 @@ function setup({ seed = page(), playing = false } = {}) {
             skipToNextBookmark: () => false,
             skipToPrevBookmark: () => false,
         },
-        notificationManager: { notifyError: (message) => errors.push(message) },
+        notificationManager: {
+            notifyError: (message) => errors.push(message),
+            notifyInfo: (message) => errors.push(message),
+        },
         vocabularyManager: {
-            vocabulary: { ERROR_GETTING_QUEUE: "queue failure" },
+            vocabulary: {
+                ERROR_GETTING_QUEUE: "queue failure",
+                DOWNLOAD_STARTED: "download started",
+            },
         },
         http: new Proxy(
             {},
@@ -141,6 +165,7 @@ function setup({ seed = page(), playing = false } = {}) {
             }
         ),
     };
+    context.runtime = runtime;
     setRockIt(runtime);
     if (seed) queue.seedQueue(seed);
     const take = (name) => {
@@ -148,7 +173,17 @@ function setup({ seed = page(), playing = false } = {}) {
         assert.ok(index >= 0, `Missing request ${name}`);
         return requests.splice(index, 1)[0];
     };
-    return { queue, runtime, calls, timers, handlers, requests, errors, take };
+    return {
+        queue,
+        runtime,
+        calls,
+        timers,
+        handlers,
+        requests,
+        errors,
+        take,
+        context,
+    };
 }
 
 test("native-compatible initialization is idempotent, balanced and preserves the seeded queue on restart", async () => {
@@ -441,4 +476,259 @@ test("cleanup detaches handlers from the socket used for setup", async () => {
     e.queue.stop();
     assert.equal(e.handlers.get("current_queue").size, 0);
     assert.equal(e.handlers.get("current_media").size, 0);
+});
+
+test("collection playback keeps the returned total, offset and selected occurrence", async () => {
+    for (const id of ["collection", "liked"]) {
+        const e = setup({ web: true });
+        await e.queue.init();
+        const selected = e.queue.playCollection(id, "chosen51");
+        const read = e.take(
+            id === "liked" ? "createFeaturedQueue" : "createCollectionQueue"
+        );
+        assert.equal(read.args[1].startPublicId, "chosen51");
+        read.resolve(
+            ok(
+                page({
+                    offset: 50,
+                    ids: [50, 51],
+                    total: 200,
+                    current: 51,
+                    prefix: "chosen",
+                })
+            )
+        );
+        await selected;
+        assert.equal(e.queue.currentMedia.publicId, "chosen51");
+        assert.equal(e.queue.queueTotalCount, 200);
+        assert.equal(e.queue.hasPreviousQueuePage, true);
+        assert.equal(e.queue.hasNextQueuePage, true);
+        assert.equal(e.queue.readyAtom.get(), true);
+        assert.equal(e.calls.plays, 1);
+        e.queue.stop();
+    }
+});
+
+test("late collection responses cannot supersede another selection or cross an account lifecycle", async () => {
+    for (const interrupt of ["selection", "restart", "reset"]) {
+        for (const result of [
+            ok(page({ prefix: "stale" })),
+            { ...fail(), code: 0 },
+        ]) {
+            const e = setup();
+            await e.queue.init();
+            let cached = 0;
+            e.queue.cacheCollectionQueueAsync = async () => cached++;
+            const pending = e.queue.playCollection("collection"),
+                read = e.take("createCollectionQueue");
+            if (interrupt === "selection") e.queue.setQueueMediaId(1);
+            if (interrupt === "restart") {
+                e.queue.stop();
+                await e.queue.init();
+            }
+            if (interrupt === "reset") e.queue.reset();
+            const identity = e.queue.queueIdentity;
+            read.resolve(result);
+            await pending;
+            assert.equal(e.queue.queueIdentity, identity);
+            assert.equal(e.calls.plays, 0);
+            assert.equal(cached, 0);
+            assert.equal(e.requests.length, 0);
+            assert.equal(e.errors.length, 0);
+            e.queue.stop();
+        }
+    }
+});
+
+test("the latest explicit collection/recommendation selection wins", async () => {
+    const e = setup();
+    await e.queue.init();
+    const first = e.queue.playCollection("collection"),
+        old = e.take("createCollectionQueue");
+    const second = e.queue.playRecommendedSongAsync(song("chosen")),
+        fresh = e.take("getSong");
+    fresh.resolve(ok(song("chosen")));
+    await second;
+    old.resolve(ok(page({ prefix: "stale" })));
+    await first;
+    assert.equal(e.queue.currentMedia.publicId, "chosen");
+    assert.equal(e.calls.plays, 1);
+    e.queue.stop();
+});
+
+test("offline collection resolution retains playback and rejects a late fallback after restart", async () => {
+    for (const interrupted of [false, true]) {
+        const e = setup();
+        await e.queue.init();
+        const pending = e.queue.playCollection("collection", "cached1");
+        e.take("createCollectionQueue").resolve({ ...fail(), code: 0 });
+        await flush();
+        const cached = e.take("resolveCollectionQueue");
+        if (interrupted) {
+            e.queue.stop();
+            await e.queue.init();
+        }
+        cached.resolve(ok(page({ prefix: "cached" })));
+        await pending;
+        assert.equal(
+            e.queue.currentMedia.publicId,
+            interrupted ? "song0" : "cached1"
+        );
+        assert.equal(e.calls.plays, interrupted ? 0 : 1);
+        assert.equal(e.errors.length, 0);
+        e.queue.stop();
+    }
+});
+
+for (const method of [
+    "addListToQueueTopAsync",
+    "addListToQueueRandomAsync",
+    "addListToQueueBottomAsync",
+])
+    test(`${method} retains valid inserts and discards obsolete list resolution`, async () => {
+        for (const interrupt of ["none", "replacement", "restart"]) {
+            const e = setup();
+            await e.queue.init();
+            const pending = e.queue[method]({
+                type: "album",
+                publicId: "album",
+            });
+            const read = e.take("resolveCollectionQueue");
+            if (interrupt === "replacement")
+                e.queue.setMedia([song("replacement")], "other");
+            if (interrupt === "restart") {
+                e.queue.stop();
+                await e.queue.init();
+            }
+            read.resolve(ok(page({ prefix: "insert" })));
+            await pending;
+            assert.equal(
+                e.queue.queue.some((item) => item.media.publicId === "insert0"),
+                interrupt === "none"
+            );
+            e.queue.stop();
+        }
+    });
+
+test("recommendation selection cannot start a download or play from a stale song response", async () => {
+    for (const autoplay of [false, true]) {
+        for (const result of [
+            ok(song("old")),
+            ok({ ...song("old"), downloaded: false }),
+            fail(),
+        ]) {
+            const e = setup();
+            await e.queue.init();
+            const pending = autoplay
+                ? e.queue.playAutoplayRecommendationAsync({
+                      kind: "song",
+                      song: song("old"),
+                  })
+                : e.queue.playRecommendedSongAsync(song("old"));
+            const read = e.take("getSong");
+            e.queue.stop();
+            await e.queue.init();
+            read.resolve(result);
+            await pending;
+            assert.equal(e.requests.length, 0);
+            assert.equal(e.errors.length, 0);
+            assert.equal(e.calls.plays, 0);
+            assert.equal(e.queue.queue.length, 2);
+            e.queue.stop();
+        }
+    }
+});
+
+test("stale download acknowledgements cannot show success or error in another lifecycle", async () => {
+    for (const kind of ["recommendation", "autoplay", "discover"]) {
+        for (const result of [ok({}), fail()]) {
+            const e = setup();
+            await e.queue.init();
+            const pending =
+                kind === "recommendation"
+                    ? e.queue.playRecommendedSongAsync(song("missing"))
+                    : e.queue.playAutoplayRecommendationAsync(
+                          kind === "autoplay"
+                              ? { kind: "song", song: song("missing") }
+                              : {
+                                    kind: "discover",
+                                    item: { name: "missing", artists: [] },
+                                }
+                      );
+            if (kind !== "discover") {
+                e.take("getSong").resolve(
+                    ok({ ...song("missing"), downloaded: false })
+                );
+                await flush();
+            }
+            const read = e.take(
+                kind === "discover"
+                    ? "startDownloadFromSearch"
+                    : "startDownload"
+            );
+            e.queue.stop();
+            await e.queue.init();
+            read.resolve(result);
+            await pending;
+            assert.equal(e.errors.length, 0);
+            e.queue.stop();
+        }
+    }
+});
+
+test("offline collection cache opening cannot write after queue cleanup", async () => {
+    for (const interrupted of [false, true]) {
+        const e = setup({ web: true });
+        await e.queue.init();
+        const opened = deferred(),
+            writes = [];
+        e.context.Response = Response;
+        e.context.window = { caches: {} };
+        e.context.caches = { open: () => opened.promise };
+        const pending = e.queue.cacheCollectionQueueAsync("collection", page());
+        if (interrupted) {
+            e.queue.stop();
+            await e.queue.init();
+        }
+        opened.resolve({ put: async (...args) => writes.push(args) });
+        await pending;
+        assert.equal(writes.length, interrupted ? 0 : 1);
+        if (!interrupted) {
+            assert.match(
+                writes[0][0],
+                /media\/collection\/collection\/playable$/
+            );
+            assert.equal((await writes[0][1].json()).queue.length, 2);
+        }
+        e.queue.stop();
+    }
+});
+
+test("current recommendation actions still insert playable songs and report download outcomes", async () => {
+    for (const kind of ["song", "missing", "discover"]) {
+        const e = setup();
+        await e.queue.init();
+        const pending = e.queue.playAutoplayRecommendationAsync(
+            kind === "discover"
+                ? { kind: "discover", item: { name: "new", artists: [] } }
+                : { kind: "song", song: song("new") }
+        );
+        if (kind !== "discover") {
+            e.take("getSong").resolve(
+                ok({ ...song("new"), downloaded: kind === "song" })
+            );
+            await flush();
+        }
+        if (kind !== "song")
+            e.take(
+                kind === "discover"
+                    ? "startDownloadFromSearch"
+                    : "startDownload"
+            ).resolve(ok({}));
+        await pending;
+        if (kind === "song")
+            assert.equal(e.queue.queue[1].media.publicId, "new");
+        else assert.equal(e.errors[0], "download started");
+        e.queue.stop();
+    }
 });

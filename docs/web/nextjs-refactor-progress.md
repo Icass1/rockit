@@ -44,6 +44,7 @@ any failures; do not accept baseline test failures as a passing gate.
     - [x] Own web player visibility, autoplay-retry gestures and iOS ended polling in the playback provider.
     - [x] Own shared player socket/visibility synchronization and reject stale acknowledgements across cleanup/account changes.
     - [x] Own queue subscriptions, cancel autoplay timers and guard stale refresh/page/recommendation work.
+    - [x] Guard explicit collection/recommendation selection, list insertion and delayed collection cache opening.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -693,6 +694,30 @@ Checks: all 30 adaptive-transition tests and the complete web suite (218 of 218)
 passed. Changed-test lint, formatting and diff checks passed. Per the user's
 updated gate, every subsequent migration commit requires the full suite to pass.
 
+### Lifecycle-safe queue actions — 5 November 2026
+
+Collection/featured playback, offline collection fallback, list insertion and
+explicit recommendation actions now reject stale responses after queue lifecycle
+or account changes. New explicit playback selections supersede pending selections;
+manual selection also wins. Old song reads cannot start downloads, and stale
+download acknowledgements cannot show feedback in a replacement scope. Active
+playback, insertion and offline fallback retain their existing behavior.
+
+Collection playback reuses the shared response application path, preserving API
+total/offset, sorted state and web readiness instead of treating the returned
+page as the complete queue. Locally created queues survive ordinary restart.
+Collection cache opening checks the lifecycle before beginning a cache write.
+This does not complete service-worker/private-cache account isolation.
+
+Checks: all 22 queue regressions passed and the complete web suite passed 229 of
+229 tests. Web/mobile/shared TypeScript, web lint, changed-module/test lint,
+formatting, production build and production HTTP SSR smoke passed. Chromium
+fixtures passed at 1440×900, 390×844 and 844×390, exercising stale explicit
+collection selection and logout responses in addition to the preceding queue
+lifecycle scenarios, without browser errors. HTTP/player/socket targets remain
+fixture adapters; actual media, native devices and full offline acceptance remain
+pending. Existing crane GIF precache warning remains.
+
 ## Current work
 
 Queue subscription ownership is implemented. The scoped playback/native lifecycle,
@@ -700,15 +725,15 @@ socket, bookmarks, pins, notifications, friends, sharing, listen-together, volum
 user session/preferences and queue increments are checked. Library initial data
 continues to render on the server without skeletons or mount requests.
 
-Next bounded step: guard asynchronous queue actions (collection resolution,
-recommendation selection, list insertion and their offline cache writes) across
-lifecycle/account changes, then cancel outstanding player source-loading work.
+Next bounded step: cancel outstanding player source-loading work and protect
+playback continuations across cleanup/account changes. Queue actions and delayed
+collection cache opening are now guarded.
 Compatibility startup still initializes download/playlist/library managers. Finish
 those lifecycles and complete account reset before claiming runtime migration done.
 
-Latest checks: the full web suite passes 218 of 218 tests, including the repaired
+Latest checks: the full web suite passes 229 of 229 tests, including the repaired
 adaptive-transition baseline. Workspace TypeScript, web lint, production build/SSR
-smoke and Chromium queue fixtures passed in the preceding runtime step.
+smoke and Chromium queue fixtures passed for the queue-action step.
 Actual audio, native devices, full navigation/account isolation and offline worker
 acceptance remain pending. Parent stages stay unchecked until all acceptance gates
 pass; the entire refactor is not complete.

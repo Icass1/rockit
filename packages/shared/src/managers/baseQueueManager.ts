@@ -77,6 +77,7 @@ export class BaseQueueManager {
     private _initialization?: Promise<void>;
     protected _lifecycleGeneration = 0;
     private _refreshRequest = 0;
+    private _playRequest = 0;
     private _cleanup: (() => void)[] = [];
 
     protected sortedQueue: QueueMediaItem[] = [];
@@ -374,6 +375,22 @@ export class BaseQueueManager {
 
     // #region: Methods
 
+    protected _captureQueueWork(): () => boolean {
+        const lifecycle = this._lifecycleGeneration;
+        const queue = this._queueGeneration;
+        return (): boolean =>
+            lifecycle === this._lifecycleGeneration &&
+            queue === this._queueGeneration;
+    }
+
+    private _beginPlaybackSelection(): () => boolean {
+        const lifecycle = this._lifecycleGeneration;
+        const request = ++this._playRequest;
+        return (): boolean =>
+            lifecycle === this._lifecycleGeneration &&
+            request === this._playRequest;
+    }
+
     /**
      * Fetch the playable medias of a list. Default resolves albums through the
      * HTTP client; a platform subclass may override for local caching.
@@ -381,7 +398,9 @@ export class BaseQueueManager {
     protected async getAlbumAsync(
         publicId: string
     ): Promise<BaseAlbumWithSongsResponse | undefined> {
+        const isCurrent = this._captureQueueWork();
         const response = await getRockIt().http.getAlbum(publicId);
+        if (!isCurrent()) return undefined;
         if (response.isOk()) {
             return response.result;
         }
@@ -628,6 +647,9 @@ export class BaseQueueManager {
     }
 
     setMedia(medias: TQueueMedia[], listPublicId: string): void {
+        this._playRequest++;
+        this._hasInitialQueue = true;
+        this._initialMediaPending = false;
         this._queueGeneration += 1;
         this._queuePages.clear();
         this._queuePageLoads.clear();
@@ -709,6 +731,7 @@ export class BaseQueueManager {
     setQueueMediaId(): void;
     setQueueMediaId(queueMediaId: number, direction?: 1 | -1): void;
     setQueueMediaId(queueMediaId?: number, direction?: 1 | -1): void {
+        this._playRequest++;
         if (typeof queueMediaId === "number") {
             const queue = this._queueAtom.get();
 
@@ -788,12 +811,14 @@ export class BaseQueueManager {
     }
 
     clearCurrentMedia(): void {
+        this._playRequest++;
         this._currentMediaAtom.set(undefined);
     }
 
     async addListToQueueTopAsync(media: TListMedia): Promise<void> {
+        const isCurrent = this._captureQueueWork();
         const medias = await this.getListMediasAsync(media);
-        if (medias.length === 0) return;
+        if (!isCurrent() || medias.length === 0) return;
 
         const queueableMedias = medias.filter(isQueueable);
         if (queueableMedias.length === 0) return;
@@ -818,8 +843,9 @@ export class BaseQueueManager {
     }
 
     async addListToQueueRandomAsync(media: TListMedia): Promise<void> {
+        const isCurrent = this._captureQueueWork();
         const medias = await this.getListMediasAsync(media);
-        if (medias.length === 0) return;
+        if (!isCurrent() || medias.length === 0) return;
 
         const queueableMedias = medias.filter(isQueueable);
         if (queueableMedias.length === 0) return;
@@ -884,8 +910,9 @@ export class BaseQueueManager {
     }
 
     async addListToQueueBottomAsync(media: TListMedia): Promise<void> {
+        const isCurrent = this._captureQueueWork();
         const medias = await this.getListMediasAsync(media);
-        if (medias.length === 0) return;
+        if (!isCurrent() || medias.length === 0) return;
 
         const queueableMedias = medias.filter(isQueueable);
         if (queueableMedias.length === 0) return;
@@ -913,6 +940,7 @@ export class BaseQueueManager {
         publicId: string,
         startPublicId?: string
     ): Promise<void> {
+        const isCurrent = this._beginPlaybackSelection();
         const payload = { startPublicId: startPublicId ?? null };
         const featuredIds = [
             "liked",
@@ -924,10 +952,12 @@ export class BaseQueueManager {
         const response = featuredIds.includes(publicId)
             ? await getRockIt().http.createFeaturedQueue(publicId, payload)
             : await getRockIt().http.createCollectionQueue(publicId, payload);
+        if (!isCurrent()) return;
         if (response.isNotOk()) {
             if (response.code === 0) {
                 const cached =
                     await getRockIt().http.resolveCollectionQueue(publicId);
+                if (!isCurrent()) return;
                 if (cached.isOk()) {
                     this.setMedia(
                         cached.result.queue.map((item) => item.media),
@@ -945,24 +975,7 @@ export class BaseQueueManager {
         if (!response.isOk()) return;
         const queue = response.result;
         void this.cacheCollectionQueueAsync(publicId, queue);
-        this._queueGeneration += 1;
-        this.sortedQueue = [...queue.queue].sort(
-            (a, b) => a.sortedIndex - b.sortedIndex
-        );
-        this.randomQueue = [...queue.queue].sort(
-            (a, b) => a.randomIndex - b.randomIndex
-        );
-        this._queuePages.clear();
-        this._queuePageLoads.clear();
-        this._queuePages.set(0, queue.queue);
-        this._queueTotalAtom.set(queue.queue.length);
-        this._currentQueueMediaIdAtom.set(queue.currentQueueMediaId);
-        this._sortedQueueAtom.set([...this.sortedQueue]);
-        this._queueAtom.set(
-            queue.queueType === EQueueType.RANDOM
-                ? this.randomQueue
-                : this.sortedQueue
-        );
+        this._applyQueueResponse(queue);
         if (queue.currentQueueMediaId !== null)
             this.setQueueMediaId(queue.currentQueueMediaId);
         getRockIt().mediaPlayerManager.play();
@@ -980,9 +993,11 @@ export class BaseQueueManager {
     }
 
     async getListMediasAsync(media: TListMedia): Promise<TPlayableMedia[]> {
+        const isCurrent = this._captureQueueWork();
         const response = await getRockIt().http.resolveCollectionQueue(
             media.publicId
         );
+        if (!isCurrent()) return [];
         if (response.isNotOk()) {
             getRockIt().notificationManager.notifyError(response.message);
             return [];
@@ -1288,6 +1303,7 @@ export class BaseQueueManager {
         song: BaseSongWithAlbumResponse,
         songs: BaseSongWithAlbumResponse[] = [song]
     ): Promise<void> {
+        const isCurrent = this._beginPlaybackSelection();
         if (
             this.currentMedia?.publicId === song.publicId &&
             getRockIt().mediaPlayerManager.playingAtom.get()
@@ -1296,6 +1312,7 @@ export class BaseQueueManager {
             return;
         }
         const fresh = await getRockIt().http.getSong(song.publicId);
+        if (!isCurrent()) return;
         if (!fresh.isOk()) {
             getRockIt().notificationManager.notifyError(fresh.message);
             return;
@@ -1305,6 +1322,7 @@ export class BaseQueueManager {
                 ids: [song.publicId],
                 title: song.name,
             });
+            if (!isCurrent()) return;
             if (started.isOk())
                 getRockIt().notificationManager.notifyInfo(
                     getRockIt().vocabularyManager.vocabulary.DOWNLOAD_STARTED
@@ -1327,11 +1345,11 @@ export class BaseQueueManager {
     async playAutoplayRecommendationAsync(
         item: AutoplayRecommendation
     ): Promise<void> {
+        const isCurrent = this._captureQueueWork();
         const media = item.kind === "song" ? item.song : item.item;
         if (media.publicId && (item.kind === "song" || media.downloaded)) {
-            const identity = this.queueIdentity;
             const fresh = await getRockIt().http.getSong(media.publicId);
-            if (this.queueIdentity !== identity) return;
+            if (!isCurrent()) return;
             if (!fresh.isOk()) {
                 getRockIt().notificationManager.notifyError(fresh.message);
                 return;
@@ -1341,6 +1359,7 @@ export class BaseQueueManager {
                     ids: [media.publicId],
                     title: media.name,
                 });
+                if (!isCurrent()) return;
                 if (started.isOk())
                     getRockIt().notificationManager.notifyInfo(
                         getRockIt().vocabularyManager.vocabulary
@@ -1368,6 +1387,7 @@ export class BaseQueueManager {
             addToPlaylist: false,
             playlistPublicId: null,
         });
+        if (!isCurrent()) return;
         if (started.isOk())
             getRockIt().notificationManager.notifyInfo(
                 getRockIt().vocabularyManager.vocabulary.DOWNLOAD_STARTED

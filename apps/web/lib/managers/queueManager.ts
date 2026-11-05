@@ -61,8 +61,10 @@ export class QueueManager extends BaseQueueManager {
         queue: QueueResponse
     ): Promise<void> {
         if (typeof window === "undefined" || !("caches" in window)) return;
+        const generation = this._lifecycleGeneration;
         try {
             const cache = await caches.open("rockit-collections");
+            if (generation !== this._lifecycleGeneration) return;
             await cache.put(
                 `${BACKEND_URL}/media/collection/${publicId}/playable`,
                 new Response(JSON.stringify(queue), {

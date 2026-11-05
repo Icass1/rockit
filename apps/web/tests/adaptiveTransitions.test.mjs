@@ -26,7 +26,7 @@ const { outputFiles } = await build({
                 }));
                 b.onLoad({ filter: /.*/, namespace: "mock" }, () => ({
                     contents:
-                        "export const resolveOfflineAudioUrl=async()=>undefined;",
+                        "export const resolveOfflineAudioUrl=(...args)=>globalThis.offlineLookup?.(...args)??Promise.resolve(undefined);",
                 }));
             },
         },
@@ -40,6 +40,8 @@ function setup({
     sameAlbum = false,
     browserLifecycle = true,
     initializePlayer = true,
+    offlineLookup,
+    boundsFetch,
 } = {}) {
     let level = 0.3,
         serial = 0,
@@ -159,6 +161,9 @@ function setup({
         HTMLMediaElement: { HAVE_CURRENT_DATA: 2 },
         console,
         URL,
+        AbortSignal,
+        fetch: boundsFetch,
+        offlineLookup,
         setInterval: (fn) => {
             timers.set(++serial, fn);
             return serial;
@@ -961,4 +966,160 @@ test("interrupted saved-state loading restores its position without starting pla
     reads[0].resolve("https://test/obsolete");
     await pending;
     assert.equal(e.queue.currentQueueMediaId, 1);
+});
+
+const boundsResponse = (status = "ready", fingerprint = "fixture") => ({
+    ok: true,
+    json: async () => ({
+        status,
+        start: 0,
+        end: 59,
+        duration: 60,
+        fingerprint,
+    }),
+});
+
+test("late bounds metadata and old finally cannot overwrite or release a replacement request", async () => {
+    const reads = [];
+    const e = setup({
+        boundsFetch: () => {
+            const read = pendingResult();
+            reads.push(read);
+            return read.promise;
+        },
+    });
+    e.player.configureTransitions({ enabled: true });
+    const first = e.player._prepareBounds("a");
+    e.player.stopBrowserLifecycle();
+    e.player.startBrowserLifecycle();
+    const second = e.player._prepareBounds("a");
+    assert.equal(reads.length, 2);
+    reads[0].resolve(boundsResponse("ready", "stale"));
+    await first;
+    assert.equal(e.player._bounds.size, 0);
+    assert.equal(e.player._boundsPending.size, 1);
+    reads[1].resolve(boundsResponse("ready", "fresh"));
+    await second;
+    assert.equal(e.player._bounds.get("a").fingerprint, "fresh");
+    assert.equal(e.player._boundsPending.size, 0);
+    e.player.stopBrowserLifecycle();
+});
+
+test("cleanup releases bounds retry waits and prevents subsequent requests", async () => {
+    let reads = 0;
+    const e = setup({
+        boundsFetch: async () => {
+            reads++;
+            return boundsResponse("pending");
+        },
+    });
+    e.player.configureTransitions({ enabled: true });
+    const preparing = e.player._prepareBounds("a");
+    await flush();
+    assert.equal(e.player._boundsWaits.size, 1);
+    const old = [...e.timers.values()][0];
+    e.player.stopBrowserLifecycle();
+    await preparing;
+    assert.equal(e.player._boundsWaits.size, 0);
+    assert.equal(e.timers.size, 0);
+    e.player.startBrowserLifecycle();
+    old();
+    await e.advanceTime(1000);
+    assert.equal(reads, 1);
+    e.player.stopBrowserLifecycle();
+});
+
+test("an offline preload lookup cannot install its URI after cleanup and restart", async () => {
+    const offline = pendingResult();
+    const e = setup({ offlineLookup: () => offline.promise });
+    const preparing = e.player.preloadNextTrack();
+    e.player.stopBrowserLifecycle();
+    e.player.startBrowserLifecycle();
+    offline.resolve("blob:obsolete");
+    await preparing;
+    assert.equal(e.player._preloadedUri, undefined);
+    assert.equal(e.player._preloadAudio.src, "");
+    e.player.stopBrowserLifecycle();
+});
+
+test("late native play promises cannot report playing or install retries in a restarted scope", async () => {
+    for (const rejected of [false, true]) {
+        const e = setup();
+        let finish;
+        e.player.audioElement.play = () =>
+            new Promise((resolve, reject) => {
+                finish = rejected
+                    ? () =>
+                          reject({ name: "NotAllowedError", message: "stale" })
+                    : resolve;
+            });
+        e.player.audioElement.paused = false;
+        e.player._playRequested = true;
+        e.player._syncOwner = true;
+        e.player.playNative("audio");
+        e.player.stopBrowserLifecycle();
+        e.player.startBrowserLifecycle();
+        finish();
+        await flush();
+        assert.equal(e.player.playingAtom.get(), false);
+        assert.equal(e.documentListeners.get("pointerup")?.size ?? 0, 0);
+        assert.equal(e.timers.size, 0);
+        e.player.stopBrowserLifecycle();
+    }
+});
+
+test("foreground-video restoration abandons stale loads and retains the active handoff", async () => {
+    for (const interrupt of ["none", "cleanup", "selection", "hidden"]) {
+        const e = setup(),
+            loaded = pendingResult();
+        e.queue.currentMedia = {
+            type: "video",
+            publicId: "video",
+            audioUrl: "https://test/audio",
+            videoUrl: "https://test/video",
+        };
+        e.player.audioElement.currentTime = 5;
+        e.player._playRequested = true;
+        e.player.loadNativeSource = () => loaded.promise;
+        const restoring = e.player._restoreForegroundVideo();
+        if (interrupt === "cleanup") {
+            e.player.stopBrowserLifecycle();
+            e.player.startBrowserLifecycle();
+        }
+        if (interrupt === "selection") e.queue.setQueueMediaId(2);
+        if (interrupt === "hidden") e.document.hidden = true;
+        loaded.resolve();
+        await restoring;
+        assert.equal(
+            e.player.videoElement.playCalls,
+            interrupt === "none" ? 1 : 0
+        );
+        assert.equal(
+            e.player.videoElement.currentTime,
+            interrupt === "none" ? 5 : 0
+        );
+        e.player.stopBrowserLifecycle();
+    }
+});
+
+test("browser cleanup cancels the outgoing blend and timers while the active deck continues", async () => {
+    const e = setup();
+    await start(e);
+    const outgoing = await approachEnd(e),
+        active = e.player.audioElement;
+    assert.equal(active.paused, false);
+    e.player.stopBrowserLifecycle();
+    assert.equal(active.paused, false);
+    assert.equal(outgoing.paused, true);
+    assert.equal(e.timers.size, 0);
+    const selected = e.queue.currentQueueMediaId;
+    active.currentTime = 59;
+    active.ontimeupdate();
+    assert.equal(e.queue.currentQueueMediaId, selected);
+    e.player.startBrowserLifecycle();
+    await flush();
+    assert.equal(e.player.audioElement, active);
+    assert.equal(active.paused, false);
+    e.player.pause();
+    e.player.stopBrowserLifecycle();
 });

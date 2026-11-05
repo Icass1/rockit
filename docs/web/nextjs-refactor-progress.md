@@ -46,6 +46,7 @@ any failures; do not accept baseline test failures as a passing gate.
     - [x] Own queue subscriptions, cancel autoplay timers and guard stale refresh/page/recommendation work.
     - [x] Guard explicit collection/recommendation selection, list insertion and delayed collection cache opening.
     - [x] Invalidate pending shared-player source loads and playback continuations; recover interrupted loads on shell restart.
+    - [x] Scope web preloads/bounds retries, transition timers, video restoration and native play promises.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -744,24 +745,46 @@ errors. Source-resolution/native-load/play targets were fixture adapters. Actual
 media and native devices remain unverified; already-running platform I/O is not
 physically aborted by these generation checks. Existing precache warning remains.
 
+### Browser-owned supplementary playback work — 5 November 2026
+
+Web player cleanup now invalidates pending preloads, discards private bounds
+metadata, cancels and releases bounds-retry waits, and rejects stale metadata
+responses/finally blocks using per-request ownership. Restarted scopes can request
+the same song without an old completion deleting their pending work. Preloads and
+transition polling only run while the browser scope is active.
+
+Foreground-video restoration checks lifecycle, selection, playback, visibility and
+mode after loading before seeking/pausing/playing. Native play promises check the
+active scope and request before reporting playing or installing retry gestures.
+Cleanup cancels transition/ blend timers and releases the outgoing/spare deck while
+preserving the active transport. Restart restores supplementary work for a playing
+transport; queued old transition callbacks cannot affect the new scope.
+
+Checks: all 46 adaptive-transition/source tests and the full web suite (245 of 245)
+passed. Web typecheck/lint, changed-manager/test lint, formatting, production build
+and production HTTP SSR smoke passed. Chromium source-lifecycle fixtures passed at
+1440×900, 390×844 and 844×390 without browser errors. Source/transport targets remain
+fixture adapters; real media, native devices and full offline entry acceptance are
+open. Existing crane GIF precache warning remains.
+
 ## Current work
 
-Queue subscription ownership is implemented. The scoped playback/native lifecycle,
-socket, bookmarks, pins, notifications, friends, sharing, listen-together, volume,
-user session/preferences and queue increments are checked. Library initial data
-continues to render on the server without skeletons or mount requests.
+The user has redirected the next work to the semantic theme: remove hardcoded
+component colors and use Tailwind roles from `apps/web/styles/tokens/theme.css`.
+Finish the current browser playback step before starting that theme work. Every
+further step must pass the complete web suite and be committed separately.
 
-Next bounded step: scope web preloads, optional audio-bounds retries, foreground
-video restoration and late native play promises. Shared source loads and playback
-continuations now reject stale work and recover across ordinary restarts.
-Compatibility startup still initializes download/playlist/library managers. Finish
-those lifecycles and complete account reset before claiming runtime migration done.
+Runtime ownership work through queue actions, shared source loads and browser
+supplementary playback is implemented and checked. Library initial data still
+renders on the server without skeletons or mount requests. Remaining runtime
+work (downloads/playlists/library managers and complete account reset) is deferred
+while the theme migration is prioritized. Compatibility startup still initializes
+those managers.
 
-Latest checks: the full web suite passes 239 of 239 tests. Workspace TypeScript,
-web lint, production build/SSR smoke and Chromium source-loading fixtures passed.
-Actual audio, native devices, full navigation/account isolation and offline worker
-acceptance remain pending. Parent stages stay unchecked until all acceptance gates
-pass; the entire refactor is not complete.
+Latest checks: all 245 web tests pass. Web typecheck/lint, production build/SSR
+smoke and Chromium source-loading fixtures passed. Native devices, actual media,
+full navigation/account isolation and offline worker acceptance remain open.
+Parent stages remain unchecked until all their acceptance gates pass.
 
 ## Verification log
 

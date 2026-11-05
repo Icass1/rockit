@@ -34,9 +34,7 @@ export function QueueMedia({
         <div
             onClick={onClick}
             className={`group flex cursor-grab items-center gap-x-2 rounded p-2 transition-colors active:cursor-grabbing ${
-                isCurrent
-                    ? "bg-[rgba(50,50,50,0.4)]"
-                    : "md:hover:bg-[rgba(75,75,75,0.4)]"
+                isCurrent ? "bg-accent/40" : "md:hover:bg-hover/40"
             } ${isDownloadable(media.media) && !media.media.downloaded && "pointer-events-none opacity-50"}`}
         >
             <div className="flex cursor-grab items-center active:cursor-grabbing">

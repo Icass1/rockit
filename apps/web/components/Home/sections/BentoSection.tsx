@@ -74,7 +74,7 @@ function BentoCard({
                     className="absolute inset-0"
                     style={{
                         background:
-                            "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%)",
+                            "linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--theme-backdrop) 55%, transparent) 100%)",
                     }}
                     aria-hidden="true"
                 />

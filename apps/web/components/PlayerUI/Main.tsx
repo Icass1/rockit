@@ -129,9 +129,9 @@ export default function PlayerUIMain({
             }
         >
             {$playing ? (
-                <Pause className="h-10 w-10" fill="white" stroke="white" />
+                <Pause className="fill-on-media stroke-on-media h-10 w-10" />
             ) : (
-                <Play className="h-10 w-10" fill="white" stroke="white" />
+                <Play className="fill-on-media stroke-on-media h-10 w-10" />
             )}
         </div>
     );

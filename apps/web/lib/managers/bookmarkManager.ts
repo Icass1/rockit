@@ -13,17 +13,17 @@ export type EBookmarkMode =
     "NOTHING" | "AUTOSKIP" | "REPEAT_FROM_BEGINNING" | "PREVIOUS_BOOKMARK";
 
 export const BOOKMARK_MODE_COLORS: Record<EBookmarkMode, string> = {
-    NOTHING: "#ffffff",
-    AUTOSKIP: "#00ff00",
-    REPEAT_FROM_BEGINNING: "#00ffff",
-    PREVIOUS_BOOKMARK: "#ff8000",
+    NOTHING: "var(--theme-bookmark-none)",
+    AUTOSKIP: "var(--theme-bookmark-autoskip)",
+    REPEAT_FROM_BEGINNING: "var(--theme-bookmark-repeat)",
+    PREVIOUS_BOOKMARK: "var(--theme-bookmark-previous)",
 };
 
 export const BOOKMARK_MODE_MUTED_COLORS: Record<EBookmarkMode, string> = {
-    NOTHING: "#999999",
-    AUTOSKIP: "#006600",
-    REPEAT_FROM_BEGINNING: "#006666",
-    PREVIOUS_BOOKMARK: "#b35900",
+    NOTHING: "var(--theme-bookmark-none-muted)",
+    AUTOSKIP: "var(--theme-bookmark-autoskip-muted)",
+    REPEAT_FROM_BEGINNING: "var(--theme-bookmark-repeat-muted)",
+    PREVIOUS_BOOKMARK: "var(--theme-bookmark-previous-muted)",
 };
 
 export class BookmarkManager {

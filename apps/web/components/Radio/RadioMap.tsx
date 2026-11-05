@@ -236,9 +236,13 @@ function getCountryStyle(
 
         return {
             className: "radio-country",
-            fillColor: isSelected ? "#ee1086" : "#27272a",
+            fillColor: isSelected
+                ? "var(--theme-primary)"
+                : "var(--theme-accent)",
             fillOpacity: isSelected ? 0.6 : 1,
-            color: isSelected ? "#ee1086" : "rgba(255, 255, 255, 0.15)",
+            color: isSelected
+                ? "var(--theme-primary)"
+                : "color-mix(in srgb, var(--theme-foreground-strong) 15%, transparent)",
             weight: isSelected ? 2 : 0.5,
             opacity: 1,
         };
@@ -260,9 +264,9 @@ function onEachCountryFeature(
             mouseover: (e: L.LeafletMouseEvent) => {
                 const target = e.target as L.Path;
                 target.setStyle({
-                    fillColor: "#ee1086",
+                    fillColor: "var(--theme-primary)",
                     fillOpacity: 0.15,
-                    color: "#ee1086",
+                    color: "var(--theme-primary)",
                     weight: 1,
                 });
                 target.bindTooltip(name, {
@@ -340,7 +344,7 @@ export default function RadioMap({
                 image.width = 44;
                 image.height = 44;
                 image.style.cssText =
-                    "width:44px;height:44px;object-fit:cover;border:2px solid #ee1086;border-radius:8px;background:#171717;box-shadow:0 2px 8px #0008";
+                    "width:44px;height:44px;object-fit:cover;border:2px solid var(--theme-primary);border-radius:8px;background:var(--theme-secondary);box-shadow:0 2px 8px color-mix(in srgb, var(--theme-backdrop) 53.33%, transparent)";
                 image.onerror = (): void => {
                     image.onerror = null;
                     image.src = "/radio-placeholder.png";

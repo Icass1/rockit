@@ -31,17 +31,17 @@ import { Http } from "@/lib/http";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 const STATUS_COLORS: Record<string, string> = {
-    "2": "#22c55e",
-    "3": "#3b82f6",
-    "4": "#eab308",
-    "5": "#ef4444",
+    "2": "var(--theme-success)",
+    "3": "var(--theme-info)",
+    "4": "var(--theme-warning)",
+    "5": "var(--theme-destructive)",
 };
 
-const PINK = "#ee1086";
-const PINK_LIGHT = "#fb6467";
-const NEUTRAL_600 = "#525252";
-const NEUTRAL_500 = "#737373";
-const NEUTRAL_700 = "#404040";
+const PRIMARY = "var(--theme-primary)";
+const BRAND_LIGHT = "var(--theme-brand-light)";
+const AXIS_MUTED = "var(--theme-border-strong)";
+const LABEL_MUTED = "var(--theme-subtle-foreground)";
+const CHART_GRID = "var(--theme-border)";
 
 function formatMs(ms: number): string {
     if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`;
@@ -159,7 +159,7 @@ export default function AdminStats(): JSX.Element {
         (c): { name: string; count: number; fill: string } => ({
             name: `${c.code}`,
             count: c.count,
-            fill: STATUS_COLORS[String(c.code)[0]] || NEUTRAL_600,
+            fill: STATUS_COLORS[String(c.code)[0]] || AXIS_MUTED,
         })
     );
     const methodChartData = data.methodDistribution.map(
@@ -228,41 +228,42 @@ export default function AdminStats(): JSX.Element {
                                 >
                                     <stop
                                         offset="5%"
-                                        stopColor={PINK}
+                                        stopColor={PRIMARY}
                                         stopOpacity={0.3}
                                     />
                                     <stop
                                         offset="95%"
-                                        stopColor={PINK}
+                                        stopColor={PRIMARY}
                                         stopOpacity={0}
                                     />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid
                                 strokeDasharray="3 3"
-                                stroke={NEUTRAL_700}
+                                stroke={CHART_GRID}
                             />
                             <XAxis
                                 dataKey="timestamp"
-                                tick={{ fill: NEUTRAL_500, fontSize: 11 }}
+                                tick={{ fill: LABEL_MUTED, fontSize: 11 }}
                                 tickFormatter={(v: string): string => {
                                     const parts = v.split(" ");
                                     return parts.length > 1
                                         ? parts[1].substring(0, 5)
                                         : v.substring(5);
                                 }}
-                                stroke={NEUTRAL_700}
+                                stroke={CHART_GRID}
                             />
                             <YAxis
-                                tick={{ fill: NEUTRAL_500, fontSize: 11 }}
-                                stroke={NEUTRAL_700}
+                                tick={{ fill: LABEL_MUTED, fontSize: 11 }}
+                                stroke={CHART_GRID}
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: "#262626",
-                                    border: "1px solid #404040",
+                                    backgroundColor:
+                                        "var(--theme-surface-raised)",
+                                    border: "1px solid var(--theme-border)",
                                     borderRadius: "8px",
-                                    color: "#fff",
+                                    color: "var(--theme-foreground-strong)",
                                 }}
                                 labelFormatter={(label): string =>
                                     String(label)
@@ -271,7 +272,7 @@ export default function AdminStats(): JSX.Element {
                             <Area
                                 type="monotone"
                                 dataKey="count"
-                                stroke={PINK}
+                                stroke={PRIMARY}
                                 fillOpacity={1}
                                 fill="url(#requestGradient)"
                                 strokeWidth={2}
@@ -292,12 +293,12 @@ export default function AdminStats(): JSX.Element {
                             <LineChart data={timeSeriesReversed}>
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <XAxis
                                     dataKey="timestamp"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
                                     tickFormatter={(v: string): string => {
@@ -306,24 +307,25 @@ export default function AdminStats(): JSX.Element {
                                             ? parts[1].substring(0, 5)
                                             : v.substring(5);
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <YAxis
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                     tickFormatter={(v: number): string =>
                                         `${v}ms`
                                     }
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "#262626",
-                                        border: "1px solid #404040",
+                                        backgroundColor:
+                                            "var(--theme-surface-raised)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: "8px",
-                                        color: "#fff",
+                                        color: "var(--theme-foreground-strong)",
                                     }}
                                     formatter={(
                                         value: unknown
@@ -335,7 +337,7 @@ export default function AdminStats(): JSX.Element {
                                 <Line
                                     type="monotone"
                                     dataKey="avgTimeMs"
-                                    stroke={PINK_LIGHT}
+                                    stroke={BRAND_LIGHT}
                                     strokeWidth={2}
                                     dot={false}
                                 />
@@ -354,32 +356,33 @@ export default function AdminStats(): JSX.Element {
                             <BarChart data={data.hourlyStats}>
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <XAxis
                                     dataKey="hour"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
                                     tickFormatter={(v: number): string =>
                                         `${v}h`
                                     }
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <YAxis
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "#262626",
-                                        border: "1px solid #404040",
+                                        backgroundColor:
+                                            "var(--theme-surface-raised)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: "8px",
-                                        color: "#fff",
+                                        color: "var(--theme-foreground-strong)",
                                     }}
                                     labelFormatter={(label: unknown): string =>
                                         `${String(label)}:00`
@@ -387,7 +390,7 @@ export default function AdminStats(): JSX.Element {
                                 />
                                 <Bar
                                     dataKey="count"
-                                    fill={PINK}
+                                    fill={PRIMARY}
                                     radius={[4, 4, 0, 0]}
                                 />
                             </BarChart>
@@ -407,31 +410,32 @@ export default function AdminStats(): JSX.Element {
                             <BarChart data={codeChartData} layout="vertical">
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <XAxis
                                     type="number"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <YAxis
                                     type="category"
                                     dataKey="name"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "#262626",
-                                        border: "1px solid #404040",
+                                        backgroundColor:
+                                            "var(--theme-surface-raised)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: "8px",
-                                        color: "#fff",
+                                        color: "var(--theme-foreground-strong)",
                                     }}
                                     formatter={(
                                         value: unknown
@@ -462,34 +466,35 @@ export default function AdminStats(): JSX.Element {
                             <BarChart data={methodChartData}>
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <XAxis
                                     dataKey="name"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <YAxis
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "#262626",
-                                        border: "1px solid #404040",
+                                        backgroundColor:
+                                            "var(--theme-surface-raised)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: "8px",
-                                        color: "#fff",
+                                        color: "var(--theme-foreground-strong)",
                                     }}
                                 />
                                 <Bar
                                     dataKey="count"
-                                    fill={PINK}
+                                    fill={PRIMARY}
                                     radius={[4, 4, 0, 0]}
                                 />
                             </BarChart>

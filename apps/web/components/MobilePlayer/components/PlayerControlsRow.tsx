@@ -12,10 +12,8 @@ import {
 } from "lucide-react";
 import { usePlayer } from "@/lib/PlayerContext";
 
-function repeatColor(mode: ERepeatMode): string {
-    return mode === ERepeatMode.OFF
-        ? "rgba(255,255,255,0.5)"
-        : "var(--color-rockit-pink)";
+function repeatClass(mode: ERepeatMode): string {
+    return mode === ERepeatMode.OFF ? "text-muted-foreground" : "text-primary";
 }
 
 export default function PlayerControlsRow(): JSX.Element {
@@ -41,10 +39,10 @@ export default function PlayerControlsRow(): JSX.Element {
             >
                 <Shuffle
                     size={24}
-                    color={
+                    className={
                         queueType === EQueueType.RANDOM
-                            ? "var(--color-rockit-pink)"
-                            : "white"
+                            ? "text-primary"
+                            : "text-foreground-strong"
                     }
                 />
             </button>
@@ -98,7 +96,7 @@ export default function PlayerControlsRow(): JSX.Element {
                 className="relative flex h-12 w-12 items-center justify-center"
                 aria-label="Repetir"
             >
-                <Repeat size={24} color={repeatColor(repeatMode)} />
+                <Repeat size={24} className={repeatClass(repeatMode)} />
                 {repeatMode === ERepeatMode.ONE && (
                     <span className="text-primary absolute -right-0.5 -bottom-1 text-[8px] font-bold">
                         1

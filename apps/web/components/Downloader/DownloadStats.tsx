@@ -75,8 +75,16 @@ function Sparkline({ data }: { data: number[] }): JSX.Element {
         >
             <defs>
                 <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ee1086" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#ee1086" stopOpacity="0" />
+                    <stop
+                        offset="0%"
+                        stopColor="var(--theme-primary)"
+                        stopOpacity="0.35"
+                    />
+                    <stop
+                        offset="100%"
+                        stopColor="var(--theme-primary)"
+                        stopOpacity="0"
+                    />
                 </linearGradient>
             </defs>
             <polygon
@@ -86,8 +94,8 @@ function Sparkline({ data }: { data: number[] }): JSX.Element {
             <polyline
                 points={points}
                 fill="none"
-                stroke="#ee1086"
                 strokeWidth="2"
+                className="stroke-primary"
             />
         </svg>
     );

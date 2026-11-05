@@ -6,14 +6,14 @@
     color-scheme: dark;
 
     /* Paleta de acento */
-    --accent: 136, 58, 234;
-    --accent-light: 224, 204, 250;
-    --accent-dark: 49, 10, 101;
+    --accent: var(--theme-highlight-rgb);
+    --accent-light: var(--theme-highlight-soft-rgb);
+    --accent-dark: var(--theme-highlight-dark-rgb);
     --accent-gradient: linear-gradient(
         45deg,
         rgb(var(--accent)),
         rgb(var(--accent-light)) 30%,
-        white 60%
+        var(--theme-on-media) 60%
     );
 }
 

@@ -1,5 +1,8 @@
 /* Central interface palette. Components consume the semantic Tailwind roles below. */
 :root {
+    --theme-highlight-rgb: 136, 58, 234;
+    --theme-highlight-soft-rgb: 224, 204, 250;
+    --theme-highlight-dark-rgb: 49, 10, 101;
     --theme-background: #0b0b0b;
     --theme-foreground: #e0e0e0;
     --theme-foreground-strong: #ffffff;
@@ -46,6 +49,48 @@
     --theme-gradient-start: #d185ca;
     --theme-gradient-end: #ffbb9e;
     --theme-glow: #00ffea;
+    --theme-on-media: #ffffff;
+    --theme-on-media-muted: rgb(255 255 255 / 60%);
+    --theme-provider-spotify: #1ed760;
+    --theme-provider-youtube: #ff0000;
+    --theme-provider-youtube-music: #ff0033;
+    --theme-provider-lyrics: #040b4d;
+    --theme-social-tint: #ff85b7;
+    --theme-social-positive: #91c7aa;
+    --theme-social-negative: #ff9b9b;
+    --theme-medal-highlight: #f7e3b5;
+    --theme-medal-metal: #b99760;
+    --theme-medal-shadow: #70502e;
+    --theme-medal-face: #211c23;
+    --theme-medal-muted-highlight: #858589;
+    --theme-medal-muted-metal: #535359;
+    --theme-medal-muted-shadow: #303035;
+    --theme-medal-muted-face: #242429;
+    --theme-emblem-listening: #f8a1c5;
+    --theme-emblem-discovery: #b0b7f6;
+    --theme-emblem-community: #9edac8;
+    --theme-emblem-collection: #edc38a;
+    --theme-emblem-activity: #9ec9e8;
+    --theme-emblem-mastery: #ebafef;
+    --theme-flame-crown-cold: hsl(52 60% 62%);
+    --theme-flame-crown-hot: hsl(44 95% 80%);
+    --theme-flame-body-cold: hsl(48 65% 53%);
+    --theme-flame-body-hot: hsl(28 95% 60%);
+    --theme-flame-base-cold: hsl(42 60% 43%);
+    --theme-flame-base-hot: hsl(16 95% 52%);
+    --theme-flame-core-start: #fffbea;
+    --theme-flame-core-end: #ffe29a;
+    --theme-flame-glow: #ffa030;
+    --theme-bookmark-none: #ffffff;
+    --theme-bookmark-autoskip: #00ff00;
+    --theme-bookmark-repeat: #00ffff;
+    --theme-bookmark-previous: #ff8000;
+    --theme-bookmark-none-muted: #999999;
+    --theme-bookmark-autoskip-muted: #006600;
+    --theme-bookmark-repeat-muted: #006666;
+    --theme-bookmark-previous-muted: #b35900;
+    --theme-vinyl-body: #0d0d0d;
+    --theme-vinyl-groove: #1c1c1c;
 }
 
 @theme inline {
@@ -100,4 +145,63 @@
     --color-popover-foreground: var(--theme-foreground);
     --color-secondary-foreground: var(--theme-foreground);
     --color-accent-foreground: var(--theme-foreground);
+    --color-on-media: var(--theme-on-media);
+    --color-on-media-muted: var(--theme-on-media-muted);
+    --color-provider-spotify: var(--theme-provider-spotify);
+    --color-provider-youtube: var(--theme-provider-youtube);
+    --color-provider-youtube-music: var(--theme-provider-youtube-music);
+    --color-provider-lyrics: var(--theme-provider-lyrics);
+    --color-social-tint: var(--theme-social-tint);
+    --color-social-positive: var(--theme-social-positive);
+    --color-social-negative: var(--theme-social-negative);
+    --color-medal-highlight: var(--theme-medal-highlight);
+    --color-medal-metal: var(--theme-medal-metal);
+    --color-medal-shadow: var(--theme-medal-shadow);
+    --color-medal-face: var(--theme-medal-face);
+    --color-medal-muted-highlight: var(--theme-medal-muted-highlight);
+    --color-medal-muted-metal: var(--theme-medal-muted-metal);
+    --color-medal-muted-shadow: var(--theme-medal-muted-shadow);
+    --color-medal-muted-face: var(--theme-medal-muted-face);
+    --color-emblem-listening: var(--theme-emblem-listening);
+    --color-emblem-discovery: var(--theme-emblem-discovery);
+    --color-emblem-community: var(--theme-emblem-community);
+    --color-emblem-collection: var(--theme-emblem-collection);
+    --color-emblem-activity: var(--theme-emblem-activity);
+    --color-emblem-mastery: var(--theme-emblem-mastery);
+    --color-flame-crown-cold: var(--theme-flame-crown-cold);
+    --color-flame-crown-hot: var(--theme-flame-crown-hot);
+    --color-flame-body-cold: var(--theme-flame-body-cold);
+    --color-flame-body-hot: var(--theme-flame-body-hot);
+    --color-flame-base-cold: var(--theme-flame-base-cold);
+    --color-flame-base-hot: var(--theme-flame-base-hot);
+    --color-flame-core-start: var(--theme-flame-core-start);
+    --color-flame-core-end: var(--theme-flame-core-end);
+    --color-flame-glow: var(--theme-flame-glow);
+    --color-bookmark-none: var(--theme-bookmark-none);
+    --color-bookmark-autoskip: var(--theme-bookmark-autoskip);
+    --color-bookmark-repeat: var(--theme-bookmark-repeat);
+    --color-bookmark-previous: var(--theme-bookmark-previous);
+    --color-bookmark-none-muted: var(--theme-bookmark-none-muted);
+    --color-bookmark-autoskip-muted: var(--theme-bookmark-autoskip-muted);
+    --color-bookmark-repeat-muted: var(--theme-bookmark-repeat-muted);
+    --color-bookmark-previous-muted: var(--theme-bookmark-previous-muted);
+    --color-vinyl-body: var(--theme-vinyl-body);
+    --color-vinyl-groove: var(--theme-vinyl-groove);
+    --background-image-summary:
+        radial-gradient(
+            circle at 15% 20%,
+            color-mix(in srgb, var(--theme-primary) 32%, transparent),
+            transparent 38%
+        ),
+        linear-gradient(135deg, var(--theme-surface), var(--theme-background));
+    --shadow-player-action: 0 0 20px 3px var(--theme-background);
+    --drop-shadow-player-icon: 0 0 4px
+        color-mix(in srgb, var(--theme-backdrop) 80%, transparent);
+}
+
+/* Registered color properties need a literal initial value. Keep it in the palette layer. */
+@property --cf-accent {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #787882;
 }

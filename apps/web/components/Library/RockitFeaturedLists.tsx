@@ -68,7 +68,7 @@ export default function RockitFeaturedLists(): JSX.Element {
                                             aria-hidden
                                             fill={
                                                 key === "liked"
-                                                    ? "white"
+                                                    ? "var(--theme-on-media)"
                                                     : "none"
                                             }
                                         />

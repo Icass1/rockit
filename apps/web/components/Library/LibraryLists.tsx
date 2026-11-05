@@ -109,7 +109,7 @@ function SectionPlayButton({
             title={label}
             className="from-primary to-brand-light flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-r transition-transform md:hover:scale-105"
         >
-            <Play className="h-1/2 w-1/2" fill="white" />
+            <Play className="fill-on-media h-1/2 w-1/2" />
         </button>
     );
 }

@@ -143,7 +143,7 @@ export function artistAccent(
         rgb: `${r}, ${g}, ${b}`,
         foreground:
             (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05)
-                ? "#000000"
-                : "#ffffff",
+                ? "var(--theme-backdrop)"
+                : "var(--theme-on-media)",
     };
 }

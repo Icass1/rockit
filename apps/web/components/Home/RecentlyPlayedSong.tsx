@@ -55,7 +55,7 @@ export default function RecentlyPlayedSong({
                         />
                         <OfflineIndicator
                             publicId={$song.publicId}
-                            className="absolute top-1 right-1 h-5 w-5 drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]"
+                            className="drop-shadow-player-icon absolute top-1 right-1 h-5 w-5"
                         />
                     </div>
                     <span className="mt-2 block truncate text-center font-semibold hover:underline">

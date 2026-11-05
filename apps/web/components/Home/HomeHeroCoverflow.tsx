@@ -111,7 +111,7 @@ function CoverflowCardComponent({
                 className="absolute inset-0 rounded-[18px]"
                 style={{
                     background:
-                        "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)",
+                        "linear-gradient(to top, color-mix(in srgb, var(--theme-backdrop) 70%, transparent) 0%, color-mix(in srgb, var(--theme-backdrop) 30%, transparent) 40%, transparent 70%)",
                 }}
                 aria-hidden="true"
             />

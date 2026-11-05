@@ -1,9 +1,9 @@
 .skeleton {
     background: linear-gradient(
         135deg,
-        rgba(130, 130, 130, 0.2) 8%,
-        rgba(130, 130, 130, 0.3) 18%,
-        rgba(130, 130, 130, 0.2) 33%
+        color-mix(in srgb, var(--theme-subtle-foreground) 20%, transparent) 8%,
+        color-mix(in srgb, var(--theme-subtle-foreground) 30%, transparent) 18%,
+        color-mix(in srgb, var(--theme-subtle-foreground) 20%, transparent) 33%
     );
     background-size: 400% 400%;
     animation: wave-diagonal 10s infinite ease-out;
@@ -21,10 +21,10 @@
 .progress-bar {
     background: repeating-linear-gradient(
         45deg,
-        rgb(115 115 115) 0%,
-        #fb64663e 30%,
-        #ee10864f 40%,
-        rgb(115 115 115) 50%
+        var(--theme-subtle-foreground) 0%,
+        color-mix(in srgb, var(--theme-brand-light) 24.31%, transparent) 30%,
+        color-mix(in srgb, var(--theme-primary) 30.98%, transparent) 40%,
+        var(--theme-subtle-foreground) 50%
     );
     background-size: 200% 100%;
     animation: progress-move 5s linear infinite;
@@ -173,10 +173,12 @@
 @keyframes glow-pulse {
     0%,
     100% {
-        box-shadow: 0 0 20px rgba(238, 16, 134, 0.15);
+        box-shadow: 0 0 20px
+            color-mix(in srgb, var(--theme-primary) 15%, transparent);
     }
     50% {
-        box-shadow: 0 0 40px rgba(238, 16, 134, 0.3);
+        box-shadow: 0 0 40px
+            color-mix(in srgb, var(--theme-primary) 30%, transparent);
     }
 }
 
@@ -205,7 +207,7 @@
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.04) 50%,
+        color-mix(in srgb, var(--theme-foreground-strong) 4%, transparent) 50%,
         transparent 100%
     );
     background-size: 200% 100%;

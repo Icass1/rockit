@@ -64,7 +64,8 @@ export default function PlayerProgressBar({
                             style={{
                                 left: `${(bm.timestamp / duration) * 100}%`,
                                 backgroundColor:
-                                    BOOKMARK_MODE_COLORS[bm.mode] ?? "#ffffff",
+                                    BOOKMARK_MODE_COLORS[bm.mode] ??
+                                    "var(--theme-foreground-strong)",
                             }}
                         />
                     ))}

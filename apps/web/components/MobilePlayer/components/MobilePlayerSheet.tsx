@@ -72,7 +72,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                     className="flex h-11 w-11 items-center justify-center"
                     aria-label="Cerrar reproductor"
                 >
-                    <ChevronDown size={28} color="white" />
+                    <ChevronDown size={28} className="text-on-media" />
                 </button>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img

@@ -88,7 +88,7 @@ export default function RenderList({
                             className="from-primary to-brand-light text-foreground-strong absolute right-2 bottom-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-linear-45 opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:scale-105"
                             aria-label="Play"
                         >
-                            <Play className="ml-0.5 h-6 w-6" fill="white" />
+                            <Play className="fill-on-media ml-0.5 h-6 w-6" />
                         </button>
                     </div>
                     <div className="relative w-full px-2">

@@ -24,11 +24,15 @@ export default function SummaryCardsV2({
     rangeLabel,
 }: SummaryCardsV2Props): JSX.Element {
     const mediaMix = [
-        { name: "Songs", value: summary.uniqueSongsListened, color: "#ee1086" },
+        {
+            name: "Songs",
+            value: summary.uniqueSongsListened,
+            color: "var(--theme-primary)",
+        },
         {
             name: "Videos",
             value: summary.uniqueVideosListened,
-            color: "#38bdf8",
+            color: "var(--theme-info)",
         },
     ];
     const facts = [
@@ -56,7 +60,7 @@ export default function SummaryCardsV2({
 
     return (
         <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-            <div className="border-primary/20 relative min-h-80 overflow-hidden rounded-[2rem] border bg-[radial-gradient(circle_at_15%_20%,rgba(238,16,134,0.32),transparent_38%),linear-gradient(135deg,#171014,#080808)] p-7 md:p-10">
+            <div className="border-primary/20 bg-summary relative min-h-80 overflow-hidden rounded-[2rem] border p-7 md:p-10">
                 <div className="border-primary/8 absolute -right-16 -bottom-24 h-72 w-72 rounded-full border-[48px]" />
                 <p className="text-primary-soft text-xs font-semibold tracking-[0.25em] uppercase">
                     {rangeLabel}
@@ -107,8 +111,8 @@ export default function SummaryCardsV2({
                                 </Pie>
                                 <Tooltip
                                     contentStyle={{
-                                        background: "#171717",
-                                        border: "1px solid #333",
+                                        background: "var(--theme-secondary)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: 12,
                                     }}
                                 />

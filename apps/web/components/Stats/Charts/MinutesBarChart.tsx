@@ -19,9 +19,9 @@ interface MinutesBarChartProps {
     range?: string;
 }
 
-const PINK = "#ee1086";
-const PINK_LIGHT = "#fb6467";
-const NEUTRAL_700 = "#404040";
+const PRIMARY = "var(--theme-primary)";
+const BRAND_LIGHT = "var(--theme-brand-light)";
+const CHART_GRID = "var(--theme-border)";
 
 function CustomTooltip({
     active,
@@ -121,26 +121,26 @@ export default function MinutesBarChart({
                     >
                         <stop
                             offset="0%"
-                            stopColor={PINK_LIGHT}
+                            stopColor={BRAND_LIGHT}
                             stopOpacity={1}
                         />
                         <stop
                             offset="100%"
-                            stopColor={PINK}
+                            stopColor={PRIMARY}
                             stopOpacity={0.85}
                         />
                     </linearGradient>
                 </defs>
                 <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke={NEUTRAL_700}
+                    stroke={CHART_GRID}
                     strokeOpacity={0.2}
                     vertical={false}
                 />
                 <XAxis
                     dataKey="label"
                     tick={{
-                        fill: "#ffffff",
+                        fill: "var(--theme-foreground-strong)",
                         fontSize: 12,
                         fontWeight: 500,
                     }}
@@ -151,7 +151,7 @@ export default function MinutesBarChart({
                 />
                 <YAxis
                     tick={{
-                        fill: "#ffffff",
+                        fill: "var(--theme-foreground-strong)",
                         fontSize: 12,
                     }}
                     axisLine={false}
@@ -160,7 +160,9 @@ export default function MinutesBarChart({
                 />
                 <Tooltip
                     content={<CustomTooltip range={range} />}
-                    cursor={{ fill: "rgba(255,255,255,0.03)" }}
+                    cursor={{
+                        fill: "color-mix(in srgb, var(--theme-foreground-strong) 3%, transparent)",
+                    }}
                 />
                 <Bar
                     dataKey="minutes"

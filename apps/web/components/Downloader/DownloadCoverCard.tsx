@@ -48,7 +48,11 @@ function DownloadCoverCard({
     const isRetrying = item.status === "RETRYING";
     const progress = Math.max(0, Math.min(100, item.progress ?? 0));
 
-    const ringColor = isFailed ? "#c72e2e" : isRetrying ? "#fbbf24" : "#ee1086";
+    const ringColor = isFailed
+        ? "var(--theme-destructive)"
+        : isRetrying
+          ? "var(--theme-warning)"
+          : "var(--theme-primary)";
     const circumference = 2 * Math.PI * 18;
     const dashOffset = circumference - (progress / 100) * circumference;
 
@@ -162,8 +166,8 @@ function DownloadCoverCard({
                                         cy="22"
                                         r="18"
                                         fill="none"
-                                        stroke="#737373"
                                         strokeWidth="4"
+                                        className="stroke-subtle-foreground"
                                     />
                                     <circle
                                         cx="22"

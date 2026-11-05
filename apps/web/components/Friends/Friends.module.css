@@ -26,11 +26,11 @@
 .root :global(.bg-background) {
     background-color: var(--social-surface);
 }
-.root :global(.bg-\[\#ee1086\]) {
+.root :global(.bg-primary) {
     background-color: var(--social-tint);
     color: var(--social-base);
 }
-.root :global(.text-\[\#ee1086\]) {
+.root :global(.text-primary) {
     color: var(--social-tint);
 }
 .artwork {
@@ -41,7 +41,8 @@
     overflow: hidden;
     border-radius: 1.25rem;
     background: var(--social-raised);
-    box-shadow: 0 20px 48px #0005;
+    box-shadow: 0 20px 48px
+        color-mix(in srgb, var(--theme-backdrop) 33.33%, transparent);
     display: grid;
     place-items: center;
 }
@@ -131,11 +132,15 @@
 }
 @media (prefers-contrast: more) {
     .root {
-        --social-secondary: #dedee3;
+        --social-secondary: var(--theme-foreground);
     }
     .session,
     .person {
-        border-color: #ffffff80;
+        border-color: color-mix(
+            in srgb,
+            var(--theme-foreground-strong) 50.2%,
+            transparent
+        );
     }
 }
 .dialog {
@@ -145,15 +150,17 @@
     margin: auto;
     padding: 0;
     overflow-y: auto;
-    border: 1px solid #ffffff24;
+    border: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 14.12%, transparent);
     border-radius: 1.75rem;
-    background: #1c1c1e;
-    color: #f5f5f7;
-    box-shadow: 0 24px 100px #0008;
+    background: var(--theme-secondary);
+    color: var(--theme-foreground-strong);
+    box-shadow: 0 24px 100px
+        color-mix(in srgb, var(--theme-backdrop) 53.33%, transparent);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 .dialog::backdrop {
-    background: #0009;
+    background: color-mix(in srgb, var(--theme-backdrop) 60%, transparent);
 }
 .form {
     display: flex;
@@ -171,16 +178,17 @@
     flex-direction: column;
     gap: 0.625rem;
     font-size: 0.875rem;
-    color: #d1d1d6;
+    color: var(--theme-foreground);
 }
 .form :is(select, textarea) {
     width: 100%;
     border-radius: 0.875rem;
-    border: 1px solid #ffffff20;
-    background: #2c2c2e;
+    border: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 12.55%, transparent);
+    background: var(--theme-accent);
     padding: 0.875rem;
     font-size: 1rem;
-    color: #f5f5f7;
+    color: var(--theme-foreground-strong);
 }
 .form textarea {
     min-height: 7rem;
@@ -194,11 +202,11 @@
     font-weight: 600;
 }
 .form button[type="submit"] {
-    background: #ff6aa6;
-    color: #0b0b0b;
+    background: var(--theme-social-tint);
+    color: var(--theme-background);
 }
 .form :is(button, select, textarea):focus-visible {
-    outline: 2px solid #ff6aa6;
+    outline: 2px solid var(--theme-social-tint);
     outline-offset: 4px;
 }
 .form button:disabled {
@@ -217,20 +225,29 @@
 @media (prefers-contrast: more) {
     .dialog,
     .form :is(select, textarea) {
-        border-color: #fff9;
+        border-color: color-mix(
+            in srgb,
+            var(--theme-foreground-strong) 60%,
+            transparent
+        );
     }
 }
 .passport,
 .league {
     min-width: 0;
     padding: 1.5rem;
-    border: 1px solid #ffffff16;
+    border: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 8.627%, transparent);
     border-radius: 1.75rem;
     background: var(--social-surface);
 }
 .passport {
     background:
-        radial-gradient(ellipse at 10% 0%, #77344f60, transparent 75%),
+        radial-gradient(
+            ellipse at 10% 0%,
+            color-mix(in srgb, var(--theme-primary) 37.65%, transparent),
+            transparent 75%
+        ),
         var(--social-surface);
 }
 .identity {
@@ -270,10 +287,18 @@
     margin-block: 0.75rem 1.5rem;
     border: 0;
     border-radius: 8px;
-    background: #ffffff16;
+    background: color-mix(
+        in srgb,
+        var(--theme-foreground-strong) 8.627%,
+        transparent
+    );
 }
 .levelProgress::-webkit-progress-bar {
-    background: #ffffff16;
+    background: color-mix(
+        in srgb,
+        var(--theme-foreground-strong) 8.627%,
+        transparent
+    );
     border-radius: 8px;
 }
 .levelProgress::-webkit-progress-value {
@@ -287,7 +312,8 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    border-top: 1px solid #ffffff16;
+    border-top: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 8.627%, transparent);
     padding-block: 1.25rem;
 }
 .personalStats > div {
@@ -331,11 +357,23 @@
 }
 .rankRow:hover,
 .rankRow[aria-pressed="true"] {
-    background: #ffffff08;
-    border-color: #ffffff20;
+    background: color-mix(
+        in srgb,
+        var(--theme-foreground-strong) 3.137%,
+        transparent
+    );
+    border-color: color-mix(
+        in srgb,
+        var(--theme-foreground-strong) 12.55%,
+        transparent
+    );
 }
 .rankRow[data-self="true"] {
-    background: #ff6aa60b;
+    background: color-mix(
+        in srgb,
+        var(--theme-social-tint) 4.314%,
+        transparent
+    );
 }
 .rankNumber {
     width: 1.4rem;
@@ -350,7 +388,7 @@
     height: 36px;
     overflow: hidden;
     border-radius: 50%;
-    background: #343037;
+    background: var(--theme-hover);
 }
 .leagueAvatar img {
     width: 100%;
@@ -384,7 +422,8 @@
     font-size: 0.65rem;
 }
 .comparison {
-    border-top: 1px solid #ffffff16;
+    border-top: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 8.627%, transparent);
     padding-top: 1rem;
 }
 .comparison > p {
@@ -418,12 +457,12 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: var(--social-text);
     margin-inline: auto;
-    --social-base: var(--color-bg, #0b0b0b);
-    --social-surface: var(--color-surface, #151515);
-    --social-raised: var(--color-input-bg, #202020);
-    --social-text: var(--color-text, #e0e0e0);
-    --social-secondary: #b0b0b8;
-    --social-tint: #ff85b7;
+    --social-base: var(--color-bg, var(--theme-background));
+    --social-surface: var(--color-surface, var(--theme-surface));
+    --social-raised: var(--color-input-bg, var(--theme-muted));
+    --social-text: var(--color-text, var(--theme-foreground));
+    --social-secondary: var(--theme-muted-foreground);
+    --social-tint: var(--theme-social-tint);
     width: 100%;
     max-width: none;
     container: friends / inline-size;
@@ -477,7 +516,8 @@
     display: flex;
     gap: 1.5rem;
     margin-bottom: 2rem;
-    border-bottom: 1px solid #ffffff1f;
+    border-bottom: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 12.16%, transparent);
     overflow-x: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--social-secondary) transparent;
@@ -518,7 +558,7 @@
 
 .presence {
     font-size: 0.8125rem;
-    color: #91c7aa;
+    color: var(--theme-social-positive);
 }
 
 .directory {
@@ -601,7 +641,7 @@
     height: 10px;
     border: 2px solid var(--social-base);
     border-radius: 50%;
-    background: #91c7aa;
+    background: var(--theme-social-positive);
     right: 0;
     bottom: 0;
 }
@@ -681,20 +721,26 @@
     max-width: 80vw;
     padding: 0.5rem;
     background: var(--social-raised);
-    border: 1px solid #ffffff30;
+    border: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 18.82%, transparent);
     border-radius: 0.75rem;
-    box-shadow: 0 12px 28px #0006;
+    box-shadow: 0 12px 28px
+        color-mix(in srgb, var(--theme-backdrop) 40%, transparent);
 }
 
 .personMenu button {
     text-align: start;
     padding: 0.75rem;
-    color: #ff9b9b;
+    color: var(--theme-social-negative);
     border-radius: 0.375rem;
 }
 
 .personMenu button:hover {
-    background: #ffffff0d;
+    background: color-mix(
+        in srgb,
+        var(--theme-foreground-strong) 5.098%,
+        transparent
+    );
 }
 
 .root summary:focus-visible {
@@ -746,7 +792,7 @@
 }
 
 .confirmAction button {
-    color: #ff9b9b;
+    color: var(--theme-social-negative);
     padding-inline: 0.5rem;
 }
 
@@ -781,9 +827,10 @@
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: #f5f5f7;
-    color: #151515;
-    box-shadow: 0 5px 16px #0005;
+    background: var(--theme-foreground-strong);
+    color: var(--theme-surface);
+    box-shadow: 0 5px 16px
+        color-mix(in srgb, var(--theme-backdrop) 33.33%, transparent);
 }
 
 .sleevePlay svg {
@@ -939,7 +986,7 @@
     align-items: center;
     gap: 1rem;
     padding-block: 1rem;
-    color: #ff9b9b;
+    color: var(--theme-social-negative);
     font-size: 0.875rem;
 }
 
@@ -1071,17 +1118,22 @@
 
 @media (prefers-contrast: more) {
     .root {
-        --social-secondary: #dedee3;
+        --social-secondary: var(--theme-foreground);
     }
     .navigation {
-        border-color: #ffffff80;
+        border-color: color-mix(
+            in srgb,
+            var(--theme-foreground-strong) 50.2%,
+            transparent
+        );
     }
 }
 
 .requests {
     padding-block: 0.5rem 1.5rem;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid #ffffff1f;
+    border-bottom: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 12.16%, transparent);
 }
 
 .sessionInvite {
@@ -1320,7 +1372,8 @@
     padding-bottom: 0.5rem;
 }
 .leagueDisclosure {
-    border-top: 1px solid #ffffff1f;
+    border-top: 1px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 12.16%, transparent);
     padding-top: 0.5rem;
 }
 .leagueDisclosure > summary {
@@ -1439,11 +1492,11 @@
     color: var(--social-secondary);
 }
 .emblem {
-    --emblem-ink: #f8a1c5;
-    --medal-highlight: #f7e3b5;
-    --medal-metal: #b99760;
-    --medal-shadow: #70502e;
-    --medal-face: #211c23;
+    --emblem-ink: var(--theme-emblem-listening);
+    --medal-highlight: var(--theme-medal-highlight);
+    --medal-metal: var(--theme-medal-metal);
+    --medal-shadow: var(--theme-medal-shadow);
+    --medal-face: var(--theme-medal-face);
     position: relative;
     display: inline-grid;
     place-items: center;
@@ -1453,19 +1506,19 @@
     color: var(--emblem-ink);
 }
 .emblem[data-variant="orbit"] {
-    --emblem-ink: #b0b7f6;
+    --emblem-ink: var(--theme-emblem-discovery);
 }
 .emblem[data-variant="groove"] {
-    --emblem-ink: #9edac8;
+    --emblem-ink: var(--theme-emblem-community);
 }
 .emblem[data-variant="longplay"] {
-    --emblem-ink: #edc38a;
+    --emblem-ink: var(--theme-emblem-collection);
 }
 .emblem[data-variant="atlas"] {
-    --emblem-ink: #9ec9e8;
+    --emblem-ink: var(--theme-emblem-activity);
 }
 .emblem[data-variant="voyager"] {
-    --emblem-ink: #ebafef;
+    --emblem-ink: var(--theme-emblem-mastery);
 }
 .emblem > svg:first-child {
     width: 100%;
@@ -1478,14 +1531,16 @@
     width: 32px;
     height: 32px;
     transform: translateY(-5px);
-    filter: drop-shadow(0 1px 1px #0006);
+    filter: drop-shadow(
+        0 1px 1px color-mix(in srgb, var(--theme-backdrop) 40%, transparent)
+    );
 }
 .emblem[data-earned="false"] {
     color: var(--social-secondary);
-    --medal-highlight: #858589;
-    --medal-metal: #535359;
-    --medal-shadow: #303035;
-    --medal-face: #242429;
+    --medal-highlight: var(--theme-medal-muted-highlight);
+    --medal-metal: var(--theme-medal-muted-metal);
+    --medal-shadow: var(--theme-medal-muted-shadow);
+    --medal-face: var(--theme-medal-muted-face);
 }
 .emblem[data-earned="false"] .emblemLogo {
     filter: grayscale(1);

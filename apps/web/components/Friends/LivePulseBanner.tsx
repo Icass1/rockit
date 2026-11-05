@@ -19,7 +19,7 @@ function Waveform(): JSX.Element {
                     width: 2px;
                     height: 10px;
                     border-radius: 1px;
-                    background: linear-gradient(to top, #ee1086, #fb6467);
+                    background: linear-gradient(to top, var(--theme-primary), var(--theme-brand-light));
                     transform-origin: bottom center;
                     animation: rk-wave 0.85s ease-in-out infinite;
                 }

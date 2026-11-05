@@ -41,13 +41,17 @@ img {
     border-radius: 100px;
 }
 *:hover::-webkit-scrollbar-track {
-    background-color: rgba(20, 20, 20, 0.5);
+    background-color: color-mix(
+        in srgb,
+        var(--theme-secondary) 50%,
+        transparent
+    );
     border-radius: 100px;
 }
 
 /* Thumb */
 *::-webkit-scrollbar-thumb {
-    background-color: rgb(100, 100, 100);
+    background-color: var(--theme-subtle-foreground);
     border-radius: 10px;
 }
 *::-webkit-scrollbar-thumb:horizontal {
@@ -55,14 +59,14 @@ img {
     border-radius: 10px;
 }
 *:hover::-webkit-scrollbar-thumb:horizontal {
-    background-color: rgb(100, 100, 100);
+    background-color: var(--theme-subtle-foreground);
     border-radius: 10px;
 }
 *::-webkit-scrollbar-thumb:hover {
-    background-color: #aaa;
+    background-color: var(--theme-muted-foreground);
 }
 *::-webkit-scrollbar-thumb:horizontal:hover {
-    background-color: #aaa;
+    background-color: var(--theme-muted-foreground);
 }
 
 /* ── Scrollbar oculto (hide-scroll-*) ─────────
@@ -93,7 +97,7 @@ img {
     transition: background-color 0.4s ease;
 }
 .scroll-on-hover:hover::-webkit-scrollbar-thumb {
-    background-color: rgb(100, 100, 100);
+    background-color: var(--theme-subtle-foreground);
     transition: background-color 0.1s ease;
 }
 
@@ -124,7 +128,7 @@ img {
     -webkit-appearance: none;
     height: 13px;
     width: 13px;
-    background-color: white;
+    background-color: var(--theme-on-media);
 }
 
 #default-slider::-moz-range-thumb {
@@ -141,7 +145,7 @@ img {
     appearance: none;
     height: 13px;
     width: 13px;
-    background-color: white;
+    background-color: var(--theme-on-media);
 }
 
 /* ── Checkbox custom ──────────────────────────
@@ -153,7 +157,7 @@ img {
     -webkit-appearance: none;
     -moz-appearance: none;
     border-radius: 6px;
-    border: 2px solid #6a7282;
+    border: 2px solid var(--theme-subtle-foreground);
     background-color: transparent;
     transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -164,7 +168,7 @@ img {
 }
 
 .rockit-checkbox:hover {
-    border-color: #f6339a;
+    border-color: var(--theme-primary);
 }
 
 /* ── Range scrub (MobilePlayer) ─────────────
@@ -179,15 +183,16 @@ img {
     width: 18px;
     height: 18px;
     border-radius: 9999px;
-    background: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    background: var(--theme-on-media);
+    box-shadow: 0 1px 3px
+        color-mix(in srgb, var(--theme-backdrop) 40%, transparent);
 }
 .range-scrub::-moz-range-thumb {
     width: 18px;
     height: 18px;
     border: none;
     border-radius: 9999px;
-    background: white;
+    background: var(--theme-on-media);
 }
 .range-scrub::-webkit-slider-runnable-track,
 .range-scrub::-moz-range-track {
@@ -216,7 +221,7 @@ img {
    for dark mode
    ─────────────────────────────────────── */
 .radio-map-container .leaflet-container {
-    background: #0b0b0b;
+    background: var(--theme-background);
     outline: none;
 }
 
@@ -233,18 +238,27 @@ img {
 }
 
 .radio-country-tooltip {
-    background: rgba(238, 16, 134, 0.9) !important;
+    background: color-mix(
+        in srgb,
+        var(--theme-primary) 90%,
+        transparent
+    ) !important;
     border: none !important;
     border-radius: 8px !important;
-    color: white !important;
+    color: var(--theme-on-media) !important;
     font-size: 12px !important;
     font-weight: 600 !important;
     padding: 4px 10px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 4px 12px
+        color-mix(in srgb, var(--theme-backdrop) 40%, transparent) !important;
 }
 
 .radio-country-tooltip::before {
-    border-top-color: rgba(238, 16, 134, 0.9) !important;
+    border-top-color: color-mix(
+        in srgb,
+        var(--theme-primary) 90%,
+        transparent
+    ) !important;
 }
 
 /* ── Masonry grid (CSS columns) ────────────
@@ -284,7 +298,7 @@ img {
 /* ── Vinyl Record ────────────────────────────
    Spinning disc for songs in the player UI.
    Black grooves background (repeating-radial-gradient), cover
-   clipped inside a circle at ⅔, white separator ring, SVG arc
+   clipped inside a circle at ⅔, var(--theme-on-media) separator ring, SVG arc
    text song · artist near the center, and spindle.
    ─────────────────────────────────────────── */
 .vinyl-disc {
@@ -295,10 +309,10 @@ img {
     overflow: hidden;
     background: repeating-radial-gradient(
         circle at 50% 50%,
-        #0d0d0d 0px,
-        #0d0d0d 2px,
-        #1c1c1c 2px,
-        #1c1c1c 3px
+        var(--theme-vinyl-body) 0px,
+        var(--theme-vinyl-body) 2px,
+        var(--theme-vinyl-groove) 2px,
+        var(--theme-vinyl-groove) 3px
     );
     will-change: transform;
 }
@@ -326,7 +340,8 @@ img {
     position: absolute;
     inset: 0;
     border-radius: 9999px;
-    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border: 1.5px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 12%, transparent);
     pointer-events: none;
     z-index: 2;
 }
@@ -334,7 +349,8 @@ img {
 .vinyl-ring-white {
     position: absolute;
     border-radius: 9999px;
-    border: 2px solid rgba(255, 255, 255, 0.55);
+    border: 2px solid
+        color-mix(in srgb, var(--theme-foreground-strong) 55%, transparent);
     pointer-events: none;
     width: 66.667%;
     height: 66.667%;
@@ -346,8 +362,9 @@ img {
 .vinyl-black-center {
     position: absolute;
     border-radius: 9999px;
-    background: #fff;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+    background: var(--theme-foreground-strong);
+    box-shadow: 0 0 0 1px
+        color-mix(in srgb, var(--theme-foreground-strong) 30%, transparent);
     pointer-events: none;
     z-index: 3;
     width: 5%;
@@ -361,7 +378,7 @@ img {
     width: 5px;
     height: 5px;
     border-radius: 9999px;
-    background: #000;
+    background: var(--theme-backdrop);
     pointer-events: none;
     inset: 0;
     margin: auto;
@@ -372,11 +389,6 @@ img {
    use transform/opacity only (GPU-composited).
    No filter:blur in continuous loops.
    ─────────────────────────────────────────── */
-@property --cf-accent {
-    syntax: "<color>";
-    inherits: true;
-    initial-value: #787882;
-}
 
 .cf-section {
     perspective: 1400px;
@@ -389,21 +401,34 @@ img {
     background:
         radial-gradient(
             60% 60% at 30% 20%,
-            color-mix(in srgb, var(--cf-accent, #ee1086) 35%, transparent),
+            color-mix(
+                in srgb,
+                var(--cf-accent, var(--theme-primary)) 35%,
+                transparent
+            ),
             transparent 60%
         ),
         radial-gradient(
             55% 55% at 80% 80%,
-            color-mix(in srgb, var(--cf-accent, #ee1086) 35%, transparent),
+            color-mix(
+                in srgb,
+                var(--cf-accent, var(--theme-primary)) 35%,
+                transparent
+            ),
             transparent 65%
         );
     -webkit-mask-image: linear-gradient(
         180deg,
-        black 0%,
-        black 75%,
+        var(--theme-backdrop) 0%,
+        var(--theme-backdrop) 75%,
         transparent 100%
     );
-    mask-image: linear-gradient(180deg, black 0%, black 75%, transparent 100%);
+    mask-image: linear-gradient(
+        180deg,
+        var(--theme-backdrop) 0%,
+        var(--theme-backdrop) 75%,
+        transparent 100%
+    );
     transition: --cf-accent 0.6s ease;
     pointer-events: none;
 }
@@ -447,14 +472,18 @@ img {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.25);
+    background: color-mix(
+        in srgb,
+        var(--theme-foreground-strong) 25%,
+        transparent
+    );
     transition:
         background 0.25s ease,
         transform 0.25s ease;
 }
 
 .cf-dot.active::after {
-    background: #fff;
+    background: var(--theme-foreground-strong);
     transform: scale(1.4);
 }
 
@@ -470,7 +499,7 @@ img {
 .cf-eq span {
     content: "";
     width: 3px;
-    background: #fff;
+    background: var(--theme-foreground-strong);
     border-radius: 2px;
     display: block;
 }
@@ -639,11 +668,15 @@ img {
     inset: 0;
     background: linear-gradient(
         to bottom,
-        rgb(0 0 0 / 10%) 0%,
-        rgb(0 0 0 / 10%) calc(100% - 64px),
-        rgb(0 0 0 / 8.536%) calc(100% - 48px),
-        rgb(0 0 0 / 5%) calc(100% - 32px),
-        rgb(0 0 0 / 1.464%) calc(100% - 16px),
+        color-mix(in srgb, var(--theme-backdrop) 10%, transparent) 0%,
+        color-mix(in srgb, var(--theme-backdrop) 10%, transparent)
+            calc(100% - 64px),
+        color-mix(in srgb, var(--theme-backdrop) 8.536%, transparent)
+            calc(100% - 48px),
+        color-mix(in srgb, var(--theme-backdrop) 5%, transparent)
+            calc(100% - 32px),
+        color-mix(in srgb, var(--theme-backdrop) 1.464%, transparent)
+            calc(100% - 16px),
         transparent 100%
     );
 }
@@ -666,10 +699,13 @@ img {
     --header-layer-mask: linear-gradient(
         to bottom,
         var(--header-layer-entry),
-        #000 var(--header-blur-start),
-        rgb(0 0 0 / 85.355%) var(--header-blur-quarter),
-        rgb(0 0 0 / 50%) var(--header-blur-middle),
-        rgb(0 0 0 / 14.645%) var(--header-blur-three-quarters),
+        var(--theme-backdrop) var(--header-blur-start),
+        color-mix(in srgb, var(--theme-backdrop) 85.355%, transparent)
+            var(--header-blur-quarter),
+        color-mix(in srgb, var(--theme-backdrop) 50%, transparent)
+            var(--header-blur-middle),
+        color-mix(in srgb, var(--theme-backdrop) 14.645%, transparent)
+            var(--header-blur-three-quarters),
         transparent 100%
     );
     -webkit-mask-image: var(--header-layer-mask);
@@ -690,7 +726,7 @@ img {
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
     .app-header-backdrop {
         bottom: 0;
-        background: #121214;
+        background: var(--theme-surface);
     }
     .app-header-blur-layer,
     .app-header-backdrop::after {
@@ -703,7 +739,7 @@ img {
 ) {
     .app-header-backdrop {
         bottom: 0;
-        background: #121214;
+        background: var(--theme-surface);
     }
     .app-header-blur-layer,
     .app-header-backdrop::after {
@@ -791,9 +827,9 @@ img {
 [data-library-drop-state="active"],
 [data-library-drop-state="pending"],
 [data-library-drop-state="success"] {
-    outline: 2px solid #34d399;
+    outline: 2px solid var(--theme-success);
     outline-offset: 5px;
-    background-color: rgb(16 185 129 / 0.14);
+    background-color: color-mix(in srgb, var(--theme-success) 14%, transparent);
 }
 .library-drop-indicator {
     pointer-events: none;
@@ -807,9 +843,9 @@ img {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    color: white;
-    background: #047857;
-    box-shadow: 0 0 0 2px #0a0a0a;
+    color: var(--theme-on-media);
+    background: var(--theme-success-hover);
+    box-shadow: 0 0 0 2px var(--theme-background);
 }
 @media (prefers-reduced-motion: reduce) {
     .library-dnd-surface {

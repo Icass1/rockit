@@ -26,7 +26,8 @@ any failures; do not accept baseline test failures as a passing gate.
 - [ ] 3. Semantic theme and reusable UI primitives.
     - [x] Introduce a single global style entry and semantic Tailwind tokens.
     - [x] Centralize the interface palette in theme.css and replace component palette utilities with semantic roles.
-    - [ ] Remove remaining inline/CSS/chart/SVG/PiP literals and add persisted user theme settings.
+    - [x] Remove inline/CSS/chart/SVG/PiP color literals and enforce central palette references.
+    - [ ] Add persisted user theme settings and complete light/system visual verification.
     - [ ] Add shared buttons, fields, choices, ranges and overlays; migrate initial consumers.
     - [x] Shared Popup surface/behavior and ui-folder menu/slider relocation.
     - [ ] Add accessibility/visual verification and architecture/color enforcement.
@@ -790,11 +791,32 @@ The user also requested a user-table theme preference and Settings selector.
 Implement Dark/Light/System with existing accounts defaulting to Dark after the
 remaining component color migration.
 
+### Component color literals consolidated — 5 November 2026
+
+Removed fixed interface colors from component inline styles, SVG controls/provider
+marks, chart configuration, feature stylesheets and PiP, plus shared browser
+bookmark/artist color adapters and global feature styles. Simple SVG paint now
+uses semantic Tailwind classes. Complex gradients, chart/Leaflet props and CSS
+animations reference the same central theme variables. Brand/medal/flame/bookmark
+colors and vinyl textures have named palette roles in theme.css. Registered CSS
+color properties also live in the palette layer where literal defaults are valid.
+
+Artwork-derived accents remain validated data; invalid colors use the central
+fallback. Quick-access gradients now mix that color safely instead of appending
+hex alpha. Like-button hover colors use classes instead of event-time style writes.
+Moved the artwork color contract into web models. Semantic utility, literal-color
+and undefined-token architecture tests guard the migration.
+
+Checks: all 248 web tests passed. Web typecheck/lint, changed service/model/test
+lint, formatting, production build and production HTTP SSR smoke passed. Production
+Chromium Library/theme checks passed at all three viewport sizes; phone rendering
+was inspected. The existing precache warning remains. Broader feature-by-feature
+visual/native/PiP interaction acceptance remains open.
+
 ## Current work
 
-The theme refactor is prioritized at the user's request. The semantic Tailwind
-utility migration is checked. Next: finish inline/CSS/chart/SVG/PiP color removal,
-then add Dark/Light/System themes with a preference persisted in the user table
+The theme refactor is prioritized at the user's request. The semantic utility and component color-literal
+migrations are checked. Next: add Dark/Light/System themes with a preference persisted in the user table
 and a localized Settings selector. Preserve account isolation, first-render theme,
 system-color changes and offline session restoration. Each step needs the complete
 web suite passing and a separate commit.
@@ -803,7 +825,7 @@ Runtime work through queue actions and web/shared source lifecycle is implemente
 Download/playlist/library manager ownership and full account reset remain deferred.
 Library still renders initial server data without skeletons/mount requests.
 
-Latest checks: all 246 web tests pass; web types/lint, production build/SSR and
+Latest checks: all 248 web tests pass; web types/lint, production build/SSR and
 Chromium Library/theme checks pass at all three viewport sizes. Actual media,
 native devices and complete offline/service-worker acceptance remain open.
 Parent stages remain unchecked until their complete acceptance gates pass.

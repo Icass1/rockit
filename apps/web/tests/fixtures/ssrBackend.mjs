@@ -122,6 +122,57 @@ const server = http.createServer((req, res) => {
             currentStreak: 3,
             minutesListenedThisWeek: 20,
         });
+    if (url.pathname === "/user/library/medias") {
+        if (!req.headers.cookie?.includes("session_id=fixture"))
+            return send({ detail: "Login required" }, 401);
+        if (req.headers.cookie.includes("session_id=fixture-error"))
+            return send({ detail: "Library unavailable" }, 503);
+        if (req.headers.cookie.includes("session_id=fixture-invalid"))
+            return send({ songs: "invalid" });
+        const empty = req.headers.cookie.includes("session_id=fixture-empty");
+        const entry = (item) => ({ item, addedAt: "2026-01-01T00:00:00Z" });
+        // Delay the response to prove the page waits for its initial library data.
+        return setTimeout(
+            () =>
+                send({
+                    albums: empty ? [] : [entry(album)],
+                    playlists: [],
+                    songs: empty
+                        ? []
+                        : [entry({ ...song, name: "SSR library song" })],
+                    videos: [],
+                    stations: [],
+                    shared: [],
+                }),
+            250
+        );
+    }
+    if (url.pathname === "/stats/user")
+        return send({
+            summary: {
+                mediasListened: 1,
+                songsListened: 1,
+                videosListened: 0,
+                minutesListened: 1,
+                avgMinutesPerSong: 1,
+                currentStreak: 1,
+            },
+            minutes: [],
+            topSongs: [],
+            topVideos: [],
+            topAlbums: [
+                {
+                    publicId: album.publicId,
+                    name: "SSR top album",
+                    href: album.url,
+                    value: 1,
+                    imageUrl: album.imageUrl,
+                    subtitle: artist.name,
+                },
+            ],
+            topArtists: [],
+            heatmap: [],
+        });
     if (url.pathname === "/recommendation/for-you") {
         if (url.searchParams.get("external") === "true")
             return setTimeout(() => {

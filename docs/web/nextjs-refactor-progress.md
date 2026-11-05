@@ -48,6 +48,8 @@ Verify, record and commit each completed refactor step separately.
     - [x] Verify real production HTTP HTML, request deduplication and delayed-provider streaming with isolated fixtures.
     - [ ] Finish splitting presentation from playback islands and live invalidation.
 - [ ] 6. Library: additive paginated APIs, generated DTOs, bounded UI, full-library playback/search/bulk/offline semantics.
+    - [x] Fetch the initial library and featured top albums on the server; remove mount requests and library skeletons.
+    - [ ] Add paginated APIs/query ownership and verify complete playback, search, bulk and offline parity.
 - [ ] 7. Collections/artists: server headers/data, correct errors, preserved virtual tree, independent provider content.
 - [ ] 8. Downloads/social/search/radio: hydrated query ownership, URL state, event bridge and lazy panels/map.
 - [ ] 9. Settings/stats/admin: server data, reusable forms/ranges, timezone handling and lazy uploads/charts/tabs.
@@ -606,12 +608,47 @@ HTTP/media-source targets were fixture adapters. Actual audio, queue progression
 native iOS/Android devices and full offline entry were not verified by these fixtures;
 remaining runtime acceptance stays open.
 
+### Server-rendered Library without skeletons — 5 November 2026
+
+The Library route now awaits a request-local server loader for the full library
+and featured top albums. Both requests run concurrently through the typed server
+transport with the current session and uncached private responses. Invalid DTOs,
+expired sessions and backend failures use the existing route error handling.
+The top-album ranking uses a 30-day UTC window for its server snapshot.
+
+LibraryClient receives the complete initial snapshot. Removed its mount-time
+library/stats requests and the unused LibrarySkeleton component. Filtering, sorting,
+bounded rendering and full-library song IDs reuse the server data; add/remove events
+continue updating the local reducer. Session Context gates private library and
+top-album data across account changes. Server snapshots are still saved to the
+account's IndexedDB library cache. The explicit offline entry validates and loads
+that cache before mounting the library, without fetching library data in the browser.
+
+Checks: all 16 focused library/server-rendering tests passed, including account
+isolation, failed/invalid initial responses and stable snapshot rendering. Web
+typecheck/lint, explicit changed-module lint, formatting, production build and
+production HTTP SSR smoke passed. The smoke check verifies real library song and
+top-album elements in server HTML, no skeleton classes, one request per resource,
+and empty-library rendering. The full web suite passed 198 of 200 tests with the
+same two baseline adaptive-transition failures. The existing crane GIF precache
+warning remains. Pinned pnpm used temporary PNPM_HOME/XDG_DATA_HOME paths.
+
+Chromium checks passed at 1440×900, 390×844 and 844×390 against the production app
+and isolated backend fixture. They verified hydration without errors or skeletons,
+no browser library/stats requests, local filters/search, the desktop view switch,
+IndexedDB snapshot persistence and reopening the saved library through `/~offline`.
+Browser API requests were routed to the fixture and WebSockets were closed by the
+test adapter. Real live-event delivery, actual playback, native devices and full
+network-offline/service-worker acceptance remain open. This step retains the
+existing full-library endpoint; Library pagination and complete query/runtime
+ownership are still pending.
+
 ## Current work
 
-Paused on 5 November 2026 at the user's request after the shared-player
-synchronization step (`4f4d2ef57`). All six implementation steps in this
-continuation were validated and committed separately. No queue migration changes
-have been started.
+Resumed on 5 November 2026 at the user's request to prioritize Library first-render
+data after the shared-player synchronization step (`4f4d2ef57`). The Library now
+arrives with its data rendered on the server and no library skeletons or duplicate
+mount requests. No queue migration changes have been started.
 
 The scoped playback/native lifecycle, socket, bookmark, navigation-pin,
 notification, friend, sharing, listen-together, volume and user-session increments
@@ -628,10 +665,11 @@ cancel autoplay timers, and guard stale queue refresh/page work while preserving
 the server-seeded queue, pagination and progression. Then address remaining
 source-loading work, downloads, playlists, library and complete account reset.
 
-Latest checks: web/mobile/shared typechecks, web lint, changed-module lint,
-formatting, production build and production HTTP SSR smoke passed. The full web
-suite passed 197 of 199 tests with the two documented baseline adaptive-transition
-failures. Chromium lifecycle fixtures passed at all three viewport sizes.
+Latest Library checks: web typecheck/lint, changed-module lint, formatting,
+production build and production HTTP SSR smoke passed. The full web suite passed
+198 of 200 tests with the two documented baseline adaptive-transition failures.
+Chromium Library checks passed at all three viewport sizes. The preceding
+shared-player step also passed web/mobile/shared typechecks and lifecycle fixtures.
 Real audio/queue progression, native iOS/Android devices, complete application
 navigation/account reset and offline acceptance remain pending. Full application
 popup/language verification and Library pagination/query stages also remain open.

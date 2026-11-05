@@ -23,12 +23,10 @@ export { useIncrementalList } from '@/hooks/useIncrementalList';`,
             name: "library-data-sources",
             setup(builder) {
                 const mocks = {
-                    "@nanostores/react": "export const useStore = () => true;",
-                    "@/hooks/useAccountCachedData":
-                        "export default () => ({ data: globalThis.libraryData, loading: false });",
+                    "@/components/providers/SessionProvider":
+                        "export const useSession = () => globalThis.session;",
                     "@/lib/rockit/rockIt":
                         "export const rockIt = { userManager: {} };",
-                    "@/lib/http": "export const Http = {};",
                     "@/lib/offline/db":
                         "export const loadLibraryOffline = () => {}; export const saveLibraryOffline = () => {};",
                     "@rockit/shared": "export const EEvent = {};",
@@ -62,16 +60,22 @@ function setup() {
         require: createRequire(import.meta.url),
     });
     vm.runInContext(outputFiles[0].text, context);
+    context.session = { username: "listener" };
     return { context, ...context.module.exports };
 }
 
 test("library fallback arrays stay stable before the reducer effect commits", () => {
-    const { context, useLibraryData } = setup();
-    context.libraryData = library(["cached-song"]);
+    const { useLibraryData } = setup();
+    const data = library(["server-song"]);
     const snapshots = [];
     function Probe() {
         const [stage, setStage] = useState(0);
-        const { filtered } = useLibraryData({ filterMode: 0, searchQuery: "" });
+        const { filtered } = useLibraryData({
+            data,
+            username: "listener",
+            filterMode: 0,
+            searchQuery: "",
+        });
         snapshots.push(filtered);
         if (stage === 0) setStage(1);
         return null;
@@ -81,16 +85,26 @@ test("library fallback arrays stay stable before the reducer effect commits", ()
     assert.equal(snapshots[0], snapshots[1]);
 });
 
-test("loading, cached, live and cleared library snapshots render without a loop", () => {
+test("server refreshes and account changes render without a loop or exposing another account", () => {
     const { context, useLibraryData, useIncrementalList } = setup();
-    const cached = library(["cached-song"]);
+    const initial = library(["server-song"]);
     const live = library(["live-song", "another-song"]);
-    const snapshots = [undefined, cached, cached, live, live, undefined];
+    const snapshots = [initial, initial, live, live, live];
     const rendered = [];
     function Probe() {
         const [stage, setStage] = useState(0);
-        context.libraryData = snapshots[stage];
-        const { filtered } = useLibraryData({ filterMode: 0, searchQuery: "" });
+        context.session =
+            stage === 3
+                ? { username: "another-account" }
+                : stage === 4
+                  ? null
+                  : { username: "listener" };
+        const { filtered } = useLibraryData({
+            data: snapshots[stage],
+            username: "listener",
+            filterMode: 0,
+            searchQuery: "",
+        });
         const songs = useIncrementalList(filtered.songs, false);
         useIncrementalList(filtered.videos, false);
         rendered.push(Array.from(songs, (song) => song.publicId));
@@ -99,11 +113,10 @@ test("loading, cached, live and cleared library snapshots render without a loop"
     }
     assert.doesNotThrow(() => renderToString(createElement(Probe)));
     assert.deepEqual(rendered, [
+        ["server-song"],
+        ["server-song"],
+        ["live-song", "another-song"],
         [],
-        ["cached-song"],
-        ["cached-song"],
-        ["live-song", "another-song"],
-        ["live-song", "another-song"],
         [],
     ]);
 });

@@ -108,6 +108,37 @@ try {
     assert.ok(emptyFooter);
     assert.match(emptyFooter, /No media playing/);
     assert.doesNotMatch(emptyFooter, /SSR current song|NO_MEDIA_PLAYING/);
+    const libraryResponse = await fetch(
+        `http://127.0.0.1:${frontend}/library`,
+        {
+            headers: { cookie: "session_id=fixture" },
+            signal: AbortSignal.timeout(15000),
+        }
+    );
+    assert.equal(libraryResponse.status, 200);
+    const libraryHtml = await libraryResponse.text();
+    // Match real elements, not serialized RSC props that haven't been rendered.
+    assert.match(libraryHtml, /<p[^>]*>SSR library song<\/p>/);
+    assert.match(libraryHtml, /<p[^>]*>SSR top album<\/p>/);
+    assert.doesNotMatch(libraryHtml, /class="[^"]*\bskeleton\b/);
+    const libraryState = await (
+        await fetch(`http://127.0.0.1:${backend}/fixture/status`)
+    ).json();
+    assert.equal(libraryState.calls["/user/library/medias"], 1);
+    assert.equal(libraryState.calls["/stats/user"], 1);
+    const emptyLibraryResponse = await fetch(
+        `http://127.0.0.1:${frontend}/library`,
+        {
+            headers: { cookie: "session_id=fixture-empty" },
+            signal: AbortSignal.timeout(15000),
+        }
+    );
+    assert.equal(emptyLibraryResponse.status, 200);
+    const emptyLibraryHtml = await emptyLibraryResponse.text();
+    assert.doesNotMatch(
+        emptyLibraryHtml,
+        /SSR library song|class="[^"]*\bskeleton\b/
+    );
     const login = await fetch(`http://127.0.0.1:${frontend}/login`);
     assert.equal(login.status, 200);
     const loginHtml = await login.text();
@@ -123,6 +154,7 @@ try {
                 currentMediaInServerFooter: true,
                 coreContentBeforeDiscovery: true,
                 deduplicatedServerRequests: true,
+                libraryInServerHtmlWithoutSkeletons: true,
                 nativeAuthForm: true,
                 firstContentMs,
             },

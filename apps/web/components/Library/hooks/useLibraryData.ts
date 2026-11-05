@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useReducer } from "react";
-import { useStore } from "@nanostores/react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -19,10 +18,9 @@ import {
     IUseLibraryDataReturn,
     TFilteredLibrary,
 } from "@/models/interfaces/useLibraryData";
-import useAccountCachedData from "@/hooks/useAccountCachedData";
-import { Http } from "@/lib/http";
-import { loadLibraryOffline, saveLibraryOffline } from "@/lib/offline/db";
+import { saveLibraryOffline } from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useSession } from "@/components/providers/SessionProvider";
 
 const EMPTY: TFilteredLibrary = {
     albums: [],
@@ -164,33 +162,35 @@ function libraryReducer(
 }
 
 export function useLibraryData({
+    data,
+    username,
     filterMode,
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
-    const username = useStore(rockIt.userManager.usernameAtom);
-    const loggedIn = useStore(rockIt.userManager.loggedInAtom);
-    const { data, loading } = useAccountCachedData(
-        Http.getUserLibraryMedias,
-        loadLibraryOffline,
-        saveLibraryOffline
-    );
+    const session = useSession();
+    const active = session?.username === username;
     const [snapshot, dispatch] = useReducer(libraryReducer, undefined);
     // An account/data change must never expose the previous reducer snapshot.
     // Keep fallback arrays stable until the INIT effect commits the snapshot.
     const libraryData = useMemo(
         () =>
-            data
+            active
                 ? snapshot?.source === data
                     ? snapshot
                     : extractItems(data)
                 : undefined,
-        [data, snapshot]
+        [active, data, snapshot]
     );
     useEffect((): void => {
-        if (data) dispatch({ type: "INIT", data });
-    }, [data]);
+        if (active) dispatch({ type: "INIT", data });
+    }, [active, data]);
 
-    useEffect((): (() => void) => {
+    useEffect((): void => {
+        if (active) void saveLibraryOffline(username, data).catch(() => {});
+    }, [active, username, data]);
+
+    useEffect((): (() => void) | void => {
+        if (!active) return;
         const handler = (e: IMediaRemovedFromLibraryEvent): void => {
             dispatch({ type: "REMOVE", publicId: e.publicId });
         };
@@ -204,9 +204,10 @@ export function useLibraryData({
                 EEvent.MediaRemovedFromLibrary,
                 handler
             );
-    }, []);
+    }, [active, data]);
 
-    useEffect((): (() => void) => {
+    useEffect((): (() => void) | void => {
+        if (!active) return;
         let cancelled = false;
         const handler = (e: IMediaAddedToLibraryEvent): void => {
             rockIt.mediaManager.getMedia(e.publicId).then((data): void => {
@@ -239,7 +240,7 @@ export function useLibraryData({
                 handler
             );
         };
-    }, [username, loggedIn]);
+    }, [active, data]);
 
     const filtered = useMemo((): TFilteredLibrary => {
         if (!libraryData) return EMPTY;
@@ -260,7 +261,6 @@ export function useLibraryData({
     const result: IUseLibraryDataReturn = {
         ...filtered,
         librarySongIds: libraryData?.songs.map((song) => song.publicId) ?? [],
-        loading: loading && !libraryData,
         filtered,
     };
 

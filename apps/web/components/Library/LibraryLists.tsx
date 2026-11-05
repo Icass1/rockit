@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    ReactNode,
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-    type JSX,
-} from "react";
+import { ReactNode, useMemo, useState, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -24,7 +17,6 @@ import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
 import { useIncrementalList } from "@/hooks/useIncrementalList";
 import { useInView } from "@/hooks/useInView";
-import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     expandAlbumsToPlayable,
@@ -47,12 +39,12 @@ import {
     StationRow,
     VideoRow,
 } from "@/components/Library/LibraryRows";
-import LibrarySkeleton from "@/components/Library/LibrarySkeleton";
 import { LibrarySongSearchResults } from "@/components/Library/LibrarySongSearchResults";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
 import RockitFeaturedLists from "@/components/Library/RockitFeaturedLists";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
+import { useSession } from "@/components/providers/SessionProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /* ------------------------------------------------------- */
@@ -448,13 +440,17 @@ function OfflineMix({
 /* ------------------------------------------------------- */
 
 export function LibraryLists({
+    initialData,
     filterMode,
     searchQuery,
     activeType,
     viewMode,
 }: ILibraryListsProps): JSX.Element {
     const $vocabulary = useVocabulary();
-    const { filtered, loading, librarySongIds } = useLibraryData({
+    const session = useSession();
+    const { filtered, librarySongIds } = useLibraryData({
+        data: initialData.library,
+        username: initialData.username,
         filterMode,
         searchQuery,
     });
@@ -496,32 +492,8 @@ export function LibraryLists({
     );
 
     const TOP_LIMIT = 5;
-    const [topAlbums, setTopAlbums] = useState<
-        Array<{
-            publicId: string;
-            name: string;
-            href: string;
-            imageUrl: string | null;
-            subtitle: string | null;
-        }>
-    >([]);
-
-    const fetchStats = useCallback(
-        () =>
-            Http.getUserStats({
-                range: "30d",
-                start: null,
-                end: null,
-                timezoneOffsetMinutes: new Date().getTimezoneOffset(),
-            }),
-        []
-    );
-
-    useEffect(() => {
-        fetchStats().then((res) => {
-            if (res.isOk()) setTopAlbums(res.result.topAlbums);
-        });
-    }, [fetchStats]);
+    const topAlbums =
+        session?.username === initialData.username ? initialData.topAlbums : [];
 
     const showAll = activeType === EContentType.All;
     const hasGeneralMatches = [
@@ -581,8 +553,6 @@ export function LibraryLists({
         rockIt.queueManager.setQueueMediaId(0);
         rockIt.mediaPlayerManager.play();
     };
-
-    if (loading) return <LibrarySkeleton />;
 
     return (
         <section>

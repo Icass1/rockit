@@ -18,6 +18,7 @@ import {
 import { EContentType } from "@/models/enums/contentType";
 import { EFilterMode } from "@/models/enums/filterMode";
 import { EViewMode } from "@/models/enums/viewMode";
+import type { ILibraryInitialData } from "@/models/interfaces/library";
 import { downloadMediaAsZip } from "@/lib/services/downloadZip";
 import { cycleEnum } from "@/lib/utils/cycleEnum";
 import { LibraryDragDropProvider } from "@/components/Library/LibraryDragDrop";
@@ -159,7 +160,11 @@ function SelectionScrollSpacer(): null {
     return null;
 }
 
-export default function LibraryClient(): JSX.Element {
+export default function LibraryClient({
+    initialData,
+}: {
+    initialData: ILibraryInitialData;
+}): JSX.Element {
     const [filterMode, setFilterMode] = useState<EFilterMode>(
         EFilterMode.DEFAULT
     );
@@ -311,6 +316,7 @@ export default function LibraryClient(): JSX.Element {
 
                     <LibrarySelectionBar />
                     <LibraryLists
+                        initialData={initialData}
                         filterMode={filterMode}
                         searchQuery={searchQuery}
                         activeType={activeType}

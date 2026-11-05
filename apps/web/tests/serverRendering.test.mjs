@@ -504,3 +504,97 @@ test("runtime Context isolates shell services during server rendering without st
     assert.deepEqual(calls, []);
     assert.equal(runtime.navigationPinsManager, undefined);
 });
+
+test("library loader forwards the account session and rejects failed or invalid initial responses", async () => {
+    const storage = new AsyncLocalStorage();
+    const calls = [];
+    const { getInitialLibrary } = await load(
+        "export {getInitialLibrary} from './lib/server/library';",
+        {
+            cookies: async () => ({
+                get: () => ({ value: storage.getStore() }),
+            }),
+        }
+    );
+    const original = globalThis.fetch;
+    let failure;
+    globalThis.fetch = async (url, options) => {
+        const path = new URL(url).pathname;
+        const cookie = options.headers.get("cookie");
+        calls.push({ path, cookie, cache: options.cache });
+        if (path === "/user/session")
+            return Response.json({
+                username: cookie,
+                image: "",
+                admin: false,
+                queueType: "SORTED",
+                repeatMode: "OFF",
+                currentTimeMs: null,
+            });
+        if (path === "/user/library/medias") {
+            if (failure === "unauthorized")
+                return Response.json({}, { status: 401 });
+            if (failure === "invalid")
+                return Response.json({ songs: "invalid" });
+            return Response.json({
+                albums: [],
+                playlists: [],
+                songs: [],
+                videos: [],
+                stations: [],
+                shared: [],
+            });
+        }
+        assert.equal(path, "/stats/user");
+        if (failure === "stats") return Response.json({}, { status: 503 });
+        return Response.json({
+            summary: {
+                mediasListened: 0,
+                songsListened: 0,
+                videosListened: 0,
+                minutesListened: 0,
+                avgMinutesPerSong: 0,
+                currentStreak: 0,
+            },
+            minutes: [],
+            topSongs: [],
+            topVideos: [],
+            topAlbums: [],
+            topArtists: [],
+            heatmap: [],
+        });
+    };
+    try {
+        const results = await Promise.all([
+            storage.run("library-a", () => getInitialLibrary()),
+            storage.run("library-b", () => getInitialLibrary()),
+        ]);
+        assert.deepEqual(results.map((result) => result.username).sort(), [
+            "session_id=library-a",
+            "session_id=library-b",
+        ]);
+        for (const account of ["library-a", "library-b"]) {
+            assert.deepEqual(
+                calls
+                    .filter((call) => call.cookie === `session_id=${account}`)
+                    .map((call) => call.path)
+                    .sort(),
+                ["/stats/user", "/user/library/medias", "/user/session"]
+            );
+        }
+        assert.ok(calls.every((call) => call.cache === "no-store"));
+        for (const [scenario, error] of [
+            ["unauthorized", /redirect:\/login/],
+            ["invalid", /AppError: 503/],
+            ["stats", /AppError: 503/],
+        ]) {
+            failure = scenario;
+            await assert.rejects(
+                storage.run("library-a", () => getInitialLibrary()),
+                error
+            );
+        }
+    } finally {
+        globalThis.fetch = original;
+    }
+});

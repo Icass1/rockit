@@ -2,13 +2,19 @@
 
 import { useEffect, useState, type JSX } from "react";
 import {
+    LibraryMediasResponseSchema,
     SessionResponseSchema,
     VocabularyResponseSchema,
     type SessionResponse,
     type VocabularyResponse,
 } from "@/dto";
+import type { ILibraryInitialData } from "@/models/interfaces/library";
 import { fallbackVocabulary } from "@/lib/i18n/vocabulary";
-import { loadSessionOffline, loadVocabularyOffline } from "@/lib/offline/db";
+import {
+    loadLibraryOffline,
+    loadSessionOffline,
+    loadVocabularyOffline,
+} from "@/lib/offline/db";
 import AppClientLayout from "@/components/Layout/AppClientLayout";
 import LibraryClient from "@/components/Library/LibraryClient";
 import {
@@ -20,19 +26,43 @@ export default function OfflineLibraryClient(): JSX.Element {
     const vocabulary = useVocabulary();
     const [snapshot, setSnapshot] = useState<{
         session?: SessionResponse;
+        library?: ILibraryInitialData;
         vocabulary: VocabularyResponse;
     }>();
     useEffect(() => {
         let active = true;
         void Promise.all([loadSessionOffline(), loadVocabularyOffline()])
-            .then(([session, dictionary]) => {
+            .then(async ([session, dictionary]) => {
                 const parsedSession = SessionResponseSchema.safeParse(session);
                 const parsedVocabulary =
                     VocabularyResponseSchema.safeParse(dictionary);
+                const cachedLibrary = parsedSession.success
+                    ? await loadLibraryOffline(
+                          parsedSession.data.username
+                      ).catch(() => null)
+                    : null;
+                const parsedLibrary =
+                    LibraryMediasResponseSchema.safeParse(cachedLibrary);
                 if (active)
                     setSnapshot({
                         session: parsedSession.success
                             ? parsedSession.data
+                            : undefined,
+                        library: parsedSession.success
+                            ? {
+                                  username: parsedSession.data.username,
+                                  library: parsedLibrary.success
+                                      ? parsedLibrary.data
+                                      : {
+                                            albums: [],
+                                            playlists: [],
+                                            songs: [],
+                                            videos: [],
+                                            stations: [],
+                                            shared: [],
+                                        },
+                                  topAlbums: [],
+                              }
                             : undefined,
                         vocabulary: parsedVocabulary.success
                             ? parsedVocabulary.data
@@ -46,11 +76,11 @@ export default function OfflineLibraryClient(): JSX.Element {
             active = false;
         };
     }, []);
-    if (snapshot?.session)
+    if (snapshot?.session && snapshot.library)
         return (
             <VocabularyProvider initial={snapshot.vocabulary}>
                 <AppClientLayout session={snapshot.session}>
-                    <LibraryClient />
+                    <LibraryClient initialData={snapshot.library} />
                 </AppClientLayout>
             </VocabularyProvider>
         );

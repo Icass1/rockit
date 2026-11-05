@@ -51,7 +51,7 @@ export default async function YearRecapPage(): Promise<JSX.Element> {
             expandedByMediaId={expandedByMediaId}
             coverOverlay={
                 <div
-                    className="flex items-center justify-center gap-1 leading-none text-white"
+                    className="text-foreground-strong flex items-center justify-center gap-1 leading-none"
                     style={{
                         fontFamily:
                             "'Nunito', 'Segoe UI', system-ui, sans-serif",

@@ -31,7 +31,7 @@ export default function PlayLibraryButton(): JSX.Element {
             aria-busy={loading}
             onClick={handleClick}
             title="Play library"
-            className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light) p-0 leading-none shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:hover:scale-105"
+            className="from-primary to-brand-light grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-full bg-linear-to-r p-0 leading-none shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:hover:scale-105"
         >
             {playingLibrary && $playing ? (
                 <Pause

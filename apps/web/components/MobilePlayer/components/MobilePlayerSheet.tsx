@@ -41,7 +41,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
     return (
         <div
             ref={sheetRef}
-            className="animate-sheet-enter fixed inset-0 z-50 flex flex-col bg-(--color-bg)"
+            className="animate-sheet-enter bg-background fixed inset-0 z-50 flex flex-col"
             onPointerDown={gesture.onPointerDown}
             onPointerMove={gesture.onPointerMove}
             onPointerUp={gesture.onPointerUp}
@@ -61,7 +61,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                         }}
                     />
                 )}
-                <div className="absolute inset-0 bg-black/90" />
+                <div className="bg-backdrop/90 absolute inset-0" />
             </div>
 
             {/* Top bar */}
@@ -96,10 +96,10 @@ export default function MobilePlayerSheet(): JSX.Element | null {
 
                 <div className="flex items-center gap-2 px-1 pt-2">
                     <div className="min-w-0 flex-1">
-                        <p className="truncate text-xl font-bold text-white">
+                        <p className="text-foreground-strong truncate text-xl font-bold">
                             {currentMedia?.name ?? ""}
                         </p>
-                        <p className="truncate text-sm font-medium text-white/70">
+                        <p className="text-foreground-strong/70 truncate text-sm font-medium">
                             {getMediaArtistsString(currentMedia)}
                         </p>
                     </div>
@@ -123,8 +123,8 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                             }
                             className={`rounded-lg px-5 py-2 text-lg font-bold ${
                                 tab === key
-                                    ? "bg-(--color-rockit-pink)/15 text-(--color-rockit-pink)"
-                                    : "text-white"
+                                    ? "bg-primary/15 text-primary"
+                                    : "text-foreground-strong"
                             }`}
                         >
                             {key === "queue" ? "Cola" : "Letra"}

@@ -18,7 +18,7 @@ function EmptyState(): JSX.Element {
     const $vocabulary = useVocabulary();
 
     return (
-        <section className="flex flex-col items-center justify-center px-7 py-36 text-center text-white md:pl-12">
+        <section className="text-foreground-strong flex flex-col items-center justify-center px-7 py-36 text-center md:pl-12">
             <h2 className="text-2xl font-bold md:text-3xl">
                 {$vocabulary.SEARCH_EMPTY1}
             </h2>
@@ -57,12 +57,12 @@ function SearchResults(): JSX.Element {
             >
                 {[0, 1, 2].map((section) => (
                     <div key={section} aria-hidden="true">
-                        <div className="mb-4 h-7 w-36 rounded bg-neutral-800 motion-safe:animate-pulse" />
+                        <div className="bg-muted mb-4 h-7 w-36 rounded motion-safe:animate-pulse" />
                         <div className="flex gap-4 overflow-hidden">
                             {Array.from({ length: 20 }, (_, card) => (
                                 <div
                                     key={card}
-                                    className="aspect-square w-36 shrink-0 rounded-lg bg-neutral-800 motion-safe:animate-pulse md:w-48"
+                                    className="bg-muted aspect-square w-36 shrink-0 rounded-lg motion-safe:animate-pulse md:w-48"
                                 />
                             ))}
                         </div>
@@ -79,7 +79,7 @@ function SearchResults(): JSX.Element {
             {searching && (
                 <p
                     role="status"
-                    className="px-5 py-2 text-sm text-neutral-300 md:pl-12"
+                    className="text-foreground px-5 py-2 text-sm md:pl-12"
                 >
                     {vocabulary.SEARCH_LOADING}
                 </p>
@@ -87,7 +87,7 @@ function SearchResults(): JSX.Element {
             {error && (
                 <div
                     role="status"
-                    className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm text-neutral-300 md:pl-12"
+                    className="text-foreground flex flex-wrap items-center gap-3 px-5 py-3 text-sm md:pl-12"
                 >
                     <span>{vocabulary.ERROR_SEARCHING}</span>
                     <button
@@ -95,7 +95,7 @@ function SearchResults(): JSX.Element {
                         onClick={(): void => {
                             void rockIt.searchManager.search(query);
                         }}
-                        className="min-h-11 rounded-full border border-neutral-600 px-5 text-white hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-white"
+                        className="border-border-strong text-foreground-strong hover:bg-muted focus-visible:outline-foreground-strong min-h-11 rounded-full border px-5 focus-visible:outline-2"
                     >
                         {vocabulary.RETRY}
                     </button>
@@ -104,7 +104,7 @@ function SearchResults(): JSX.Element {
             {!searching && !error && mediaResults.length === 0 && (
                 <p
                     role="status"
-                    className="px-5 py-12 text-center text-neutral-300"
+                    className="text-foreground px-5 py-12 text-center"
                 >
                     {vocabulary.SEARCH_NO_RESULTS}
                 </p>
@@ -151,7 +151,7 @@ function SearchResults(): JSX.Element {
                                     provider.id
                                 );
                             }}
-                            className="min-h-11 rounded-full border border-neutral-600 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-white disabled:opacity-50"
+                            className="border-border-strong text-foreground-strong hover:bg-muted focus-visible:outline-foreground-strong min-h-11 rounded-full border px-5 py-3 text-sm font-semibold focus-visible:outline-2 disabled:opacity-50"
                         >
                             {vocabulary.SEARCH} · {provider.name}
                         </button>

@@ -124,7 +124,7 @@ export default function PlayerCoverArt({
                         event.stopPropagation();
                         rockIt.playerUIManager.toggleVinylMode();
                     }}
-                    className="absolute right-2 bottom-2 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-black/65 text-white shadow-lg focus-visible:outline-2 focus-visible:outline-white"
+                    className="bg-backdrop/65 text-foreground-strong focus-visible:outline-foreground-strong absolute right-2 bottom-2 z-20 flex h-11 w-11 items-center justify-center rounded-full shadow-lg focus-visible:outline-2"
                 >
                     {showVinyl ? (
                         <DiscAlbum aria-hidden className="h-6 w-6" />

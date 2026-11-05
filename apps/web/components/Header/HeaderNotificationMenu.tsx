@@ -62,24 +62,26 @@ export default function NotificationMenu({
                 {vocabulary.NOTIFICATIONS_UNREAD}
             </label>
             {error && (
-                <p role="alert" className="px-4 text-sm text-red-400">
+                <p role="alert" className="text-destructive-soft px-4 text-sm">
                     {vocabulary.NOTIFICATIONS_LOAD_FAILED}
                 </p>
             )}
             <ul className="max-h-[60dvh] overflow-y-auto">
                 {!notifications.length && (
-                    <li className="p-4 text-neutral-400">
+                    <li className="text-muted-foreground p-4">
                         {vocabulary.NOTIFICATIONS_EMPTY}
                     </li>
                 )}
                 {notifications.map((item) => (
                     <li
                         key={item.publicId}
-                        className="border-t border-white/10 p-4"
+                        className="border-foreground-strong/10 border-t p-4"
                     >
                         <p
                             className={
-                                item.readAt ? "text-neutral-400" : "font-medium"
+                                item.readAt
+                                    ? "text-muted-foreground"
+                                    : "font-medium"
                             }
                         >
                             {replaceNotificationGaps(
@@ -91,7 +93,7 @@ export default function NotificationMenu({
                             )}
                         </p>
                         <time
-                            className="text-xs text-neutral-500"
+                            className="text-subtle-foreground text-xs"
                             dateTime={item.dateAdded}
                         >
                             {new Date(item.dateAdded).toLocaleString(
@@ -128,7 +130,7 @@ export default function NotificationMenu({
                     </li>
                 ))}
             </ul>
-            <div className="flex justify-between border-t border-white/10 p-4 text-sm">
+            <div className="border-foreground-strong/10 flex justify-between border-t p-4 text-sm">
                 <button
                     disabled={!manager.offset}
                     onClick={() =>

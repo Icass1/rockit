@@ -34,7 +34,7 @@ export default function ArtistsSection({
     if (artists.length === 0) return null;
 
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
+        <section className="text-foreground-strong py-2 md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {$vocabulary.ARTISTS}
             </h2>
@@ -78,7 +78,7 @@ export default function ArtistsSection({
                                 });
                         }}
                         aria-busy={pending === artist.providerUrl}
-                        className="block shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                        className="focus-visible:outline-foreground-strong block shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4"
                     >
                         <div className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105">
                             <Image

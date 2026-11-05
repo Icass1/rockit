@@ -41,12 +41,12 @@ export default function DownloadInputBar({
                         value={url}
                         onChange={(e): void => setUrl(e.target.value)}
                         placeholder="Paste a media URL..."
-                        className="block w-full rounded-md border border-neutral-600 bg-neutral-800/50 px-4 py-2 text-sm text-white placeholder-neutral-400 focus:border-(--color-rockit-pink) focus:ring-2 focus:ring-(--color-rockit-pink)"
+                        className="border-border-strong bg-muted/50 text-foreground-strong placeholder-muted-foreground focus:border-primary focus:ring-primary block w-full rounded-md border px-4 py-2 text-sm focus:ring-2"
                     />
                     <button
                         type="submit"
                         disabled={isDownloading}
-                        className="absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md border border-transparent bg-(--color-rockit-pink) px-2.5 text-xs font-medium text-white hover:bg-(--color-rockit-pink)/90 disabled:opacity-50"
+                        className="bg-primary text-foreground-strong hover:bg-primary/90 absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md border border-transparent px-2.5 text-xs font-medium disabled:opacity-50"
                     >
                         {isDownloading ? (
                             <svg
@@ -79,7 +79,11 @@ export default function DownloadInputBar({
                         )}
                     </button>
                 </div>
-                {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+                {error && (
+                    <p className="text-destructive-soft mt-2 text-sm">
+                        {error}
+                    </p>
+                )}
             </form>
         </div>
     );

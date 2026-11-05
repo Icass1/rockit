@@ -76,12 +76,12 @@ export default function RadioStationItem({
     };
     return (
         <article
-            className={`min-w-0 rounded-xl border p-3 transition ${active ? "border-pink-500/50 bg-pink-500/10" : "border-white/5 bg-neutral-900/70 hover:border-white/15"} ${list ? "flex flex-wrap items-center gap-3" : "flex flex-col"}`}
+            className={`min-w-0 rounded-xl border p-3 transition ${active ? "border-primary/50 bg-primary/10" : "border-foreground-strong/5 bg-secondary/70 hover:border-foreground-strong/15"} ${list ? "flex flex-wrap items-center gap-3" : "flex flex-col"}`}
         >
             <button
                 onClick={play}
                 aria-label={`${active && playing ? v.PAUSE : v.PLAY}: ${station.name}`}
-                className={`group relative shrink-0 cursor-pointer overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-pink-500 ${list ? "h-14 w-14" : "aspect-square w-full"}`}
+                className={`group focus-visible:outline-primary relative shrink-0 cursor-pointer overflow-hidden rounded-lg focus-visible:outline-2 ${list ? "h-14 w-14" : "aspect-square w-full"}`}
             >
                 <Image
                     src={image}
@@ -93,13 +93,13 @@ export default function RadioStationItem({
                     className="h-full w-full object-cover"
                     onError={(): void => setImage("/radio-placeholder.png")}
                 />
-                <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <span className="bg-backdrop/30 absolute inset-0 flex items-center justify-center">
                     {active && loading ? (
-                        <LoaderCircle className="h-8 w-8 animate-spin text-white" />
+                        <LoaderCircle className="text-foreground-strong h-8 w-8 animate-spin" />
                     ) : active && playing ? (
-                        <Pause className="h-8 w-8 fill-white text-white" />
+                        <Pause className="fill-foreground-strong text-foreground-strong h-8 w-8" />
                     ) : (
-                        <Play className="h-8 w-8 fill-white text-white" />
+                        <Play className="fill-foreground-strong text-foreground-strong h-8 w-8" />
                     )}
                 </span>
             </button>
@@ -107,7 +107,7 @@ export default function RadioStationItem({
                 <div className="flex min-w-0 items-center gap-1.5">
                     {active && (
                         <AudioLines
-                            className="h-3.5 w-3.5 shrink-0 text-pink-400"
+                            className="text-primary-soft h-3.5 w-3.5 shrink-0"
                             aria-hidden="true"
                         />
                     )}
@@ -115,13 +115,13 @@ export default function RadioStationItem({
                         onClick={play}
                         aria-label={`${active && playing ? v.PAUSE : v.PLAY}: ${station.name}`}
                         aria-current={active ? "true" : undefined}
-                        className="block min-w-0 flex-1 cursor-pointer truncate text-left text-sm font-semibold text-white"
+                        className="text-foreground-strong block min-w-0 flex-1 cursor-pointer truncate text-left text-sm font-semibold"
                         title={station.name}
                     >
                         {station.name}
                     </button>
                 </div>
-                <p className="truncate text-xs text-neutral-400">
+                <p className="text-muted-foreground truncate text-xs">
                     {active && playing
                         ? v.LIVE
                         : !isSearchResult(station)
@@ -148,7 +148,7 @@ export default function RadioStationItem({
                     }
                     title={saved ? v.REMOVE_FROM_LIBRARY : v.ADD_TO_LIBRARY}
                     aria-pressed={saved}
-                    className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg hover:bg-white/10 disabled:opacity-40 ${saved ? "text-pink-400" : "text-neutral-400"}`}
+                    className={`hover:bg-foreground-strong/10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg disabled:opacity-40 ${saved ? "text-primary-soft" : "text-muted-foreground"}`}
                 >
                     {busy ? (
                         <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -165,7 +165,7 @@ export default function RadioStationItem({
                     }}
                     aria-label={v.ADD_TO_QUEUE}
                     title={v.ADD_TO_QUEUE}
-                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-neutral-400 hover:bg-white/10 disabled:opacity-40"
+                    className="text-muted-foreground hover:bg-foreground-strong/10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg disabled:opacity-40"
                 >
                     <ListEnd className="h-4 w-4" />
                 </button>
@@ -181,7 +181,7 @@ export default function RadioStationItem({
                     >
                         <button
                             aria-label={station.name}
-                            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-neutral-400 hover:bg-white/10"
+                            className="text-muted-foreground hover:bg-foreground-strong/10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg"
                         >
                             <MoreHorizontal className="h-4 w-4" />
                         </button>

@@ -306,7 +306,7 @@ export function LibraryDragDropProvider({
                             draggable={false}
                         />
                         {targetId && (
-                            <span className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-950 bg-emerald-600 text-white shadow-lg">
+                            <span className="border-border-subtle bg-success-hover text-foreground-strong absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-lg">
                                 <Plus size={22} strokeWidth={3} />
                             </span>
                         )}

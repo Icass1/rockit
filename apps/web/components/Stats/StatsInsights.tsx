@@ -104,57 +104,57 @@ export default function StatsInsights({
     return (
         <section>
             <div className="mb-5">
-                <p className="text-[10px] font-semibold tracking-[0.22em] text-(--color-rockit-pink) uppercase">
+                <p className="text-primary text-[10px] font-semibold tracking-[0.22em] uppercase">
                     Listening DNA
                 </p>
-                <h2 className="mt-1 text-2xl font-bold text-white">
+                <h2 className="text-foreground-strong mt-1 text-2xl font-bold">
                     The habits behind the music
                 </h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="relative overflow-hidden rounded-3xl border border-fuchsia-500/20 bg-gradient-to-br from-fuchsia-500/20 via-neutral-900 to-neutral-950 p-6 sm:col-span-2">
+                <div className="border-primary/20 from-primary/20 via-secondary to-background relative overflow-hidden rounded-3xl border bg-gradient-to-br p-6 sm:col-span-2">
                     <Sparkles
-                        className="absolute top-5 right-5 text-fuchsia-300/50"
+                        className="text-primary-soft/50 absolute top-5 right-5"
                         size={28}
                     />
-                    <p className="text-xs font-semibold tracking-[0.2em] text-fuchsia-300 uppercase">
+                    <p className="text-primary-soft text-xs font-semibold tracking-[0.2em] uppercase">
                         Prime time
                     </p>
-                    <p className="mt-3 text-4xl font-bold text-white">
+                    <p className="text-foreground-strong mt-3 text-4xl font-bold">
                         {formatHour(insights.peakHour)}
                     </p>
-                    <p className="mt-1 text-sm text-neutral-400">
+                    <p className="text-muted-foreground mt-1 text-sm">
                         You listen most on {insights.peakDay ?? "—"}s
                     </p>
                 </div>
-                <div className="relative overflow-hidden rounded-3xl border border-sky-500/20 bg-gradient-to-br from-sky-500/20 via-neutral-900 to-neutral-950 p-6 sm:col-span-2">
+                <div className="border-info/20 from-info/20 via-secondary to-background relative overflow-hidden rounded-3xl border bg-gradient-to-br p-6 sm:col-span-2">
                     <PersonalityIcon
-                        className="absolute top-5 right-5 text-sky-300/50"
+                        className="text-info-foreground/50 absolute top-5 right-5"
                         size={28}
                     />
-                    <p className="text-xs font-semibold tracking-[0.2em] text-sky-300 uppercase">
+                    <p className="text-info-foreground text-xs font-semibold tracking-[0.2em] uppercase">
                         Listening personality
                     </p>
-                    <p className="mt-3 text-4xl font-bold text-white">
+                    <p className="text-foreground-strong mt-3 text-4xl font-bold">
                         {personality.title}
                     </p>
-                    <p className="mt-1 text-sm text-neutral-400">
+                    <p className="text-muted-foreground mt-1 text-sm">
                         {personality.detail}
                     </p>
                 </div>
                 {cards.map(({ icon: Icon, value, label }) => (
                     <div
                         key={label}
-                        className="group rounded-2xl border border-white/6 bg-white/3 p-4 transition-colors hover:border-white/12 hover:bg-white/5"
+                        className="group border-foreground-strong/6 bg-foreground-strong/3 hover:border-foreground-strong/12 hover:bg-foreground-strong/5 rounded-2xl border p-4 transition-colors"
                     >
                         <Icon
-                            className="mb-5 text-neutral-600 transition-colors group-hover:text-(--color-rockit-pink)"
+                            className="text-disabled-foreground group-hover:text-primary mb-5 transition-colors"
                             size={20}
                         />
-                        <p className="text-2xl font-bold tracking-tight text-white">
+                        <p className="text-foreground-strong text-2xl font-bold tracking-tight">
                             {value}
                         </p>
-                        <p className="mt-1 text-xs font-medium tracking-wide text-neutral-500 uppercase">
+                        <p className="text-subtle-foreground mt-1 text-xs font-medium tracking-wide uppercase">
                             {label}
                         </p>
                     </div>

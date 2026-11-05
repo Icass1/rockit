@@ -62,7 +62,7 @@ export default function RadioSection({
     };
 
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
+        <section className="text-foreground-strong py-2 md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {$vocabulary.RADIO_STATIONS}
             </h2>

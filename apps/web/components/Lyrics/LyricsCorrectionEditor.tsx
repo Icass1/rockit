@@ -99,9 +99,9 @@ function CorrectionForm({
         }
     };
     return (
-        <section className="space-y-3 rounded-xl border border-neutral-700 p-3">
+        <section className="border-border space-y-3 rounded-xl border p-3">
             <h3>{vocabulary.LYRICS_CORRECTION_TITLE}</h3>
-            <p className="text-sm text-neutral-400">
+            <p className="text-muted-foreground text-sm">
                 {snapshot.syncStatus === "approved"
                     ? vocabulary.LYRICS_APPROVED
                     : vocabulary.LYRICS_PROVIDER_TIMING}
@@ -117,10 +117,10 @@ function CorrectionForm({
                 step={0.1}
                 value={Number.isFinite(offset) ? offset : ""}
                 onChange={(event) => setOffset(event.target.valueAsNumber)}
-                className="w-28 rounded bg-neutral-800 p-2 text-white"
+                className="bg-muted text-foreground-strong w-28 rounded p-2"
                 disabled={pending || sent}
             />
-            <p className="text-xs text-neutral-400">
+            <p className="text-muted-foreground text-xs">
                 {vocabulary.LYRICS_OFFSET_HELP}
             </p>
             <details>
@@ -153,7 +153,7 @@ function CorrectionForm({
                                         )
                                     )
                                 }
-                                className="w-24 rounded bg-neutral-800 p-1"
+                                className="bg-muted w-24 rounded p-1"
                             />
                             <input
                                 aria-label={`${vocabulary.LYRICS_TEXT} ${index + 1}`}
@@ -171,7 +171,7 @@ function CorrectionForm({
                                         )
                                     )
                                 }
-                                className="min-w-0 flex-1 rounded bg-neutral-800 p-1"
+                                className="bg-muted min-w-0 flex-1 rounded p-1"
                             />
                             <button
                                 type="button"
@@ -206,14 +206,14 @@ function CorrectionForm({
                 lines={lines}
                 offset={Number.isFinite(offset) ? offset : snapshot.offset}
             />
-            <p className="text-xs text-neutral-400">
+            <p className="text-muted-foreground text-xs">
                 {vocabulary.LYRICS_REVIEW_HELP}
             </p>
             {!proposal.success && changed && (
                 <p role="alert">{vocabulary.LYRICS_INVALID_CORRECTION}</p>
             )}
             {error && (
-                <p role="alert" className="text-red-400">
+                <p role="alert" className="text-destructive-soft">
                     {error}
                 </p>
             )}
@@ -223,7 +223,7 @@ function CorrectionForm({
                 <button
                     type="button"
                     disabled={!proposal.success || !changed || pending}
-                    className="rounded bg-pink-600 p-2 disabled:opacity-40"
+                    className="bg-primary-hover rounded p-2 disabled:opacity-40"
                     onClick={() => {
                         void submit();
                     }}

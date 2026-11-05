@@ -150,19 +150,19 @@ export default function RadioClient(): JSX.Element {
             </div>
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-linear-to-r from-neutral-950/60 to-transparent"
+                className="from-background/60 pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-linear-to-r to-transparent"
             />
             <aside className="pointer-events-none absolute inset-3 z-20 flex flex-col justify-between gap-3 overflow-y-auto overscroll-contain md:top-27 md:right-auto md:w-96 md:justify-start">
-                <div className="pointer-events-auto shrink-0 space-y-3 rounded-2xl border border-white/10 bg-neutral-950/85 p-4 shadow-xl backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-neutral-950 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none">
+                <div className="border-foreground-strong/10 bg-background/85 [@media(prefers-reduced-transparency:reduce)]:bg-background pointer-events-auto shrink-0 space-y-3 rounded-2xl border p-4 shadow-xl backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none">
                     <header className="space-y-3">
                         <div>
-                            <h1 className="text-xl font-bold tracking-tight text-white">
+                            <h1 className="text-foreground-strong text-xl font-bold tracking-tight">
                                 {v.RADIO}
                             </h1>
                             <p className="sr-only">{v.RADIO_DESCRIPTION}</p>
                         </div>
                         <div className="relative w-full">
-                            <Search className="pointer-events-none absolute top-3.5 left-3 h-4 w-4 text-neutral-500" />
+                            <Search className="text-subtle-foreground pointer-events-none absolute top-3.5 left-3 h-4 w-4" />
                             <input
                                 type="search"
                                 enterKeyHint="search"
@@ -184,14 +184,14 @@ export default function RadioClient(): JSX.Element {
                                     );
                                     setError(false);
                                 }}
-                                className="radio-search-input h-11 w-full appearance-none rounded-xl border border-white/10 bg-neutral-900 pr-11 pl-10 text-base text-white shadow-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/25 focus:outline-none"
+                                className="radio-search-input border-foreground-strong/10 bg-secondary text-foreground-strong focus:border-primary focus:ring-primary/25 h-11 w-full appearance-none rounded-xl border pr-11 pl-10 text-base shadow-none focus:ring-2 focus:outline-none"
                             />
                             {query && (
                                 <button
                                     type="button"
                                     onClick={clear}
                                     aria-label={v.RADIO_CLEAR}
-                                    className="absolute top-0 right-0 flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-neutral-400 hover:text-white focus-visible:outline-2 focus-visible:outline-pink-500"
+                                    className="text-muted-foreground hover:text-foreground-strong focus-visible:outline-primary absolute top-0 right-0 flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl focus-visible:outline-2"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -208,9 +208,9 @@ export default function RadioClient(): JSX.Element {
                                 <button
                                     key={name}
                                     onClick={(): void => selectCountry(name)}
-                                    className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg px-3 text-left text-sm text-neutral-200 hover:bg-white/10"
+                                    className="text-foreground hover:bg-foreground-strong/10 flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg px-3 text-left text-sm"
                                 >
-                                    <Globe className="h-4 w-4 shrink-0 text-pink-400" />
+                                    <Globe className="text-primary-soft h-4 w-4 shrink-0" />
                                     {name}
                                 </button>
                             ))}
@@ -223,7 +223,7 @@ export default function RadioClient(): JSX.Element {
                                 clear();
                                 setSavedOnly(false);
                             }}
-                            className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm ${!savedOnly ? "bg-pink-500/15 text-pink-400" : "text-neutral-400 hover:bg-neutral-900"}`}
+                            className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm ${!savedOnly ? "bg-primary/15 text-primary-soft" : "text-muted-foreground hover:bg-secondary"}`}
                         >
                             <Globe className="h-4 w-4" />
                             {v.RADIO_EXPLORE}
@@ -234,7 +234,7 @@ export default function RadioClient(): JSX.Element {
                                 clear();
                                 setSavedOnly(true);
                             }}
-                            className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm ${savedOnly ? "bg-pink-500/15 text-pink-400" : "text-neutral-400 hover:bg-neutral-900"}`}
+                            className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm ${savedOnly ? "bg-primary/15 text-primary-soft" : "text-muted-foreground hover:bg-secondary"}`}
                         >
                             <Library className="h-4 w-4" />
                             {v.RADIO_SAVED}
@@ -246,15 +246,15 @@ export default function RadioClient(): JSX.Element {
                 </div>
                 <section
                     aria-busy={loading}
-                    className="pointer-events-auto flex max-h-[45%] min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/85 p-3 shadow-xl backdrop-blur-xl md:max-h-none md:flex-1 [@media(prefers-reduced-transparency:reduce)]:bg-neutral-950 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
+                    className="border-foreground-strong/10 bg-background/85 [@media(prefers-reduced-transparency:reduce)]:bg-background pointer-events-auto flex max-h-[45%] min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border p-3 shadow-xl backdrop-blur-xl md:max-h-none md:flex-1 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
                 >
                     <div className="mb-4 flex items-center justify-between gap-3">
-                        <h2 className="flex min-w-0 items-center gap-2 text-lg font-semibold text-white">
+                        <h2 className="text-foreground-strong flex min-w-0 items-center gap-2 text-lg font-semibold">
                             <span className="truncate">
                                 {country ||
                                     (searching ? v.SEARCH : v.RADIO_SAVED)}
                             </span>
-                            <span className="text-xs font-normal text-neutral-500">
+                            <span className="text-subtle-foreground text-xs font-normal">
                                 {!loading && displayed.length}
                             </span>
                             {browsing && (
@@ -262,7 +262,7 @@ export default function RadioClient(): JSX.Element {
                                     type="button"
                                     onClick={clear}
                                     aria-label={v.RADIO_CLEAR}
-                                    className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center text-neutral-400"
+                                    className="text-muted-foreground flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -273,14 +273,14 @@ export default function RadioClient(): JSX.Element {
                         {loading ? (
                             <div
                                 role="status"
-                                className="py-12 text-center text-neutral-400"
+                                className="text-muted-foreground py-12 text-center"
                             >
                                 {v.RADIO_LOADING}
                             </div>
                         ) : failed ? (
                             <div
                                 role="alert"
-                                className="py-10 text-center text-neutral-400"
+                                className="text-muted-foreground py-10 text-center"
                             >
                                 <p>{v.RADIO_LOAD_ERROR}</p>
                                 <button
@@ -290,7 +290,7 @@ export default function RadioClient(): JSX.Element {
                                             setRetry((value) => value + 1);
                                         } else void library.update();
                                     }}
-                                    className="mt-3 min-h-11 cursor-pointer rounded-lg bg-neutral-800 px-4 text-white"
+                                    className="bg-muted text-foreground-strong mt-3 min-h-11 cursor-pointer rounded-lg px-4"
                                 >
                                     {v.RETRY}
                                 </button>
@@ -319,7 +319,7 @@ export default function RadioClient(): JSX.Element {
                         ) : (
                             <p
                                 role="status"
-                                className="rounded-xl border border-dashed border-white/10 px-6 py-12 text-center text-sm text-neutral-500"
+                                className="border-foreground-strong/10 text-subtle-foreground rounded-xl border border-dashed px-6 py-12 text-center text-sm"
                             >
                                 {browsing ? v.NO_RESULTS : v.RADIO_EMPTY}
                             </p>

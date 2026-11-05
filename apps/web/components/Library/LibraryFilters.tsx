@@ -35,8 +35,8 @@ export function LibraryFilters({
                     onClick={(): void => setActiveType(key)}
                     className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors select-none ${
                         activeType === key
-                            ? "bg-white text-black"
-                            : "bg-neutral-800 text-white hover:bg-neutral-700"
+                            ? "bg-foreground-strong text-background"
+                            : "bg-muted text-foreground-strong hover:bg-accent"
                     }`}
                 >
                     {label}

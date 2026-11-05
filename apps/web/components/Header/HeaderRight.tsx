@@ -40,7 +40,7 @@ export default function HeaderRight(): JSX.Element {
                     onClick={(): void =>
                         setShowNotifications((prev): boolean => !prev)
                     }
-                    className={`relative grid h-11 w-11 place-items-center rounded-xl border transition focus-visible:outline-2 focus-visible:outline-pink-300 ${showNotifications ? "border-(--rockit-pink)/30 bg-(--rockit-pink)/15 text-pink-300" : "border-transparent text-neutral-300 hover:bg-white/10 hover:text-white"}`}
+                    className={`focus-visible:outline-primary relative grid h-11 w-11 place-items-center rounded-xl border transition focus-visible:outline-2 ${showNotifications ? "border-primary/30 bg-primary/15 text-primary-soft" : "text-foreground hover:bg-foreground-strong/10 hover:text-foreground-strong border-transparent"}`}
                     aria-label={`${vocabulary.NOTIFICATIONS_TITLE} (${notificationCount})`}
                     aria-controls={
                         showNotifications ? "notification-center" : undefined
@@ -50,7 +50,7 @@ export default function HeaderRight(): JSX.Element {
                     <Bell className="h-6 w-6" />
                     {notificationCount > 0 && (
                         <span
-                            className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-700 text-[11px] font-bold text-white"
+                            className="bg-destructive-hover text-foreground-strong absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[11px] font-bold"
                             aria-hidden
                         >
                             {notificationCount > 9 ? "9+" : notificationCount}
@@ -69,7 +69,7 @@ export default function HeaderRight(): JSX.Element {
             ) : (
                 <Link
                     href="/login"
-                    className="flex min-h-11 items-center rounded bg-green-800 px-4 py-1 text-sm font-medium text-white transition hover:bg-green-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-300"
+                    className="bg-success-subtle text-foreground-strong hover:bg-success-subtle focus-visible:outline-primary flex min-h-11 items-center rounded px-4 py-1 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                     {vocabulary.LOG_IN}
                 </Link>

@@ -37,14 +37,14 @@ export default function SharedMediaInbox(): JSX.Element {
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
                         (view === "inbox"
-                            ? "bg-[#ee1086] text-white"
-                            : "bg-neutral-900 text-neutral-400 hover:text-white")
+                            ? "bg-primary text-foreground-strong"
+                            : "bg-secondary text-muted-foreground hover:text-foreground-strong")
                     }
                 >
                     <Inbox size={14} />
                     {v.FRIENDS_SHARE_RECEIVED}
                     {unreadCount > 0 && (
-                        <span className="rounded-full bg-white/20 px-1.5 text-xs">
+                        <span className="bg-foreground-strong/20 rounded-full px-1.5 text-xs">
                             {unreadCount}
                         </span>
                     )}
@@ -58,8 +58,8 @@ export default function SharedMediaInbox(): JSX.Element {
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
                         (view === "sent"
-                            ? "bg-[#ee1086] text-white"
-                            : "bg-neutral-900 text-neutral-400 hover:text-white")
+                            ? "bg-primary text-foreground-strong"
+                            : "bg-secondary text-muted-foreground hover:text-foreground-strong")
                     }
                 >
                     <Send size={14} />
@@ -68,7 +68,7 @@ export default function SharedMediaInbox(): JSX.Element {
             </div>
 
             {items.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 py-12 text-neutral-500">
+                <div className="text-subtle-foreground flex flex-col items-center gap-2 py-12">
                     <Inbox size={32} />
                     <p className="text-sm">{v.FRIENDS_NO_SHARED}</p>
                 </div>
@@ -80,7 +80,7 @@ export default function SharedMediaInbox(): JSX.Element {
                             className={styles.sharedRow}
                             data-unread={!item.seen && view === "inbox"}
                         >
-                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
+                            <div className="bg-muted h-12 w-12 shrink-0 overflow-hidden rounded-lg">
                                 {item.mediaImageUrl ? (
                                     <Image
                                         src={item.mediaImageUrl}
@@ -90,7 +90,7 @@ export default function SharedMediaInbox(): JSX.Element {
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-neutral-600">
+                                    <div className="text-disabled-foreground flex h-full w-full items-center justify-center">
                                         <Play size={20} />
                                     </div>
                                 )}
@@ -108,7 +108,7 @@ export default function SharedMediaInbox(): JSX.Element {
                                                     item.publicId
                                                 );
                                         }}
-                                        className="text-sm text-[#ee1086]"
+                                        className="text-primary text-sm"
                                     >
                                         {v.FRIENDS_OPEN}
                                     </Link>
@@ -123,15 +123,15 @@ export default function SharedMediaInbox(): JSX.Element {
                                                 item.mediaPublicId
                                             );
                                         }}
-                                        className="text-sm text-[#ee1086]"
+                                        className="text-primary text-sm"
                                     >
                                         {v.PLAY}
                                     </button>
                                 )}
-                                <p className="truncate text-sm font-medium text-white">
+                                <p className="text-foreground-strong truncate text-sm font-medium">
                                     {item.mediaName}
                                 </p>
-                                <p className="truncate text-xs text-neutral-500">
+                                <p className="text-subtle-foreground truncate text-xs">
                                     {view === "inbox"
                                         ? v.FRIENDS_SHARED_FROM.replace(
                                               "{name}",
@@ -143,7 +143,7 @@ export default function SharedMediaInbox(): JSX.Element {
                                           )}
                                 </p>
                                 {item.message && (
-                                    <p className="mt-0.5 truncate text-xs text-neutral-600 italic">
+                                    <p className="text-disabled-foreground mt-0.5 truncate text-xs italic">
                                         &ldquo;{item.message}&rdquo;
                                     </p>
                                 )}
@@ -156,7 +156,7 @@ export default function SharedMediaInbox(): JSX.Element {
                                         item.publicId
                                     );
                                 }}
-                                className="p-2 text-neutral-500 hover:text-red-400"
+                                className="text-subtle-foreground hover:text-destructive-soft p-2"
                             >
                                 <Trash2 size={16} />
                             </button>

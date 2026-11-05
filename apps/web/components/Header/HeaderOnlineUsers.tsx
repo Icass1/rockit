@@ -12,7 +12,7 @@ export default function OnlineUserIndicator(): JSX.Element {
     const available = onlineUsers !== undefined;
     return (
         <div
-            className={`flex items-center gap-1 ${available ? "text-green-400" : "text-neutral-300"}`}
+            className={`flex items-center gap-1 ${available ? "text-success-foreground" : "text-foreground"}`}
             title={vocabulary.ONLINE_LABEL}
             aria-label={
                 available

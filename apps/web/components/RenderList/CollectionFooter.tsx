@@ -30,7 +30,7 @@ export default function CollectionFooter({
             role="status"
             aria-live="polite"
             aria-busy={state.loading}
-            className="flex min-h-12 items-center justify-center gap-2 py-3 text-sm text-neutral-400"
+            className="text-muted-foreground flex min-h-12 items-center justify-center gap-2 py-3 text-sm"
         >
             {state.loading && (
                 <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />

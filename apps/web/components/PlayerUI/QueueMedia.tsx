@@ -41,7 +41,7 @@ export function QueueMedia({
         >
             <div className="flex cursor-grab items-center active:cursor-grabbing">
                 <GripVertical
-                    className={`h-5 w-5 text-gray-500 transition-all hover:text-white ${
+                    className={`text-subtle-foreground hover:text-foreground-strong h-5 w-5 transition-all ${
                         isCurrent
                             ? "opacity-100"
                             : "opacity-0 group-hover:opacity-100"
@@ -76,9 +76,9 @@ export function QueueMedia({
                         }}
                     >
                         {$playing ? (
-                            <Pause className="h-5 w-5 fill-current text-white" />
+                            <Pause className="text-foreground-strong h-5 w-5 fill-current" />
                         ) : (
-                            <Play className="h-5 w-5 fill-current text-white" />
+                            <Play className="text-foreground-strong h-5 w-5 fill-current" />
                         )}
                     </div>
                 )}
@@ -86,7 +86,7 @@ export function QueueMedia({
 
             <div className="max-w-full min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                    <p className="truncate text-base font-semibold text-white">
+                    <p className="text-foreground-strong truncate text-base font-semibold">
                         {media.media.name}
                     </p>
                     {"publicId" in media.media && (
@@ -100,13 +100,13 @@ export function QueueMedia({
                     <ProviderTag name={media.media.provider} iconOnly={true} />
                     <Artists
                         linkable={false}
-                        className="w-fit max-w-full min-w-0 flex-nowrap overflow-x-hidden text-left text-sm text-gray-300"
+                        className="text-foreground w-fit max-w-full min-w-0 flex-nowrap overflow-x-hidden text-left text-sm"
                         artists={getMediaArtists(media.media)}
                     />
                 </div>
             </div>
 
-            <p className="shrink-0 px-2 text-sm text-gray-300">
+            <p className="text-foreground shrink-0 px-2 text-sm">
                 {getTime(getMediaDuration(media.media) ?? 0)}
             </p>
         </div>

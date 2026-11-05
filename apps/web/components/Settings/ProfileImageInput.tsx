@@ -51,7 +51,7 @@ export default function ProfileImageInput({
                     width={200}
                     height={200}
                     onError={(): void => setFailedImage(source)}
-                    className="h-32 w-32 rounded-full object-cover ring-2 ring-neutral-700 md:h-44 md:w-44"
+                    className="ring-border h-32 w-32 rounded-full object-cover ring-2 md:h-44 md:w-44"
                 />
                 <button
                     type="button"
@@ -59,7 +59,7 @@ export default function ProfileImageInput({
                     title={changeLabel}
                     disabled={uploading}
                     onClick={(): void => input.current?.click()}
-                    className="absolute right-0 bottom-0 grid size-11 place-items-center rounded-full border border-neutral-600 bg-neutral-800 text-white shadow-lg hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+                    className="border-border-strong bg-muted text-foreground-strong hover:bg-accent focus-visible:outline-foreground-strong absolute right-0 bottom-0 grid size-11 place-items-center rounded-full border shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
                 >
                     {uploading ? (
                         <LoaderCircle
@@ -102,7 +102,7 @@ export default function ProfileImageInput({
                     }}
                 />
             </div>
-            <p className="text-center text-xs text-neutral-500">
+            <p className="text-subtle-foreground text-center text-xs">
                 {text(
                     "SETTINGS_PROFILE_IMAGE_FORMAT",
                     "JPG, PNG or WebP · up to 5 MB",

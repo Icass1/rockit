@@ -18,8 +18,6 @@ export function OfflineIndicator({
     if (status !== "downloaded") return null;
 
     return (
-        <CircleCheck
-            className={`shrink-0 text-(--color-rockit-pink) ${className ?? ""}`}
-        />
+        <CircleCheck className={`text-primary shrink-0 ${className ?? ""}`} />
     );
 }

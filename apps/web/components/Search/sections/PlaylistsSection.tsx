@@ -18,7 +18,7 @@ export default function PlaylistsSection({
     if (playlists.length === 0) return null;
 
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
+        <section className="text-foreground-strong py-2 md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {$vocabulary.PLAYLISTS}
             </h2>
@@ -46,7 +46,7 @@ export default function PlaylistsSection({
                             <span className="mt-2 block truncate text-center font-semibold">
                                 {playlist.name}
                             </span>
-                            <span className="block truncate text-center text-sm text-gray-400">
+                            <span className="text-muted-foreground block truncate text-center text-sm">
                                 {playlist.artists[0]?.name || "Unknown"}
                             </span>
                         </div>

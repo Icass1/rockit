@@ -122,12 +122,12 @@ function BookmarkEditForm({
                 <div className="flex items-center gap-1">
                     <button
                         onClick={onBack}
-                        className="ignore-click-player-ui rounded p-0.5 text-neutral-500 hover:text-white"
+                        className="ignore-click-player-ui text-subtle-foreground hover:text-foreground-strong rounded p-0.5"
                         title="Back"
                     >
                         <ChevronDown className="ignore-click-player-ui h-3.5 w-3.5 rotate-90" />
                     </button>
-                    <span className="text-xs font-semibold text-neutral-400">
+                    <span className="text-muted-foreground text-xs font-semibold">
                         {bookmark
                             ? $vocabulary.EDIT_BOOKMARK
                             : $vocabulary.NEW_BOOKMARK}
@@ -139,12 +139,12 @@ function BookmarkEditForm({
                         value={timestampText}
                         onChange={(e): void => setTimestampText(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        className="w-12 rounded border border-neutral-700 bg-neutral-800 px-1 py-0.5 text-[10px] text-neutral-300 outline-none focus:border-(--color-rockit-pink)"
+                        className="border-border bg-muted text-foreground focus:border-primary w-12 rounded border px-1 py-0.5 text-[10px] outline-none"
                     />
                     {bookmark && (
                         <button
                             onClick={handleDelete}
-                            className="ignore-click-player-ui rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
+                            className="ignore-click-player-ui text-subtle-foreground hover:text-destructive-soft rounded p-1 transition-colors"
                             title={$vocabulary.DELETE}
                         >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -152,7 +152,7 @@ function BookmarkEditForm({
                     )}
                     <button
                         onClick={handleSave}
-                        className="ignore-click-player-ui rounded bg-(--color-rockit-pink) px-2 py-0.5 text-[11px] font-medium text-white transition-colors hover:bg-(--color-rockit-pink-light)"
+                        className="ignore-click-player-ui bg-primary text-foreground-strong hover:bg-brand-light rounded px-2 py-0.5 text-[11px] font-medium transition-colors"
                     >
                         {$vocabulary.SAVE}
                     </button>
@@ -166,7 +166,7 @@ function BookmarkEditForm({
                     onChange={(e): void => setDescription(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={$vocabulary.BOOKMARK_DESCRIPTION_PLACEHOLDER}
-                    className="min-w-0 flex-1 rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-white outline-none placeholder:text-neutral-500 focus:border-(--color-rockit-pink)"
+                    className="border-border bg-muted text-foreground-strong placeholder:text-subtle-foreground focus:border-primary min-w-0 flex-1 rounded border px-2 py-1 text-xs outline-none"
                 />
                 <div className="relative">
                     <button
@@ -174,7 +174,7 @@ function BookmarkEditForm({
                         onClick={(): void =>
                             setShowModeDropdown(!showModeDropdown)
                         }
-                        className="flex items-center gap-0.5 rounded px-1.5 py-1 text-neutral-400 transition-colors hover:text-white"
+                        className="text-muted-foreground hover:text-foreground-strong flex items-center gap-0.5 rounded px-1.5 py-1 transition-colors"
                         title={$vocabulary[mode]}
                     >
                         <span
@@ -190,7 +190,7 @@ function BookmarkEditForm({
                     {showModeDropdown && (
                         <div
                             ref={modeDropdownRef}
-                            className="absolute top-full right-0 z-50 mt-1 max-h-20 w-56 overflow-y-auto rounded-lg border border-neutral-700 bg-(--color-elevated) py-1 shadow-xl"
+                            className="border-border bg-secondary absolute top-full right-0 z-50 mt-1 max-h-20 w-56 overflow-y-auto rounded-lg border py-1 shadow-xl"
                         >
                             {Object.values(EBookmarkModes).map(
                                 (m): JSX.Element => {
@@ -204,8 +204,8 @@ function BookmarkEditForm({
                                             }}
                                             className={`ignore-click-player-ui flex w-full items-center gap-2 px-2.5 py-1.5 text-xs transition-colors ${
                                                 m === mode
-                                                    ? "text-white"
-                                                    : "text-neutral-400 hover:text-white"
+                                                    ? "text-foreground-strong"
+                                                    : "text-muted-foreground hover:text-foreground-strong"
                                             }`}
                                         >
                                             <span
@@ -233,7 +233,7 @@ function BookmarkEditForm({
 
 export default function BookmarkPopup({
     onClose,
-    className = "absolute right-0 bottom-full z-50 mb-2 w-72 rounded-xl border border-white/10 bg-neutral-900 p-3 shadow-2xl",
+    className = "absolute right-0 bottom-full z-50 mb-2 w-72 rounded-xl border border-foreground-strong/10 bg-secondary p-3 shadow-2xl",
 }: {
     onClose: () => void;
     className?: string;
@@ -299,12 +299,12 @@ export default function BookmarkPopup({
     return (
         <div ref={popupRef} className={className}>
             <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold text-neutral-400">
+                <span className="text-muted-foreground text-xs font-semibold">
                     {$vocabulary.BOOKMARKS}
                 </span>
                 <button
                     onClick={onClose}
-                    className="rounded p-0.5 text-neutral-500 hover:text-white"
+                    className="text-subtle-foreground hover:text-foreground-strong rounded p-0.5"
                 >
                     <X className="h-3.5 w-3.5" />
                 </button>
@@ -312,14 +312,14 @@ export default function BookmarkPopup({
 
             <div className="max-h-60 space-y-0.5 overflow-y-auto">
                 {sortedBookmarks.length === 0 && (
-                    <p className="py-2 text-center text-xs text-neutral-500">
+                    <p className="text-subtle-foreground py-2 text-center text-xs">
                         {$vocabulary.NO_BOOKMARKS}
                     </p>
                 )}
                 {sortedBookmarks.map((bookmark) => (
                     <div
                         key={bookmark.publicId}
-                        className="group flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-neutral-800"
+                        className="group hover:bg-muted flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors"
                     >
                         <span
                             className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
@@ -339,11 +339,11 @@ export default function BookmarkPopup({
                             }}
                             className="ignore-click-player-ui min-w-0 flex-1 text-left"
                         >
-                            <span className="ignore-click-player-ui text-xs font-medium text-white">
+                            <span className="ignore-click-player-ui text-foreground-strong text-xs font-medium">
                                 {getTime(bookmark.timestamp)}
                             </span>
                             {bookmark.description && (
-                                <p className="ignore-click-player-ui truncate text-[10px] text-neutral-400">
+                                <p className="ignore-click-player-ui text-muted-foreground truncate text-[10px]">
                                     {bookmark.description}
                                 </p>
                             )}
@@ -352,7 +352,7 @@ export default function BookmarkPopup({
                         <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                             <button
                                 onClick={(): void => setUserOverride(bookmark)}
-                                className="rounded p-1 text-neutral-500 transition-colors hover:text-white"
+                                className="text-subtle-foreground hover:text-foreground-strong rounded p-1 transition-colors"
                                 title="Edit"
                             >
                                 <Pencil className="h-3 w-3" />
@@ -363,7 +363,7 @@ export default function BookmarkPopup({
                                         bookmark.publicId
                                     );
                                 }}
-                                className="rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
+                                className="text-subtle-foreground hover:text-destructive-soft rounded p-1 transition-colors"
                                 title={$vocabulary.DELETE}
                             >
                                 <Trash2 className="h-3 w-3" />
@@ -375,7 +375,7 @@ export default function BookmarkPopup({
 
             <button
                 onClick={(): void => setUserOverride("new")}
-                className="ignore-click-player-ui mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-neutral-700 px-2 py-1.5 text-xs text-neutral-400 transition-colors hover:border-neutral-500 hover:text-white"
+                className="ignore-click-player-ui border-border text-muted-foreground hover:border-border-strong hover:text-foreground-strong mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-dashed px-2 py-1.5 text-xs transition-colors"
             >
                 <Plus className="ignore-click-player-ui h-3 w-3" />
                 {$vocabulary.ADD_BOOKMARK_AT} {getTime($currentTime ?? 0)}

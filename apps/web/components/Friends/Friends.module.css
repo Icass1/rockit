@@ -11,10 +11,9 @@
     outline: 2px solid var(--social-tint);
     outline-offset: 4px;
 }
-.root :global(.text-neutral-400),
-.root :global(.text-neutral-500),
-.root :global(.text-neutral-600),
-.root :global(.text-neutral-700) {
+.root :global(.text-muted-foreground),
+.root :global(.text-subtle-foreground),
+.root :global(.text-disabled-foreground) {
     color: var(--social-secondary);
 }
 .root :global(.text-xs) {
@@ -23,8 +22,8 @@
 .root :global(.text-\[10px\]) {
     font-size: 0.75rem;
 }
-.root :global(.bg-neutral-900),
-.root :global(.bg-neutral-950) {
+.root :global(.bg-secondary),
+.root :global(.bg-background) {
     background-color: var(--social-surface);
 }
 .root :global(.bg-\[\#ee1086\]) {

@@ -173,11 +173,11 @@ function LibraryCard({
                 />
             )}
             <div className="absolute top-1 left-1 flex gap-1">
-                <span className="rounded bg-black/60 px-1 text-[10px] leading-4 font-semibold text-white">
+                <span className="bg-backdrop/60 text-foreground-strong rounded px-1 text-[10px] leading-4 font-semibold">
                     {$vocabulary[badge].toUpperCase()}
                 </span>
                 {undownloadedCount !== undefined && undownloadedCount > 0 && (
-                    <span className="flex items-center gap-0.5 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                    <span className="bg-backdrop/60 text-foreground-strong flex items-center gap-0.5 rounded px-1 text-[10px] leading-4">
                         ↓{undownloadedCount}
                     </span>
                 )}
@@ -194,11 +194,11 @@ function LibraryCard({
     const subtitleBlock =
         subtitle !== undefined ? (
             typeof subtitle === "string" ? (
-                <p className="truncate text-center text-sm text-gray-400">
+                <p className="text-muted-foreground truncate text-center text-sm">
                     {subtitle}
                 </p>
             ) : (
-                <div className="text-center text-sm text-gray-400">
+                <div className="text-muted-foreground text-center text-sm">
                     {subtitle}
                 </div>
             )
@@ -234,14 +234,14 @@ function LibraryCard({
             tabIndex={0}
             onClick={handleSelectionClick}
             onKeyDown={handleSelectionKeyDown}
-            className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded bg-black/60"
+            className="bg-backdrop/60 absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded"
         >
             {"publicId" in media &&
             media.publicId !== null &&
             isSelected(media.publicId) ? (
-                <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
+                <SquareCheck className="text-primary h-5 w-5" />
             ) : (
-                <SquareDashed className="h-5 w-5 text-white/80" />
+                <SquareDashed className="text-foreground-strong/80 h-5 w-5" />
             )}
         </div>
     ) : null;
@@ -275,7 +275,7 @@ function LibraryCard({
                     </div>
                 ) : (
                     <div
-                        className={`${linkClass} cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-rockit-pink)`}
+                        className={`${linkClass} focus-visible:outline-primary cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4`}
                         role="button"
                         data-library-drag-handle="true"
                         tabIndex={selectable ? -1 : 0}
@@ -341,7 +341,7 @@ export function AlbumCard({
             subtitle={
                 <Artists
                     artists={album.artists}
-                    className="text-sm text-gray-400"
+                    className="text-muted-foreground text-sm"
                 />
             }
             href={album.url}
@@ -379,7 +379,7 @@ export function VideoCard({
             subtitle={
                 <Artists
                     artists={$video.artists}
-                    className="text-sm text-gray-400"
+                    className="text-muted-foreground text-sm"
                 />
             }
             onClick={handleClick}
@@ -429,11 +429,11 @@ export function SongCard({
                 <>
                     <Artists
                         artists={$song.artists}
-                        className="text-sm text-gray-400"
+                        className="text-muted-foreground text-sm"
                     />
                     {albumName && (
                         <p
-                            className="truncate text-sm text-neutral-400"
+                            className="text-muted-foreground truncate text-sm"
                             title={albumName}
                         >
                             {albumName}

@@ -22,7 +22,7 @@ export default function AutoplayRecommendations(): JSX.Element {
 
     return (
         <section
-            className="mt-4 border-t border-white/10 pt-4"
+            className="border-foreground-strong/10 mt-4 border-t pt-4"
             aria-busy={loading}
         >
             <h3 className="text-muted-foreground px-4 pb-3 text-sm font-semibold">
@@ -66,7 +66,7 @@ export default function AutoplayRecommendations(): JSX.Element {
                                 entry
                             );
                         }}
-                        className="flex min-h-16 w-full items-center gap-3 rounded px-4 py-2 text-left transition hover:bg-(--color-surface) focus-visible:outline-2 focus-visible:outline-(--color-rockit-pink)"
+                        className="focus-visible:outline-primary flex min-h-16 w-full items-center gap-3 rounded px-4 py-2 text-left transition hover:bg-(--color-surface) focus-visible:outline-2"
                         title={
                             ready
                                 ? vocabulary.PLAY_NEXT
@@ -84,7 +84,7 @@ export default function AutoplayRecommendations(): JSX.Element {
                             className="h-12 w-12 shrink-0 rounded object-cover"
                         />
                         <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-semibold text-white">
+                            <span className="text-foreground-strong block truncate text-sm font-semibold">
                                 {media.name}
                             </span>
                             <span className="text-muted-foreground block truncate text-xs">
@@ -94,7 +94,7 @@ export default function AutoplayRecommendations(): JSX.Element {
                         </span>
                         {ready ? (
                             <ListPlus
-                                className="h-4 w-4 shrink-0 text-(--color-rockit-pink)"
+                                className="text-primary h-4 w-4 shrink-0"
                                 aria-hidden="true"
                             />
                         ) : (

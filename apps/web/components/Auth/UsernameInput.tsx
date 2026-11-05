@@ -27,7 +27,7 @@ export default function UsernameInput({
     return (
         <div className="mx-auto flex w-4/5 flex-col">
             {error && (
-                <label className="text-left text-xs text-red-500">
+                <label className="text-destructive text-left text-xs">
                     {error}
                 </label>
             )}
@@ -36,7 +36,7 @@ export default function UsernameInput({
                 onChange={onChange}
                 autoComplete="username"
                 required
-                className="text-1xl mt-1 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
+                className="text-1xl bg-input text-foreground-strong mt-1 rounded-full px-5 py-1"
                 placeholder="Username"
             />
         </div>

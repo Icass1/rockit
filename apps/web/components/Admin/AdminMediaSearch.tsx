@@ -28,37 +28,37 @@ type MediaTypeMeta = {
 const TYPE_META: Record<EMediaType, MediaTypeMeta> = {
     [EMediaType.Song]: {
         icon: Music2,
-        badge: "bg-sky-500/15 text-sky-300",
+        badge: "bg-info/15 text-info-foreground",
         vocabularyKey: "SONG",
     },
     [EMediaType.Album]: {
         icon: Disc3,
-        badge: "bg-violet-500/15 text-violet-300",
+        badge: "bg-highlight/15 text-highlight-soft",
         vocabularyKey: "ALBUM",
     },
     [EMediaType.Artist]: {
         icon: Mic2,
-        badge: "bg-amber-500/15 text-amber-300",
+        badge: "bg-warning/15 text-warning-foreground",
         vocabularyKey: "ARTIST",
     },
     [EMediaType.Playlist]: {
         icon: ListMusic,
-        badge: "bg-emerald-500/15 text-emerald-300",
+        badge: "bg-success/15 text-success-foreground",
         vocabularyKey: "PLAYLIST",
     },
     [EMediaType.Video]: {
         icon: Video,
-        badge: "bg-rose-500/15 text-rose-300",
+        badge: "bg-primary/15 text-primary-soft",
         vocabularyKey: "VIDEO",
     },
     [EMediaType.Radio]: {
         icon: Radio,
-        badge: "bg-teal-500/15 text-teal-300",
+        badge: "bg-success/15 text-success-foreground",
         vocabularyKey: "RADIO",
     },
     [EMediaType.Station]: {
         icon: Radio,
-        badge: "bg-teal-500/15 text-teal-300",
+        badge: "bg-success/15 text-success-foreground",
         vocabularyKey: "RADIO_STATION",
     },
 };
@@ -71,8 +71,8 @@ function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
     const showImage = item.imageUrl && !imgError;
 
     return (
-        <div className="flex items-center gap-4 rounded-xl border border-neutral-800 bg-neutral-900 p-3 transition hover:border-neutral-700">
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-800">
+        <div className="border-border-subtle bg-secondary hover:border-border flex items-center gap-4 rounded-xl border p-3 transition">
+            <div className="bg-muted relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg">
                 {showImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -82,14 +82,16 @@ function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
                         onError={(): void => setImgError(true)}
                     />
                 ) : (
-                    <Icon className="h-5 w-5 text-neutral-500" />
+                    <Icon className="text-subtle-foreground h-5 w-5" />
                 )}
             </div>
 
             <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-white">{item.name}</p>
+                <p className="text-foreground-strong truncate font-medium">
+                    {item.name}
+                </p>
                 {item.subtitle && (
-                    <p className="truncate text-sm text-neutral-400">
+                    <p className="text-muted-foreground truncate text-sm">
                         {item.subtitle}
                     </p>
                 )}
@@ -99,11 +101,11 @@ function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
                     >
                         {$vocabulary[meta.vocabularyKey]}
                     </span>
-                    <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-neutral-300">
+                    <span className="bg-muted text-foreground rounded-full px-2 py-0.5">
                         {item.provider}
                     </span>
                     {item.publicId && (
-                        <span className="truncate font-mono text-neutral-600">
+                        <span className="text-disabled-foreground truncate font-mono">
                             {item.publicId}
                         </span>
                     )}
@@ -111,7 +113,7 @@ function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
             </div>
 
             <div className="shrink-0 text-right">
-                <span className="rounded-lg bg-neutral-800 px-2.5 py-1 font-mono text-xs text-neutral-400">
+                <span className="bg-muted text-muted-foreground rounded-lg px-2.5 py-1 font-mono text-xs">
                     {item.score.toFixed(2)}
                 </span>
             </div>
@@ -177,16 +179,16 @@ export default function AdminMediaSearch(): JSX.Element {
     return (
         <div>
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-white">
+                <h1 className="text-foreground-strong text-2xl font-bold">
                     {$vocabulary.ADMIN_SEARCH_TITLE}
                 </h1>
-                <p className="mt-1 text-sm text-neutral-500">
+                <p className="text-subtle-foreground mt-1 text-sm">
                     {$vocabulary.ADMIN_SEARCH_SUBTITLE}
                 </p>
             </div>
 
             <div className="relative mb-6">
-                <Search className="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-neutral-500" />
+                <Search className="text-subtle-foreground pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" />
                 <input
                     id="admin-media-search"
                     type="text"
@@ -194,18 +196,20 @@ export default function AdminMediaSearch(): JSX.Element {
                     onChange={(e): void => setQuery(e.target.value)}
                     placeholder={$vocabulary.ADMIN_SEARCH_PLACEHOLDER}
                     autoComplete="off"
-                    className="w-full rounded-xl border border-neutral-700 bg-neutral-900 py-3 pr-12 pl-12 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink)"
+                    className="border-border bg-secondary text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary w-full rounded-xl border py-3 pr-12 pl-12 text-sm transition outline-none focus:ring-1"
                 />
                 {loading && (
-                    <Loader2 className="absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 animate-spin text-neutral-500" />
+                    <Loader2 className="text-subtle-foreground absolute top-1/2 right-4 h-5 w-5 -translate-y-1/2 animate-spin" />
                 )}
             </div>
 
-            {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+            {error && (
+                <p className="text-destructive-soft mb-4 text-sm">{error}</p>
+            )}
 
             {results && results.length > 0 && (
                 <>
-                    <p className="mb-3 text-xs text-neutral-500">
+                    <p className="text-subtle-foreground mb-3 text-xs">
                         {results.length} {$vocabulary.ADMIN_SEARCH_RESULTS}
                     </p>
                     <div className="space-y-2">
@@ -220,18 +224,18 @@ export default function AdminMediaSearch(): JSX.Element {
             )}
 
             {hasSearched && !loading && !error && results?.length === 0 && (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                    <Search className="mb-4 h-12 w-12 text-neutral-600" />
-                    <p className="text-neutral-500">
+                <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                    <Search className="text-disabled-foreground mb-4 h-12 w-12" />
+                    <p className="text-subtle-foreground">
                         {$vocabulary.ADMIN_SEARCH_NO_RESULTS}
                     </p>
                 </div>
             )}
 
             {!hasSearched && !loading && !error && (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                    <Search className="mb-4 h-12 w-12 text-neutral-600" />
-                    <p className="text-neutral-500">
+                <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                    <Search className="text-disabled-foreground mb-4 h-12 w-12" />
+                    <p className="text-subtle-foreground">
                         {$vocabulary.ADMIN_SEARCH_PROMPT}
                     </p>
                 </div>

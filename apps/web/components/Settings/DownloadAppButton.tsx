@@ -19,11 +19,11 @@ export default function DownloadAppButton(): JSX.Element {
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 rounded-xl bg-neutral-800 px-4 py-2.5 text-sm font-semibold text-white">
+            <div className="bg-muted text-foreground-strong flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold">
                 {$network === "online" ? (
-                    <Wifi className="h-4 w-4 text-green-400" />
+                    <Wifi className="text-success-foreground h-4 w-4" />
                 ) : (
-                    <CloudOff className="h-4 w-4 text-neutral-400" />
+                    <CloudOff className="text-muted-foreground h-4 w-4" />
                 )}
                 <span>
                     {swReady

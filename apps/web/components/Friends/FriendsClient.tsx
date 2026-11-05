@@ -38,11 +38,11 @@ function FriendsContent(): JSX.Element {
                 </div>
                 <div>
                     <p
-                        className="mt-2 flex items-center gap-2 text-sm text-neutral-400"
+                        className="text-muted-foreground mt-2 flex items-center gap-2 text-sm"
                         role="status"
                     >
                         <span
-                            className="h-2 w-2 rounded-full bg-emerald-400"
+                            className="bg-success h-2 w-2 rounded-full"
                             aria-hidden
                         />
                         {onlineCount} {v.FRIENDS_ONLINE}

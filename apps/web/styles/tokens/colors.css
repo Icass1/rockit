@@ -1,55 +1,36 @@
+/* Compatibility aliases for CSS consumers during the semantic-theme migration. */
 html {
-    --color-media-accent-default: #787882;
-    --color-success-subtle: #14532d;
-    --color-success-foreground: #bbf7d0;
-    --color-error-subtle: #7f1d1d;
-    --color-error-foreground: #fecaca;
-    --color-warning-subtle: #713f12;
-    --color-warning-foreground: #fef08a;
-    --color-on-primary: #ffffff;
-    --color-border-default: #404040;
-    --color-overlay: rgb(0 0 0 / 70%);
-    /* Base background y superficie */
-    --color-bg: #0b0b0b;
-    --color-surface: #151515;
-
-    /* Textos */
-    --color-text: #e0e0e0;
-    --color-text-muted: #a0a0a0;
-
-    /* Colores de acento (provenientes de globals.css) */
-    --color-accent: rgb(136, 58, 234);
-    --color-accent-light: rgb(224, 204, 250);
-    --color-accent-dark: rgb(49, 10, 101);
-    --color-accent-gradient: linear-gradient(
-        45deg,
-        rgb(var(--color-accent)),
-        rgb(var(--color-accent-light)) 30%,
-        white 60%
-    );
-
-    /* Colores Rockit específicos */
-    --color-rockit-pink: #ee1086;
-    --color-rockit-pink-mid: #f53a76;
-    --color-rockit-pink-light: #fb6467;
-
-    /* Estados */
-    --color-success: #1cad60; /* Verde descarga completada */
-    --color-error: #ed4337; /* Rojo error */
-    --color-warning: #fbbf24; /* Ámbar advertencia */
-
-    /* Superficies */
-    --color-elevated: #1a1a1a; /* Footer, miniplayer, popups */
-    --color-input-bg: #202020; /* Input fields */
-
-    /* Hover states */
-    --color-hover-bg: #414141; /* Nav item hover */
-    --color-hover-bg-alt: #272727; /* Header user hover */
-
-    /* Gradients */
-    --color-gradient-start: #d185ca; /* Purple for decorative gradients */
-    --color-gradient-end: #ffbb9e; /* Peach for decorative gradients */
-
-    /* Otros colores auxiliares (si se necesitan) */
-    --color-primary: #00ffea; /* Cian neón para glow */
+    --color-bg: var(--theme-background);
+    --color-surface: var(--theme-surface);
+    --color-text: var(--theme-foreground);
+    --color-text-muted: var(--theme-muted-foreground);
+    --color-accent: var(--theme-highlight);
+    --color-accent-light: var(--theme-highlight-soft);
+    --color-accent-dark: var(--theme-highlight-dark);
+    --color-rockit-pink: var(--theme-primary);
+    --color-rockit-pink-mid: var(--theme-brand-mid);
+    --color-rockit-pink-light: var(--theme-brand-light);
+    --rockit-pink: var(--theme-primary);
+    --rockit-pink-mid: var(--theme-brand-mid);
+    --rockit-pink-light: var(--theme-brand-light);
+    --color-success: var(--theme-success);
+    --color-success-subtle: var(--theme-success-subtle);
+    --color-success-foreground: var(--theme-success-foreground);
+    --color-error: var(--theme-destructive);
+    --color-error-subtle: var(--theme-destructive-subtle);
+    --color-error-foreground: var(--theme-destructive-soft);
+    --color-warning: var(--theme-warning);
+    --color-warning-subtle: var(--theme-warning-subtle);
+    --color-warning-foreground: var(--theme-warning-foreground);
+    --color-elevated: var(--theme-secondary);
+    --color-input-bg: var(--theme-muted);
+    --color-hover-bg: var(--theme-hover);
+    --color-hover-bg-alt: var(--theme-accent);
+    --color-gradient-start: var(--theme-gradient-start);
+    --color-gradient-end: var(--theme-gradient-end);
+    --color-primary: var(--theme-glow);
+    --color-media-accent-default: var(--theme-media-accent);
+    --color-on-primary: var(--theme-primary-foreground);
+    --color-border-default: var(--theme-border);
+    --color-overlay: var(--theme-scrim);
 }

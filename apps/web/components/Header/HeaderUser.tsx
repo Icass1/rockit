@@ -39,7 +39,7 @@ export default function HeaderUser(): JSX.Element {
                 aria-label={$username}
                 aria-expanded={open}
                 aria-controls={open ? "header-user-menu" : undefined}
-                className={`flex min-h-11 items-center gap-2 rounded-xl border px-2 py-1.5 transition focus-visible:outline-2 focus-visible:outline-pink-300 ${open ? "border-(--rockit-pink)/30 bg-(--rockit-pink)/15 text-pink-300" : "border-transparent hover:bg-white/10"}`}
+                className={`focus-visible:outline-primary flex min-h-11 items-center gap-2 rounded-xl border px-2 py-1.5 transition focus-visible:outline-2 ${open ? "border-primary/30 bg-primary/15 text-primary-soft" : "hover:bg-foreground-strong/10 border-transparent"}`}
             >
                 <span className="hidden max-w-36 truncate text-sm font-medium xl:block">
                     {$username}
@@ -47,9 +47,9 @@ export default function HeaderUser(): JSX.Element {
                 <ChevronDown
                     size={14}
                     aria-hidden="true"
-                    className={`text-neutral-400 transition-transform ${open ? "rotate-180" : ""}`}
+                    className={`text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
                 />
-                <span className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-neutral-700">
+                <span className="bg-accent h-9 w-9 shrink-0 overflow-hidden rounded-full">
                     <Image
                         width={36}
                         height={36}
@@ -66,11 +66,11 @@ export default function HeaderUser(): JSX.Element {
                     onClose={close}
                     className="w-64 max-w-[calc(100vw-2rem)]"
                 >
-                    <div className="border-b border-white/10 px-4 py-3">
+                    <div className="border-foreground-strong/10 border-b px-4 py-3">
                         <p className="truncate text-sm font-semibold">
                             {$username}
                         </p>
-                        <p className="mt-1 text-xs text-neutral-400">
+                        <p className="text-muted-foreground mt-1 text-xs">
                             RockIt! v{APP_VERSION}
                         </p>
                     </div>
@@ -80,7 +80,7 @@ export default function HeaderUser(): JSX.Element {
                                 close();
                                 router.push("/settings");
                             }}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-pink-300"
+                            className="text-foreground hover:bg-foreground-strong/10 focus-visible:outline-primary flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm focus-visible:outline-2"
                         >
                             <Settings size={17} />
                             {$vocabulary.SETTINGS}
@@ -88,7 +88,7 @@ export default function HeaderUser(): JSX.Element {
                         <button
                             disabled={$networkStatus === "offline"}
                             onClick={handleLogOut}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-pink-300 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="text-foreground hover:bg-foreground-strong/10 focus-visible:outline-primary flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm focus-visible:outline-2 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             <LogOut size={17} />
                             {$vocabulary.LOG_OUT}

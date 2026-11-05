@@ -55,7 +55,7 @@ export default function QuickAccessCard({
                 aria-hidden="true"
             />
             <div
-                className="absolute inset-0 bg-zinc-900"
+                className="bg-secondary absolute inset-0"
                 style={{ zIndex: -1 }}
             />
 
@@ -70,13 +70,13 @@ export default function QuickAccessCard({
 
             <div className="relative z-10 flex w-full flex-col justify-between p-5">
                 <div>
-                    <span className="text-xs font-semibold tracking-wide text-white/70 uppercase">
+                    <span className="text-foreground-strong/70 text-xs font-semibold tracking-wide uppercase">
                         {eyebrow}
                     </span>
-                    <h3 className="mt-2 line-clamp-2 text-2xl font-bold text-white">
+                    <h3 className="text-foreground-strong mt-2 line-clamp-2 text-2xl font-bold">
                         {title}
                     </h3>
-                    <p className="mt-1 truncate text-sm text-white/70">
+                    <p className="text-foreground-strong/70 mt-1 truncate text-sm">
                         {subtitle}
                     </p>
                 </div>

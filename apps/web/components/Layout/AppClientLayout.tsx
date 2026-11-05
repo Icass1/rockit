@@ -51,10 +51,10 @@ export default function AppClientLayout({
                         />
 
                         {/* Mobile Header - only visible on small screens */}
-                        <div className="fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-linear-to-b from-black to-black/0 md:hidden">
+                        <div className="from-backdrop to-backdrop/0 fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-linear-to-b md:hidden">
                             <Link
                                 href="/"
-                                className="text-2xl font-bold text-white"
+                                className="text-foreground-strong text-2xl font-bold"
                             >
                                 <Image
                                     src="/logo-banner.png"
@@ -68,7 +68,7 @@ export default function AppClientLayout({
                         </div>
 
                         {/* Main content area */}
-                        <div className="fixed inset-0 bg-(--color-bg) pb-0 md:left-12">
+                        <div className="bg-background fixed inset-0 pb-0 md:left-12">
                             <div
                                 id="main-scroll-container"
                                 className="webkit-scroll h-full w-full overflow-x-hidden overflow-y-auto pt-24 pb-[calc(160px+env(safe-area-inset-bottom,0px))] md:overflow-x-auto md:pb-24"

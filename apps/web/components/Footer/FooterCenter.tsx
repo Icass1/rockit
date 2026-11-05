@@ -29,8 +29,8 @@ import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import Slider from "@/components/ui/Slider/Slider";
 
 const ICON_BTN =
-    "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
-const ACTIVE = "text-(--color-rockit-pink)";
+    "cursor-pointer text-muted-foreground transition-all md:hover:scale-105 md:hover:text-foreground-strong";
+const ACTIVE = "text-primary";
 
 const EMPTY_BOOKMARKS: BookmarkResponse[] = [];
 
@@ -110,7 +110,7 @@ export default function FooterCenter(): JSX.Element {
                     onClick={(): void => userManager.toggleRandomQueue()}
                 >
                     <Shuffle
-                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType === EQueueType.RANDOM ? ACTIVE : "text-gray-400"}`}
+                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType === EQueueType.RANDOM ? ACTIVE : "text-muted-foreground"}`}
                     />
                 </button>
 
@@ -124,7 +124,7 @@ export default function FooterCenter(): JSX.Element {
                 </button>
 
                 {$loading ? (
-                    <CirclePlay className="h-8 w-8 animate-pulse text-gray-400" />
+                    <CirclePlay className="text-muted-foreground h-8 w-8 animate-pulse" />
                 ) : (
                     <button
                         aria-label={
@@ -159,7 +159,7 @@ export default function FooterCenter(): JSX.Element {
                     onClick={(): void => userManager.cycleRepeatMode()}
                 >
                     <RepeatIcon
-                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${isRepeatActive ? ACTIVE : "text-gray-400"}`}
+                        className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${isRepeatActive ? ACTIVE : "text-muted-foreground"}`}
                     />
                 </button>
 
@@ -172,7 +172,7 @@ export default function FooterCenter(): JSX.Element {
                             className={`h-5 w-5 transition-all md:hover:scale-105 ${
                                 bookmarkAtCurrentTime
                                     ? ""
-                                    : "fill-none text-gray-400"
+                                    : "text-muted-foreground fill-none"
                             }`}
                             style={
                                 bookmarkAtCurrentTime
@@ -195,7 +195,7 @@ export default function FooterCenter(): JSX.Element {
             {isLiveStation ? (
                 <div
                     role="status"
-                    className="flex h-7 items-center gap-2 text-xs font-semibold text-pink-400"
+                    className="text-primary-soft flex h-7 items-center gap-2 text-xs font-semibold"
                 >
                     <span
                         className={`h-1.5 w-1.5 rounded-full bg-current ${$playing ? "animate-pulse" : "opacity-40"}`}
@@ -219,7 +219,7 @@ export default function FooterCenter(): JSX.Element {
                                 )}
                                 {$showBookmarkPopup && (
                                     <BookmarkPopup
-                                        className="absolute inset-x-0 bottom-full z-50 mb-4 rounded-xl border border-white/10 bg-neutral-900 p-3 shadow-2xl md:mb-14"
+                                        className="border-foreground-strong/10 bg-secondary absolute inset-x-0 bottom-full z-50 mb-4 rounded-xl border p-3 shadow-2xl md:mb-14"
                                         onClose={(): void =>
                                             bookmarkManager.hidePopup()
                                         }
@@ -229,7 +229,7 @@ export default function FooterCenter(): JSX.Element {
                         </div>
                         <Slider
                             id="default-slider"
-                            className="h-1 w-full rounded bg-neutral-700 accent-(--color-rockit-pink)"
+                            className="bg-accent accent-primary h-1 w-full rounded"
                             value={$currentTime}
                             min={0}
                             max={duration || 1}

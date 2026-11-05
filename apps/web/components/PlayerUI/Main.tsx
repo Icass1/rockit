@@ -124,7 +124,7 @@ export default function PlayerUIMain({
     const iconOverlay = (
         <div
             className={
-                "pointer-events-none absolute top-1/2 left-1/2 z-20 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 transition-opacity duration-500 " +
+                "bg-backdrop/50 pointer-events-none absolute top-1/2 left-1/2 z-20 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-opacity duration-500 " +
                 (showIcon ? "opacity-100" : "opacity-0")
             }
         >
@@ -190,7 +190,7 @@ export default function PlayerUIMain({
                                     e.stopPropagation();
                                     rockIt.mediaPlayerManager.toggleAudioOnly();
                                 }}
-                                className="ignore-click-player-ui flex items-center justify-center rounded-full bg-black/50 p-2 text-white/80 transition-colors hover:text-white"
+                                className="ignore-click-player-ui bg-backdrop/50 text-foreground-strong/80 hover:text-foreground-strong flex items-center justify-center rounded-full p-2 transition-colors"
                                 title={$audioOnly ? "Show video" : "Audio only"}
                                 aria-label={
                                     $audioOnly ? "Show video" : "Audio only"
@@ -205,7 +205,7 @@ export default function PlayerUIMain({
                         </div>
                     )}
                     <div
-                        className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
+                        className={`from-backdrop/60 absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
                             titleVisible
                                 ? "opacity-100"
                                 : "pointer-events-none opacity-0"
@@ -232,7 +232,7 @@ export default function PlayerUIMain({
                 <div className={artworkClass} onClick={handleClick}>
                     {!vinylMode && (
                         <div
-                            className={`absolute top-0 right-0 left-0 z-30 flex flex-row items-start bg-linear-to-b from-black/60 to-transparent pt-4 pr-5 pb-12 pl-4 transition-opacity duration-300 ${
+                            className={`from-backdrop/60 absolute top-0 right-0 left-0 z-30 flex flex-row items-start bg-linear-to-b to-transparent pt-4 pr-5 pb-12 pl-4 transition-opacity duration-300 ${
                                 songHover
                                     ? "opacity-100"
                                     : "pointer-events-none opacity-0"
@@ -244,7 +244,7 @@ export default function PlayerUIMain({
                                     e.stopPropagation();
                                     rockIt.playerUIManager.toggleVinylMode();
                                 }}
-                                className="ignore-click-player-ui flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white"
+                                className="ignore-click-player-ui text-foreground-strong/80 hover:text-foreground-strong flex items-center justify-center rounded-full p-2 transition-colors"
                                 title="Vinyl record"
                             >
                                 <Disc3 className="pointer-events-none h-8 w-8" />
@@ -272,7 +272,7 @@ export default function PlayerUIMain({
                                     e.stopPropagation();
                                     rockIt.playerUIManager.toggleVinylMode();
                                 }}
-                                className="ignore-click-player-ui absolute top-2 left-2 z-30 flex items-center justify-center rounded-full p-3 text-white/80 opacity-0 transition-opacity group-hover:opacity-100 hover:text-white"
+                                className="ignore-click-player-ui text-foreground-strong/80 hover:text-foreground-strong absolute top-2 left-2 z-30 flex items-center justify-center rounded-full p-3 opacity-0 transition-opacity group-hover:opacity-100"
                                 title="Square cover"
                             >
                                 <DiscAlbum className="pointer-events-none h-10 w-10" />
@@ -292,7 +292,7 @@ export default function PlayerUIMain({
                     {iconOverlay}
                     {!vinylMode && (
                         <div
-                            className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
+                            className={`from-backdrop/60 absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
                                 songHover
                                     ? "opacity-100"
                                     : "pointer-events-none opacity-0"
@@ -326,7 +326,7 @@ export default function PlayerUIMain({
                     />
                     {iconOverlay}
                     <div
-                        className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
+                        className={`from-backdrop/60 absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
                             songHover
                                 ? "opacity-100"
                                 : "pointer-events-none opacity-0"
@@ -335,7 +335,7 @@ export default function PlayerUIMain({
                         <label className="truncate text-2xl font-bold">
                             {currentMedia.name}
                         </label>
-                        <label className="text-md w-fit flex-nowrap truncate text-left font-semibold text-neutral-400">
+                        <label className="text-md text-muted-foreground w-fit flex-nowrap truncate text-left font-semibold">
                             {currentMedia.country ?? "Radio Station"}
                         </label>
                     </div>

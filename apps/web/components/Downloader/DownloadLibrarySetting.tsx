@@ -27,7 +27,7 @@ function DownloadLibrarySettingContent(): JSX.Element {
         }
     };
     return (
-        <div className="text-sm text-neutral-300" aria-busy={saving}>
+        <div className="text-foreground text-sm" aria-busy={saving}>
             <label
                 htmlFor="download-auto-library"
                 className="flex items-center gap-2"

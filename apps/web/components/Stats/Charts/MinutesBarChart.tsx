@@ -59,13 +59,13 @@ function CustomTooltip({
     }
 
     return (
-        <div className="rounded-xl border border-neutral-800/60 bg-neutral-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
-            <p className="text-xs whitespace-nowrap text-neutral-400">
+        <div className="border-border-subtle/60 bg-secondary/95 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-md">
+            <p className="text-muted-foreground text-xs whitespace-nowrap">
                 {label}
             </p>
-            <p className="mt-0.5 text-lg font-bold whitespace-nowrap text-white">
+            <p className="text-foreground-strong mt-0.5 text-lg font-bold whitespace-nowrap">
                 {payload[0].value.toFixed(1)}
-                <span className="ml-1 text-sm font-medium text-neutral-400">
+                <span className="text-muted-foreground ml-1 text-sm font-medium">
                     min
                 </span>
             </p>
@@ -98,7 +98,7 @@ export default function MinutesBarChart({
     if (data.length === 0) {
         return (
             <div className="flex h-70 items-center justify-center">
-                <p className="text-sm text-neutral-600">
+                <p className="text-disabled-foreground text-sm">
                     {$vocabulary.NO_DATA}
                 </p>
             </div>

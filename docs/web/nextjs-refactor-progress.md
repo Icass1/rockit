@@ -25,6 +25,8 @@ any failures; do not accept baseline test failures as a passing gate.
     - [ ] Verify first-render text, locale changes, account isolation and offline entry.
 - [ ] 3. Semantic theme and reusable UI primitives.
     - [x] Introduce a single global style entry and semantic Tailwind tokens.
+    - [x] Centralize the interface palette in theme.css and replace component palette utilities with semantic roles.
+    - [ ] Remove remaining inline/CSS/chart/SVG/PiP literals and add persisted user theme settings.
     - [ ] Add shared buttons, fields, choices, ranges and overlays; migrate initial consumers.
     - [x] Shared Popup surface/behavior and ui-folder menu/slider relocation.
     - [ ] Add accessibility/visual verification and architecture/color enforcement.
@@ -767,24 +769,44 @@ and production HTTP SSR smoke passed. Chromium source-lifecycle fixtures passed 
 fixture adapters; real media, native devices and full offline entry acceptance are
 open. Existing crane GIF precache warning remains.
 
+### Central theme and semantic utility migration — 5 November 2026
+
+Moved the interface palette into `styles/tokens/theme.css`, with named roles for
+surfaces, text hierarchy, focus/borders, feedback and brand accents. `colors.css`
+now contains compatibility aliases rather than a second palette. Replaced palette
+utilities and legacy color-variable utility syntax across 135 source files,
+including shell, library, home, settings, downloads, social, stats/admin and player
+controls. Layout, opacity modifiers and state/viewport variants remain intact.
+
+Checks: all 246 web tests passed, including the new semantic-utility architecture
+check. Web typecheck/lint, formatting, production build and production HTTP SSR
+smoke passed. Production Chromium Library checks passed at 1440×900, 390×844 and
+844×390, including first render, filtering/views, saved offline snapshot and a
+runtime token override proving compiled Tailwind utilities follow the central
+palette. Desktop/phone screenshots were inspected. Existing precache warning
+remains. Inline literals, feature CSS, charts, SVGs and PiP are the next color pass.
+
+The user also requested a user-table theme preference and Settings selector.
+Implement Dark/Light/System with existing accounts defaulting to Dark after the
+remaining component color migration.
+
 ## Current work
 
-The user has redirected the next work to the semantic theme: remove hardcoded
-component colors and use Tailwind roles from `apps/web/styles/tokens/theme.css`.
-Finish the current browser playback step before starting that theme work. Every
-further step must pass the complete web suite and be committed separately.
+The theme refactor is prioritized at the user's request. The semantic Tailwind
+utility migration is checked. Next: finish inline/CSS/chart/SVG/PiP color removal,
+then add Dark/Light/System themes with a preference persisted in the user table
+and a localized Settings selector. Preserve account isolation, first-render theme,
+system-color changes and offline session restoration. Each step needs the complete
+web suite passing and a separate commit.
 
-Runtime ownership work through queue actions, shared source loads and browser
-supplementary playback is implemented and checked. Library initial data still
-renders on the server without skeletons or mount requests. Remaining runtime
-work (downloads/playlists/library managers and complete account reset) is deferred
-while the theme migration is prioritized. Compatibility startup still initializes
-those managers.
+Runtime work through queue actions and web/shared source lifecycle is implemented.
+Download/playlist/library manager ownership and full account reset remain deferred.
+Library still renders initial server data without skeletons/mount requests.
 
-Latest checks: all 245 web tests pass. Web typecheck/lint, production build/SSR
-smoke and Chromium source-loading fixtures passed. Native devices, actual media,
-full navigation/account isolation and offline worker acceptance remain open.
-Parent stages remain unchecked until all their acceptance gates pass.
+Latest checks: all 246 web tests pass; web types/lint, production build/SSR and
+Chromium Library/theme checks pass at all three viewport sizes. Actual media,
+native devices and complete offline/service-worker acceptance remain open.
+Parent stages remain unchecked until their complete acceptance gates pass.
 
 ## Verification log
 

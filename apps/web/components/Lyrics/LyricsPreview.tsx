@@ -78,7 +78,7 @@ export function LyricsPreview({
                         key={i}
                         type="button"
                         disabled={line.timestamp_s === null || !url}
-                        className={`block w-full py-1 text-left ${i === active ? "text-pink-400" : "text-neutral-300"}`}
+                        className={`block w-full py-1 text-left ${i === active ? "text-primary-soft" : "text-foreground"}`}
                         onClick={() => {
                             if (audio.current && line.timestamp_s !== null) {
                                 const target = lyricSeekTime(

@@ -56,7 +56,7 @@ function PinShortcut({
                     title={name}
                     aria-label={name}
                     aria-current={activePage === pin.url ? "page" : undefined}
-                    className={`flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 focus-visible:outline-2 focus-visible:outline-white ${activePage === pin.url ? "bg-white/15" : "hover:bg-white/10"}`}
+                    className={`focus-visible:outline-foreground-strong flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 focus-visible:outline-2 ${activePage === pin.url ? "bg-foreground-strong/15" : "hover:bg-foreground-strong/10"}`}
                 >
                     <span className="relative h-8 w-8 shrink-0">
                         <Image
@@ -70,7 +70,7 @@ function PinShortcut({
                         {pin.builtinKey && (
                             <BuiltinIcon
                                 aria-hidden
-                                className="pointer-events-none absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-white"
+                                className="text-foreground-strong pointer-events-none absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2"
                                 fill={
                                     pin.builtinKey === "liked"
                                         ? "currentColor"
@@ -109,10 +109,10 @@ export default function NavigationPins({
         >
             <div
                 aria-hidden="true"
-                className={`mt-2 mb-3 border-t border-neutral-700/70 ${expanded ? "ml-4 w-44" : "ml-3.5 w-5"}`}
+                className={`border-border/70 mt-2 mb-3 border-t ${expanded ? "ml-4 w-44" : "ml-3.5 w-5"}`}
             />
             <div
-                className="mx-2 mb-2 flex h-7 shrink-0 items-center gap-2 text-neutral-400"
+                className="text-muted-foreground mx-2 mb-2 flex h-7 shrink-0 items-center gap-2"
                 title={vocabulary.NAV_PINNED}
             >
                 <span className="flex h-7 w-8 shrink-0 items-center justify-center">

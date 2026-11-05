@@ -186,21 +186,21 @@ function RecommendationCard({
             ) : (
                 // Suggestions no provider could resolve have no artwork.
                 <div
-                    className="flex aspect-square w-full items-center justify-center rounded-lg bg-neutral-800 select-none"
+                    className="bg-muted flex aspect-square w-full items-center justify-center rounded-lg select-none"
                     aria-hidden="true"
                 >
-                    <Music className="h-8 w-8 text-neutral-600" />
+                    <Music className="text-disabled-foreground h-8 w-8" />
                 </div>
             )}
             {hint && (
-                <p className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border border-white bg-black px-2 py-1 text-center text-sm font-semibold text-white group-hover:block">
+                <p className="border-foreground-strong bg-backdrop text-foreground-strong absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border px-2 py-1 text-center text-sm font-semibold group-hover:block">
                     {hint}
                 </p>
             )}
             <span className="mt-2 block truncate text-center font-semibold">
                 {name}
             </span>
-            <span className="block truncate text-center text-sm text-gray-400">
+            <span className="text-muted-foreground block truncate text-center text-sm">
                 {artistNames.join(", ")}
             </span>
         </div>
@@ -232,7 +232,7 @@ export default function RecommendationsSection({
         : $vocabulary.PLAYER_DISCOVER_TITLE;
 
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
+        <section className="text-foreground-strong py-2 md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {title}
             </h2>
@@ -249,7 +249,7 @@ export default function RecommendationsSection({
             )}
             {discover.length > 0 && (
                 <>
-                    <h3 className="px-5 text-left text-lg font-semibold text-neutral-400 md:px-0">
+                    <h3 className="text-muted-foreground px-5 text-left text-lg font-semibold md:px-0">
                         {discoverTitle}
                     </h3>
                     <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
@@ -268,7 +268,7 @@ export default function RecommendationsSection({
             {discoverStatus === "unavailable" && (
                 // Shown inline once per section, never as a toast, so a
                 // flaky external service does not spam the user.
-                <p className="px-5 text-left text-xs text-neutral-500 md:px-0">
+                <p className="text-subtle-foreground px-5 text-left text-xs md:px-0">
                     {$vocabulary.DISCOVER_UNAVAILABLE}
                 </p>
             )}

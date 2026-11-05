@@ -19,7 +19,7 @@ export default function SongsSection({
     if (songs.length === 0) return null;
 
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
+        <section className="text-foreground-strong py-2 md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {$vocabulary.SONGS}
             </h2>
@@ -50,7 +50,7 @@ export default function SongsSection({
                             <span className="mt-2 block truncate text-center font-semibold">
                                 {song.name}
                             </span>
-                            <span className="block truncate text-center text-sm text-gray-400">
+                            <span className="text-muted-foreground block truncate text-center text-sm">
                                 {song.artists.map((artist, i): JSX.Element => (
                                     <span key={artist.name}>
                                         {artist.name}

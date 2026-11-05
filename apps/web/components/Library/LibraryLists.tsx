@@ -107,7 +107,7 @@ function SectionPlayButton({
         <button
             onClick={onClick}
             title={label}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light) transition-transform md:hover:scale-105"
+            className="from-primary to-brand-light flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-r transition-transform md:hover:scale-105"
         >
             <Play className="h-1/2 w-1/2" fill="white" />
         </button>
@@ -133,7 +133,7 @@ function SectionHeader({
 
 function EmptyState({ message }: { message: string }): JSX.Element {
     return (
-        <div className="flex items-center justify-center py-16 text-neutral-500">
+        <div className="text-subtle-foreground flex items-center justify-center py-16">
             <p className="text-base font-medium">{message}</p>
         </div>
     );
@@ -590,7 +590,7 @@ export function LibraryLists({
                                         {album.name}
                                     </p>
                                     <p
-                                        className="truncate text-center text-sm text-gray-400"
+                                        className="text-muted-foreground truncate text-center text-sm"
                                         title={album.subtitle ?? undefined}
                                     >
                                         {album.subtitle}

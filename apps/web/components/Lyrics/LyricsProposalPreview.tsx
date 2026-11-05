@@ -53,7 +53,7 @@ function LoadedProposalPreview({
     return (
         <div className="space-y-2">
             {stale && (
-                <p role="alert" className="text-amber-400">
+                <p role="alert" className="text-warning">
                     {vocabulary.LYRICS_STALE_PROPOSAL}
                 </p>
             )}
@@ -75,7 +75,7 @@ function LoadedProposalPreview({
                 lines={after ? proposal.data.lines : current.lines}
                 offset={after ? proposal.data.offset : current.offset}
             />
-            <p className="text-sm text-neutral-400">
+            <p className="text-muted-foreground text-sm">
                 {vocabulary.LYRICS_REVIEW_HELP}
             </p>
         </div>

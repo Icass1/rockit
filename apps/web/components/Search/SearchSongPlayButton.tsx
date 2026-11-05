@@ -29,7 +29,7 @@ export default function SearchSongPlayButton({
             title={label}
             aria-busy={loading}
             disabled={loading}
-            className="search-song-play absolute inset-0 grid place-items-center rounded-lg bg-black/50 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-wait"
+            className="search-song-play bg-backdrop/50 text-foreground-strong focus-visible:outline-foreground-strong absolute inset-0 grid place-items-center rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-wait"
             onClick={async (event): Promise<void> => {
                 event.stopPropagation();
                 if (loading) return;

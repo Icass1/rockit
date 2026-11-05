@@ -25,7 +25,7 @@ export default function FriendRequests(): JSX.Element {
             <div className="flex flex-col gap-3">
                 {$incoming.map((req) => (
                     <div key={req.publicId} className="flex items-center gap-3">
-                        <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-neutral-800">
+                        <div className="bg-muted h-9 w-9 shrink-0 overflow-hidden rounded-full">
                             {req.fromUserImageUrl ? (
                                 <Image
                                     src={req.fromUserImageUrl}
@@ -35,18 +35,18 @@ export default function FriendRequests(): JSX.Element {
                                     className="h-full w-full object-cover"
                                 />
                             ) : (
-                                <div className="flex h-full w-full items-center justify-center text-sm font-bold text-neutral-500">
+                                <div className="text-subtle-foreground flex h-full w-full items-center justify-center text-sm font-bold">
                                     {req.fromUsername[0]?.toUpperCase()}
                                 </div>
                             )}
                         </div>
 
                         <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-white">
+                            <p className="text-foreground-strong truncate text-sm font-medium">
                                 {req.fromUsername}
                             </p>
                             {req.message && (
-                                <p className="truncate text-xs text-neutral-500">
+                                <p className="text-subtle-foreground truncate text-xs">
                                     &ldquo;{req.message}&rdquo;
                                 </p>
                             )}
@@ -58,7 +58,7 @@ export default function FriendRequests(): JSX.Element {
                                     friendManager.acceptRequest(req.publicId)
                                 }
                                 aria-label={v.FRIENDS_ACCEPT}
-                                className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10 text-green-400 transition-colors hover:bg-green-500/20"
+                                className="bg-success/10 text-success-foreground hover:bg-success/20 flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                             >
                                 <Check size={15} />
                             </button>
@@ -67,7 +67,7 @@ export default function FriendRequests(): JSX.Element {
                                     friendManager.rejectRequest(req.publicId)
                                 }
                                 aria-label={v.FRIENDS_DECLINE}
-                                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-neutral-500 transition-colors hover:bg-white/10 hover:text-white"
+                                className="bg-foreground-strong/[0.06] text-subtle-foreground hover:bg-foreground-strong/10 hover:text-foreground-strong flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                             >
                                 <X size={15} />
                             </button>

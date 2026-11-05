@@ -73,11 +73,11 @@ export default function HomeHero({
                 <HeroBackgroundDrift songs={ambientSongs} maxParticles={10} />
 
                 <div className="relative z-10 mb-8 md:mb-12">
-                    <h1 className="text-4xl leading-tight font-bold text-white sm:text-5xl md:text-6xl">
+                    <h1 className="text-foreground-strong text-4xl leading-tight font-bold sm:text-5xl md:text-6xl">
                         {greetingName}
                     </h1>
                     {(streak ?? 0) > 0 || (minutesThisWeek ?? 0) > 0 ? (
-                        <div className="mt-3 flex items-center gap-4 text-sm text-white/60">
+                        <div className="text-foreground-strong/60 mt-3 flex items-center gap-4 text-sm">
                             {typeof streak === "number" && streak > 0 && (
                                 <span>
                                     🔥 {streak} {$vocabulary.HOME_STREAK_DAYS}
@@ -115,9 +115,9 @@ export default function HomeHero({
                             repeat: Infinity,
                             ease: "easeInOut",
                         }}
-                        className="h-8 w-5 rounded-full border border-white/30"
+                        className="border-foreground-strong/30 h-8 w-5 rounded-full border"
                     >
-                        <div className="mx-auto mt-2 h-2 w-1 rounded-full bg-white/50" />
+                        <div className="bg-foreground-strong/50 mx-auto mt-2 h-2 w-1 rounded-full" />
                     </motion.div>
                 </div>
 

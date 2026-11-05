@@ -56,20 +56,20 @@ export default function SummaryCardsV2({
 
     return (
         <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-            <div className="relative min-h-80 overflow-hidden rounded-[2rem] border border-fuchsia-500/20 bg-[radial-gradient(circle_at_15%_20%,rgba(238,16,134,0.32),transparent_38%),linear-gradient(135deg,#171014,#080808)] p-7 md:p-10">
-                <div className="absolute -right-16 -bottom-24 h-72 w-72 rounded-full border-[48px] border-fuchsia-500/8" />
-                <p className="text-xs font-semibold tracking-[0.25em] text-fuchsia-300 uppercase">
+            <div className="border-primary/20 relative min-h-80 overflow-hidden rounded-[2rem] border bg-[radial-gradient(circle_at_15%_20%,rgba(238,16,134,0.32),transparent_38%),linear-gradient(135deg,#171014,#080808)] p-7 md:p-10">
+                <div className="border-primary/8 absolute -right-16 -bottom-24 h-72 w-72 rounded-full border-[48px]" />
+                <p className="text-primary-soft text-xs font-semibold tracking-[0.25em] uppercase">
                     {rangeLabel}
                 </p>
-                <p className="mt-7 text-6xl font-black tracking-[-0.06em] text-white md:text-8xl">
+                <p className="text-foreground-strong mt-7 text-6xl font-black tracking-[-0.06em] md:text-8xl">
                     {formatDuration(summary.totalPlayTimeMinutes)}
                 </p>
-                <p className="mt-2 text-lg text-neutral-400">
+                <p className="text-muted-foreground mt-2 text-lg">
                     total listening time
                 </p>
-                <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-neutral-400">
+                <div className="text-muted-foreground mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm">
                     <span>
-                        <strong className="text-white">
+                        <strong className="text-foreground-strong">
                             {Math.round(
                                 summary.totalPlayTimeMinutes
                             ).toLocaleString()}
@@ -77,7 +77,7 @@ export default function SummaryCardsV2({
                         minutes
                     </span>
                     <span>
-                        <strong className="text-white">
+                        <strong className="text-foreground-strong">
                             {summary.uniqueMediasListened.toLocaleString()}
                         </strong>{" "}
                         different plays
@@ -86,7 +86,7 @@ export default function SummaryCardsV2({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2 flex min-h-40 items-center rounded-3xl border border-white/7 bg-white/3 px-5">
+                <div className="border-foreground-strong/7 bg-foreground-strong/3 col-span-2 flex min-h-40 items-center rounded-3xl border px-5">
                     <div className="h-36 w-36 shrink-0">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -116,16 +116,19 @@ export default function SummaryCardsV2({
                         </ResponsiveContainer>
                     </div>
                     <div>
-                        <Radio size={18} className="mb-3 text-neutral-500" />
-                        <p className="text-sm font-bold text-white">
+                        <Radio
+                            size={18}
+                            className="text-subtle-foreground mb-3"
+                        />
+                        <p className="text-foreground-strong text-sm font-bold">
                             Your media mix
                         </p>
-                        <p className="mt-2 text-xs text-neutral-500">
-                            <span className="text-fuchsia-400">●</span>{" "}
+                        <p className="text-subtle-foreground mt-2 text-xs">
+                            <span className="text-primary-soft">●</span>{" "}
                             {summary.uniqueSongsListened} songs
                         </p>
-                        <p className="mt-1 text-xs text-neutral-500">
-                            <span className="text-sky-400">●</span>{" "}
+                        <p className="text-subtle-foreground mt-1 text-xs">
+                            <span className="text-info">●</span>{" "}
                             {summary.uniqueVideosListened} videos
                         </p>
                     </div>
@@ -133,13 +136,13 @@ export default function SummaryCardsV2({
                 {facts.map(({ icon: Icon, label, value }) => (
                     <div
                         key={label}
-                        className="rounded-2xl border border-white/7 bg-white/3 p-4"
+                        className="border-foreground-strong/7 bg-foreground-strong/3 rounded-2xl border p-4"
                     >
-                        <Icon size={17} className="text-neutral-600" />
-                        <p className="mt-5 text-xl font-bold text-white">
+                        <Icon size={17} className="text-disabled-foreground" />
+                        <p className="text-foreground-strong mt-5 text-xl font-bold">
                             {value}
                         </p>
-                        <p className="mt-1 text-[10px] font-semibold tracking-wider text-neutral-600 uppercase">
+                        <p className="text-disabled-foreground mt-1 text-[10px] font-semibold tracking-wider uppercase">
                             {label}
                         </p>
                     </div>

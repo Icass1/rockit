@@ -64,7 +64,7 @@ export default function NewPlaylistButton({
             {variant === "row" ? (
                 <div
                     {...triggerProps}
-                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
+                    className="hover:bg-muted flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors"
                 >
                     <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md select-none">
                         <Image
@@ -78,7 +78,7 @@ export default function NewPlaylistButton({
                         <Plus className="absolute inset-0 h-full w-full p-2" />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-white">
+                        <p className="text-foreground-strong truncate font-medium">
                             {$vocabulary.NEW_PLAYLIST}
                         </p>
                     </div>
@@ -110,16 +110,16 @@ export default function NewPlaylistButton({
             {/* Modal */}
             {showModal && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6"
+                    className="bg-backdrop/70 fixed inset-0 z-50 flex items-center justify-center px-6"
                     onClick={(e): void => {
                         if (e.target === e.currentTarget) closeModal();
                     }}
                 >
-                    <div className="flex w-full max-w-sm flex-col gap-y-4 rounded-xl bg-neutral-900 p-6 shadow-2xl">
-                        <label className="text-base font-semibold text-white">
+                    <div className="bg-secondary flex w-full max-w-sm flex-col gap-y-4 rounded-xl p-6 shadow-2xl">
+                        <label className="text-foreground-strong text-base font-semibold">
                             {$vocabulary.NEW_PLAYLIST_NAME}
                             {error && (
-                                <span className="ml-2 text-red-400">
+                                <span className="text-destructive-soft ml-2">
                                     — {error}
                                 </span>
                             )}
@@ -128,8 +128,8 @@ export default function NewPlaylistButton({
                         <input
                             className={`w-full border-b border-solid bg-transparent text-xl font-bold outline-none ${
                                 error
-                                    ? "border-red-500 text-red-400"
-                                    : "border-neutral-600 text-white"
+                                    ? "border-destructive text-destructive-soft"
+                                    : "border-border-strong text-foreground-strong"
                             }`}
                             value={name}
                             type="text"
@@ -147,13 +147,13 @@ export default function NewPlaylistButton({
 
                         <div className="flex justify-end gap-3 pt-2">
                             <button
-                                className="rounded-md border border-gray-600 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-300 hover:text-white"
+                                className="border-border-strong text-foreground hover:border-border-strong hover:text-foreground-strong rounded-md border px-4 py-2 text-sm transition"
                                 onClick={closeModal}
                             >
                                 {$vocabulary.CANCEL}
                             </button>
                             <button
-                                className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="bg-success-hover text-foreground-strong hover:bg-success rounded-md px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                                 onClick={handleCreate}
                                 disabled={loading || !name.trim()}
                             >

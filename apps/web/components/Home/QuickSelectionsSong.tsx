@@ -28,7 +28,7 @@ export default function QuickSelectionsSong({
     return (
         <MediaContextMenu media={$song} location={EMediaContextLocation.HOME}>
             <div
-                className="flex h-fit cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
+                className="hover:bg-muted flex h-fit cursor-pointer items-center gap-2 rounded-lg p-2 transition"
                 onClick={handleClick}
             >
                 <Image
@@ -40,12 +40,12 @@ export default function QuickSelectionsSong({
                 />
                 <div className="flex w-full min-w-0 flex-col justify-center">
                     <div className="flex items-center gap-1.5">
-                        <span className="w-full min-w-0 truncate text-sm font-semibold text-white">
+                        <span className="text-foreground-strong w-full min-w-0 truncate text-sm font-semibold">
                             {$song.name}
                         </span>
                         {!$song.downloaded && (
                             <Download
-                                className="h-4 w-4 shrink-0 text-(--color-rockit-pink)"
+                                className="text-primary h-4 w-4 shrink-0"
                                 aria-label={$vocabulary.CLICK_TO_DOWNLOAD}
                             />
                         )}
@@ -54,7 +54,7 @@ export default function QuickSelectionsSong({
                             className="h-5 w-5"
                         />
                     </div>
-                    <span className="w-full min-w-0 truncate text-xs text-gray-400">
+                    <span className="text-muted-foreground w-full min-w-0 truncate text-xs">
                         {$song.artists[0]?.name ?? $vocabulary.UNKNOWN} {" • "}{" "}
                         {$song.album?.name ?? "—"}
                     </span>

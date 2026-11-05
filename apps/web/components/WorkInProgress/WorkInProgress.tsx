@@ -30,7 +30,7 @@ export default function WorkInProgress(): JSX.Element {
 
             <Link
                 href="/"
-                className={`mt-10 rounded-full bg-white px-5 py-2 text-lg font-bold text-black shadow-md transition md:mt-20 md:hover:bg-neutral-200`}
+                className={`bg-foreground-strong text-background md:hover:bg-foreground mt-10 rounded-full px-5 py-2 text-lg font-bold shadow-md transition md:mt-20`}
             >
                 {$vocabulary.RETURN_BACK_HOME}
             </Link>

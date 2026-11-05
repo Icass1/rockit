@@ -43,7 +43,7 @@ export default function PlayerProgressBar({
             <div className="relative flex h-8 items-center">
                 <Slider
                     id="default-slider"
-                    className="h-1.75 w-full rounded-full bg-white/10"
+                    className="bg-foreground-strong/10 h-1.75 w-full rounded-full"
                     value={displayTime}
                     min={0}
                     max={max}
@@ -71,10 +71,10 @@ export default function PlayerProgressBar({
             </div>
 
             <div className="-mt-2 flex justify-between px-1">
-                <span className="text-xs font-medium text-white/70">
+                <span className="text-foreground-strong/70 text-xs font-medium">
                     {formatTime(displayTime)}
                 </span>
-                <span className="text-xs font-medium text-white/70">
+                <span className="text-foreground-strong/70 text-xs font-medium">
                     {formatTime(duration)}
                 </span>
             </div>

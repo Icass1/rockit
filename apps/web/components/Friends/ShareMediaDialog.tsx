@@ -63,7 +63,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                         required
                         value={recipient}
                         onChange={(event) => setRecipient(event.target.value)}
-                        className="rounded-lg bg-neutral-800 p-3"
+                        className="bg-muted rounded-lg p-3"
                     >
                         <option value="" disabled>
                             {v.FRIENDS_SHARE_TO}
@@ -79,7 +79,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                     </select>
                 </label>
                 {friends.length === 0 && (
-                    <p className="text-sm text-neutral-400">
+                    <p className="text-muted-foreground text-sm">
                         {v.FRIENDS_NO_FRIENDS}
                     </p>
                 )}
@@ -93,7 +93,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                         maxLength={2000}
                         value={message}
                         onChange={(event) => setMessage(event.target.value)}
-                        className="rounded-lg bg-neutral-800 p-3"
+                        className="bg-muted rounded-lg p-3"
                     />
                 </label>
                 <div className="flex justify-end gap-3">
@@ -108,7 +108,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                         type="submit"
                         aria-busy={sending}
                         disabled={sending || !recipient}
-                        className="rounded-full bg-[#ee1086] px-4 py-2 disabled:opacity-40"
+                        className="bg-primary rounded-full px-4 py-2 disabled:opacity-40"
                     >
                         {sending && (
                             <LoaderCircle

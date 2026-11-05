@@ -35,10 +35,10 @@ export default function QueueRow({
         <div
             ref={(el: HTMLElement | null) => registerRow(index, el)}
             className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${
-                isActive ? "bg-(--color-rockit-pink)/10" : ""
+                isActive ? "bg-primary/10" : ""
             } ${
                 isDropTarget
-                    ? "border-t-2 border-(--color-rockit-pink)"
+                    ? "border-primary border-t-2"
                     : "border-t-2 border-transparent"
             } ${isDragging ? "opacity-60" : ""}`}
         >
@@ -66,8 +66,8 @@ export default function QueueRow({
                         <p
                             className={`truncate text-sm font-semibold ${
                                 isActive
-                                    ? "text-(--color-rockit-pink)"
-                                    : "text-white"
+                                    ? "text-primary"
+                                    : "text-foreground-strong"
                             }`}
                         >
                             {media.name}
@@ -89,7 +89,7 @@ export default function QueueRow({
                 type="button"
                 onClick={onDelete}
                 disabled={!canEdit}
-                className="flex h-9 w-9 shrink-0 items-center justify-center text-white/40"
+                className="text-foreground-strong/40 flex h-9 w-9 shrink-0 items-center justify-center"
                 aria-label="Quitar de la cola"
             >
                 <Trash2 size={18} />
@@ -101,7 +101,7 @@ export default function QueueRow({
                 data-drag-handle
                 onPointerDown={onDragHandlePointerDown}
                 disabled={!canEdit}
-                className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center text-white/35"
+                className="text-foreground-strong/35 flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center"
                 aria-label="Reordenar"
             >
                 <GripVertical size={18} />

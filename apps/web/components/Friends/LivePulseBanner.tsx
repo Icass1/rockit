@@ -48,17 +48,17 @@ export default function LivePulseBanner({
     if (live.length === 0) return <></>;
 
     return (
-        <div className="flex items-center gap-4 overflow-x-auto rounded-2xl border border-[#ee1086]/10 bg-[#ee1086]/[0.04] px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="border-primary/10 bg-primary/[0.04] flex items-center gap-4 overflow-x-auto rounded-2xl border px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex shrink-0 flex-col items-center gap-1.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ee1086]/15">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-[#ee1086]" />
+                <div className="bg-primary/15 flex h-8 w-8 items-center justify-center rounded-full">
+                    <div className="bg-primary h-2 w-2 animate-pulse rounded-full" />
                 </div>
-                <span className="text-[10px] font-semibold tracking-wider text-[#ee1086] uppercase">
+                <span className="text-primary text-[10px] font-semibold tracking-wider uppercase">
                     {online.length} {v.FRIENDS_ONLINE}
                 </span>
             </div>
 
-            <div className="h-8 w-px shrink-0 bg-white/[0.06]" />
+            <div className="bg-foreground-strong/[0.06] h-8 w-px shrink-0" />
 
             {live.map((friend) => (
                 <button
@@ -73,7 +73,7 @@ export default function LivePulseBanner({
                             : friend.username
                     }
                 >
-                    <div className="h-10 w-10 overflow-hidden rounded-full ring-2 ring-[#ee1086]/40 ring-offset-2 ring-offset-black">
+                    <div className="ring-primary/40 ring-offset-backdrop h-10 w-10 overflow-hidden rounded-full ring-2 ring-offset-2">
                         {friend.imageUrl ? (
                             <Image
                                 src={friend.imageUrl}
@@ -83,7 +83,7 @@ export default function LivePulseBanner({
                                 className="h-full w-full object-cover"
                             />
                         ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-neutral-800 text-sm font-bold text-neutral-500">
+                            <div className="bg-muted text-subtle-foreground flex h-full w-full items-center justify-center text-sm font-bold">
                                 {friend.username[0]?.toUpperCase()}
                             </div>
                         )}
@@ -95,7 +95,7 @@ export default function LivePulseBanner({
                         <div className="h-[10px]" />
                     )}
 
-                    <span className="max-w-[56px] truncate text-[10px] text-neutral-500">
+                    <span className="text-subtle-foreground max-w-[56px] truncate text-[10px]">
                         {friend.username}
                     </span>
                 </button>

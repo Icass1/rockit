@@ -170,26 +170,26 @@ export default function EditMetadataModal({
 
     return createPortal(
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            className="bg-backdrop/80 fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e): void => {
                 if (e.target === e.currentTarget) handleClose();
             }}
         >
-            <div className="flex max-h-[90vh] w-full flex-col rounded-2xl bg-neutral-900 p-5 md:max-h-[85vh] md:max-w-lg md:p-6">
+            <div className="bg-secondary flex max-h-[90vh] w-full flex-col rounded-2xl p-5 md:max-h-[85vh] md:max-w-lg md:p-6">
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-bold text-white">
+                        <h2 className="text-foreground-strong text-xl font-bold">
                             {$vocabulary.EDIT_METADATA_TITLE}
                         </h2>
-                        <p className="mt-0.5 text-xs text-neutral-400">
+                        <p className="text-muted-foreground mt-0.5 text-xs">
                             {$vocabulary.EDIT_METADATA_DESCRIPTION}
                         </p>
                     </div>
                     <button
                         onClick={handleClose}
                         disabled={submitting}
-                        className="rounded-full p-2 text-neutral-400 transition hover:bg-neutral-800 hover:text-white disabled:opacity-50"
+                        className="text-muted-foreground hover:bg-muted hover:text-foreground-strong rounded-full p-2 transition disabled:opacity-50"
                         aria-label="Close"
                     >
                         <X className="h-5 w-5" />
@@ -197,7 +197,7 @@ export default function EditMetadataModal({
                 </div>
 
                 {/* Media info */}
-                <div className="mb-4 flex items-center gap-3 rounded-xl bg-neutral-800/50 p-3">
+                <div className="bg-muted/50 mb-4 flex items-center gap-3 rounded-xl p-3">
                     {media.imageUrl && (
                         <Image
                             src={media.imageUrl}
@@ -209,10 +209,10 @@ export default function EditMetadataModal({
                         />
                     )}
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">
+                        <p className="text-foreground-strong truncate text-sm font-semibold">
                             {media.name}
                         </p>
-                        <p className="truncate text-xs text-neutral-400">
+                        <p className="text-muted-foreground truncate text-xs">
                             {getMediaSubtitle(media)}
                         </p>
                     </div>
@@ -221,9 +221,9 @@ export default function EditMetadataModal({
                 {submitted ? (
                     /* Success */
                     <div className="flex flex-1 flex-col items-center justify-center py-12">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
+                        <div className="bg-success/10 mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                             <svg
-                                className="h-8 w-8 text-emerald-400"
+                                className="text-success-foreground h-8 w-8"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -236,15 +236,15 @@ export default function EditMetadataModal({
                                 />
                             </svg>
                         </div>
-                        <p className="text-lg font-semibold text-white">
+                        <p className="text-foreground-strong text-lg font-semibold">
                             {$vocabulary.EDIT_METADATA_SUCCESS}
                         </p>
-                        <p className="mt-1 text-sm text-neutral-400">
+                        <p className="text-muted-foreground mt-1 text-sm">
                             An admin will review your changes.
                         </p>
                         <button
                             onClick={onClose}
-                            className="mt-6 rounded-lg bg-pink-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-pink-500"
+                            className="bg-primary-hover text-foreground-strong hover:bg-primary mt-6 rounded-lg px-6 py-2 text-sm font-semibold transition"
                         >
                             Close
                         </button>
@@ -254,7 +254,7 @@ export default function EditMetadataModal({
                     <div className="flex-1 space-y-3 overflow-y-auto">
                         {fields.map((field) => (
                             <div key={field.key}>
-                                <label className="mb-1 block text-xs font-medium tracking-wider text-neutral-400 uppercase">
+                                <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
                                     {field.label}
                                 </label>
                                 {field.type === "textarea" ? (
@@ -266,7 +266,7 @@ export default function EditMetadataModal({
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border border-neutral-700 bg-neutral-800 p-3 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                                        className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary w-full rounded-lg border p-3 text-sm transition outline-none focus:ring-1"
                                         rows={4}
                                     />
                                 ) : (
@@ -279,7 +279,7 @@ export default function EditMetadataModal({
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2.5 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                                        className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary w-full rounded-lg border px-3 py-2.5 text-sm transition outline-none focus:ring-1"
                                     />
                                 )}
                             </div>
@@ -294,7 +294,7 @@ export default function EditMetadataModal({
 
                         {/* Comment */}
                         <div>
-                            <label className="mb-1 block text-xs font-medium tracking-wider text-neutral-400 uppercase">
+                            <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
                                 {$vocabulary.EDIT_METADATA_COMMENT}
                             </label>
                             <textarea
@@ -305,7 +305,7 @@ export default function EditMetadataModal({
                                 placeholder={
                                     $vocabulary.EDIT_METADATA_COMMENT_PLACEHOLDER
                                 }
-                                className="w-full rounded-lg border border-neutral-700 bg-neutral-800 p-3 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                                className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary w-full rounded-lg border p-3 text-sm transition outline-none focus:ring-1"
                                 rows={2}
                             />
                         </div>
@@ -313,7 +313,11 @@ export default function EditMetadataModal({
                 )}
 
                 {/* Error */}
-                {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+                {error && (
+                    <p className="text-destructive-soft mt-3 text-sm">
+                        {error}
+                    </p>
+                )}
 
                 {/* Footer */}
                 {!submitted && (
@@ -321,14 +325,14 @@ export default function EditMetadataModal({
                         <button
                             onClick={handleClose}
                             disabled={submitting}
-                            className="rounded-md border border-neutral-600 px-3 py-2 text-sm whitespace-nowrap text-neutral-300 transition hover:border-neutral-400 hover:text-white disabled:opacity-50"
+                            className="border-border-strong text-foreground hover:border-border-strong hover:text-foreground-strong rounded-md border px-3 py-2 text-sm whitespace-nowrap transition disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={submitting}
-                            className="flex items-center gap-1.5 rounded-md bg-pink-600 px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="bg-primary-hover text-foreground-strong hover:bg-primary flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {submitting ? (
                                 <>

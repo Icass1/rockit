@@ -26,10 +26,10 @@ export default function BookmarkTooltip({
         >
             {children}
             <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-80 -translate-x-1/2 opacity-0 transition-opacity group-hover:opacity-100">
-                <div className="rounded-md bg-neutral-800 px-2 py-1 text-xs text-white shadow-lg">
+                <div className="bg-muted text-foreground-strong rounded-md px-2 py-1 text-xs shadow-lg">
                     {text}
                 </div>
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-neutral-800" />
+                <div className="border-t-border-subtle absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" />
             </div>
         </div>
     );

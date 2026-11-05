@@ -16,37 +16,39 @@ export default function DownloadStats({
                 {
                     label: v.DOWNLOADS,
                     value: totals.total,
-                    color: "text-white",
+                    color: "text-foreground-strong",
                 },
                 {
                     label: v.DOWNLOADING,
                     value: totals.active,
-                    color: "text-pink-400",
+                    color: "text-primary-soft",
                 },
                 {
                     label: v.COMPLETED,
                     value: totals.completed,
-                    color: "text-green-400",
+                    color: "text-success-foreground",
                 },
                 {
                     label: v.FAILED,
                     value: totals.failed,
-                    color: "text-red-400",
+                    color: "text-destructive-soft",
                 },
             ].map((stat) => (
                 <div
                     key={stat.label}
-                    className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4"
+                    className="border-border-subtle bg-secondary/50 rounded-lg border p-4"
                 >
                     <p className={`text-2xl font-bold ${stat.color}`}>
                         {stat.value}
                     </p>
-                    <p className="text-xs text-neutral-400">{stat.label}</p>
+                    <p className="text-muted-foreground text-xs">
+                        {stat.label}
+                    </p>
                 </div>
             ))}
             {totals.daily?.length > 0 && (
-                <div className="col-span-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 sm:col-span-4">
-                    <p className="mb-2 text-sm text-neutral-400">
+                <div className="border-border-subtle bg-secondary/50 col-span-2 rounded-lg border p-4 sm:col-span-4">
+                    <p className="text-muted-foreground mb-2 text-sm">
                         {v.DOWNLOADER_ACTIVITY}
                     </p>
                     <Sparkline data={totals.daily} />

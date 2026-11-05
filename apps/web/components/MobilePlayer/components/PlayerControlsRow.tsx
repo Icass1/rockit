@@ -55,7 +55,10 @@ export default function PlayerControlsRow(): JSX.Element {
                 className="flex h-12 w-12 items-center justify-center"
                 aria-label="Anterior"
             >
-                <SkipBack size={24} className="fill-current text-white" />
+                <SkipBack
+                    size={24}
+                    className="text-foreground-strong fill-current"
+                />
             </button>
 
             <button
@@ -65,9 +68,15 @@ export default function PlayerControlsRow(): JSX.Element {
                 aria-label={isPlaying ? "Pausar" : "Reproducir"}
             >
                 {isPlaying ? (
-                    <Pause size={34} className="fill-current text-white" />
+                    <Pause
+                        size={34}
+                        className="text-foreground-strong fill-current"
+                    />
                 ) : (
-                    <Play size={34} className="fill-current text-white" />
+                    <Play
+                        size={34}
+                        className="text-foreground-strong fill-current"
+                    />
                 )}
             </button>
 
@@ -77,7 +86,10 @@ export default function PlayerControlsRow(): JSX.Element {
                 className="flex h-12 w-12 items-center justify-center"
                 aria-label="Siguiente"
             >
-                <SkipForward size={24} className="fill-current text-white" />
+                <SkipForward
+                    size={24}
+                    className="text-foreground-strong fill-current"
+                />
             </button>
 
             <button
@@ -88,7 +100,7 @@ export default function PlayerControlsRow(): JSX.Element {
             >
                 <Repeat size={24} color={repeatColor(repeatMode)} />
                 {repeatMode === ERepeatMode.ONE && (
-                    <span className="absolute -right-0.5 -bottom-1 text-[8px] font-bold text-(--color-rockit-pink)">
+                    <span className="text-primary absolute -right-0.5 -bottom-1 text-[8px] font-bold">
                         1
                     </span>
                 )}

@@ -45,7 +45,7 @@ export default function CrossFadeInput(): JSX.Element {
     };
 
     return (
-        <div className="flex flex-col gap-4 text-sm text-neutral-400">
+        <div className="text-muted-foreground flex flex-col gap-4 text-sm">
             <label
                 htmlFor="adaptive-transitions"
                 className="flex items-center justify-between gap-3"
@@ -68,7 +68,7 @@ export default function CrossFadeInput(): JSX.Element {
                             })
                         )
                     }
-                    className="h-4 w-4 accent-(--color-rockit-pink)"
+                    className="accent-primary h-4 w-4"
                 />
             </label>
             <div className="flex items-center justify-between gap-3">
@@ -97,7 +97,7 @@ export default function CrossFadeInput(): JSX.Element {
                             if (event.key === "Escape") setDuration(null);
                         }}
                         aria-describedby="transition-duration-unit"
-                        className="w-24 rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-white disabled:opacity-50"
+                        className="border-border bg-muted text-foreground-strong w-24 rounded-xl border px-3 py-2 disabled:opacity-50"
                     />
                     <span id="transition-duration-unit">s</span>
                 </div>
@@ -125,10 +125,10 @@ export default function CrossFadeInput(): JSX.Element {
                             })
                         )
                     }
-                    className="h-4 w-4 accent-(--color-rockit-pink)"
+                    className="accent-primary h-4 w-4"
                 />
             </label>
-            <p className="text-xs text-neutral-500">
+            <p className="text-subtle-foreground text-xs">
                 {text(
                     "SETTINGS_TRANSITION_DURATION_HELP",
                     "Choose any duration from 0.1 seconds, for example 5 or 6. Overlap is limited to half of either track. Audio songs only; silence is not skipped. Changes are saved on this device.",

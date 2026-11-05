@@ -93,8 +93,8 @@ export default function ListenTogetherPanel({
         <div className="flex flex-col gap-4">
             {sessions.map((session) => (
                 <div key={session.publicId} className={styles.sessionInvite}>
-                    <Headphones className="text-[#ee1086]" />
-                    <p className="flex-1 text-sm text-white">
+                    <Headphones className="text-primary" />
+                    <p className="text-foreground-strong flex-1 text-sm">
                         {session.hostUsername}
                     </p>
                     <button
@@ -111,7 +111,7 @@ export default function ListenTogetherPanel({
                         onClick={() => {
                             void listenTogetherManager.leave(session.publicId);
                         }}
-                        className="text-sm text-neutral-400"
+                        className="text-muted-foreground text-sm"
                     >
                         {v.FRIENDS_LEAVE}
                     </button>
@@ -133,7 +133,7 @@ export default function ListenTogetherPanel({
             )}
             {!compact && friends.length > 0 && (
                 <>
-                    <p className="text-sm text-neutral-400">
+                    <p className="text-muted-foreground text-sm">
                         {v.FRIENDS_INVITE}
                     </p>
                     <div className={styles.people}>

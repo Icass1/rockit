@@ -15,11 +15,6 @@
         rgb(var(--accent-light)) 30%,
         white 60%
     );
-
-    /* Branding rockit */
-    --rockit-pink: #ee1086;
-    --rockit-pink-mid: #f53a76;
-    --rockit-pink-light: #fb6467;
 }
 
 html,
@@ -34,7 +29,7 @@ body {
      */
     height: 100dvh;
     overflow: hidden;
-    background: #0b0b0b;
+    background: var(--theme-background);
     font-family: system-ui, sans-serif;
 
     /*

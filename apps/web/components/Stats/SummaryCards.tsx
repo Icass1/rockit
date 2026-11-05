@@ -79,13 +79,13 @@ export default function SummaryCards({
     return (
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4 md:gap-x-10 md:gap-y-0">
             <div>
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+                <p className="text-foreground-strong text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
                     <AnimatedNumber
                         value={summary.songsListened}
                         format={formatNumber}
                     />
                 </p>
-                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
+                <p className="text-subtle-foreground mt-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase md:text-xs">
                     {$vocabulary.SONGS_LISTENED}
                 </p>
             </div>
@@ -95,31 +95,31 @@ export default function SummaryCards({
                 onClick={() => setShowMinutes(!showMinutes)}
                 className="cursor-pointer text-left"
             >
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+                <p className="text-foreground-strong text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
                     {minutesDisplay}
                 </p>
-                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
+                <p className="text-subtle-foreground mt-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase md:text-xs">
                     {$vocabulary.MINUTES_LISTEND}
                 </p>
             </button>
 
             <div>
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+                <p className="text-foreground-strong text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
                     {summary.avgMinutesPerSong.toFixed(2)}
                 </p>
-                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
+                <p className="text-subtle-foreground mt-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase md:text-xs">
                     {$vocabulary.AVERAGE_MINUTES_PER_SONG}
                 </p>
             </div>
 
             <div>
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+                <p className="text-foreground-strong text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
                     {summary.currentStreak}
-                    <span className="ml-1 text-2xl text-(--color-rockit-pink) md:text-3xl">
+                    <span className="text-primary ml-1 text-2xl md:text-3xl">
                         d
                     </span>
                 </p>
-                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
+                <p className="text-subtle-foreground mt-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase md:text-xs">
                     {$vocabulary.LEVEL_ABBR}
                 </p>
             </div>

@@ -61,7 +61,7 @@ export default function RecentlyPlayedSong({
                     <span className="mt-2 block truncate text-center font-semibold hover:underline">
                         {$song.name}
                     </span>
-                    <span className="block truncate text-center text-sm text-gray-400">
+                    <span className="text-muted-foreground block truncate text-center text-sm">
                         {$song.artists[0]?.name ?? $vocabulary.UNKNOWN}
                     </span>
                 </div>

@@ -299,7 +299,19 @@ function lifecycleFixture(initial = { username: "first" }) {
     const friends = { starts: 0, stops: 0, active: false };
     const sharing = { starts: 0, stops: 0, active: false };
     const listening = { starts: 0, stops: 0, active: false };
+    const queue = { starts: 0, stops: 0, resets: 0 };
     const services = {
+        queueManager: {
+            async init() {
+                queue.starts++;
+            },
+            stop() {
+                queue.stops++;
+            },
+            reset() {
+                queue.resets++;
+            },
+        },
         listenTogetherManager: {
             start() {
                 listening.starts++;
@@ -379,6 +391,7 @@ function lifecycleFixture(initial = { username: "first" }) {
     };
     return {
         ...fixture,
+        queue,
         startup,
         session,
         services,
@@ -480,10 +493,12 @@ test("account changes replace connections and logout remains disconnected until 
     assert.equal(sockets.length, 1);
     session.set({ username: "third" });
     assert.equal(sockets[0].closeCalls, 1);
+    await flush();
     assert.equal(sockets.length, 2);
     session.set(null);
     assert.equal(sockets[1].closeCalls, 1);
     session.set({ username: "third" });
+    await flush();
     assert.equal(sockets.length, 3);
     lifecycle.stop();
 });
@@ -532,4 +547,49 @@ test("the socket waits for user startup even when the compatibility runtime has 
     assert.equal(f.sockets.length, 1);
     f.lifecycle.stop();
     assert.equal(stops, 2);
+});
+
+test("queue startup gates socket startup and stale account startup cannot reconnect", async () => {
+    const f = lifecycleFixture();
+    const pending = [];
+    f.services.queueManager.init = () => {
+        const read = deferred();
+        pending.push(read);
+        return read.promise;
+    };
+    const first = f.lifecycle.start();
+    f.startup.resolve();
+    await flush();
+    assert.equal(pending.length, 1);
+    assert.equal(f.sockets.length, 0);
+    f.session.set({ username: "second" });
+    await flush();
+    assert.equal(pending.length, 2);
+    assert.equal(f.queue.resets, 1);
+    pending[0].resolve();
+    await first;
+    assert.equal(f.sockets.length, 0);
+    pending[1].resolve();
+    await flush();
+    assert.equal(f.sockets.length, 1);
+    f.session.set({ username: "second", image: "changed" });
+    assert.equal(pending.length, 2);
+    f.session.set(null);
+    assert.equal(f.queue.resets, 2);
+    f.lifecycle.stop();
+});
+
+test("ordinary shell restart retains queue state; account replacement while stopped discards it", async () => {
+    const f = lifecycleFixture();
+    const starting = f.lifecycle.start();
+    f.startup.resolve();
+    await starting;
+    f.lifecycle.stop();
+    await f.lifecycle.start();
+    assert.equal(f.queue.resets, 0);
+    f.lifecycle.stop();
+    f.session.set({ username: "second" });
+    await f.lifecycle.start();
+    assert.equal(f.queue.resets, 1);
+    f.lifecycle.stop();
 });

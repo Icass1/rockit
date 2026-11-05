@@ -74,8 +74,8 @@ export class QueueManager extends BaseQueueManager {
         }
     }
 
-    async refreshAsync(): Promise<void> {
-        await this._refreshQueueAsync();
-        rockIt.webSocketManager.requestPlaybackState();
+    override reset(): void {
+        super.reset();
+        this._readyAtom.set(false);
     }
 }

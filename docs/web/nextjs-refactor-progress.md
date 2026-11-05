@@ -41,6 +41,7 @@ Verify, record and commit each completed refactor step separately.
     - [x] Scope user profile/preferences/language mutations and reset their active settings consumers across account changes.
     - [x] Own web player visibility, autoplay-retry gestures and iOS ended polling in the playback provider.
     - [x] Own shared player socket/visibility synchronization and reject stale acknowledgements across cleanup/account changes.
+    - [x] Own queue subscriptions, cancel autoplay timers and guard stale refresh/page/recommendation work.
     - [ ] Add lifecycle-owned/injected runtime services and migrate consumers.
     - [ ] Verify navigation, Strict Mode, reconnects, queue ownership and account reset.
 - [ ] 5. Home: server initial data, local recommendations, isolated external discovery, small client islands.
@@ -643,38 +644,57 @@ network-offline/service-worker acceptance remain open. This step retains the
 existing full-library endpoint; Library pagination and complete query/runtime
 ownership are still pending.
 
+### Shell-owned queue lifecycle — 5 November 2026
+
+BaseQueueManager now exposes balanced, restartable init/stop/reset methods. The
+mounted connection lifecycle owns queue startup and cleanup and waits for queue
+handlers before opening the socket. Compatibility startup no longer initializes
+the queue. CurrentQueue/CurrentMedia handlers and current-media/playing/repeat
+subscriptions detach from their original collaborators. Ordinary shell restarts
+retain the queue and transport without replaying initial media; logout/account
+replacement clears private queue, current item, pages and recommendations.
+
+Lifecycle/request generations reject stale initialization, refreshes, page loads,
+local/external recommendations, preparation completions and queued timer callbacks.
+An old page completion cannot delete a replacement request at the same offset.
+Paged next/previous/wrap work retains progression and abandons obsolete selections.
+Autoplay debounce and retry timers are cancelled; old finally blocks cannot unlock
+replacement preparation or schedule retries. Server seeds remain reusable across
+Strict Mode restarts without duplicate initial queue requests.
+
+Checks: all 11 new queue regression tests and all 17 connection tests passed;
+server-rendering regressions passed. Web/mobile/shared TypeScript, web lint,
+explicit changed-module/test lint, formatting, production build and production HTTP
+SSR smoke passed. The full web suite passed 209 of 211 tests before the final two
+queue tests were added; both added tests passed separately. The same two baseline
+adaptive-transition failures remain. Existing crane GIF precache warning remains.
+Pinned pnpm used temporary PNPM_HOME/XDG_DATA_HOME paths.
+
+Chromium fixtures passed at 1440×900, 390×844 and 844×390 using the actual runtime,
+playback and queue providers and web/shared queue manager. They verified Strict
+Mode seed reuse, no duplicate initial request, stable navigation, stale page/handler
+rejection, account replacement/logout and balanced listener cleanup with no browser
+errors. HTTP/socket/player targets were fixture adapters. Actual audio, complete
+queue/native-device behavior and full offline/service-worker acceptance remain open.
+
 ## Current work
 
-Resumed on 5 November 2026 at the user's request to prioritize Library first-render
-data after the shared-player synchronization step (`4f4d2ef57`). The Library now
-arrives with its data rendered on the server and no library skeletons or duplicate
-mount requests. No queue migration changes have been started.
+Queue subscription ownership is implemented. The scoped playback/native lifecycle,
+socket, bookmarks, pins, notifications, friends, sharing, listen-together, volume,
+user session/preferences and queue increments are checked. Library initial data
+continues to render on the server without skeletons or mount requests.
 
-The scoped playback/native lifecycle, socket, bookmark, navigation-pin,
-notification, friend, sharing, listen-together, volume and user-session increments
-are implemented and checked. User profile/preferences/language mutations and active
-settings consumers are scoped and guarded. PlaybackProvider owns web browser
-listeners and shared player socket/visibility synchronization. The connection
-lifecycle owns socket startup and bookmark/navigation-pin/notification/friend/
-sharing/listen-together integration; compatibility startup still initializes the
-remaining queue/download/playlist/library managers.
+Next bounded step: guard asynchronous queue actions (collection resolution,
+recommendation selection, list insertion and their offline cache writes) across
+lifecycle/account changes, then cancel outstanding player source-loading work.
+Compatibility startup still initializes download/playlist/library managers. Finish
+those lifecycles and complete account reset before claiming runtime migration done.
 
-Resume with queue subscription ownership in BaseQueueManager: balance the
-CurrentQueue/CurrentMedia handlers and current-media/playing/repeat subscriptions,
-cancel autoplay timers, and guard stale queue refresh/page work while preserving
-the server-seeded queue, pagination and progression. Then address remaining
-source-loading work, downloads, playlists, library and complete account reset.
-
-Latest Library checks: web typecheck/lint, changed-module lint, formatting,
-production build and production HTTP SSR smoke passed. The full web suite passed
-198 of 200 tests with the two documented baseline adaptive-transition failures.
-Chromium Library checks passed at all three viewport sizes. The preceding
-shared-player step also passed web/mobile/shared typechecks and lifecycle fixtures.
-Real audio/queue progression, native iOS/Android devices, complete application
-navigation/account reset and offline acceptance remain pending. Full application
-popup/language verification and Library pagination/query stages also remain open.
-Parent stages stay unchecked until their complete acceptance gates pass; the
-entire refactor is not complete.
+Latest checks: workspace TypeScript, web lint, production build/SSR smoke and
+Chromium queue fixtures passed. Two baseline adaptive-transition tests still fail.
+Actual audio, native devices, full navigation/account isolation and offline worker
+acceptance remain pending. Parent stages stay unchecked until all acceptance gates
+pass; the entire refactor is not complete.
 
 ## Verification log
 

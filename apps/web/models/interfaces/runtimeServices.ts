@@ -3,6 +3,7 @@ import type { FriendManager } from "@/lib/managers/friendManager";
 import type { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
 import type { NavigationPinsManager } from "@/lib/managers/navigationPinsManager";
 import type { NotificationManager } from "@/lib/managers/notificationManager";
+import type { QueueManager } from "@/lib/managers/queueManager";
 import type { SharingManager } from "@/lib/managers/sharingManager";
 import type { UserManager } from "@/lib/managers/userManager";
 import type { WebSocketManager } from "@/lib/managers/webSocketManger";
@@ -10,6 +11,7 @@ import type { WebSocketManager } from "@/lib/managers/webSocketManger";
 /** Stable runtime references used by the mounted application shell. */
 export interface RuntimeServices {
     init(): Promise<void>;
+    queueManager: Pick<QueueManager, "init" | "stop" | "reset">;
     friendManager: FriendManager;
     sharingManager: SharingManager;
     listenTogetherManager: ListenTogetherManager;

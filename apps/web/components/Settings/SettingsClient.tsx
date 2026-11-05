@@ -16,6 +16,7 @@ import ListeningHistorySetting from "@/components/Settings/ListeningHistorySetti
 import LogOutButton from "@/components/Settings/LogOutButton";
 import NotificationSettings from "@/components/Settings/NotificationSettings";
 import ProfileImageInput from "@/components/Settings/ProfileImageInput";
+import ThemeSetting from "@/components/Settings/ThemeSetting";
 
 function SettingsSection({
     title,
@@ -52,14 +53,14 @@ function ProfileSidebar(): JSX.Element {
                 <LogOutButton />
                 <Link
                     href="/stats"
-                    className="bg-muted text-foreground-strong hover:bg-info-hover flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors md:hidden"
+                    className="bg-muted text-foreground-strong hover:bg-info-hover hover:text-primary-foreground flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors md:hidden"
                 >
                     <ChartLine className="h-4 w-4" />
                     Stats
                 </Link>
                 <Link
                     href="/downloader"
-                    className="bg-muted text-foreground-strong hover:bg-info-hover flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors md:hidden"
+                    className="bg-muted text-foreground-strong hover:bg-info-hover hover:text-primary-foreground flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors md:hidden"
                 >
                     <Download className="h-4 w-4" />
                     Downloads
@@ -155,6 +156,10 @@ function SettingsContent(): JSX.Element {
                 <div className="flex min-w-0 flex-1 flex-col gap-4">
                     <SettingsSection title={$vocabulary.DISPLAY_NAME}>
                         <DisplayNameInput vocabulary={$vocabulary} />
+                    </SettingsSection>
+
+                    <SettingsSection title={$vocabulary.SETTINGS_THEME}>
+                        <ThemeSetting />
                     </SettingsSection>
 
                     <SettingsSection title={$vocabulary.LANGUAGE}>

@@ -937,4 +937,11 @@ export interface Vocabulary {
     WEB_ERROR_UNAVAILABLE_DESCRIPTION: string;
     WEB_OFFLINE_DESCRIPTION: string;
     WEB_OFFLINE_NO_SESSION: string;
+    SETTINGS_THEME: string;
+    SETTINGS_THEME_DESCRIPTION: string;
+    SETTINGS_THEME_DARK: string;
+    SETTINGS_THEME_LIGHT: string;
+    SETTINGS_THEME_SYSTEM: string;
+    SETTINGS_THEME_SAVING: string;
+    SETTINGS_THEME_SAVED: string;
 }

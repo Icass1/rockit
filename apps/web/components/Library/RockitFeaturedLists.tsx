@@ -58,7 +58,7 @@ export default function RockitFeaturedLists(): JSX.Element {
                                 style={{ backgroundImage: `url(${image})` }}
                             >
                                 {key === "year-recap" ? (
-                                    <span className="text-foreground-strong absolute inset-0 flex items-center justify-center text-3xl font-black tracking-tight">
+                                    <span className="text-on-media absolute inset-0 flex items-center justify-center text-3xl font-black tracking-tight">
                                         {year}
                                     </span>
                                 ) : (

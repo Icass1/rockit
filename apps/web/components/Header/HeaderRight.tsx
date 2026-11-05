@@ -50,7 +50,7 @@ export default function HeaderRight(): JSX.Element {
                     <Bell className="h-6 w-6" />
                     {notificationCount > 0 && (
                         <span
-                            className="bg-destructive-hover text-foreground-strong absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[11px] font-bold"
+                            className="bg-destructive-hover text-primary-foreground absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[11px] font-bold"
                             aria-hidden
                         >
                             {notificationCount > 9 ? "9+" : notificationCount}

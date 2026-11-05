@@ -491,7 +491,7 @@ export default function RadioMap({
                                             type="button"
                                             aria-label={`${vocabulary.PLAY}: ${station.name}`}
                                             title={vocabulary.PLAY}
-                                            className="bg-primary text-foreground-strong hover:bg-primary-hover flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
+                                            className="bg-primary text-primary-foreground hover:bg-primary-hover hover:text-primary-foreground flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
                                             onClick={(): void => {
                                                 void rockIt.stationManager.setAndPlayStation(
                                                     station

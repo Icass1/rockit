@@ -57,7 +57,7 @@ function LibrarySelectionBar(): JSX.Element {
             onClick={(): void => {
                 void downloadSelection();
             }}
-            className="bg-primary text-foreground-strong flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold disabled:cursor-wait disabled:opacity-50"
+            className="bg-primary text-primary-foreground flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold disabled:cursor-wait disabled:opacity-50"
         >
             {downloading ? (
                 <LoaderCircle className="h-4 w-4 animate-spin" />

@@ -37,7 +37,7 @@ export default function SharedMediaInbox(): JSX.Element {
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
                         (view === "inbox"
-                            ? "bg-primary text-foreground-strong"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-secondary text-muted-foreground hover:text-foreground-strong")
                     }
                 >
@@ -58,7 +58,7 @@ export default function SharedMediaInbox(): JSX.Element {
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
                         (view === "sent"
-                            ? "bg-primary text-foreground-strong"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-secondary text-muted-foreground hover:text-foreground-strong")
                     }
                 >

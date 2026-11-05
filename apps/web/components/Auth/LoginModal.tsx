@@ -56,7 +56,7 @@ export default function LoginModal(): JSX.Element {
                     width={1024}
                     height={307}
                     src="/logo-banner.png"
-                    className="w-1/2"
+                    className="brand-image w-1/2"
                     alt="RockIt!"
                     priority
                 />

@@ -1,14 +1,13 @@
 "use client";
 
 import { JSX, useEffect, useState } from "react";
-import { useStore } from "@nanostores/react";
 import { CloudOff, Wifi } from "lucide-react";
-import { networkStatus } from "@/lib/stores/networkStatus";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadAppButton(): JSX.Element {
     const $vocabulary = useVocabulary();
-    const $network = useStore(networkStatus);
+    const $network = useNetworkStatus();
     const [swReady, setSwReady] = useState(false);
 
     useEffect(() => {

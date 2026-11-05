@@ -244,7 +244,7 @@ export default function EditMetadataModal({
                         </p>
                         <button
                             onClick={onClose}
-                            className="bg-primary-hover text-foreground-strong hover:bg-primary mt-6 rounded-lg px-6 py-2 text-sm font-semibold transition"
+                            className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground mt-6 rounded-lg px-6 py-2 text-sm font-semibold transition"
                         >
                             Close
                         </button>
@@ -332,7 +332,7 @@ export default function EditMetadataModal({
                         <button
                             onClick={handleSubmit}
                             disabled={submitting}
-                            className="bg-primary-hover text-foreground-strong hover:bg-primary flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition disabled:cursor-not-allowed disabled:opacity-40"
+                            className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {submitting ? (
                                 <>

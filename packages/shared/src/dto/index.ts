@@ -793,6 +793,10 @@ export {
     type UpdatePlaylistRequest,
 } from "./updatePlaylistRequest";
 export {
+    UpdateThemeRequestSchema,
+    type UpdateThemeRequest,
+} from "./updateThemeRequest";
+export {
     UpdateTimestampItemSchema,
     type UpdateTimestampItem,
 } from "./updateTimestampItem";
@@ -913,3 +917,4 @@ export {
 } from "./notificationEventKey";
 export { StrictBoolSchema, type StrictBool } from "./strictBool";
 export { StrictIntSchema, type StrictInt } from "./strictInt";
+export { ThemePreferenceSchema, type ThemePreference } from "./themePreference";

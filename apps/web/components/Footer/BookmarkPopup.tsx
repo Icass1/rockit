@@ -152,7 +152,7 @@ function BookmarkEditForm({
                     )}
                     <button
                         onClick={handleSave}
-                        className="ignore-click-player-ui bg-primary text-foreground-strong hover:bg-brand-light rounded px-2 py-0.5 text-[11px] font-medium transition-colors"
+                        className="ignore-click-player-ui bg-primary text-primary-foreground hover:bg-brand-light rounded px-2 py-0.5 text-[11px] font-medium transition-colors"
                     >
                         {$vocabulary.SAVE}
                     </button>

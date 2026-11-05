@@ -93,13 +93,13 @@ function BentoCard({
                 <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between p-3">
                     <div className="min-w-0 flex-1">
                         <span
-                            className={`text-foreground-strong block truncate font-bold ${
+                            className={`text-on-media block truncate font-bold ${
                                 size === "lg" ? "text-[17px]" : "text-[13px]"
                             }`}
                         >
                             {song.name}
                         </span>
-                        <span className="text-foreground-strong/60 mt-0.5 block truncate text-xs">
+                        <span className="text-on-media/60 mt-0.5 block truncate text-xs">
                             {song.artists[0]?.name}
                         </span>
                     </div>
@@ -163,7 +163,7 @@ export default function BentoSection({
                 aria-hidden="true"
             />
 
-            <h2 className="text-foreground-strong relative z-10 mb-3.5 text-[clamp(18px,2.2cqw,26px)] font-extrabold">
+            <h2 className="text-on-media relative z-10 mb-3.5 text-[clamp(18px,2.2cqw,26px)] font-extrabold">
                 {title}
             </h2>
 

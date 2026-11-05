@@ -16,6 +16,7 @@ export interface UserSessionServices {
         | "updateDownloadSettings"
         | "updateListeningHeatmap"
         | "updateLang"
+        | "updateTheme"
     >;
     webSocketManager: Pick<
         WebSocketManager,
@@ -40,7 +41,10 @@ export interface UserSessionServices {
 }
 
 export type UserPreferenceMutation =
-    "profile" | "download" | "heatmap" | "language";
+    "profile" | "download" | "heatmap" | "language" | "theme";
 export type UserSessionPatch = Partial<
-    Pick<SessionResponse, "image" | "autoAddToLibrary" | "showListeningHeatmap">
+    Pick<
+        SessionResponse,
+        "image" | "autoAddToLibrary" | "showListeningHeatmap" | "theme"
+    >
 >;

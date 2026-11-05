@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DOUBLE_PRECISION, Boolean, ForeignKey, Integer, String
+from sqlalchemy import DOUBLE_PRECISION, Boolean, CheckConstraint, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.access.db.base import CoreBase
@@ -10,6 +10,7 @@ from core.access.db.ormModels.declarativeMixin import (
     TableDateUpdated,
     TablePublicId,
 )
+from core.models.themePreference import ThemePreference
 
 if TYPE_CHECKING:
     from core.access.db.ormEnums.queueTypeEnum import QueueTypeEnumRow
@@ -25,10 +26,17 @@ if TYPE_CHECKING:
 
 class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
     __tablename__ = "user"
-    __table_args__ = ({"schema": "core", "extend_existing": True},)
+    __table_args__ = (
+        CheckConstraint("theme IN ('dark', 'light', 'system')", name="user_theme_check"),
+        {"schema": "core", "extend_existing": True},
+    )
 
     auto_add_downloads_to_library: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
+    )
+
+    theme: Mapped[ThemePreference] = mapped_column(
+        String(16), nullable=False, default="dark", server_default="dark"
     )
 
     username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -86,6 +94,7 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
         image_id: int,
         public_id: str | None = None,
         auto_add_downloads_to_library: bool = False,
+        theme: ThemePreference = "dark",
         password_hash: str | None = None,
         provider: str | None = None,
         provider_account_id: str | None = None,
@@ -102,12 +111,13 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
         super_admin: bool = False,
         id: int | None = None,
     ) -> None:
-        kwargs: dict[str, None | bool | float | int | str] = {}
+        kwargs: dict[str, None | ThemePreference | bool | float | int | str] = {}
         kwargs["username"] = username
         kwargs["image_id"] = image_id
         if public_id is not None:
             kwargs["public_id"] = public_id
         kwargs["auto_add_downloads_to_library"] = auto_add_downloads_to_library
+        kwargs["theme"] = theme
         kwargs["password_hash"] = password_hash
         kwargs["provider"] = provider
         kwargs["provider_account_id"] = provider_account_id

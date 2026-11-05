@@ -942,7 +942,7 @@ export default function UploadModal({
                             }}
                             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                                 uploadType === key
-                                    ? "bg-primary-hover text-foreground-strong"
+                                    ? "bg-primary-hover text-primary-foreground"
                                     : "bg-muted text-muted-foreground hover:text-foreground-strong"
                             }`}
                         >
@@ -1012,7 +1012,7 @@ export default function UploadModal({
                                 (uploadType === "album" && !canSubmitAlbum) ||
                                 (uploadType === "video" && !canSubmitVideo)
                             }
-                            className="bg-primary-hover text-foreground-strong hover:bg-primary rounded-md px-3 py-2 text-sm font-semibold whitespace-nowrap transition disabled:cursor-not-allowed disabled:opacity-40"
+                            className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground rounded-md px-3 py-2 text-sm font-semibold whitespace-nowrap transition disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {uploading
                                 ? $vocabulary.UPLOAD_IN_PROGRESS

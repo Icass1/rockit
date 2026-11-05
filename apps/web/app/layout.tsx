@@ -1,4 +1,6 @@
+import { getRequestTheme } from "@/lib/server/theme";
 import { getRequestVocabulary } from "@/lib/server/vocabulary";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { VocabularyProvider } from "@/components/providers/VocabularyProvider";
 import "@/styles/globals.css";
 import { JSX } from "react";
@@ -58,7 +60,10 @@ export const viewport: Viewport = {
 export default async function RootLayout({
     children,
 }: Readonly<{ children: React.ReactNode }>): Promise<JSX.Element> {
-    const vocabulary = await getRequestVocabulary();
+    const [vocabulary, theme] = await Promise.all([
+        getRequestVocabulary(),
+        getRequestTheme(),
+    ]);
     const isDev = process.env.NODE_ENV === "development";
 
     const content = (
@@ -69,19 +74,21 @@ export default async function RootLayout({
     );
 
     return (
-        <html lang={vocabulary.currentLang}>
+        <html lang={vocabulary.currentLang} data-theme={theme}>
             <head>
                 <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
             </head>
             <body className="antialiased">
                 <VocabularyProvider initial={vocabulary}>
-                    {isDev ? (
-                        content
-                    ) : (
-                        <SerwistProvider swUrl="/serwist/sw.js">
-                            {content}
-                        </SerwistProvider>
-                    )}
+                    <ThemeProvider initial={theme}>
+                        {isDev ? (
+                            content
+                        ) : (
+                            <SerwistProvider swUrl="/serwist/sw.js">
+                                {content}
+                            </SerwistProvider>
+                        )}
+                    </ThemeProvider>
                 </VocabularyProvider>
             </body>
         </html>

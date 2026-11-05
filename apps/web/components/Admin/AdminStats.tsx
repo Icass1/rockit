@@ -142,7 +142,7 @@ export default function AdminStats(): JSX.Element {
                 </p>
                 <button
                     onClick={(): void => window.location.reload()}
-                    className="bg-primary text-foreground-strong hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
+                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
                 >
                     {$vocabulary.RETRY}
                 </button>

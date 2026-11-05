@@ -31,7 +31,7 @@ function EmptyState(): JSX.Element {
                     alt=""
                     fill
                     priority
-                    className="object-contain"
+                    className="brand-image object-contain"
                     sizes="144px"
                 />
             </div>

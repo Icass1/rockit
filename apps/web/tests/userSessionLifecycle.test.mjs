@@ -42,6 +42,7 @@ const flush = async () => {
 };
 const session = (username = "first", overrides = {}) => ({
     username,
+    theme: "dark",
     queueType: "SORTED",
     repeatMode: "OFF",
     image: "image",
@@ -409,6 +410,7 @@ const mutations = [
     ["setDownloadAutoAddToLibraryAsync", true],
     ["setListeningHeatmapAsync", true],
     ["setLangAsync", "es"],
+    ["setThemeAsync", "light"],
 ];
 async function replaceSession(f, username) {
     const refresh = f.manager.updateAsync();
@@ -633,5 +635,37 @@ test("settings cache completion cannot report success in a replacement account",
     await flush();
     assert.equal(f.manager.sessionAtom.get().username, "replacement");
     assert.equal(f.manager.sessionAtom.get().showListeningHeatmap, false);
+    f.manager.stop();
+});
+
+test("theme saves persist the current session/cache and failed saves retain the previous choice", async () => {
+    const f = setup();
+    await f.manager.start();
+    const saved = f.manager.setThemeAsync("light");
+    assert.equal(f.requests[0].name, "updateTheme");
+    assert.equal(f.requests[0].args[0].theme, "light");
+    f.requests[0].resolve(ok());
+    assert.equal(await saved, true);
+    assert.equal(f.manager.sessionAtom.get().theme, "light");
+    assert.equal(f.getCached().theme, "light");
+    const failed = f.manager.setThemeAsync("system");
+    f.requests[1].resolve(fail());
+    assert.equal(await failed, false);
+    assert.equal(f.manager.sessionAtom.get().theme, "light");
+    assert.equal(f.getCached().theme, "light");
+    f.manager.stop();
+});
+
+test("the latest theme save wins even when an earlier response arrives last", async () => {
+    const f = setup();
+    await f.manager.start();
+    const old = f.manager.setThemeAsync("light"),
+        current = f.manager.setThemeAsync("system");
+    f.requests[1].resolve(ok());
+    assert.equal(await current, true);
+    f.requests[0].resolve(ok());
+    assert.equal(await old, false);
+    assert.equal(f.manager.sessionAtom.get().theme, "system");
+    assert.equal(f.getCached().theme, "system");
     f.manager.stop();
 });

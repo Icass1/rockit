@@ -813,22 +813,48 @@ Chromium Library/theme checks passed at all three viewport sizes; phone renderin
 was inspected. The existing precache warning remains. Broader feature-by-feature
 visual/native/PiP interaction acceptance remains open.
 
+### Persisted account theme and Settings selector — 5 November 2026
+
+Added a validated Dark/Light/System preference to the user row, migration, authenticated
+user endpoint and session/settings responses. Existing accounts default to Dark.
+Regenerated the shared DTOs/HTTP boundary and vocabulary artifacts from the backend
+models and translated workbook entries. The Settings selector saves through the
+scoped user manager, updates the session/offline snapshot only after success, and
+retains the previous choice on failure or obsolete completions.
+
+The root layout resolves the authenticated preference before rendering. A scoped
+ThemeProvider carries that preference into browser navigation and a fallback cookie;
+account session data remains authoritative. Central light palette overrides and a
+CSS system-color preference support OS changes without client rendering gates.
+Adjusted shell, artwork overlays, buttons, logos and PiP theme propagation for both
+palettes. Browser acceptance uncovered a Settings network-indicator hydration mismatch;
+a shared network hook now preserves the server snapshot through hydration.
+
+Checks: all 250 web tests passed, along with workspace web/mobile/shared types, web
+and changed-module lint, formatting, production build and HTTP SSR smoke (including
+Light/System first-render markup). Backend checks passed: 591 tests and 37 subtests,
+Ruff format/check and Pyright. The backend suite excludes listening_rewards as directed
+by the application guide; dedicated PostgreSQL persistence checks were not run.
+Production Chromium Settings checks passed at 1440×900, 390×844 and 844×390 without
+browser/hydration errors, covering saved reloads, failed saves, OS color changes,
+offline session-cache updates and account preference isolation. Desktop/phone light
+screenshots were inspected. Existing crane GIF precache warning remains.
+
 ## Current work
 
-The theme refactor is prioritized at the user's request. The semantic utility and component color-literal
-migrations are checked. Next: add Dark/Light/System themes with a preference persisted in the user table
-and a localized Settings selector. Preserve account isolation, first-render theme,
-system-color changes and offline session restoration. Each step needs the complete
-web suite passing and a separate commit.
+Stopped after the persisted theme Settings step at the user's explicit request.
+Semantic utilities, component color consolidation and saved Dark/Light/System themes
+are implemented and checked. No next migration step has started.
 
 Runtime work through queue actions and web/shared source lifecycle is implemented.
 Download/playlist/library manager ownership and full account reset remain deferred.
 Library still renders initial server data without skeletons/mount requests.
 
-Latest checks: all 248 web tests pass; web types/lint, production build/SSR and
-Chromium Library/theme checks pass at all three viewport sizes. Actual media,
-native devices and complete offline/service-worker acceptance remain open.
-Parent stages remain unchecked until their complete acceptance gates pass.
+Latest checks: all 250 web tests and the standard backend suite pass; workspace types,
+lint, production build/SSR and Chromium Settings checks pass at all three viewport
+sizes. Actual media, native devices, dedicated PostgreSQL persistence and complete
+offline/service-worker acceptance remain open. Parent stages remain unchecked until
+their complete acceptance gates pass.
 
 ## Verification log
 

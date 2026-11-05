@@ -110,7 +110,7 @@ export default function Navigation(): JSX.Element {
                 if ((event.target as Element).closest("a")) setOpen(true);
             }}
             className={
-                "bg-backdrop/50 mx-auto h-full max-h-full min-h-0 overflow-hidden pt-4 pb-4 transition-[width] duration-200 select-none motion-reduce:transition-none" +
+                "bg-background/80 mx-auto h-full max-h-full min-h-0 overflow-hidden pt-4 pb-4 transition-[width] duration-200 select-none motion-reduce:transition-none" +
                 (open ? " w-56" : " w-12")
             }
             onMouseEnter={handleMouseEnter}

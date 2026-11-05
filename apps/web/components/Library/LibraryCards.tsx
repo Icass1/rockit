@@ -173,11 +173,11 @@ function LibraryCard({
                 />
             )}
             <div className="absolute top-1 left-1 flex gap-1">
-                <span className="bg-backdrop/60 text-foreground-strong rounded px-1 text-[10px] leading-4 font-semibold">
+                <span className="bg-backdrop/60 text-on-media rounded px-1 text-[10px] leading-4 font-semibold">
                     {$vocabulary[badge].toUpperCase()}
                 </span>
                 {undownloadedCount !== undefined && undownloadedCount > 0 && (
-                    <span className="bg-backdrop/60 text-foreground-strong flex items-center gap-0.5 rounded px-1 text-[10px] leading-4">
+                    <span className="bg-backdrop/60 text-on-media flex items-center gap-0.5 rounded px-1 text-[10px] leading-4">
                         ↓{undownloadedCount}
                     </span>
                 )}

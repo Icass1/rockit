@@ -120,13 +120,13 @@ function CoverflowCardComponent({
             {isCenter && (
                 <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between px-4 pb-4">
                     <div className="min-w-0 flex-1">
-                        <span className="text-foreground-strong/60 block text-[10px] font-semibold tracking-wider uppercase">
+                        <span className="text-on-media/60 block text-[10px] font-semibold tracking-wider uppercase">
                             {card.eyebrow}
                         </span>
-                        <span className="text-foreground-strong mt-0.5 block max-w-40 truncate text-sm font-bold">
+                        <span className="text-on-media mt-0.5 block max-w-40 truncate text-sm font-bold">
                             {song.name}
                         </span>
-                        <span className="text-foreground-strong/55 mt-0.5 block max-w-35 truncate text-xs">
+                        <span className="text-on-media/55 mt-0.5 block max-w-35 truncate text-xs">
                             {song.artists[0]?.name}
                         </span>
                     </div>
@@ -318,11 +318,11 @@ export default function HomeHeroCoverflow({
     return (
         <section className="cf-section relative">
             <div className="relative z-10 px-[6%] pt-7 pb-0">
-                <h1 className="text-foreground-strong text-[clamp(20px,3.4cqw,40px)] leading-tight font-extrabold">
+                <h1 className="text-on-media text-[clamp(20px,3.4cqw,40px)] leading-tight font-extrabold">
                     {greetingName}
                 </h1>
                 {subtitle && (
-                    <p className="text-foreground-strong/50 mt-1.5 text-[13px]">
+                    <p className="text-on-media/50 mt-1.5 text-[13px]">
                         {subtitle}
                     </p>
                 )}

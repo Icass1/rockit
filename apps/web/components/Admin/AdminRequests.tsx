@@ -180,7 +180,7 @@ export default function AdminRequests(): JSX.Element {
                 </p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="bg-primary text-foreground-strong hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
+                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
                 >
                     Retry
                 </button>
@@ -202,7 +202,7 @@ export default function AdminRequests(): JSX.Element {
                 <p className="text-destructive-soft">{error}</p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="bg-primary text-foreground-strong hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
+                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
                 >
                     Retry
                 </button>
@@ -246,7 +246,7 @@ export default function AdminRequests(): JSX.Element {
                         onClick={() => setFilter(f.id)}
                         className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                             filter === f.id
-                                ? "bg-primary text-foreground-strong"
+                                ? "bg-primary text-primary-foreground"
                                 : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground-strong"
                         }`}
                     >

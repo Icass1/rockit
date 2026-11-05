@@ -213,7 +213,7 @@ function DownloadCoverCard({
 
                         {isCompleted && (
                             <>
-                                <div className="bg-success text-foreground-strong absolute top-1.5 right-1.5 rounded-full p-1">
+                                <div className="bg-success text-primary-foreground absolute top-1.5 right-1.5 rounded-full p-1">
                                     <Check size={12} />
                                 </div>
                                 <div className="bg-backdrop/0 group-hover:bg-backdrop/40 absolute inset-0 flex items-center justify-center opacity-0 transition-all group-hover:opacity-100">

@@ -153,7 +153,7 @@ export default function NewPlaylistButton({
                                 {$vocabulary.CANCEL}
                             </button>
                             <button
-                                className="bg-success-hover text-foreground-strong hover:bg-success rounded-md px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+                                className="bg-success-hover text-primary-foreground hover:bg-success rounded-md px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                                 onClick={handleCreate}
                                 disabled={loading || !name.trim()}
                             >

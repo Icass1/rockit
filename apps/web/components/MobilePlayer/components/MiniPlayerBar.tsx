@@ -25,7 +25,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
 
     return (
         <div
-            className="bg-backdrop/80 fixed inset-x-0 z-40 h-14 shadow-lg"
+            className="bg-secondary/95 fixed inset-x-0 z-40 h-14 shadow-lg"
             style={{
                 height: MINI_PLAYER_HEIGHT,
                 bottom: "calc(56px + env(safe-area-inset-bottom, 0px) + 12px)",

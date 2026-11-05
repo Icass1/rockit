@@ -57,7 +57,7 @@ export default function RegisterModal(): JSX.Element {
                 width={2028}
                 height={614}
                 src="/logo-banner.png"
-                className="mx-auto w-1/3"
+                className="brand-image mx-auto w-1/3"
                 alt="RockIt!"
                 priority
             />

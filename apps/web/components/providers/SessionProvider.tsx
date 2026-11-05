@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import type { SessionResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 const SessionContext = createContext<SessionResponse | undefined>(undefined);
 
@@ -23,6 +24,15 @@ export function SessionProvider({
 }): JSX.Element {
     const router = useRouter();
     const { userManager } = usePlaybackServices();
+    const { applyPreference } = useTheme();
+    useEffect(
+        () =>
+            userManager.sessionAtom.subscribe((session) => {
+                if (session !== undefined)
+                    applyPreference(session?.theme ?? "dark");
+            }),
+        [applyPreference, userManager]
+    );
     useEffect(
         () =>
             userManager.sessionAtom.listen((session) => {

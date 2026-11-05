@@ -146,6 +146,20 @@ try {
     assert.match(loginHtml, /id="login-username"/);
     assert.match(loginHtml, /id="login-password"/);
     assert.doesNotMatch(loginHtml, />LOG_IN<|>USERNAME<|>PASSWORD</);
+    for (const theme of ["light", "system"]) {
+        const themed = await fetch(`http://127.0.0.1:${frontend}/settings`, {
+            headers: { cookie: `session_id=fixture-${theme}` },
+            signal: AbortSignal.timeout(15000),
+        });
+        assert.equal(themed.status, 200);
+        const markup = await themed.text();
+        assert.match(markup, new RegExp(`data-theme="${theme}"`));
+        assert.match(markup, /id="theme-select"/);
+        assert.match(
+            markup,
+            new RegExp(`<option[^>]*value="${theme}"[^>]*selected`)
+        );
+    }
     console.log(
         JSON.stringify(
             {

@@ -1,19 +1,19 @@
 export const PIP_STYLES = `
 html.rockit-pip-document, .rockit-pip-document body {
     margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-    color-scheme: dark; background: var(--theme-surface); color: var(--theme-foreground-strong);
+    background: var(--theme-surface); color: var(--theme-foreground-strong);
     font-family: system-ui, -apple-system, sans-serif;
 }
 .rockit-pip-document .pip-root, .rockit-pip-document .pip-root * { box-sizing: border-box; }
 .rockit-pip-document .pip-root {
     --pip-cover-color: var(--theme-media-accent);
-    --pip-accent: color-mix(in srgb, var(--pip-cover-color) 40%, var(--theme-on-media));
+    --pip-accent: color-mix(in srgb, var(--pip-cover-color) 40%, var(--theme-foreground-strong));
     --pip-hover: color-mix(in srgb, var(--pip-accent) 16%, transparent);
     position: fixed; inset: 0; display: grid; grid-template-columns: minmax(0,1fr);
     grid-template-rows: minmax(0,1fr) auto; gap: 10px; padding: 10px;
     width: 100%; height: 100dvh; min-width: 0; min-height: 0; overflow: hidden;
     background: radial-gradient(ellipse at top, color-mix(in srgb, var(--pip-cover-color) 30%, var(--theme-surface)), var(--theme-surface) 85%);
-    color: var(--theme-on-media); font: 14px/1.3 system-ui, -apple-system, sans-serif; isolation: isolate;
+    color: var(--theme-foreground); font: 14px/1.3 system-ui, -apple-system, sans-serif; isolation: isolate;
 }
 .rockit-pip-document .pip-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: grid; }
 .rockit-pip-document .pip-cover {
@@ -85,6 +85,7 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-layout--cover-only { padding: 0; gap: 0; grid-template-rows: minmax(0,1fr); }
 .rockit-pip-document .pip-layout--cover-only .pip-cover { border-radius: 10px; }
 .rockit-pip-document .pip-layout--cover-only .pip-panel {
+    color: var(--theme-on-media);
     position: absolute; z-index: 3; bottom: 0; left: 0; right: 0; padding: 24px 8px 8px; gap: 4px;
     background: linear-gradient(transparent,color-mix(in srgb, var(--theme-backdrop) 86.67%, transparent) 35%); opacity: 0; pointer-events: none; transition: opacity .15s;
 }
@@ -132,5 +133,6 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-layout--cover-only.pip-has-lyrics .pip-info-song-name,
 .rockit-pip-document .pip-layout--cover-only.pip-has-lyrics .pip-info-artist-name { display: none; }
 .rockit-pip-document .pip-layout--cover-only .pip-panel .pip-lyric-glance { display: block; }
+.rockit-pip-document .pip-layout--cover-only .pip-time-label, .rockit-pip-document .pip-layout--cover-only .pip-info-artist-name { color: var(--theme-on-media-muted); }
 @media (prefers-reduced-motion: reduce) { .rockit-pip-document .pip-root * { transition: none !important; } }
 `;

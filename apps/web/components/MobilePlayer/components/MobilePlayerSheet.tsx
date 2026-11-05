@@ -61,7 +61,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                         }}
                     />
                 )}
-                <div className="bg-backdrop/90 absolute inset-0" />
+                <div className="bg-background/95 absolute inset-0" />
             </div>
 
             {/* Top bar */}
@@ -78,7 +78,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                 <img
                     src="/logo-banner.png"
                     alt="rockit"
-                    className="h-14 object-contain"
+                    className="brand-image h-14 object-contain"
                 />
                 <div className="w-11" />
             </div>

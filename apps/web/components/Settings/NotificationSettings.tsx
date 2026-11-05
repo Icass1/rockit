@@ -147,7 +147,7 @@ export default function NotificationSettings(): JSX.Element {
                     type="button"
                     disabled={loading || saving || !hasChanges}
                     onClick={() => void save()}
-                    className="bg-primary text-foreground-strong hover:bg-brand-mid rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+                    className="bg-primary text-primary-foreground hover:bg-brand-mid rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {saving ? "Saving..." : vocabulary.NOTIFICATIONS_SAVE}
                 </button>

@@ -46,7 +46,7 @@ export default function DownloadInputBar({
                     <button
                         type="submit"
                         disabled={isDownloading}
-                        className="bg-primary text-foreground-strong hover:bg-primary/90 absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md border border-transparent px-2.5 text-xs font-medium disabled:opacity-50"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md border border-transparent px-2.5 text-xs font-medium disabled:opacity-50"
                     >
                         {isDownloading ? (
                             <svg

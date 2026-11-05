@@ -1,16 +1,15 @@
 "use client";
 
 import { JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { LogOut } from "lucide-react";
-import { networkStatus } from "@/lib/stores/networkStatus";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function LogOutButton(): JSX.Element {
     const { userManager } = useRuntimeServices();
     const $vocabulary = useVocabulary();
-    const $networkStatus = useStore(networkStatus);
+    const $networkStatus = useNetworkStatus();
 
     return (
         <button

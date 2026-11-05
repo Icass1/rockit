@@ -51,7 +51,7 @@ export default function AppClientLayout({
                         />
 
                         {/* Mobile Header - only visible on small screens */}
-                        <div className="from-backdrop to-backdrop/0 fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-linear-to-b md:hidden">
+                        <div className="from-background to-background/0 fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-linear-to-b md:hidden">
                             <Link
                                 href="/"
                                 className="text-foreground-strong text-2xl font-bold"
@@ -59,7 +59,7 @@ export default function AppClientLayout({
                                 <Image
                                     src="/logo-banner.png"
                                     alt="App Logo"
-                                    className="mx-auto my-2 aspect-2048/614 h-14 object-contain"
+                                    className="brand-image mx-auto my-2 aspect-2048/614 h-14 object-contain"
                                     width={2048}
                                     height={614}
                                     priority

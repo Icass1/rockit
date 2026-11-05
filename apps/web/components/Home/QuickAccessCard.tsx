@@ -70,13 +70,13 @@ export default function QuickAccessCard({
 
             <div className="relative z-10 flex w-full flex-col justify-between p-5">
                 <div>
-                    <span className="text-foreground-strong/70 text-xs font-semibold tracking-wide uppercase">
+                    <span className="text-on-media/70 text-xs font-semibold tracking-wide uppercase">
                         {eyebrow}
                     </span>
-                    <h3 className="text-foreground-strong mt-2 line-clamp-2 text-2xl font-bold">
+                    <h3 className="text-on-media mt-2 line-clamp-2 text-2xl font-bold">
                         {title}
                     </h3>
-                    <p className="text-foreground-strong/70 mt-1 truncate text-sm">
+                    <p className="text-on-media/70 mt-1 truncate text-sm">
                         {subtitle}
                     </p>
                 </div>

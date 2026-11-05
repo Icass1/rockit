@@ -1,4 +1,4 @@
-import type { SessionResponse } from "@/dto";
+import type { SessionResponse, ThemePreference } from "@/dto";
 import {
     BaseUserManager,
     EQueueType,
@@ -33,6 +33,7 @@ export class UserManager extends BaseUserManager {
         profile: 0,
         download: 0,
         heatmap: 0,
+        theme: 0,
         language: 0,
     };
     private _sessionRequest = 0;
@@ -312,8 +313,16 @@ export class UserManager extends BaseUserManager {
         );
     }
 
+    async setThemeAsync(theme: ThemePreference): Promise<boolean> {
+        return this.savePreference(
+            "theme",
+            () => this.services.http.updateTheme({ theme }),
+            { theme }
+        );
+    }
+
     private async savePreference(
-        kind: "download" | "heatmap",
+        kind: "download" | "heatmap" | "theme",
         request: () => Promise<{ isOk(): boolean }>,
         patch: UserSessionPatch
     ): Promise<boolean> {

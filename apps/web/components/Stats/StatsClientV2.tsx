@@ -154,7 +154,7 @@ export default function StatsClientV2(): JSX.Element {
                             onClick={() => handleRangeChange(opt.value)}
                             className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300 ${
                                 range === opt.value
-                                    ? "bg-primary text-foreground-strong"
+                                    ? "bg-primary text-primary-foreground"
                                     : "text-subtle-foreground hover:bg-foreground-strong/6 hover:text-foreground-strong"
                             }`}
                         >

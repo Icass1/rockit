@@ -668,14 +668,14 @@ img {
     inset: 0;
     background: linear-gradient(
         to bottom,
-        color-mix(in srgb, var(--theme-backdrop) 10%, transparent) 0%,
-        color-mix(in srgb, var(--theme-backdrop) 10%, transparent)
+        color-mix(in srgb, var(--theme-background) 10%, transparent) 0%,
+        color-mix(in srgb, var(--theme-background) 10%, transparent)
             calc(100% - 64px),
-        color-mix(in srgb, var(--theme-backdrop) 8.536%, transparent)
+        color-mix(in srgb, var(--theme-background) 8.536%, transparent)
             calc(100% - 48px),
-        color-mix(in srgb, var(--theme-backdrop) 5%, transparent)
+        color-mix(in srgb, var(--theme-background) 5%, transparent)
             calc(100% - 32px),
-        color-mix(in srgb, var(--theme-backdrop) 1.464%, transparent)
+        color-mix(in srgb, var(--theme-background) 1.464%, transparent)
             calc(100% - 16px),
         transparent 100%
     );

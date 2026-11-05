@@ -2,6 +2,10 @@
 import http from "node:http";
 
 const calls = new Map();
+const themes = new Map([
+    ["fixture-light", "light"],
+    ["fixture-system", "system"],
+]);
 let discoveryCompleted = false;
 const artist = {
     type: "artist",
@@ -48,7 +52,7 @@ const recommendations = {
     discoverProvider: null,
     discoverStatus: "disabled",
 };
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, "http://localhost");
     const key =
         url.pathname +
@@ -62,10 +66,25 @@ const server = http.createServer((req, res) => {
     };
     if (url.pathname === "/fixture/status")
         return send({ calls: Object.fromEntries(calls), discoveryCompleted });
+    const sessionId = req.headers.cookie?.match(
+        /(?:^|;\s*)session_id=([^;]+)/
+    )?.[1];
+    if (url.pathname === "/user/theme") {
+        if (!sessionId?.startsWith("fixture"))
+            return send({ detail: "Login required" }, 401);
+        let body = "";
+        for await (const chunk of req) body += chunk;
+        const payload = JSON.parse(body);
+        if (!["dark", "light", "system"].includes(payload.theme))
+            return send({ detail: "Invalid theme" }, 422);
+        themes.set(sessionId, payload.theme);
+        return send({ status: "OK" });
+    }
     if (url.pathname === "/user/session")
         return req.headers.cookie?.includes("session_id=fixture")
             ? send({
                   username: "SSR fixture listener",
+                  theme: themes.get(sessionId) ?? "dark",
                   image: "",
                   admin: false,
                   queueType: "SORTED",

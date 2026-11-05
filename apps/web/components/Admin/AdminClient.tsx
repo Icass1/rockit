@@ -230,7 +230,7 @@ export default function AdminClient({
                                 onClick={(): void => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
                                     activeTab === tab.id
-                                        ? "bg-primary text-foreground-strong"
+                                        ? "bg-primary text-primary-foreground"
                                         : "text-muted-foreground hover:bg-muted hover:text-foreground-strong"
                                 }`}
                             >
@@ -258,7 +258,7 @@ export default function AdminClient({
                                 onClick={(): void =>
                                     setShowForm((v): boolean => !v)
                                 }
-                                className="bg-primary text-foreground-strong hover:bg-brand-mid flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50"
+                                className="bg-primary text-primary-foreground hover:bg-brand-mid flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50"
                             >
                                 {showForm ? (
                                     <>
@@ -385,7 +385,7 @@ export default function AdminClient({
                                 <button
                                     type="submit"
                                     disabled={uploading}
-                                    className="bg-primary text-foreground-strong hover:bg-brand-mid mt-5 flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold transition disabled:opacity-50"
+                                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-5 flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold transition disabled:opacity-50"
                                 >
                                     {uploading ? (
                                         <>

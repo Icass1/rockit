@@ -3,10 +3,9 @@
 import { useCallback, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useStore } from "@nanostores/react";
 import { ChevronDown, LogOut, Settings } from "lucide-react";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { networkStatus } from "@/lib/stores/networkStatus";
 import { APP_VERSION } from "@/lib/version";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
@@ -18,7 +17,7 @@ export default function HeaderUser(): JSX.Element {
     const { userManager } = useRuntimeServices();
     const { username: $username, image: $image } = useSettingsUser();
     const $vocabulary = useVocabulary();
-    const $networkStatus = useStore(networkStatus);
+    const $networkStatus = useNetworkStatus();
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);

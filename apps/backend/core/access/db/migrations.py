@@ -35,6 +35,17 @@ MIGRATIONS: tuple[Migration, ...] = (
             "show_listening_heatmap BOOLEAN NOT NULL DEFAULT TRUE",
         ),
     ),
+    Migration(
+        version=3,
+        name="add_user_theme_preference",
+        statements=(
+            'ALTER TABLE core."user" ADD COLUMN IF NOT EXISTS '
+            "theme VARCHAR(16) NOT NULL DEFAULT 'dark'",
+            'ALTER TABLE core."user" DROP CONSTRAINT IF EXISTS user_theme_check',
+            'ALTER TABLE core."user" ADD CONSTRAINT user_theme_check '
+            "CHECK (theme IN ('dark', 'light', 'system'))",
+        ),
+    ),
 )
 
 

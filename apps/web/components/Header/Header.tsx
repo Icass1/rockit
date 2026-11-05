@@ -22,7 +22,7 @@ export default function Header(): JSX.Element {
                     height={614}
                     src="/logo-banner.png"
                     alt="RockIt"
-                    className="h-14 w-auto"
+                    className="brand-image h-14 w-auto"
                     priority
                 />
             </Link>

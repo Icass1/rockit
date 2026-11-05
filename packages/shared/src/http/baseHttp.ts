@@ -1628,6 +1628,15 @@ export class BaseHttp {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
     }
 
+    static async updateTheme(payload: dto.UpdateThemeRequest) {
+        return this.apiPostAsync(
+            `/user/theme`,
+            dto.UpdateThemeRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
     static async updateVolume(payload: dto.UpdateVolumeRequest) {
         return this.apiPostAsync(
             `/user/volume`,

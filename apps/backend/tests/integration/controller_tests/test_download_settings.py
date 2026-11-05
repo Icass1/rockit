@@ -28,6 +28,7 @@ def test_session_includes_saved_download_preference(
         current_time_ms=None,
         volume=0.5,
         show_listening_heatmap=True,
+        theme="dark",
         auto_add_downloads_to_library=enabled,
     )
     monkeypatch.setattr(

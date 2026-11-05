@@ -4,7 +4,9 @@ Branch: `refactor/nextjs-web`. Started 4 November 2026. Architecture and accepta
 
 Update this file immediately after completing each implementation step. A completed substep does not mean its parent stage or the whole refactor is complete. Record checks, limitations, and the next concrete action. Preserve playback, native compatibility, authorization, and offline data throughout migration.
 
-Verify, record and commit each completed refactor step separately.
+Verify, record and commit each completed refactor step separately. At the user's
+request, run the complete web test suite before each further step commit and fix
+any failures; do not accept baseline test failures as a passing gate.
 
 ## Checklist
 
@@ -677,6 +679,20 @@ rejection, account replacement/logout and balanced listener cleanup with no brow
 errors. HTTP/socket/player targets were fixture adapters. Actual audio, complete
 queue/native-device behavior and full offline/service-worker acceptance remain open.
 
+### Adaptive-transition test baseline repaired — 5 November 2026
+
+Updated the two outdated immediate-skip expectations to the intentional 60-second
+file-error delay introduced by the existing playback implementation. The fake
+clock now records timeout deadlines and advances deterministically, so the tests
+assert no skip before the deadline and correct forward/backward traversal after
+it. The failed-file loop still stops. Added cancellation cases for pause, manual
+selection, queue replacement and playback replacement, plus the one-second
+repeat-one retry. No production playback delay or algorithm was changed.
+
+Checks: all 30 adaptive-transition tests and the complete web suite (218 of 218)
+passed. Changed-test lint, formatting and diff checks passed. Per the user's
+updated gate, every subsequent migration commit requires the full suite to pass.
+
 ## Current work
 
 Queue subscription ownership is implemented. The scoped playback/native lifecycle,
@@ -690,8 +706,9 @@ lifecycle/account changes, then cancel outstanding player source-loading work.
 Compatibility startup still initializes download/playlist/library managers. Finish
 those lifecycles and complete account reset before claiming runtime migration done.
 
-Latest checks: workspace TypeScript, web lint, production build/SSR smoke and
-Chromium queue fixtures passed. Two baseline adaptive-transition tests still fail.
+Latest checks: the full web suite passes 218 of 218 tests, including the repaired
+adaptive-transition baseline. Workspace TypeScript, web lint, production build/SSR
+smoke and Chromium queue fixtures passed in the preceding runtime step.
 Actual audio, native devices, full navigation/account isolation and offline worker
 acceptance remain pending. Parent stages stay unchecked until all acceptance gates
 pass; the entire refactor is not complete.

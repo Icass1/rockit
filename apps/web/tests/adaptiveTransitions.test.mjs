@@ -46,7 +46,9 @@ function setup({
         repeat = "OFF";
     const messages = [],
         handlers = new Map(),
-        timers = new Map();
+        timers = new Map(),
+        timeoutDue = new Map();
+    let clock = 0;
     class Param {
         value = 1;
         curves = [];
@@ -162,11 +164,15 @@ function setup({
             return serial;
         },
         clearInterval: (id) => timers.delete(id),
-        setTimeout: (fn) => {
+        setTimeout: (fn, delay = 0) => {
             timers.set(++serial, fn);
+            timeoutDue.set(serial, clock + delay);
             return serial;
         },
-        clearTimeout: (id) => timers.delete(id),
+        clearTimeout: (id) => {
+            timers.delete(id);
+            timeoutDue.delete(id);
+        },
     });
     vm.runInContext(outputFiles[0].text, ctx);
     const { MediaPlayerManager, setRockIt, transitionDuration } = ctx.module;
@@ -228,6 +234,23 @@ function setup({
         player,
         queue,
         timers,
+        async advanceTime(ms) {
+            const target = clock + ms;
+            while (true) {
+                const next = [...timeoutDue]
+                    .filter(([, due]) => due <= target)
+                    .sort((a, b) => a[1] - b[1])[0];
+                if (!next) break;
+                const [id, due] = next;
+                clock = due;
+                const fn = timers.get(id);
+                timeoutDue.delete(id);
+                timers.delete(id);
+                fn();
+                await flush();
+            }
+            clock = target;
+        },
         handlers,
         messages,
         transitionDuration,
@@ -465,7 +488,7 @@ test("videos retain native background audio when transitions are enabled", async
     e.player.pause();
 });
 
-test("file errors advance without a timer, skip unavailable songs, and stop a failed-file loop", () => {
+test("file errors wait before skipping unavailable songs and stop a failed-file loop", async () => {
     const e = setup();
     e.queue.queueIdentity = {};
     e.queue.lastNavigationDirection = 1;
@@ -474,15 +497,22 @@ test("file errors advance without a timer, skip unavailable songs, and stop a fa
     let pauses = 0;
     e.player.play = () => played.push(e.queue.currentQueueMediaId);
     e.player.pause = () => pauses++;
+    e.player._playRequested = true;
     const timerCount = e.timers.size;
     e.player._handleMediaError();
+    assert.deepEqual(played, []);
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    assert.equal(e.timers.size, timerCount + 1);
+    await e.advanceTime(59_999);
+    assert.deepEqual(played, []);
+    await e.advanceTime(1);
     assert.deepEqual(played, [3]);
     assert.equal(e.timers.size, timerCount);
     e.player._handleMediaError();
     assert.deepEqual(played, [3]);
     assert.equal(pauses, 1);
 });
-test("backward error navigation skips unavailable songs in the correct direction", () => {
+test("backward error navigation waits before skipping unavailable songs in the correct direction", async () => {
     const e = setup();
     e.queue.queueIdentity = {};
     e.queue.lastNavigationDirection = -1;
@@ -490,8 +520,56 @@ test("backward error navigation skips unavailable songs in the correct direction
     e.queue.queue[1].media.downloaded = false;
     const played = [];
     e.player.play = () => played.push(e.queue.currentQueueMediaId);
+    e.player._playRequested = true;
     e.player._handleMediaError();
+    await e.advanceTime(59_999);
+    assert.deepEqual(played, []);
+    assert.equal(e.queue.currentQueueMediaId, 3);
+    await e.advanceTime(1);
     assert.deepEqual(played, [1]);
+});
+
+for (const action of [
+    "pause",
+    "selection",
+    "queue replacement",
+    "playback replacement",
+])
+    test(`delayed file-error navigation yields to ${action}`, async () => {
+        const e = setup();
+        e.queue.queueIdentity = {};
+        e.queue.lastNavigationDirection = 1;
+        e.player._playRequested = true;
+        let plays = 0;
+        e.player.play = () => plays++;
+        e.player._handleMediaError();
+        if (action === "pause") e.player.pause();
+        if (action === "selection") e.queue.setQueueMediaId(3);
+        if (action === "queue replacement") e.queue.queueIdentity = {};
+        if (action === "playback replacement")
+            e.player._playbackId = "replacement";
+        const selectedId = e.queue.currentQueueMediaId;
+        await e.advanceTime(60_000);
+        assert.equal(e.queue.currentQueueMediaId, selectedId);
+        assert.equal(plays, 0);
+    });
+
+test("repeat-one file errors retry the same song after one second", async () => {
+    const e = setup();
+    e.queue.queueIdentity = {};
+    e.player._playRequested = true;
+    e.setRepeat("ONE");
+    let loads = 0,
+        plays = 0;
+    e.player.setMedia = async () => loads++;
+    e.player.play = () => plays++;
+    e.player._handleMediaError();
+    await e.advanceTime(999);
+    assert.equal(loads, 0);
+    await e.advanceTime(1);
+    assert.equal(loads, 1);
+    assert.equal(plays, 1);
+    assert.equal(e.queue.currentQueueMediaId, 1);
 });
 
 test("native resource duration keeps the playback clock moving beyond catalog length", async () => {

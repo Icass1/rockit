@@ -46,6 +46,20 @@ MIGRATIONS: tuple[Migration, ...] = (
             "CHECK (theme IN ('dark', 'light', 'system'))",
         ),
     ),
+    Migration(
+        version=4,
+        name="index_recommendation_candidates",
+        statements=(
+            "CREATE INDEX IF NOT EXISTS ix_recommendation_listened_media_user_date "
+            "ON core.user_media_listened (media_id, user_id, date_added)",
+            "CREATE INDEX IF NOT EXISTS ix_recommendation_liked_user_date "
+            "ON core.user_liked_media (user_id, date_added) INCLUDE (media_id)",
+            "CREATE INDEX IF NOT EXISTS ix_recommendation_playlist_media_playlist "
+            "ON default_schema.playlist_media (media_id, playlist_id)",
+            "CREATE INDEX IF NOT EXISTS ix_recommendation_playlist_playlist_media "
+            "ON default_schema.playlist_media (playlist_id, media_id)",
+        ),
+    ),
 )
 
 

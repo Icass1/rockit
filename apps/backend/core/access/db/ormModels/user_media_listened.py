@@ -18,6 +18,7 @@ class UserMediaListenedRow(CoreBase, TableAutoincrementId, TableDateAdded):
     __table_args__ = (
         UniqueConstraint("user_id", "date_added", name="uq_user_media_listened_user_date"),
         Index("ix_user_media_listened_media_id", "media_id"),
+        Index("ix_recommendation_listened_media_user_date", "media_id", "user_id", "date_added"),
         {"schema": "core", "extend_existing": True},
     )
 

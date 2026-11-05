@@ -17,8 +17,6 @@ interface BentoSectionProps {
     songs: BaseSongWithAlbumResponse[];
 }
 
-// ─── Single Bento Card ──────────────────────────────────
-
 function BentoCard({
     song: initialSong,
     queue,
@@ -141,8 +139,6 @@ function BentoCard({
     );
 }
 
-// ─── Section Reveal (IntersectionObserver) ──────────────
-
 export default function BentoSection({
     title,
     songs,
@@ -166,9 +162,7 @@ export default function BentoSection({
                 aria-hidden="true"
             />
 
-            <h2 className="text-on-media relative z-10 mb-3.5 text-[clamp(18px,2.2cqw,26px)] font-extrabold">
-                {title}
-            </h2>
+            <h2 className="px-5 text-2xl font-bold md:text-3xl">{title}</h2>
 
             <div className="bento-grid relative z-10">
                 {/* Large featured card */}

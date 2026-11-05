@@ -22,7 +22,7 @@ import PlayButton from "@/components/Home/PlayButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
-// ─── Types ──────────────────────────────────────────────
+// Types
 
 export interface CoverflowCard {
     eyebrow: string;
@@ -38,7 +38,7 @@ interface HomeHeroCoverflowProps {
     onColorChange?: (hex: string) => void;
 }
 
-// ─── Helpers ────────────────────────────────────────────
+// Helpers
 
 function shortestDelta(i: number, c: number, n: number): number {
     let d = i - c;
@@ -62,7 +62,7 @@ function getConfig(width: number): {
     return { maxVisible, spacing, cardSize };
 }
 
-// ─── Card ───────────────────────────────────────────────
+// Card
 
 function CoverflowCardComponent({
     card,
@@ -159,7 +159,7 @@ function CoverflowCardComponent({
     );
 }
 
-// ─── Main Component ─────────────────────────────────────
+// Main Component
 
 export default function HomeHeroCoverflow({
     greetingName,
@@ -190,10 +190,10 @@ export default function HomeHeroCoverflow({
         onColorChange?.(dominantColor);
     }, [dominantColor, onColorChange]);
 
-    // ── reduced-motion listener ──
+    // reduced-motion listener
     const config = useMemo(() => getConfig(stageWidth), [stageWidth]);
 
-    // ── IntersectionObserver: pause auto-advance off-screen ──
+    // IntersectionObserver: pause auto-advance off-screen
     useEffect(() => {
         const sentinel = stageRef.current?.parentElement;
         if (!sentinel) return;
@@ -213,7 +213,7 @@ export default function HomeHeroCoverflow({
         return () => observer.disconnect();
     }, [startAuto, stopAuto]);
 
-    // ── ResizeObserver on stage container ──
+    // ResizeObserver on stage container
     useEffect(() => {
         const el = stageRef.current?.parentElement;
         if (!el) return;
@@ -225,7 +225,7 @@ export default function HomeHeroCoverflow({
         return () => ro.disconnect();
     }, []);
 
-    // ── Pointer drag (mouse + touch) ──
+    // Pointer drag (mouse + touch)
     const dragStartRef = useRef<number | null>(null);
     const dragMovedRef = useRef(false);
 
@@ -266,7 +266,7 @@ export default function HomeHeroCoverflow({
         [center, n, config.spacing, next, prev, goTo, menuOpen]
     );
 
-    // ── Keyboard ──
+    // Keyboard
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent): void => {
             if (e.target !== e.currentTarget || menuOpen) return;
@@ -292,11 +292,12 @@ export default function HomeHeroCoverflow({
     // Early return after all hooks
     if (cards.length === 0) return null;
 
-    // ── Card transform ──
+    // Card transform
     function getCardStyle(delta: number): React.CSSProperties {
         const ad = Math.abs(delta);
         const visible = ad <= config.maxVisible;
-        const x = delta * config.spacing;
+        const x =
+            Math.abs(delta) ** (1 / 1.5) * config.spacing * Math.sign(delta);
         const rot = Math.max(-38, Math.min(38, -delta * 34));
         const z = -ad * 90;
         const scale = ad === 0 ? 1 : Math.max(0.4, 1 - Math.min(ad, 3) * 0.2);
@@ -315,17 +316,17 @@ export default function HomeHeroCoverflow({
         };
     }
 
-    // ── Stage height responsive ──
+    // Stage height responsive
     const stageHeight = Math.round(config.cardSize * 1.25);
 
     return (
         <section className="cf-section relative">
             <div className="relative z-10 px-[6%] pt-7 pb-0">
-                <h1 className="text-on-media text-[clamp(20px,3.4cqw,40px)] leading-tight font-extrabold">
+                <h1 className="text-foreground text-[clamp(20px,3.4cqw,40px)] leading-tight font-bold">
                     {greetingName}
                 </h1>
                 {subtitle && (
-                    <p className="text-on-media/50 mt-1.5 text-[13px]">
+                    <p className="text-foreground/50 mt-1.5 text-[13px]">
                         {subtitle}
                     </p>
                 )}

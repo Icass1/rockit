@@ -56,7 +56,11 @@ function KnownSongCard({
     }, [$song, queue, downloaded]);
 
     return (
-        <MediaContextMenu media={$song} location={EMediaContextLocation.HOME}>
+        <MediaContextMenu
+            media={$song}
+            location={EMediaContextLocation.HOME}
+            onPlay={handleClick}
+        >
             <RecommendationCard
                 name={$song.name}
                 imageUrl={$song.imageUrl}

@@ -114,6 +114,7 @@ export default function MediaContextMenu({
     sources,
     triggerClassName,
     onOpenChange,
+    onPlay,
 }: {
     children: ReactNode;
     media: TMediaWithSearch;
@@ -123,6 +124,7 @@ export default function MediaContextMenu({
     sources?: readonly BaseSearchResultsItem[];
     triggerClassName?: string;
     onOpenChange?: (open: boolean) => void;
+    onPlay?: () => void | Promise<void>;
 }): JSX.Element {
     const $vocabulary = useVocabulary();
     const [loading, setLoading] = useState(false);
@@ -163,6 +165,7 @@ export default function MediaContextMenu({
         loading,
         setLoading,
         listPublicId,
+        onPlay,
         handleAddToPlaylist,
         onEditMetadata: (): void => setShowEditMetadata(true),
     };

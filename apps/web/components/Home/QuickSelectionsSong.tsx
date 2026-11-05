@@ -26,7 +26,11 @@ export default function QuickSelectionsSong({
     }, [$song, songs]);
 
     return (
-        <MediaContextMenu media={$song} location={EMediaContextLocation.HOME}>
+        <MediaContextMenu
+            media={$song}
+            location={EMediaContextLocation.HOME}
+            onPlay={handleClick}
+        >
             <div
                 className="hover:bg-muted flex h-fit cursor-pointer items-center gap-2 rounded-lg p-2 transition"
                 onClick={handleClick}

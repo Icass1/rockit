@@ -40,6 +40,7 @@ export default function RecentlyPlayedSong({
             <MediaContextMenu
                 media={$song}
                 location={EMediaContextLocation.HOME}
+                onPlay={handleClick}
             >
                 <div onClick={handleClick}>
                     <div className="relative">

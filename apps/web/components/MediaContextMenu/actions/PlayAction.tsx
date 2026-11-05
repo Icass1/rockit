@@ -11,9 +11,19 @@ export default function PlayAction({
     listPublicId,
     loading,
     setLoading,
+    onPlay,
 }: ActionComponentProps): JSX.Element {
     const play = async (): Promise<void> => {
         if (loading) return;
+        if (onPlay) {
+            setLoading(true);
+            try {
+                await onPlay();
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
         if (isSearchResult(media)) {
             setLoading(true);
             try {
@@ -38,7 +48,10 @@ export default function PlayAction({
     };
 
     const disablePlay =
-        !isSearchResult(media) && isDownloadable(media) && !media.downloaded;
+        !onPlay &&
+        !isSearchResult(media) &&
+        isDownloadable(media) &&
+        !media.downloaded;
 
     return (
         <ContextMenuOption onClick={play} disable={disablePlay || loading}>

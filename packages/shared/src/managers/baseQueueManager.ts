@@ -685,6 +685,13 @@ export class BaseQueueManager {
         if (this.sortedQueue.length > 0)
             this._queuePages.set(0, this.sortedQueue);
 
+        // Publish the replacement before updateQueue checks whether it is complete.
+        this._queueAtom.set([
+            ...(getRockIt().userManager.queueTypeAtom.get() ===
+            EQueueType.RANDOM
+                ? this.randomQueue
+                : this.sortedQueue),
+        ]);
         this.updateQueue();
     }
 

@@ -732,3 +732,33 @@ test("current recommendation actions still insert playable songs and report down
         e.queue.stop();
     }
 });
+
+test("section playback replaces smaller or paged queues before selecting the clicked song", async () => {
+    for (const mode of ["SORTED", "RANDOM"]) {
+        for (const seed of [
+            page({ ids: [0], total: 1 }),
+            page({ ids: [0, 1], total: 100 }),
+        ]) {
+            const e = setup({ seed });
+            await e.queue.init();
+            e.runtime.userManager.queueTypeAtom.set(mode);
+            const songs = Array.from({ length: 6 }, (_, index) =>
+                song("section" + index)
+            );
+            e.queue.setMedia(songs, "home");
+            e.queue.moveToMedia("section4");
+            assert.equal(e.queue.currentMedia.publicId, "section4");
+            assert.equal(e.queue.queue.length, songs.length);
+            assert.deepEqual(
+                Array.from(
+                    e.queue.queue,
+                    (entry) => entry.media.publicId
+                ).sort(),
+                songs.map((entry) => entry.publicId).sort()
+            );
+            assert.equal(e.errors.length, 0);
+            assert.equal(e.requests.length, 0);
+            e.queue.stop();
+        }
+    }
+});

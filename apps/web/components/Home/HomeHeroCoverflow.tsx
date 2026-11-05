@@ -92,6 +92,9 @@ function CoverflowCardComponent({
         <MediaContextMenu
             media={song}
             location={EMediaContextLocation.HOME}
+            onPlay={() =>
+                rockIt.queueManager.playRecommendedSongAsync(song, card.queue)
+            }
             triggerClassName="h-full w-full"
             onOpenChange={onMenuOpenChange}
         >

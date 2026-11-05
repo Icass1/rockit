@@ -47,6 +47,9 @@ function BentoCard({
         <MediaContextMenu
             media={song}
             location={EMediaContextLocation.HOME}
+            onPlay={() =>
+                rockIt.queueManager.playRecommendedSongAsync(song, queue)
+            }
             triggerClassName={positionClass}
         >
             <div

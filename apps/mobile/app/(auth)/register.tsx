@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { capabilities } from "@/platform/capabilities";
 import { validateUsername } from "@rockit/shared";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
@@ -68,7 +69,7 @@ export default function RegisterScreen() {
                 username,
                 password,
                 repeatPassword,
-                platform: "MOBILE",
+                platform: capabilities.sessionPlatform,
                 rememberMe: false,
             });
 

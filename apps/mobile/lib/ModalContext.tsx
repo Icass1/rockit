@@ -25,21 +25,8 @@ const ModalContext = createContext<ModalContextType>({
     hide: () => {},
 });
 
-let modalRef: ModalContextType = {
-    visible: false,
-    content: null,
-    show: () => {},
-    hide: () => {},
-};
-
 export function useModal() {
-    const context = useContext(ModalContext);
-    modalRef = context;
-    return context;
-}
-
-export function getModalRef(): ModalContextType {
-    return modalRef;
+    return useContext(ModalContext);
 }
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -70,7 +57,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 },
             });
         },
-        [open]
+        [open, styles]
     );
 
     const hide = useCallback(() => {

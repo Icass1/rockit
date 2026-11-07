@@ -3,22 +3,15 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useRef,
-    useState,
     type ReactNode,
 } from "react";
 import { vocabularyText, type Vocabulary } from "@rockit/shared";
+import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
 import { Http } from "@/lib/http";
 import { vocabularyManager } from "@/lib/managers/vocabularyManager";
 import { toasterManager } from "@/lib/toasterManager";
-
-function createVocabularyProxy(data: Record<string, string>): Vocabulary {
-    return vocabularyText({ currentLang: "en", vocabulary: data });
-}
-
-function getSystemLocale(): string {
-    return Intl.DateTimeFormat().resolvedOptions().locale.split(/[-_]/)[0];
-}
 
 interface VocabularyContextType {
     vocabulary: Vocabulary;
@@ -27,93 +20,57 @@ interface VocabularyContextType {
     refreshVocabulary: () => Promise<void>;
     setLanguage: (lang: string) => Promise<void>;
 }
-
 const VocabularyContext = createContext<VocabularyContextType | null>(null);
 
 export function VocabularyProvider({ children }: { children: ReactNode }) {
-    const [vocabulary, setVocabulary] = useState<Vocabulary>(
-        createVocabularyProxy({})
+    const locale = useRef(
+        Intl.DateTimeFormat().resolvedOptions().locale.split(/[-_]/)[0]
     );
-    const [lang, setLang] = useState("en");
-    const [isLoading, setIsLoading] = useState(true);
-    const systemLocaleRef = useRef(getSystemLocale());
-    const generation = useRef(0);
-
-    const refreshVocabulary = useCallback(async () => {
-        const stamp = ++generation.current;
-        setIsLoading(true);
+    const resource = useAsyncResource(async () => {
         const response = await Http.getUserVocabulary();
-        if (stamp !== generation.current) return;
-
-        if (response.isOk()) {
-            const res = response.result;
-            setVocabulary(createVocabularyProxy(res.vocabulary));
-            vocabularyManager.setVocabulary(res.vocabulary);
-            setLang(res.currentLang);
-            setIsLoading(false);
-            return;
-        }
-
-        const fallback = await Http.getVocabularyByCode(
-            systemLocaleRef.current
-        );
-
-        if (stamp !== generation.current) return;
-        if (fallback.isOk()) {
-            const res = fallback.result;
-            setVocabulary(createVocabularyProxy(res.vocabulary));
-            vocabularyManager.setVocabulary(res.vocabulary);
-            setLang(res.currentLang);
-        } else {
-            console.error(
-                "Failed to load vocabulary:",
-                response.message,
-                response.detail
-            );
-        }
-
-        setIsLoading(false);
-    }, []);
-
+        if (response.isOk()) return response.result;
+        const fallback = await Http.getVocabularyByCode(locale.current);
+        if (!fallback.isOk()) throw new Error(fallback.message);
+        return fallback.result;
+    });
+    const vocabulary = useMemo(
+        () =>
+            vocabularyText(
+                resource.data ?? { currentLang: "en", vocabulary: {} }
+            ),
+        [resource.data]
+    );
+    useEffect(() => {
+        vocabularyManager.setVocabulary({ ...vocabulary });
+    }, [vocabulary]);
     const setLanguage = useCallback(
-        async (newLang: string) => {
-            const response = await Http.updateLang({ lang: newLang });
+        async (lang: string) => {
+            const response = await Http.updateLang({ lang });
             if (response.isOk()) {
                 toasterManager.notifySuccess(vocabulary.LANGUAGE_CHANGED);
-            } else {
+                await resource.refresh();
+            } else
                 toasterManager.notifyError(vocabulary.LANGUAGE_CHANGE_FAILED);
-            }
-            await refreshVocabulary();
         },
-        [refreshVocabulary, vocabulary]
+        [vocabulary, resource.refresh]
     );
-
-    useEffect(() => {
-        void refreshVocabulary();
-        return () => {
-            generation.current++;
-        };
-    }, [refreshVocabulary]);
-
     return (
-        <VocabularyContext.Provider
+        <VocabularyContext
             value={{
                 vocabulary,
-                lang,
-                isLoading,
-                refreshVocabulary,
+                lang: resource.data?.currentLang ?? "en",
+                isLoading: resource.loading,
+                refreshVocabulary: resource.refresh,
                 setLanguage,
             }}
         >
             {children}
-        </VocabularyContext.Provider>
+        </VocabularyContext>
     );
 }
 
 export function useVocabulary() {
     const context = useContext(VocabularyContext);
-    if (!context) {
-        throw new Error("useVocabulary must be used within VocabularyProvider");
-    }
+    if (!context) throw new Error("VocabularyProvider is required");
     return context;
 }

@@ -107,6 +107,7 @@ export class BookmarkManager {
         description: string | null,
         mode: string
     ): Promise<BookmarkResponse | null> {
+        const request = this._request;
         const response = await Http.createBookmark({
             mediaPublicId,
             timestamp,
@@ -114,6 +115,7 @@ export class BookmarkManager {
             mode,
         } as CreateBookmarkRequest);
 
+        if (request !== this._request) return null;
         if (response.isOk() && response.result) {
             const current = this.currentMediaBookmarksAtom.get();
             this.currentMediaBookmarksAtom.set([...current, response.result]);
@@ -135,12 +137,14 @@ export class BookmarkManager {
         description: string | null,
         mode: string | null
     ): Promise<BookmarkResponse | null> {
+        const request = this._request;
         const response = await Http.updateBookmark(publicId, {
             timestamp,
             description,
             mode,
         } as UpdateBookmarkRequest);
 
+        if (request !== this._request) return null;
         if (response.isOk() && response.result) {
             const bookmarks = this.currentMediaBookmarksAtom.get();
             const index = bookmarks.findIndex((b) => b.publicId === publicId);
@@ -163,8 +167,10 @@ export class BookmarkManager {
     }
 
     async deleteBookmarkAsync(publicId: string): Promise<boolean> {
+        const request = this._request;
         const response = await Http.deleteBookmark(publicId);
 
+        if (request !== this._request) return false;
         if (response.isOk()) {
             const bookmarks = this.currentMediaBookmarksAtom.get();
             const updated = bookmarks.filter((b) => b.publicId !== publicId);

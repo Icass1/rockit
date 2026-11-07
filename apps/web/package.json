@@ -35,7 +35,9 @@
         "world-atlas": "^2.0.2",
         "zod": "^4.1.13",
         "@rockit/theme": "workspace:*",
-        "@rockit/platform-browser": "workspace:*"
+        "@rockit/platform-browser": "workspace:*",
+        "@rockit/ui": "workspace:*",
+        "react-native-web": "~0.21.0"
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4",

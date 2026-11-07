@@ -21,14 +21,14 @@ Target: [desktop and universal mobile architecture](FRONTEND_PLATFORM_ARCHITECTU
 
 | Stage | State | Deliverable / acceptance |
 | --- | --- | --- |
-| 0. Baseline and plan | In progress | Current branch/guidelines reviewed, feature/adapter inventory, reproducible commands. |
-| 1. Shared design system | Pending | Single token source for web CSS and native values; colors, spacing, radii and typography; no component palettes. |
-| 2. Portable application boundaries | Pending | Lifecycle/config/session/storage contracts, browser/native adapters, shared policy outside UI, import-boundary checks. |
-| 3. Shared presentation | Pending | Universal primitives/headless bindings actually consumed by desktop and mobile; vocabulary from Excel, accessibility names. |
+| 0. Baseline and plan | Complete | Current branch/guidelines reviewed, feature/adapter inventory, reproducible commands. |
+| 1. Shared design system | In progress | Single token source for web CSS and native values; colors, spacing, radii and typography; no component palettes. |
+| 2. Portable application boundaries | In progress | Lifecycle/config/session/storage contracts, browser/native adapters, shared policy outside UI, import-boundary checks. |
+| 3. Shared presentation | In progress | Universal primitives/headless bindings actually consumed by desktop and mobile; vocabulary from Excel, accessibility names. |
 | 4. Universal mobile runtime | Pending | Expo web/PWA boot with browser session, playback and offline adapters; native Android retains native services. |
 | 5. Feature migration and parity | Pending | Home, Library/search, collections, player/queue/lyrics, downloader, settings and existing ancillary routes work on both mobile targets. |
 | 6. Desktop separation | Pending | Desktop entry excludes mobile shell/integrations; independent build/deployment configuration and documented origin migration. |
-| 7. Frontend test system | Pending | Contract-validating fake backend, unit/component tests, browser interaction tests and native component coverage; deterministic assets and timings. |
+| 7. Frontend test system | In progress | Contract-validating fake backend, unit/component tests, browser interaction tests and native component coverage; deterministic assets and timings. |
 | 8. Release verification | Pending | Types/lint, production builds/export, focused tests and CI; precise remaining physical-device/SDK gates, no invented compatibility claims. |
 
 ## Verification strategy
@@ -65,3 +65,11 @@ installation, Android services or lock-screen behavior. Record each separately.
   `@rockit/platform-browser`. Desktop compatibility imports forward to that
   implementation. Browser services import no Next or desktop components; shared
   domain package no longer declares Next. Web/native/package typechecks pass.
+- Shared presentation: `@rockit/ui` provides actual common artwork/identity and a
+  scoped theme, consumed by desktop Library rows and native media rows. Explicit
+  browser/native renderer exports keep platform selection out of presenters.
+  Next SSR registers universal styles before hydration. Next production build,
+  web/native/UI/browser typechecks, 4 Vitest web/core tests and 2 native component
+  tests pass. The existing directed browser regressions still pass (76 including
+  SSR loader checks). Frontend test reporters record timings; these are test
+  execution times, not measured production latency.

@@ -6,8 +6,8 @@ import {
     isSearchResult,
     TMedia,
 } from "@rockit/shared";
-import { Image } from "expo-image";
-import { StyleSheet, Text, View } from "react-native";
+import { MediaIdentity } from "@rockit/ui";
+import { StyleSheet, View } from "react-native";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 interface MediaRowProps {
@@ -22,19 +22,12 @@ function MediaRow({ media, rightElement }: MediaRowProps) {
             allMedia={!isSearchResult(media) ? [media] : []}
         >
             <View style={styles.container}>
-                <Image
-                    source={media.imageUrl}
-                    style={[styles.image]}
-                    contentFit="cover"
+                <MediaIdentity
+                    title={media.name}
+                    subtitle={getMediaSubtitle(media)}
+                    imageUrl={media.imageUrl}
+                    round={media.type === "artist"}
                 />
-                <View style={styles.info}>
-                    <Text style={styles.title} numberOfLines={1}>
-                        {media.name}
-                    </Text>
-                    <Text style={styles.subtitle} numberOfLines={1}>
-                        {getMediaSubtitle(media)}
-                    </Text>
-                </View>
                 {rightElement && (
                     <View style={styles.rightElement}>{rightElement}</View>
                 )}

@@ -1,14 +1,17 @@
-import { COLORS } from "@/constants/theme";
+import type { Vocabulary } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 import type { PlayerTab } from "@/components/Player/FullPlayer";
 
 const TABS: {
     key: Exclude<PlayerTab, null | "crossfade">;
-    label: string;
+    label: keyof Vocabulary;
 }[] = [
-    { key: "queue", label: "Queue" },
-    { key: "lyrics", label: "Lyrics" },
-    { key: "related", label: "Related" },
+    { key: "queue", label: "QUEUE" },
+    { key: "lyrics", label: "LYRICS" },
+    { key: "related", label: "PLAYER_RELATED_TITLE" },
 ];
 
 interface PlayerTabsBarProps {
@@ -22,6 +25,8 @@ export default function PlayerTabsBar({
     onTabPress,
     insetBottom,
 }: PlayerTabsBarProps) {
+    const { vocabulary } = useVocabulary();
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={[styles.container, { paddingBottom: insetBottom }]}>
             {TABS.map((tab) => {
@@ -41,7 +46,7 @@ export default function PlayerTabsBar({
                                 isActive && styles.tabLabelActive,
                             ]}
                         >
-                            {tab.label}
+                            {vocabulary[tab.label]}
                         </Text>
                     </Pressable>
                 );
@@ -50,29 +55,30 @@ export default function PlayerTabsBar({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-        paddingHorizontal: 16,
-        paddingTop: 20,
-    },
-    tabButton: {
-        alignItems: "center",
-        paddingVertical: 8,
-        paddingHorizontal: 20,
-        borderRadius: 10,
-        gap: 4,
-    },
-    tabButtonActive: {
-        backgroundColor: "rgba(238, 16, 134, 0.15)",
-    },
-    tabLabel: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: COLORS.white,
-    },
-    tabLabelActive: {
-        color: COLORS.accent,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            justifyContent: "space-around",
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: 20,
+        },
+        tabButton: {
+            alignItems: "center",
+            paddingVertical: theme.spacing.sm,
+            paddingHorizontal: 20,
+            borderRadius: 10,
+            gap: theme.spacing.xs,
+        },
+        tabButtonActive: {
+            backgroundColor: withAlpha(theme.colors["primary"], 0.15),
+        },
+        tabLabel: {
+            fontSize: 20,
+            fontWeight: "700",
+            color: theme.legacy.white,
+        },
+        tabLabelActive: {
+            color: theme.legacy.accent,
+        },
+    });

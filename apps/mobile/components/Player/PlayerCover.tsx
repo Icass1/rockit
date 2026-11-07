@@ -1,4 +1,4 @@
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
@@ -33,6 +33,7 @@ export default function PlayerCover({
     mediaType,
     size = 300,
 }: PlayerCoverProps) {
+    const styles = useThemedStyles(createStyles);
     const aspectRatio = getAspectRatio(mediaType);
     const borderRadius = getBorderRadius(mediaType);
     const height = size / aspectRatio;
@@ -53,18 +54,19 @@ export default function PlayerCover({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        overflow: "hidden",
-        backgroundColor: COLORS.bgCard,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.45,
-        shadowRadius: 20,
-        elevation: 14,
-    },
-    image: {
-        width: "100%",
-        height: "100%",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            overflow: "hidden",
+            backgroundColor: theme.legacy.bgCard,
+            shadowColor: theme.colors["backdrop"],
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.45,
+            shadowRadius: 20,
+            elevation: 14,
+        },
+        image: {
+            width: "100%",
+            height: "100%",
+        },
+    });

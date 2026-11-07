@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { Dimensions, Platform, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -27,12 +29,12 @@ export type PlayerTab =
     "queue" | "lyrics" | "related" | "crossfade" | "bookmarks" | null;
 
 export default function FullPlayer() {
+    const styles = useThemedStyles(createStyles);
     const {
         currentMedia,
         isPlayerVisible,
         seekTo,
         hidePlayer,
-        videoPlayer,
         hasVideo,
         canToggleAudioOnly,
         audioOnly,
@@ -194,7 +196,7 @@ export default function FullPlayer() {
                         <PlayerMediaInfo
                             currentMedia={currentMedia}
                             onSeek={seekTo}
-                            videoPlayer={videoPlayer ?? null}
+
                             hasVideo={!!hasVideo}
                             canToggleAudioOnly={canToggleAudioOnly}
                             audioOnly={audioOnly}
@@ -217,36 +219,34 @@ export default function FullPlayer() {
                 onClose={handleTabPanelClose}
             />
             {isMediaFullscreen && (
-                <FullscreenMediaPlayer
-                    videoPlayer={videoPlayer}
-                    onClose={closeMediaFullscreen}
-                />
+                <FullscreenMediaPlayer onClose={closeMediaFullscreen} />
             )}
         </Animated.View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        paddingBottom: 60,
-        // Height will be set dynamically to avoid covering the footer
-        zIndex: 0, // default stacking; MiniPlayer is hidden when FullPlayer visible
-        backgroundColor: "#0b0b0b",
-        overflow: "hidden",
-    },
-    overlay: {
-        ...StyleSheet.absoluteFill,
-        backgroundColor: "rgba(0,0,0,0.55)",
-    },
-    inner: {
-        flex: 1,
-    },
-    gestureContent: {
-        flex: 1,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            paddingBottom: 60,
+            // Height will be set dynamically to avoid covering the footer
+            zIndex: 0, // default stacking; MiniPlayer is hidden when FullPlayer visible
+            backgroundColor: theme.colors["background"],
+            overflow: "hidden",
+        },
+        overlay: {
+            ...StyleSheet.absoluteFill,
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.55),
+        },
+        inner: {
+            flex: 1,
+        },
+        gestureContent: {
+            flex: 1,
+        },
+    });

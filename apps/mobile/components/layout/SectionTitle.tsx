@@ -1,4 +1,4 @@
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, View } from "react-native";
 
 interface SectionTitleProps {
@@ -6,6 +6,7 @@ interface SectionTitleProps {
 }
 
 export default function SectionTitle({ children }: SectionTitleProps) {
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{children.toUpperCase()}</Text>
@@ -13,15 +14,16 @@ export default function SectionTitle({ children }: SectionTitleProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        marginVertical: 12,
-        paddingHorizontal: 16,
-    },
-    title: {
-        color: COLORS.gray600,
-        fontSize: 12,
-        fontWeight: "700",
-        letterSpacing: 1.5,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            marginVertical: theme.spacing.md,
+            paddingHorizontal: theme.spacing.lg,
+        },
+        title: {
+            color: theme.legacy.gray600,
+            fontSize: theme.typography.caption,
+            fontWeight: "700",
+            letterSpacing: 1.5,
+        },
+    });

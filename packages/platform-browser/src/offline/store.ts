@@ -37,6 +37,7 @@ export async function downloadSongOffline(
             parentAlbumIds,
             parentPlaylistIds
         );
+        releaseOfflineUrls(publicId);
         offlineStatusMap.setKey(publicId, "downloaded");
     } catch (err) {
         offlineStatusMap.setKey(publicId, "error");
@@ -71,6 +72,10 @@ export async function removeSongPlaylistRef(
 export async function removeOfflineSong(publicId: string): Promise<void> {
     await deleteOfflineSong(publicId);
     offlineStatusMap.setKey(publicId, "idle");
+    releaseOfflineUrls(publicId);
+}
+
+export function releaseOfflineUrls(publicId: string): void {
     const audioUrl = activeAudioUrls.get(publicId);
     if (audioUrl) {
         URL.revokeObjectURL(audioUrl);

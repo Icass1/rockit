@@ -83,7 +83,9 @@ Http.middlewares = [
                         const entries = directory
                             .list()
                             .filter(
-                                (item): item is File => item instanceof File
+                                (item): item is File =>
+                                    item instanceof File &&
+                                    item.name !== `${sessionKey}.json`
                             )
                             .sort(
                                 (left, right) =>
@@ -110,8 +112,9 @@ Http.middlewares = [
                     !("savedAt" in value) ||
                     !("data" in value) ||
                     typeof value.savedAt !== "number" ||
-                    Date.now() - value.savedAt >
-                        OFFLINE_METADATA_POLICY.maxAgeMs ||
+                    (context.path !== "/user/session" &&
+                        Date.now() - value.savedAt >
+                            OFFLINE_METADATA_POLICY.maxAgeMs) ||
                     stamp !== sessionGeneration()
                 )
                     return response;

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
 import { formatHour, formatHourRange, utcIsoToLocalDate } from "@rockit/shared";
 import type { StatsMinutesEntryResponse } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface MinutesBarChartProps {
     data: StatsMinutesEntryResponse[];
@@ -23,6 +25,9 @@ interface TooltipState {
 }
 
 export default function MinutesBarChart({ data }: MinutesBarChartProps) {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [tooltip, setTooltip] = useState<TooltipState>({
         visible: false,
@@ -34,7 +39,9 @@ export default function MinutesBarChart({ data }: MinutesBarChartProps) {
     if (data.length === 0) {
         return (
             <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No data available</Text>
+                <Text style={styles.emptyText}>
+                    {vocabulary.MOBILE_NO_DATA}
+                </Text>
             </View>
         );
     }
@@ -87,7 +94,7 @@ export default function MinutesBarChart({ data }: MinutesBarChartProps) {
                 >
                     <Text style={styles.tooltipLabel}>{tooltip.label}</Text>
                     <Text style={styles.tooltipValue}>
-                        {tooltip.value.toFixed(1)} min
+                        {tooltip.value.toFixed(1)} {vocabulary.MINUTES}
                     </Text>
                 </Pressable>
             )}
@@ -129,10 +136,20 @@ export default function MinutesBarChart({ data }: MinutesBarChartProps) {
                                                 height: barHeight,
                                                 width: barWidth,
                                                 backgroundColor: isSelected
-                                                    ? COLORS.accent
+                                                    ? theme.legacy.accent
                                                     : selectedIndex !== null
-                                                      ? "rgba(238,16,134,0.2)"
-                                                      : "rgba(238,16,134,0.7)",
+                                                      ? withAlpha(
+                                                            theme.colors[
+                                                                "primary"
+                                                            ],
+                                                            0.2
+                                                        )
+                                                      : withAlpha(
+                                                            theme.colors[
+                                                                "primary"
+                                                            ],
+                                                            0.7
+                                                        ),
                                             },
                                         ]}
                                     />
@@ -165,98 +182,99 @@ export default function MinutesBarChart({ data }: MinutesBarChartProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    wrapper: {
-        position: "relative",
-    },
-    container: {
-        flexDirection: "row",
-        height: CHART_HEIGHT,
-    },
-    yAxis: {
-        width: LEFT_MARGIN,
-        height: CHART_HEIGHT,
-        justifyContent: "space-between",
-        alignItems: "flex-end",
-        paddingRight: 8,
-    },
-    yAxisLabel: {
-        fontSize: 10,
-        color: COLORS.gray600,
-    },
-    chartArea: {
-        flex: 1,
-        height: CHART_HEIGHT,
-        position: "relative",
-    },
-    gridLines: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-    },
-    gridLine: {
-        position: "absolute",
-        left: 0,
-        right: 0,
-        height: 1,
-        backgroundColor: "rgba(38,38,38,0.5)",
-    },
-    barsContainer: {
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "flex-end",
-        justifyContent: "flex-start",
-        gap: BAR_GAP,
-    },
-    barWrapper: {
-        alignItems: "center",
-    },
-    bar: {
-        borderRadius: 4,
-    },
-    labels: {
-        flexDirection: "row",
-        marginTop: 8,
-    },
-    labelWrapper: {
-        alignItems: "center",
-        overflow: "hidden",
-    },
-    dateLabel: {
-        fontSize: 9,
-        color: COLORS.gray600,
-        textAlign: "center",
-    },
-    emptyContainer: {
-        height: CHART_HEIGHT,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    emptyText: {
-        fontSize: 14,
-        color: COLORS.gray600,
-    },
-    tooltip: {
-        position: "absolute",
-        top: -40,
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 8,
-        padding: 8,
-        zIndex: 10,
-        minWidth: 100,
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "rgba(38,38,38,0.8)",
-    },
-    tooltipLabel: {
-        fontSize: 10,
-        color: COLORS.gray600,
-    },
-    tooltipValue: {
-        fontSize: 14,
-        fontWeight: "bold",
-        color: "#ffffff",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        wrapper: {
+            position: "relative",
+        },
+        container: {
+            flexDirection: "row",
+            height: CHART_HEIGHT,
+        },
+        yAxis: {
+            width: LEFT_MARGIN,
+            height: CHART_HEIGHT,
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+            paddingRight: theme.spacing.sm,
+        },
+        yAxisLabel: {
+            fontSize: 10,
+            color: theme.legacy.gray600,
+        },
+        chartArea: {
+            flex: 1,
+            height: CHART_HEIGHT,
+            position: "relative",
+        },
+        gridLines: {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+        },
+        gridLine: {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            height: 1,
+            backgroundColor: withAlpha(theme.colors["surface-raised"], 0.5),
+        },
+        barsContainer: {
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "flex-end",
+            justifyContent: "flex-start",
+            gap: BAR_GAP,
+        },
+        barWrapper: {
+            alignItems: "center",
+        },
+        bar: {
+            borderRadius: theme.radius.sm,
+        },
+        labels: {
+            flexDirection: "row",
+            marginTop: theme.spacing.sm,
+        },
+        labelWrapper: {
+            alignItems: "center",
+            overflow: "hidden",
+        },
+        dateLabel: {
+            fontSize: 9,
+            color: theme.legacy.gray600,
+            textAlign: "center",
+        },
+        emptyContainer: {
+            height: CHART_HEIGHT,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        emptyText: {
+            fontSize: theme.typography.body,
+            color: theme.legacy.gray600,
+        },
+        tooltip: {
+            position: "absolute",
+            top: -40,
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: theme.radius.md,
+            padding: theme.spacing.sm,
+            zIndex: 10,
+            minWidth: 100,
+            alignItems: "center",
+            borderWidth: 1,
+            borderColor: withAlpha(theme.colors["surface-raised"], 0.8),
+        },
+        tooltipLabel: {
+            fontSize: 10,
+            color: theme.legacy.gray600,
+        },
+        tooltipValue: {
+            fontSize: theme.typography.body,
+            fontWeight: "bold",
+            color: theme.colors["foreground-strong"],
+        },
+    });

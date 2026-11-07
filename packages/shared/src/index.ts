@@ -96,3 +96,6 @@ export type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listeningQ
 
 export type { FeaturedCollectionKey } from "@/models/interfaces/featuredCollection";
 export {loadFeaturedCollection, featuredCollectionSeed, getRockitListName} from "@/managers/featuredCollections";
+
+export { SharingManager } from "@/managers/sharingManager";
+export { NavigationPinsManager } from "@/managers/navigationPinsManager";

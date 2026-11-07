@@ -76,3 +76,4 @@ export type {
     PagedSearchResult,
     PagedSearchState,
 } from "@/models/interfaces/pagedSearch";
+export { validateUsername } from "@/auth/validation";

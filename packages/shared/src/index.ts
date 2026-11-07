@@ -82,3 +82,8 @@ export {
     isOfflineMetadataPath,
 } from "@/utils/offlineMetadataPolicy";
 
+export type {
+    ArtworkResolver,
+    RecommendationArtworkCacheEntry,
+} from "@/models/interfaces/artworkResolver";
+export { RecommendationArtworkManager } from "@/managers/recommendationArtworkManager";

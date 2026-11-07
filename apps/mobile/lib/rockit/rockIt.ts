@@ -1,6 +1,7 @@
 import {
     HttpResult,
     MediaResponse,
+    RecommendationArtworkManager,
     setRockIt,
     type SessionResponse,
 } from "@rockit/shared";
@@ -35,6 +36,7 @@ class MediaManager {
 
 class RockIt {
     mediaManager = new MediaManager();
+    recommendationArtworkManager = new RecommendationArtworkManager(Http);
     bookmarkManager = new BookmarkManager();
     // `toasterManager` kept for existing consumers; `notificationManager` is the
     // slot the shared base managers use.

@@ -5,7 +5,12 @@ import {
     type AutoplayRecommendation,
     type BaseSearchResultsItem,
 } from "@rockit/shared";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    ResolvedMediaArtwork,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
 import { Download, ListPlus } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
@@ -29,10 +34,12 @@ export function RecommendationRow({
             }}
             style={styles.row}
         >
-            <Image
-                source={media.imageUrl || PLACEHOLDER.song}
-                style={styles.image}
-                contentFit="cover"
+            <ResolvedMediaArtwork
+                resolver={rockIt.recommendationArtworkManager}
+                uri={media.imageUrl}
+                provider={media.provider}
+                artist={getMediaArtistsString(media)}
+                track={media.name}
             />
             <View style={styles.copy}>
                 <Text numberOfLines={1} style={styles.name}>

@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DropOverlay({
     onDropLink,
 }: {
     onDropLink: (url: string) => void;
 }): JSX.Element | null {
+    const vocabulary = useVocabulary();
+
     const [show, setShow] = useState(false);
 
     useEffect((): (() => void) => {
         const handleDragOver = (event: DragEvent): void => {
-            console.log("Drag over detected");
             event.preventDefault();
 
             // Show popup ONLY if dragging a link
@@ -27,12 +29,10 @@ export default function DropOverlay({
         };
 
         const handleDragLeave = (): void => {
-            console.log("Drag leave detected");
             setShow(false);
         };
 
         const handleDrop = (event: DragEvent): void => {
-            console.log("Drop detected");
             event.preventDefault();
             setShow(false);
 
@@ -59,7 +59,7 @@ export default function DropOverlay({
     return (
         <div className="bg-backdrop/70 fixed inset-0 z-999 flex items-center justify-center backdrop-blur-sm">
             <div className="border-foreground-strong/20 bg-secondary text-foreground-strong rounded-xl border p-6 text-2xl">
-                Drop the link to import it
+                {vocabulary.IMPORT_DROP_LINK}
             </div>
         </div>
     );

@@ -2,6 +2,7 @@
 
 import { JSX } from "react";
 import type { StatsInsightsResponse } from "@/dto";
+import { localizedWeekdays, statsInsightMetrics } from "@rockit/shared";
 import {
     CalendarDays,
     Clock3,
@@ -19,15 +20,13 @@ import {
     Target,
     Zap,
 } from "lucide-react";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 interface StatsInsightsProps {
     insights: StatsInsightsResponse;
-}
-
-function formatDuration(ms: number): string {
-    const minutes = Math.round(ms / 60000);
-    if (minutes < 60) return `${minutes}m`;
-    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
 function formatHour(hour: number | null): string {
@@ -41,74 +40,68 @@ function formatHour(hour: number | null): string {
 export default function StatsInsights({
     insights,
 }: StatsInsightsProps): JSX.Element {
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
+
     const personality =
         insights.nightOwlMinutes > insights.earlyBirdMinutes
             ? {
                   icon: Moon,
-                  title: "Night owl",
-                  detail: `${Math.round(insights.nightOwlMinutes)} late-night minutes`,
+                  title: vocabulary.STATS_NIGHT_OWL,
+                  detail: vocabulary.STATS_NIGHT_MINUTES.replace(
+                      "{minutes}",
+                      Math.round(insights.nightOwlMinutes).toLocaleString(lang)
+                  ),
               }
             : {
                   icon: Sunrise,
-                  title: "Early bird",
-                  detail: `${Math.round(insights.earlyBirdMinutes)} morning minutes`,
+                  title: vocabulary.STATS_EARLY_BIRD,
+                  detail: vocabulary.STATS_MORNING_MINUTES.replace(
+                      "{minutes}",
+                      Math.round(insights.earlyBirdMinutes).toLocaleString(lang)
+                  ),
               };
     const PersonalityIcon = personality.icon;
-    const cards = [
-        {
-            icon: CalendarDays,
-            value: insights.activeDays,
-            label: "Active days",
-        },
-        {
-            icon: Flame,
-            value: `${insights.longestStreak}d`,
-            label: "Best streak",
-        },
-        {
-            icon: Clock3,
-            value: formatDuration(insights.longestSessionMs),
-            label: "Longest session",
-        },
-        {
-            icon: Zap,
-            value: formatDuration(insights.averageSessionMs),
-            label: "Average session",
-        },
-        {
-            icon: Target,
-            value: `${insights.completionRate}%`,
-            label: "Completion rate",
-        },
-        {
-            icon: Repeat2,
-            value: `${insights.replayRate}%`,
-            label: "Replay rate",
-        },
-        {
-            icon: Compass,
-            value: insights.discoveryCount,
-            label: "New discoveries",
-        },
-        { icon: Heart, value: insights.likesAdded, label: "Likes added" },
-        { icon: Library, value: insights.libraryAdds, label: "Library adds" },
-        { icon: SkipForward, value: insights.skips, label: "Skips" },
-        { icon: MousePointerClick, value: insights.seekCount, label: "Seeks" },
-        {
-            icon: FastForward,
-            value: `${Math.round(insights.minutesSkipped)}m`,
-            label: "Seek distance",
-        },
-    ];
+    const icons = {
+        activeDays: CalendarDays,
+        longestStreak: Flame,
+        longestSessionMs: Clock3,
+        averageSessionMs: Zap,
+        completionRate: Target,
+        replayRate: Repeat2,
+        discoveryCount: Compass,
+        likesAdded: Heart,
+        libraryAdds: Library,
+        skips: SkipForward,
+        seekCount: MousePointerClick,
+        minutesSkipped: FastForward,
+    };
+    const cards = statsInsightMetrics(insights, vocabulary, lang).map(
+        (metric) => ({
+            ...metric,
+            icon: icons[metric.key as keyof typeof icons],
+        })
+    );
+    const peakDayIndex = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ].indexOf(insights.peakDay ?? "");
+    const peakDay =
+        peakDayIndex >= 0 ? localizedWeekdays(lang)[peakDayIndex] : "—";
 
     return (
         <section>
             <div className="mb-5">
                 <p className="text-primary text-[10px] font-semibold tracking-[0.22em] uppercase">
-                    Listening DNA
+                    {vocabulary.STATS_DNA}
                 </p>
                 <h2 className="text-foreground-strong mt-1 text-2xl font-bold">
-                    The habits behind the music
+                    {vocabulary.STATS_HABITS}
                 </h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -118,13 +111,13 @@ export default function StatsInsights({
                         size={28}
                     />
                     <p className="text-primary-soft text-xs font-semibold tracking-[0.2em] uppercase">
-                        Prime time
+                        {vocabulary.STATS_PRIME_TIME}
                     </p>
                     <p className="text-foreground-strong mt-3 text-4xl font-bold">
                         {formatHour(insights.peakHour)}
                     </p>
                     <p className="text-muted-foreground mt-1 text-sm">
-                        You listen most on {insights.peakDay ?? "—"}s
+                        {vocabulary.STATS_PEAK_DAY.replace("{day}", peakDay)}
                     </p>
                 </div>
                 <div className="border-info/20 from-info/20 via-secondary to-background relative overflow-hidden rounded-3xl border bg-gradient-to-br p-6 sm:col-span-2">
@@ -133,7 +126,7 @@ export default function StatsInsights({
                         size={28}
                     />
                     <p className="text-info-foreground text-xs font-semibold tracking-[0.2em] uppercase">
-                        Listening personality
+                        {vocabulary.STATS_PERSONALITY}
                     </p>
                     <p className="text-foreground-strong mt-3 text-4xl font-bold">
                         {personality.title}

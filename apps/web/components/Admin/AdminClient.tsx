@@ -209,7 +209,7 @@ export default function AdminClient({
         },
         {
             id: EAdminClientTab.STATS,
-            label: "Stats",
+            label: $vocabulary.STATS,
             icon: BarChart3,
         },
         {
@@ -368,7 +368,10 @@ export default function AdminClient({
                                                     selectedFile!.size /
                                                         (1024 * 1024)
                                                 )}{" "}
-                                                chunks)
+                                                {
+                                                    $vocabulary.ADMIN_UPLOAD_CHUNKS
+                                                }
+                                                )
                                             </span>
                                         </div>
                                         <div className="bg-muted h-2 w-full rounded-full">

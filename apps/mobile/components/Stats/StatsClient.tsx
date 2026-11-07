@@ -1,65 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import type { Vocabulary } from "@rockit/shared";
-import { EPlatform } from "@rockit/shared";
-import { withAlpha } from "@rockit/theme";
 import {
-    IconButton,
-    useDesignTheme,
-    useThemedStyles,
-    type DesignTheme,
-} from "@rockit/ui";
-import { BarChart3, User, Users } from "@rockit/ui/icons";
+    formatStatsRange as getRangeLabel,
+    statsDateBoundary,
+    statsRangeOptions,
+    type StatsRange as Range,
+} from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import type { DateInputEvent } from "@/models/interfaces/dateInput";
 import { Http } from "@/lib/http";
 import useFetch from "@/lib/useFetch";
 import { useVocabulary } from "@/lib/vocabulary";
+import InsightsPanel from "@/components/Stats/InsightsPanel";
 import UserStats from "@/components/Stats/UserStats";
 import DateInput from "@/components/ui/DateInput";
-
-const RANGE_OPTIONS: { label: keyof Vocabulary; value: Range }[] = [
-    { label: "MOBILE_STATS_WEEK", value: "7d" },
-    { label: "MOBILE_STATS_MONTH", value: "30d" },
-    { label: "MOBILE_STATS_YEAR", value: "1y" },
-    { label: "MOBILE_STATS_CUSTOM", value: "custom" },
-];
-
-export type Range = "7d" | "30d" | "1y" | "custom";
-
-function getRangeLabel(
-    range: Range,
-    vocabulary: Vocabulary,
-    lang: string,
-    customStart?: Date,
-    customEnd?: Date
-): string {
-    switch (range) {
-        case "7d":
-            return vocabulary.MOBILE_STATS_WEEK;
-        case "30d":
-            return vocabulary.MOBILE_STATS_MONTH;
-        case "1y":
-            return vocabulary.MOBILE_STATS_YEAR;
-        case "custom":
-            return vocabulary.MOBILE_STATS_RANGE.replace(
-                "{from}",
-                customStart?.toLocaleDateString(lang) ?? "…"
-            ).replace("{to}", customEnd?.toLocaleDateString(lang) ?? "…");
-    }
-}
-
-function EmptySection({ label }: { label: string }) {
-    const { vocabulary } = useVocabulary();
-    const theme = useDesignTheme();
-    const styles = useThemedStyles(createStyles);
-    return (
-        <View style={styles.emptyContainer}>
-            <BarChart3 size={32} color={theme.legacy.bgCard} />
-            <Text style={styles.emptyLabel}>{label}</Text>
-            <Text style={styles.emptySubtitle}>{vocabulary.NO_DATA}</Text>
-        </View>
-    );
-}
 
 function LoadingSkeleton() {
     const styles = useThemedStyles(createStyles);
@@ -77,9 +32,6 @@ export default function StatsClient() {
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const { lang, vocabulary } = useVocabulary();
-    const [section, setSection] = useState<"user" | "general" | "friends">(
-        "user"
-    );
     const [range, setRange] = useState<Range>("7d");
     const [customStart, setCustomStart] = useState<Date>();
     const [customEnd, setCustomEnd] = useState<Date>();
@@ -91,8 +43,14 @@ export default function StatsClient() {
     const { data, error, loading, update } = useFetch(() =>
         Http.getUserStats({
             range: range,
-            start: customStart?.toISOString() ?? null,
-            end: customEnd?.toISOString() ?? null,
+            start:
+                range === "custom" && customStart
+                    ? statsDateBoundary(customStart, "start")
+                    : null,
+            end:
+                range === "custom" && customEnd
+                    ? statsDateBoundary(customEnd, "end")
+                    : null,
             timezoneOffsetMinutes: new Date().getTimezoneOffset(),
         })
     );
@@ -107,7 +65,7 @@ export default function StatsClient() {
     }, [range, customStart, customEnd]);
 
     function formatDateForDisplay(dateStr: Date | undefined): string {
-        if (!dateStr) return "Select date";
+        if (!dateStr) return vocabulary.MOBILE_DATE_FROM;
         const date = new Date(dateStr);
         return date.toLocaleDateString(lang, {
             year: "numeric",
@@ -181,7 +139,7 @@ export default function StatsClient() {
 
             <View style={styles.controls}>
                 <View style={styles.rangePills}>
-                    {RANGE_OPTIONS.map((opt) => (
+                    {statsRangeOptions(vocabulary).map((opt) => (
                         <Pressable
                             key={opt.value}
                             style={[
@@ -197,52 +155,10 @@ export default function StatsClient() {
                                         styles.pillTextActive,
                                 ]}
                             >
-                                {vocabulary[opt.label]}
+                                {opt.label}
                             </Text>
                         </Pressable>
                     ))}
-                </View>
-
-                <View style={styles.sectionTabs}>
-                    <IconButton
-                        label={vocabulary.USER}
-                        onPress={() => setSection("user")}
-                    >
-                        <User
-                            size={20}
-                            color={
-                                section === "user"
-                                    ? theme.legacy.accent
-                                    : theme.legacy.gray600
-                            }
-                        />
-                    </IconButton>
-                    <IconButton
-                        label={vocabulary.STATISTICS}
-                        onPress={() => setSection("general")}
-                    >
-                        <BarChart3
-                            size={20}
-                            color={
-                                section === "general"
-                                    ? theme.legacy.accent
-                                    : theme.legacy.gray600
-                            }
-                        />
-                    </IconButton>
-                    <IconButton
-                        label={vocabulary.USERS_FRIENDS}
-                        onPress={() => setSection("friends")}
-                    >
-                        <Users
-                            size={20}
-                            color={
-                                section === "friends"
-                                    ? theme.legacy.accent
-                                    : theme.legacy.gray600
-                            }
-                        />
-                    </IconButton>
                 </View>
             </View>
 
@@ -307,22 +223,34 @@ export default function StatsClient() {
                 </View>
             )}
 
-            {section === "user" && (
+            {loading && <LoadingSkeleton />}
+            {error && (
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>
+                        {vocabulary.MOBILE_STATS_ERROR}
+                    </Text>
+                </View>
+            )}
+            {data && (
                 <>
-                    {loading && <LoadingSkeleton />}
-                    {error && (
-                        <View style={styles.errorContainer}>
-                            <Text style={styles.errorText}>
-                                {vocabulary.MOBILE_STATS_ERROR}
-                                {error}
-                            </Text>
-                        </View>
-                    )}
-                    {data && <UserStats data={data} rangeLabel={rangeLabel} />}
+                    <UserStats data={data} rangeLabel={rangeLabel} />
+                    <InsightsPanel
+                        filter={{
+                            range,
+                            start:
+                                range === "custom" && customStart
+                                    ? statsDateBoundary(customStart, "start")
+                                    : null,
+                            end:
+                                range === "custom" && customEnd
+                                    ? statsDateBoundary(customEnd, "end")
+                                    : null,
+                            timezoneOffsetMinutes:
+                                new Date().getTimezoneOffset(),
+                        }}
+                    />
                 </>
             )}
-            {section === "general" && <EmptySection label="General Stats" />}
-            {section === "friends" && <EmptySection label="Friends Stats" />}
         </View>
     );
 }

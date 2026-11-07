@@ -4,6 +4,7 @@ import { JSX, useMemo, useState } from "react";
 import Link from "next/link";
 import type { StatsRankedItemResponse } from "@/dto";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface RankingListProps {
     items: StatsRankedItemResponse[];
@@ -28,6 +29,8 @@ export default function RankingList({
     onPlay,
     formatValue,
 }: RankingListProps): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const [visibleCount, setVisibleCount] = useState(initialVisible);
 
     const sorted = useMemo(() => {
@@ -52,7 +55,7 @@ export default function RankingList({
         return (
             <div className="flex items-center justify-center py-12">
                 <p className="text-disabled-foreground text-sm">
-                    No data available
+                    {vocabulary.MOBILE_NO_DATA}
                 </p>
             </div>
         );
@@ -80,7 +83,7 @@ export default function RankingList({
                         className="text-subtle-foreground hover:text-foreground-strong flex cursor-pointer items-center gap-1.5 py-3 text-sm font-medium transition-colors"
                     >
                         <ChevronUp className="h-4 w-4" />
-                        Show less
+                        {vocabulary.STATS_SHOW_LESS}
                     </button>
                 )}
                 {hasMore && (
@@ -90,7 +93,7 @@ export default function RankingList({
                         className="text-subtle-foreground hover:text-foreground-strong flex cursor-pointer items-center gap-1.5 py-3 text-sm font-medium transition-colors"
                     >
                         <ChevronDown className="h-4 w-4" />
-                        Show more
+                        {vocabulary.STATS_SHOW_MORE}
                     </button>
                 )}
             </div>

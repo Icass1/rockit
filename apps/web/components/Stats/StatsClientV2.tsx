@@ -2,47 +2,21 @@
 
 import { JSX, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { EWebSocketMessage } from "@rockit/shared";
+import {
+    EWebSocketMessage,
+    formatStatsRange,
+    statsRangeOptions,
+    type StatsRange as Range,
+} from "@rockit/shared";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getLocalEndOfDay, getLocalStartOfDay } from "@/lib/utils/dateUtils";
-import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 import UserStatsV2 from "@/components/Stats/UserStatsV2";
-
-type Range = "7d" | "30d" | "1y" | "all" | "custom";
-
-const RANGE_OPTIONS: { label: string; value: Range }[] = [
-    { label: "7 days", value: "7d" },
-    { label: "30 days", value: "30d" },
-    { label: "1 year", value: "1y" },
-    { label: "All", value: "all" },
-    { label: "Custom", value: "custom" },
-];
-
-function getRangeLabel(
-    range: Range,
-    customStart?: string,
-    customEnd?: string
-): string {
-    switch (range) {
-        case "7d":
-            return "last 7 days";
-        case "30d":
-            return "last 30 days";
-        case "1y":
-            return "last year";
-        case "all":
-            return "all time";
-        case "custom":
-            if (customStart && customEnd) {
-                const s = new Date(customStart).toLocaleDateString();
-                const e = new Date(customEnd).toLocaleDateString();
-                return `${s} — ${e}`;
-            }
-            return "custom range";
-    }
-}
 
 function LoadingSkeleton(): JSX.Element {
     return (
@@ -71,6 +45,7 @@ function LoadingSkeleton(): JSX.Element {
 
 export default function StatsClientV2(): JSX.Element {
     const $vocabulary = useVocabulary();
+    const lang = useLanguage();
     const [range, setRange] = useState<Range>("7d");
     const [customStart, setCustomStart] = useState("");
     const [customEnd, setCustomEnd] = useState("");
@@ -110,7 +85,13 @@ export default function StatsClientV2(): JSX.Element {
         };
     }, [update]);
 
-    const rangeLabel = getRangeLabel(range, customStart, customEnd);
+    const rangeLabel = formatStatsRange(
+        range,
+        $vocabulary,
+        lang,
+        customStart,
+        customEnd
+    );
 
     function handleRangeChange(newRange: Range): void {
         setRange(newRange);
@@ -139,7 +120,7 @@ export default function StatsClientV2(): JSX.Element {
                         </Link>
                     </div>
                     <p className="text-subtle-foreground mt-1.5 text-sm md:text-base">
-                        Showing stats for{" "}
+                        {$vocabulary.MOBILE_STATS_FOR}{" "}
                         <span className="text-muted-foreground font-medium">
                             {rangeLabel}
                         </span>
@@ -147,7 +128,7 @@ export default function StatsClientV2(): JSX.Element {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {RANGE_OPTIONS.map((opt) => (
+                    {statsRangeOptions($vocabulary).map((opt) => (
                         <button
                             key={opt.value}
                             type="button"
@@ -171,7 +152,7 @@ export default function StatsClientV2(): JSX.Element {
                             htmlFor="stats-start"
                             className="bg-background text-subtle-foreground absolute -top-2 left-3 px-1 text-[10px]"
                         >
-                            From
+                            {$vocabulary.MOBILE_DATE_FROM}
                         </label>
                         <input
                             id="stats-start"
@@ -187,7 +168,7 @@ export default function StatsClientV2(): JSX.Element {
                             htmlFor="stats-end"
                             className="bg-background text-subtle-foreground absolute -top-2 left-3 px-1 text-[10px]"
                         >
-                            To
+                            {$vocabulary.MOBILE_DATE_TO}
                         </label>
                         <input
                             id="stats-end"
@@ -205,7 +186,8 @@ export default function StatsClientV2(): JSX.Element {
             {error && (
                 <div className="animate-fade-in-up mt-8">
                     <p className="text-destructive-soft text-sm">
-                        Error loading stats: {error}
+                        {$vocabulary.MOBILE_STATS_ERROR}
+                        {error}
                     </p>
                 </div>
             )}

@@ -4,6 +4,7 @@ import { JSX } from "react";
 import type { StatsV2SummaryResponse } from "@/dto";
 import { Clock3, Flame, Headphones, Radio, Waves } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface SummaryCardsV2Props {
     summary: StatsV2SummaryResponse;
@@ -23,14 +24,16 @@ export default function SummaryCardsV2({
     summary,
     rangeLabel,
 }: SummaryCardsV2Props): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const mediaMix = [
         {
-            name: "Songs",
+            name: vocabulary.SONGS,
             value: summary.uniqueSongsListened,
             color: "var(--theme-primary)",
         },
         {
-            name: "Videos",
+            name: vocabulary.VIDEOS,
             value: summary.uniqueVideosListened,
             color: "var(--theme-info)",
         },
@@ -38,17 +41,17 @@ export default function SummaryCardsV2({
     const facts = [
         {
             icon: Waves,
-            label: "Listening sessions",
+            label: vocabulary.STATS_LISTENING_SESSIONS,
             value: summary.totalListenSessions.toLocaleString(),
         },
         {
             icon: Headphones,
-            label: "Unique media",
+            label: vocabulary.STATS_UNIQUE_MEDIA,
             value: summary.uniqueMediasListened.toLocaleString(),
         },
         {
             icon: Clock3,
-            label: "Average play",
+            label: vocabulary.STATS_AVERAGE_PLAY,
             value: formatDuration(summary.avgPlayTimePerMediaMs / 60000),
         },
         {
@@ -69,7 +72,7 @@ export default function SummaryCardsV2({
                     {formatDuration(summary.totalPlayTimeMinutes)}
                 </p>
                 <p className="text-muted-foreground mt-2 text-lg">
-                    total listening time
+                    {vocabulary.STATS_LISTENING_TIME}
                 </p>
                 <div className="text-muted-foreground mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm">
                     <span>
@@ -78,13 +81,13 @@ export default function SummaryCardsV2({
                                 summary.totalPlayTimeMinutes
                             ).toLocaleString()}
                         </strong>{" "}
-                        minutes
+                        {vocabulary.MINUTES}
                     </span>
                     <span>
                         <strong className="text-foreground-strong">
                             {summary.uniqueMediasListened.toLocaleString()}
                         </strong>{" "}
-                        different plays
+                        {vocabulary.STATS_DIFFERENT_PLAYS}
                     </span>
                 </div>
             </div>
@@ -125,15 +128,15 @@ export default function SummaryCardsV2({
                             className="text-subtle-foreground mb-3"
                         />
                         <p className="text-foreground-strong text-sm font-bold">
-                            Your media mix
+                            {vocabulary.STATS_MEDIA_MIX}
                         </p>
                         <p className="text-subtle-foreground mt-2 text-xs">
                             <span className="text-primary-soft">●</span>{" "}
-                            {summary.uniqueSongsListened} songs
+                            {summary.uniqueSongsListened} {vocabulary.SONGS}
                         </p>
                         <p className="text-subtle-foreground mt-1 text-xs">
                             <span className="text-info">●</span>{" "}
-                            {summary.uniqueVideosListened} videos
+                            {summary.uniqueVideosListened} {vocabulary.VIDEOS}
                         </p>
                     </div>
                 </div>

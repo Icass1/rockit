@@ -190,12 +190,7 @@ export default function LogsScreen() {
                     style={styles.clearButton}
                     onPress={shareSheetLogs}
                     accessibilityRole="button"
-                    accessibilityLabel={
-                        vocabulary.SETTINGS_SHARE_SHEET_LOGS ===
-                        "SETTINGS_SHARE_SHEET_LOGS"
-                            ? vocabulary.SETTINGS_SHARE_SHEET_LOGS
-                            : vocabulary.SETTINGS_SHARE_SHEET_LOGS
-                    }
+                    accessibilityLabel={vocabulary.SETTINGS_SHARE_SHEET_LOGS}
                 >
                     <Share2 size={16} color={theme.legacy.gray400} />
                 </Pressable>

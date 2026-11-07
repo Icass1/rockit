@@ -190,7 +190,7 @@ export default function EditMetadataModal({
                         onClick={handleClose}
                         disabled={submitting}
                         className="text-muted-foreground hover:bg-muted hover:text-foreground-strong rounded-full p-2 transition disabled:opacity-50"
-                        aria-label="Close"
+                        aria-label={$vocabulary.CANCEL}
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -240,13 +240,13 @@ export default function EditMetadataModal({
                             {$vocabulary.EDIT_METADATA_SUCCESS}
                         </p>
                         <p className="text-muted-foreground mt-1 text-sm">
-                            An admin will review your changes.
+                            {$vocabulary.MOBILE_METADATA_REVIEW}
                         </p>
                         <button
                             onClick={onClose}
                             className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground mt-6 rounded-lg px-6 py-2 text-sm font-semibold transition"
                         >
-                            Close
+                            {$vocabulary.CANCEL}
                         </button>
                     </div>
                 ) : (
@@ -327,7 +327,7 @@ export default function EditMetadataModal({
                             disabled={submitting}
                             className="border-border-strong text-foreground hover:border-border-strong hover:text-foreground-strong rounded-md border px-3 py-2 text-sm whitespace-nowrap transition disabled:opacity-50"
                         >
-                            Cancel
+                            {$vocabulary.CANCEL}
                         </button>
                         <button
                             onClick={handleSubmit}
@@ -337,7 +337,7 @@ export default function EditMetadataModal({
                             {submitting ? (
                                 <>
                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                    Submitting...
+                                    {$vocabulary.METADATA_SUBMITTING}
                                 </>
                             ) : (
                                 $vocabulary.EDIT_METADATA_SUBMIT

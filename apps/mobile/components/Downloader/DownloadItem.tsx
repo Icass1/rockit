@@ -1,7 +1,9 @@
+import type { Vocabulary } from "@rockit/shared";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import type { DownloadInfo } from "@/hooks/useDownloads";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface DownloadItemProps {
     item: DownloadInfo;
@@ -14,18 +16,20 @@ function getStatusColor(item: DownloadInfo, theme: DesignTheme): string {
     return theme.legacy.accent;
 }
 
-function getStatusLabel(item: DownloadInfo): string {
-    if (item.message === "Error") return "Error";
-    if (item.completed >= 100 || item.message === "Done") return "Done";
-    if (item.message === "In queue" || item.message === "Waiting")
-        return item.message;
-    if (item.message === "Starting" || item.message === "Fetching")
-        return item.message;
+function getStatusLabel(item: DownloadInfo, vocabulary: Vocabulary): string {
+    if (item.message === "Error") return vocabulary.ERROR;
+    if (item.completed >= 100 || item.message === "Done")
+        return vocabulary.COMPLETED;
+    if (item.message === "In queue") return vocabulary.DOWNLOAD_STATUS_QUEUED;
+    if (item.message === "Waiting") return vocabulary.DOWNLOAD_STATUS_WAITING;
+    if (item.message === "Starting") return vocabulary.STARTING;
+    if (item.message === "Fetching") return vocabulary.FETCHING;
     return `${Math.round(item.completed)}%`;
 }
 
 export default function DownloadItem({ item }: DownloadItemProps) {
     const theme = useDesignTheme();
+    const { vocabulary } = useVocabulary();
     const styles = useThemedStyles(createStyles);
     const statusColor = getStatusColor(item, theme);
     const completed = Number(item.completed) || 0;
@@ -58,7 +62,7 @@ export default function DownloadItem({ item }: DownloadItemProps) {
                 <View style={styles.header}>
                     <View style={styles.titleContainer}>
                         <Text style={styles.title} numberOfLines={1}>
-                            {item.title || "Loading..."}
+                            {item.title || vocabulary.MOBILE_LOADING}
                         </Text>
                         {item.subtitle ? (
                             <Text style={styles.subtitle} numberOfLines={1}>
@@ -67,7 +71,7 @@ export default function DownloadItem({ item }: DownloadItemProps) {
                         ) : null}
                     </View>
                     <Text style={[styles.status, { color: statusColor }]}>
-                        {getStatusLabel(item)}
+                        {getStatusLabel(item, vocabulary)}
                     </Text>
                 </View>
 

@@ -6,8 +6,10 @@ import { Bookmark } from "lucide-react";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import BookmarkPopup from "@/components/Footer/BookmarkPopup";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function BookmarkButton(): JSX.Element {
+    const $vocabulary = useVocabulary();
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentMediaBookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
@@ -24,7 +26,7 @@ export default function BookmarkButton(): JSX.Element {
     return (
         <div className="relative">
             <button
-                aria-label="Bookmark"
+                aria-label={$vocabulary.BOOKMARKS}
                 onClick={(): void => rockIt.bookmarkManager.togglePopup()}
                 className="hover:text-foreground-strong flex items-center justify-center transition-colors"
             >

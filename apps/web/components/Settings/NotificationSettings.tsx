@@ -98,7 +98,9 @@ export default function NotificationSettings(): JSX.Element {
             </p>
 
             {loading ? (
-                <p className="text-subtle-foreground text-sm">Loading...</p>
+                <p className="text-subtle-foreground text-sm">
+                    {vocabulary.MOBILE_LOADING}
+                </p>
             ) : (
                 <div className="divide-border-subtle border-border-subtle divide-y rounded-xl border">
                     {events.map((event) => (

@@ -25,6 +25,7 @@ import {
 } from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function SelectableRow({
     media,
@@ -328,6 +329,8 @@ export function StationRow({
 }: {
     station: BaseStationResponse;
 }): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const $station = useMedia(_station);
 
     const handlePlay = (): void => {
@@ -356,7 +359,7 @@ export function StationRow({
                             {$station.name}
                         </p>
                         <p className="text-muted-foreground truncate text-sm">
-                            Radio Station
+                            {vocabulary.RADIO_STATIONS}
                         </p>
                     </div>
                 </div>

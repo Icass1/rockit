@@ -109,7 +109,8 @@ export default function PlayerUIContent(): JSX.Element {
             </div>
         );
 
-    if (!width || !height) return <div>Loading window size.</div>;
+    if (!width || !height)
+        return <div role="status">{$vocabulary.MOBILE_LOADING}</div>;
 
     const aspectRatio = width / height;
     // pt-30 / pb-6 = the header/footer padding (24) plus half of it (12),

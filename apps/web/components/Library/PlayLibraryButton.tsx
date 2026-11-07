@@ -2,8 +2,10 @@ import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function PlayLibraryButton(): JSX.Element {
+    const $vocabulary = useVocabulary();
     const loading = useStore(rockIt.libraryPlaybackManager.loadingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
     const $currentQueueMediaId = useStore(
@@ -30,7 +32,7 @@ export default function PlayLibraryButton(): JSX.Element {
             type="button"
             aria-busy={loading}
             onClick={handleClick}
-            title="Play library"
+            title={$vocabulary.LIBRARY_PLAY_ALL}
             className="from-primary to-brand-light shadow-player-action grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-full bg-linear-to-r p-0 leading-none transition-transform md:hover:scale-105"
         >
             {playingLibrary && $playing ? (

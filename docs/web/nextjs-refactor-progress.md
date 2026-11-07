@@ -877,3 +877,15 @@ external-enabled suggestion request. Artwork cache ownership now lives in scoped
 web types and lint are checked; CI checks are recorded in PR 179. Earlier browser
 fixtures remain historical evidence; runtime acceptance on the rebased application
 and physical PiP/Vivaldi verification remain open.
+
+## Mobile/desktop client-entry separation pilot
+
+Extracted chrome from AppClientLayout while preserving the common runtime, playback,
+session and queue providers. Dedicated mobile/desktop build targets alias static
+shell entries; the compatibility origin mounts only the selected chrome. Mobile
+controls stay mobile in landscape and wide viewports. Existing playback engines,
+provider capabilities, API contracts and offline storage schema are unchanged.
+The new optional mobile deployment and Android TWA association/configuration are
+documented in docs/MOBILE_PLATFORM.md. Production builds and isolation checks are
+recorded in the PR. Physical device, native distribution, origin migration and
+long-term storage acceptance remain open; this is not a completed native cutover.

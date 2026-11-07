@@ -238,3 +238,11 @@ credit in an application's interface or publication of modified source code.
 
 Third-party dependencies and media retain their own licenses and rights. The
 software license does not grant rights to music, artwork, or external services.
+
+## Mobile platform pilot
+
+An opt-in mobile web build reuses the existing PWA UI for iOS and an Android TWA
+packaging candidate, while desktop has a separate build entry. See
+[the platform decision and migration gates](docs/MOBILE_PLATFORM.md) and
+[the Android wrapper guide](apps/android-pwa/README.md). The existing Expo app is
+retained until real-device background playback and offline acceptance passes.

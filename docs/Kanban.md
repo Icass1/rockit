@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [MOBILE] Separar clientes web y preparar interfaz móvil compartida
+
+- tags: [frontend, mobile, pwa, android, architecture, performance]
+- priority: high
+- workload: Hard
+    ```md
+    Piloto implementado: entradas estáticas mobile/desktop, misma UI y motor web para PWA iOS y distribución Android TWA candidata, origen responsive de transición con una sola interfaz montada. Despliegue móvil opt-in y configuración Android con asociación de dominio/firma. Se conserva Expo hasta validar segundo plano, transiciones, offline y controles en dispositivos físicos. No cambia S3, BBDD ni contratos del backend. Investigación y límites en docs/MOBILE_PLATFORM.md. Pendiente de revisión y aceptación física; no marca completada la migración nativa.
+    ```
+
 ### [DOWNLOADS] Admitir colaboradores adicionales en el catálogo musical
 
 - tags: [backend, youtube, youtubeMusic, downloads, bug]

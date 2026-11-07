@@ -40,7 +40,7 @@ export default function CrossfadeSettings() {
                 <Slider
                     style={styles.slider}
                     minimumValue={0}
-                    maximumValue={12}
+                    maximumValue={40}
                     step={1}
                     value={durationSec}
                     onValueChange={handleSliderChange}

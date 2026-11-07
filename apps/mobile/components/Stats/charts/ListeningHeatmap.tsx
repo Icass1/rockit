@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
+import { localizedWeekdays } from "@rockit/shared";
 import type { StatsHeatmapCellResponse } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Svg, { G, Rect, Text as SvgText } from "react-native-svg";
+import { useVocabulary, useVocabulary } from "@/lib/vocabulary";
 
 interface ListeningHeatmapProps {
     data: StatsHeatmapCellResponse[];
@@ -17,13 +20,15 @@ const HOURS_START = 8;
 const HOURS_END = 23;
 const DAYS = 7;
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-function cellColor(value: number, maxValue: number): string {
-    if (value === 0) return "rgba(38,38,38,0.3)";
+function cellColor(
+    value: number,
+    maxValue: number,
+    theme: DesignTheme
+): string {
+    if (value === 0) return withAlpha(theme.colors["surface-raised"], 0.3);
     const intensity = Math.min(value / maxValue, 1);
     const alpha = 0.15 + intensity * 0.85;
-    return `rgba(238,16,134,${alpha})`;
+    return withAlpha(theme.colors.primary, alpha);
 }
 
 interface TooltipState {
@@ -36,6 +41,11 @@ interface TooltipState {
 }
 
 export default function ListeningHeatmap({ data }: ListeningHeatmapProps) {
+    const { vocabulary } = useVocabulary();
+    const { lang } = useVocabulary();
+    const DAY_LABELS = localizedWeekdays(lang);
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const [selectedCell, setSelectedCell] = useState<{
         hour: number;
         day: number;
@@ -97,7 +107,7 @@ export default function ListeningHeatmap({ data }: ListeningHeatmapProps) {
                     <Text style={styles.tooltipValue}>
                         {tooltip.value > 0
                             ? `${tooltip.value} min`
-                            : "No activity"}
+                            : vocabulary.NO_DATA}
                     </Text>
                 </View>
             )}
@@ -124,7 +134,7 @@ export default function ListeningHeatmap({ data }: ListeningHeatmapProps) {
                                         CELL_W / 2
                                     }
                                     y={12}
-                                    fill={COLORS.gray600}
+                                    fill={theme.legacy.gray600}
                                     fontSize={8}
                                     textAnchor="middle"
                                 >
@@ -142,7 +152,7 @@ export default function ListeningHeatmap({ data }: ListeningHeatmapProps) {
                                     CELL_H / 2 +
                                     3
                                 }
-                                fill={COLORS.gray600}
+                                fill={theme.legacy.gray600}
                                 fontSize={9}
                                 textAnchor="end"
                             >
@@ -174,22 +184,26 @@ export default function ListeningHeatmap({ data }: ListeningHeatmapProps) {
                                                 rx={2}
                                                 fill={cellColor(
                                                     value,
-                                                    maxValue
+                                                    maxValue,
+                                                    theme
                                                 )}
                                                 stroke={
                                                     isSelected
-                                                        ? "#ffffff"
+                                                        ? theme.colors[
+                                                              "foreground-strong"
+                                                          ]
                                                         : "transparent"
                                                 }
                                                 strokeWidth={isSelected ? 2 : 0}
-                                                onPress={() =>
+                                                onPress={(event) => {
                                                     handleCellPress(
                                                         hour,
                                                         day,
                                                         x,
                                                         y
-                                                    )
-                                                }
+                                                    );
+                                                    return event;
+                                                }}
                                             />
                                         );
                                     }
@@ -203,31 +217,32 @@ export default function ListeningHeatmap({ data }: ListeningHeatmapProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    wrapper: {
-        position: "relative",
-    },
-    scrollContent: {
-        paddingRight: 16,
-    },
-    tooltip: {
-        position: "absolute",
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 8,
-        padding: 8,
-        zIndex: 10,
-        minWidth: 80,
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "rgba(38,38,38,0.8)",
-    },
-    tooltipText: {
-        fontSize: 10,
-        color: COLORS.gray600,
-    },
-    tooltipValue: {
-        fontSize: 14,
-        fontWeight: "bold",
-        color: "#ffffff",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        wrapper: {
+            position: "relative",
+        },
+        scrollContent: {
+            paddingRight: theme.spacing.lg,
+        },
+        tooltip: {
+            position: "absolute",
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: theme.radius.md,
+            padding: theme.spacing.sm,
+            zIndex: 10,
+            minWidth: 80,
+            alignItems: "center",
+            borderWidth: 1,
+            borderColor: withAlpha(theme.colors["surface-raised"], 0.8),
+        },
+        tooltipText: {
+            fontSize: 10,
+            color: theme.legacy.gray600,
+        },
+        tooltipValue: {
+            fontSize: theme.typography.body,
+            fontWeight: "bold",
+            color: theme.colors["foreground-strong"],
+        },
+    });

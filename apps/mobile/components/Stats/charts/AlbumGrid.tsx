@@ -1,6 +1,7 @@
 import { useCallback } from "react";
-import { COLORS } from "@/constants/theme";
 import type { StatsRankedItemResponse } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTypedRouter } from "@/lib/useTypedRouter";
@@ -10,6 +11,7 @@ interface AlbumGridProps {
 }
 
 export default function AlbumGrid({ albums }: AlbumGridProps) {
+    const styles = useThemedStyles(createStyles);
     const { push } = useTypedRouter();
     const maxValue = albums[0]?.value || 1;
 
@@ -60,7 +62,7 @@ export default function AlbumGrid({ albums }: AlbumGridProps) {
                 </View>
             </Pressable>
         ),
-        [handlePress, maxValue]
+        [handlePress, maxValue, styles]
     );
 
     const keyExtractor = useCallback(
@@ -84,73 +86,74 @@ export default function AlbumGrid({ albums }: AlbumGridProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    grid: {
-        gap: 8,
-    },
-    row: {
-        gap: 8,
-        marginBottom: 8,
-    },
-    card: {
-        flex: 1,
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 12,
-        overflow: "hidden",
-        position: "relative",
-    },
-    rankBadge: {
-        position: "absolute",
-        top: 4,
-        left: 4,
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: "rgba(0,0,0,0.7)",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1,
-    },
-    rankText: {
-        fontSize: 10,
-        fontWeight: "bold",
-        color: "#ffffff",
-    },
-    imageContainer: {
-        aspectRatio: 1,
-        overflow: "hidden",
-    },
-    image: {
-        width: "100%",
-        height: "100%",
-    },
-    placeholderImage: {
-        backgroundColor: COLORS.bgCard,
-    },
-    name: {
-        fontSize: 12,
-        fontWeight: "bold",
-        color: "#ffffff",
-        paddingHorizontal: 8,
-        paddingTop: 6,
-    },
-    subtitle: {
-        fontSize: 10,
-        color: COLORS.gray600,
-        paddingHorizontal: 8,
-        paddingBottom: 4,
-    },
-    progressContainer: {
-        height: 4,
-        backgroundColor: "rgba(38,38,38,0.5)",
-        marginHorizontal: 8,
-        marginBottom: 8,
-        borderRadius: 2,
-        overflow: "hidden",
-    },
-    progressBar: {
-        height: "100%",
-        backgroundColor: COLORS.accent,
-        borderRadius: 2,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        grid: {
+            gap: theme.spacing.sm,
+        },
+        row: {
+            gap: theme.spacing.sm,
+            marginBottom: theme.spacing.sm,
+        },
+        card: {
+            flex: 1,
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: theme.radius.lg,
+            overflow: "hidden",
+            position: "relative",
+        },
+        rankBadge: {
+            position: "absolute",
+            top: 4,
+            left: 4,
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.7),
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1,
+        },
+        rankText: {
+            fontSize: 10,
+            fontWeight: "bold",
+            color: theme.colors["foreground-strong"],
+        },
+        imageContainer: {
+            aspectRatio: 1,
+            overflow: "hidden",
+        },
+        image: {
+            width: "100%",
+            height: "100%",
+        },
+        placeholderImage: {
+            backgroundColor: theme.legacy.bgCard,
+        },
+        name: {
+            fontSize: theme.typography.caption,
+            fontWeight: "bold",
+            color: theme.colors["foreground-strong"],
+            paddingHorizontal: theme.spacing.sm,
+            paddingTop: 6,
+        },
+        subtitle: {
+            fontSize: 10,
+            color: theme.legacy.gray600,
+            paddingHorizontal: theme.spacing.sm,
+            paddingBottom: theme.spacing.xs,
+        },
+        progressContainer: {
+            height: 4,
+            backgroundColor: withAlpha(theme.colors["surface-raised"], 0.5),
+            marginHorizontal: theme.spacing.sm,
+            marginBottom: theme.spacing.sm,
+            borderRadius: theme.radius.xs,
+            overflow: "hidden",
+        },
+        progressBar: {
+            height: "100%",
+            backgroundColor: theme.legacy.accent,
+            borderRadius: theme.radius.xs,
+        },
+    });

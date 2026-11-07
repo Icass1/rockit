@@ -1,8 +1,10 @@
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ScrollView, StyleSheet } from "react-native";
 import { Header } from "@/components/layout";
 import StatsClient from "@/components/Stats/StatsClient";
 
 export default function StatsScreen() {
+    const styles = useThemedStyles(createStyles);
     return (
         <>
             <Header />
@@ -17,7 +19,12 @@ export default function StatsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#0b0b0b" },
-    content: { paddingTop: 120, paddingBottom: 32, paddingHorizontal: 16 },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: { flex: 1, backgroundColor: theme.colors["background"] },
+        content: {
+            paddingTop: 120,
+            paddingBottom: theme.spacing.xxl,
+            paddingHorizontal: theme.spacing.lg,
+        },
+    });

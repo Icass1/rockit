@@ -1,55 +1,68 @@
 import { useEffect, useRef, useState } from "react";
-import { COLORS } from "@/constants/theme";
-import DateTimePicker, {
-    type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import type { Vocabulary } from "@rockit/shared";
 import { EPlatform } from "@rockit/shared";
-import { BarChart3, User, Users } from "lucide-react-native";
+import { withAlpha } from "@rockit/theme";
+import {
+    IconButton,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
+import { BarChart3, User, Users } from "@rockit/ui/icons";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import type { DateInputEvent } from "@/models/interfaces/dateInput";
 import { Http } from "@/lib/http";
 import useFetch from "@/lib/useFetch";
 import { useVocabulary } from "@/lib/vocabulary";
 import UserStats from "@/components/Stats/UserStats";
+import DateInput from "@/components/ui/DateInput";
 
-const RANGE_OPTIONS: { label: string; value: Range }[] = [
-    { label: "7 days", value: "7d" },
-    { label: "30 days", value: "30d" },
-    { label: "1 year", value: "1y" },
-    { label: "Custom", value: "custom" },
+const RANGE_OPTIONS: { label: keyof Vocabulary; value: Range }[] = [
+    { label: "MOBILE_STATS_WEEK", value: "7d" },
+    { label: "MOBILE_STATS_MONTH", value: "30d" },
+    { label: "MOBILE_STATS_YEAR", value: "1y" },
+    { label: "MOBILE_STATS_CUSTOM", value: "custom" },
 ];
 
 export type Range = "7d" | "30d" | "1y" | "custom";
 
 function getRangeLabel(
     range: Range,
+    vocabulary: Vocabulary,
+    lang: string,
     customStart?: Date,
     customEnd?: Date
 ): string {
     switch (range) {
         case "7d":
-            return "last 7 days";
+            return vocabulary.MOBILE_STATS_WEEK;
         case "30d":
-            return "last 30 days";
+            return vocabulary.MOBILE_STATS_MONTH;
         case "1y":
-            return "last year";
+            return vocabulary.MOBILE_STATS_YEAR;
         case "custom":
-            return `${customStart || "..."} to ${customEnd || "..."}`;
+            return vocabulary.MOBILE_STATS_RANGE.replace(
+                "{from}",
+                customStart?.toLocaleDateString(lang) ?? "…"
+            ).replace("{to}", customEnd?.toLocaleDateString(lang) ?? "…");
     }
 }
 
 function EmptySection({ label }: { label: string }) {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.emptyContainer}>
-            <BarChart3 size={32} color={COLORS.bgCard} />
+            <BarChart3 size={32} color={theme.legacy.bgCard} />
             <Text style={styles.emptyLabel}>{label}</Text>
-            <Text style={styles.emptySubtitle}>
-                Available once backend stats endpoints are ready
-            </Text>
+            <Text style={styles.emptySubtitle}>{vocabulary.NO_DATA}</Text>
         </View>
     );
 }
 
 function LoadingSkeleton() {
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.skeletonContainer}>
             <View style={styles.skeleton} />
@@ -61,7 +74,9 @@ function LoadingSkeleton() {
 }
 
 export default function StatsClient() {
-    const { lang } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
+    const { lang, vocabulary } = useVocabulary();
     const [section, setSection] = useState<"user" | "general" | "friends">(
         "user"
     );
@@ -101,11 +116,8 @@ export default function StatsClient() {
         });
     }
 
-    function onStartDateChange(
-        _event: DateTimePickerEvent,
-        selectedDate?: Date
-    ) {
-        if (Platform.OS === "android") {
+    function onStartDateChange(_event: DateInputEvent, selectedDate?: Date) {
+        if (Platform.OS !== "ios") {
             setShowStartPicker(false);
         }
         if (selectedDate) {
@@ -114,8 +126,8 @@ export default function StatsClient() {
         }
     }
 
-    function onEndDateChange(_event: DateTimePickerEvent, selectedDate?: Date) {
-        if (Platform.OS === "android") {
+    function onEndDateChange(_event: DateInputEvent, selectedDate?: Date) {
+        if (Platform.OS !== "ios") {
             setShowEndPicker(false);
         }
         if (selectedDate) {
@@ -152,12 +164,20 @@ export default function StatsClient() {
         }
     }
 
-    const rangeLabel = getRangeLabel(range, customStart, customEnd);
+    const rangeLabel = getRangeLabel(
+        range,
+        vocabulary,
+        lang,
+        customStart,
+        customEnd
+    );
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Stats</Text>
-            <Text style={styles.subtitle}>Showing stats for {rangeLabel}</Text>
+            <Text style={styles.title}>{vocabulary.STATS}</Text>
+            <Text style={styles.subtitle}>
+                {vocabulary.MOBILE_STATS_FOR} {rangeLabel}
+            </Text>
 
             <View style={styles.controls}>
                 <View style={styles.rangePills}>
@@ -177,38 +197,52 @@ export default function StatsClient() {
                                         styles.pillTextActive,
                                 ]}
                             >
-                                {opt.label}
+                                {vocabulary[opt.label]}
                             </Text>
                         </Pressable>
                     ))}
                 </View>
 
                 <View style={styles.sectionTabs}>
-                    <User
-                        size={20}
-                        color={
-                            section === "user" ? COLORS.accent : COLORS.gray600
-                        }
+                    <IconButton
+                        label={vocabulary.USER}
                         onPress={() => setSection("user")}
-                    />
-                    <BarChart3
-                        size={20}
-                        color={
-                            section === "general"
-                                ? COLORS.accent
-                                : COLORS.gray600
-                        }
+                    >
+                        <User
+                            size={20}
+                            color={
+                                section === "user"
+                                    ? theme.legacy.accent
+                                    : theme.legacy.gray600
+                            }
+                        />
+                    </IconButton>
+                    <IconButton
+                        label={vocabulary.STATISTICS}
                         onPress={() => setSection("general")}
-                    />
-                    <Users
-                        size={20}
-                        color={
-                            section === "friends"
-                                ? COLORS.accent
-                                : COLORS.gray600
-                        }
+                    >
+                        <BarChart3
+                            size={20}
+                            color={
+                                section === "general"
+                                    ? theme.legacy.accent
+                                    : theme.legacy.gray600
+                            }
+                        />
+                    </IconButton>
+                    <IconButton
+                        label={vocabulary.USERS_FRIENDS}
                         onPress={() => setSection("friends")}
-                    />
+                    >
+                        <Users
+                            size={20}
+                            color={
+                                section === "friends"
+                                    ? theme.legacy.accent
+                                    : theme.legacy.gray600
+                            }
+                        />
+                    </IconButton>
                 </View>
             </View>
 
@@ -227,7 +261,7 @@ export default function StatsClient() {
                             {formatDateForDisplay(customStart)}
                         </Text>
                     </Pressable>
-                    <Text style={styles.dateSeparator}>to</Text>
+                    <Text style={styles.dateSeparator}>{vocabulary.TO}</Text>
                     <Pressable style={styles.dateInput} onPress={openEndPicker}>
                         <Text
                             style={[
@@ -241,60 +275,36 @@ export default function StatsClient() {
                 </View>
             )}
 
-            {Platform.OS === EPlatform.iOS && showStartPicker && (
+            {showStartPicker && (
                 <View style={styles.pickerContainer}>
-                    <View style={styles.pickerHeader}>
-                        <Pressable onPress={() => setShowStartPicker(false)}>
-                            <Text style={styles.pickerDone}>Done</Text>
-                        </Pressable>
-                    </View>
-                    <DateTimePicker
+                    <Pressable onPress={() => setShowStartPicker(false)}>
+                        <Text style={styles.pickerDone}>
+                            {vocabulary.CANCEL}
+                        </Text>
+                    </Pressable>
+                    <DateInput
+                        label={vocabulary.MOBILE_DATE_FROM}
                         value={tempStartDate}
-                        mode="date"
-                        display="spinner"
                         onChange={onStartDateChange}
                         maximumDate={new Date()}
-                        textColor="#ffffff"
                     />
                 </View>
             )}
 
-            {Platform.OS === EPlatform.iOS && showEndPicker && (
+            {showEndPicker && (
                 <View style={styles.pickerContainer}>
-                    <View style={styles.pickerHeader}>
-                        <Pressable onPress={() => setShowEndPicker(false)}>
-                            <Text style={styles.pickerDone}>Done</Text>
-                        </Pressable>
-                    </View>
-                    <DateTimePicker
+                    <Pressable onPress={() => setShowEndPicker(false)}>
+                        <Text style={styles.pickerDone}>
+                            {vocabulary.CANCEL}
+                        </Text>
+                    </Pressable>
+                    <DateInput
+                        label={vocabulary.MOBILE_DATE_TO}
                         value={tempEndDate}
-                        mode="date"
-                        display="spinner"
                         onChange={onEndDateChange}
                         maximumDate={new Date()}
-                        textColor="#ffffff"
                     />
                 </View>
-            )}
-
-            {Platform.OS === "android" && showStartPicker && (
-                <DateTimePicker
-                    value={tempStartDate}
-                    mode="date"
-                    display="default"
-                    onChange={onStartDateChange}
-                    maximumDate={new Date()}
-                />
-            )}
-
-            {Platform.OS === "android" && showEndPicker && (
-                <DateTimePicker
-                    value={tempEndDate}
-                    mode="date"
-                    display="default"
-                    onChange={onEndDateChange}
-                    maximumDate={new Date()}
-                />
             )}
 
             {section === "user" && (
@@ -303,7 +313,8 @@ export default function StatsClient() {
                     {error && (
                         <View style={styles.errorContainer}>
                             <Text style={styles.errorText}>
-                                Error loading stats: {error}
+                                {vocabulary.MOBILE_STATS_ERROR}
+                                {error}
                             </Text>
                         </View>
                     )}
@@ -316,131 +327,132 @@ export default function StatsClient() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        gap: 12,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "#ffffff",
-    },
-    subtitle: {
-        fontSize: 12,
-        color: COLORS.gray600,
-    },
-    controls: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginVertical: 8,
-    },
-    rangePills: {
-        flexDirection: "row",
-        gap: 8,
-    },
-    pill: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
-        backgroundColor: COLORS.bgCard,
-        borderWidth: 1,
-        borderColor: "rgba(38,38,38,0.5)",
-    },
-    pillActive: {
-        backgroundColor: COLORS.accent,
-        borderColor: COLORS.accent,
-    },
-    pillText: {
-        fontSize: 12,
-        color: COLORS.gray600,
-    },
-    pillTextActive: {
-        color: "#ffffff",
-        fontWeight: "600",
-    },
-    sectionTabs: {
-        flexDirection: "row",
-        gap: 16,
-    },
-    customDates: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-    dateInput: {
-        flex: 1,
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 12,
-        borderWidth: 1,
-        borderColor: "rgba(38,38,38,0.5)",
-    },
-    dateText: {
-        fontSize: 14,
-        color: "#ffffff",
-    },
-    datePlaceholder: {
-        color: COLORS.gray600,
-    },
-    dateSeparator: {
-        fontSize: 12,
-        color: COLORS.gray600,
-    },
-    pickerContainer: {
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 12,
-        marginTop: 8,
-        overflow: "hidden",
-    },
-    pickerHeader: {
-        flexDirection: "row",
-        justifyContent: "flex-end",
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: "rgba(38,38,38,0.5)",
-    },
-    pickerDone: {
-        fontSize: 16,
-        color: COLORS.accent,
-        fontWeight: "600",
-    },
-    emptyContainer: {
-        height: 200,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: COLORS.bgCard,
-        borderStyle: "dashed",
-    },
-    emptyLabel: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.gray600,
-    },
-    emptySubtitle: {
-        fontSize: 12,
-        color: COLORS.gray600,
-    },
-    skeletonContainer: {
-        gap: 12,
-    },
-    skeleton: {
-        height: 80,
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 16,
-    },
-    errorContainer: {
-        padding: 16,
-        backgroundColor: "rgba(255,0,0,0.1)",
-        borderRadius: 8,
-    },
-    errorText: {
-        color: "#ff6b6b",
-        fontSize: 14,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            gap: theme.spacing.md,
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: "bold",
+            color: theme.colors["foreground-strong"],
+        },
+        subtitle: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray600,
+        },
+        controls: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginVertical: theme.spacing.sm,
+        },
+        rangePills: {
+            flexDirection: "row",
+            gap: theme.spacing.sm,
+        },
+        pill: {
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: 6,
+            borderRadius: theme.radius.xl,
+            backgroundColor: theme.legacy.bgCard,
+            borderWidth: 1,
+            borderColor: withAlpha(theme.colors["surface-raised"], 0.5),
+        },
+        pillActive: {
+            backgroundColor: theme.legacy.accent,
+            borderColor: theme.legacy.accent,
+        },
+        pillText: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray600,
+        },
+        pillTextActive: {
+            color: theme.colors["foreground-strong"],
+            fontWeight: "600",
+        },
+        sectionTabs: {
+            flexDirection: "row",
+            gap: theme.spacing.lg,
+        },
+        customDates: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+        },
+        dateInput: {
+            flex: 1,
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: theme.radius.md,
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: theme.spacing.md,
+            borderWidth: 1,
+            borderColor: withAlpha(theme.colors["surface-raised"], 0.5),
+        },
+        dateText: {
+            fontSize: theme.typography.body,
+            color: theme.colors["foreground-strong"],
+        },
+        datePlaceholder: {
+            color: theme.legacy.gray600,
+        },
+        dateSeparator: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray600,
+        },
+        pickerContainer: {
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: theme.radius.lg,
+            marginTop: theme.spacing.sm,
+            overflow: "hidden",
+        },
+        pickerHeader: {
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.sm,
+            borderBottomWidth: 1,
+            borderBottomColor: withAlpha(theme.colors["surface-raised"], 0.5),
+        },
+        pickerDone: {
+            fontSize: theme.typography.label,
+            color: theme.legacy.accent,
+            fontWeight: "600",
+        },
+        emptyContainer: {
+            height: 200,
+            alignItems: "center",
+            justifyContent: "center",
+            gap: theme.spacing.md,
+            borderRadius: theme.radius.xl,
+            borderWidth: 1,
+            borderColor: theme.legacy.bgCard,
+            borderStyle: "dashed",
+        },
+        emptyLabel: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.gray600,
+        },
+        emptySubtitle: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray600,
+        },
+        skeletonContainer: {
+            gap: theme.spacing.md,
+        },
+        skeleton: {
+            height: 80,
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: theme.radius.xl,
+        },
+        errorContainer: {
+            padding: theme.spacing.lg,
+            backgroundColor: withAlpha(theme.colors["provider-youtube"], 0.1),
+            borderRadius: theme.radius.md,
+        },
+        errorText: {
+            color: theme.colors["destructive"],
+            fontSize: theme.typography.body,
+        },
+    });

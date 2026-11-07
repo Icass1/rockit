@@ -17,3 +17,10 @@ images
 temp
 logs
 builds
+# Independent client artifacts must be rebuilt inside each image.
+**/.next-mobile
+**/.next-desktop
+# Local Android wrapper/signing material is never a web image input.
+apps/android-pwa/.generated
+**/*.jks
+**/*.keystore

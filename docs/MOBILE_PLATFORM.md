@@ -248,6 +248,9 @@ No bypass was used. See the PR for build/browser verification results.
   backend and service workers enabled. Mobile stayed mobile at 390×844, 844×390
   and 1440×900; desktop stayed desktop at 1440×900. Each had one shell, one scroll
   root and one shared video root, with no page exceptions in those checks.
+- The compatibility responsive origin also passed phone/landscape/wide checks;
+  resizing a phone viewport to desktop preserved the same scroll/content root
+  and switched to one desktop chrome without page exceptions.
 - That fixed Library fixture transferred 471,900 bytes of script for the mobile
   entry and 488,591 for desktop. This compares two new profiles, not the old app,
   and is not a latency benchmark or a promise of a large payload reduction.

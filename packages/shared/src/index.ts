@@ -88,14 +88,22 @@ export type {
 } from "@/models/interfaces/artworkResolver";
 export { RecommendationArtworkManager } from "@/managers/recommendationArtworkManager";
 
+export { buildRecommendationQueue } from "@/audio/recommendationQueue";
+
+export type { CollectionPageState } from "@/models/interfaces/collectionPageState";
+export type { FeaturedCollectionKey } from "@/models/interfaces/featuredCollection";
+export {
+    loadFeaturedCollection,
+    featuredCollectionSeed,
+    getRockitListName,
+} from "@/managers/featuredCollections";
+
 export { StationManager } from "@/managers/stationManager";
 
 export { FriendManager } from "@/managers/friendManager";
 export { ListenTogetherManager } from "@/managers/listenTogetherManager";
 export type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listeningQueueSnapshot";
 
-export type { FeaturedCollectionKey } from "@/models/interfaces/featuredCollection";
-export {loadFeaturedCollection, featuredCollectionSeed, getRockitListName} from "@/managers/featuredCollections";
-
 export { SharingManager } from "@/managers/sharingManager";
+
 export { NavigationPinsManager } from "@/managers/navigationPinsManager";

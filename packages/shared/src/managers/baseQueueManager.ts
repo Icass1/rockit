@@ -1125,7 +1125,9 @@ export class BaseQueueManager {
     restoreListeningQueue(snapshot: ListenTogetherQueueSnapshot): void {
         this._queueGeneration++;
         this._queuePageLoads.clear();
-        this._queuePages = new Map(snapshot.pages?.length ? snapshot.pages : [[0, snapshot.sorted]]);
+        this._queuePages = new Map(
+            snapshot.pages?.length ? snapshot.pages : [[0, snapshot.sorted]]
+        );
         this._queueTotalAtom.set(snapshot.total ?? snapshot.sorted.length);
         this.sortedQueue = [...snapshot.sorted];
         this.randomQueue = [...snapshot.random];

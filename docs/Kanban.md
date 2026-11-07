@@ -2,15 +2,6 @@
 
 ## To Do
 
-### [MOBILE] Migrar a una aplicación móvil universal con núcleo compartido
-
-- tags: [frontend, mobile, pwa, android, architecture]
-- priority: high
-- workload: Hard
-    ```md
-    Propuesta: escritorio Next separado; Expo con React Native en Android y React Native Web para la PWA iOS. Núcleo existente en packages/shared, tokens/UI reutilizables y adaptadores de plataforma para audio, sesión, offline, notificaciones y háptica. Migrar la UI móvil actual conservando diseño, vocabulary y comportamiento; probar primero Library, reproducción individual y descarga offline en ambos destinos. No confundir una TWA con integraciones nativas ni dar por portable el código que usa filesystem/SecureStore. Migración pendiente, sin cambios de producción. Ver docs/FRONTEND_PLATFORM_ARCHITECTURE.md.
-    ```
-
 ### [PIP] Pulsar en la cover / vinilo se pausa con al misma animacion que en el playerui
 
 - tags: [frontend, pip, vynil]
@@ -36,6 +27,15 @@
     ```
 
 ## In Progress
+
+### [MOBILE] Migrar a una aplicación móvil universal con núcleo compartido
+
+- tags: [frontend, mobile, pwa, android, architecture]
+- priority: high
+- workload: Hard
+    ```md
+    Propuesta: escritorio Next separado; Expo con React Native en Android y React Native Web para la PWA iOS. Núcleo existente en packages/shared, tokens/UI reutilizables y adaptadores de plataforma para audio, sesión, offline, notificaciones y háptica. Migrar la UI móvil actual conservando diseño, vocabulary y comportamiento; probar primero Library, reproducción individual y descarga offline en ambos destinos. No confundir una TWA con integraciones nativas ni dar por portable el código que usa filesystem/SecureStore. Migración pendiente, sin cambios de producción. Ver docs/FRONTEND_PLATFORM_ARCHITECTURE.md.
+    ```
 
 ### [DOWNLOADS] Admitir colaboradores adicionales en el catálogo musical
 

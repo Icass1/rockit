@@ -1,4 +1,10 @@
-import type { Friend, FriendActivity, FriendRequest, LeaderboardEntry, UserSearchResult } from "@/models/interfaces";
+import type {
+    Friend,
+    FriendActivity,
+    FriendRequest,
+    LeaderboardEntry,
+    UserSearchResult,
+} from "@/models/interfaces";
 import type { FriendServices } from "@/models/interfaces/socialServices";
 import {
     EWebSocketMessage,

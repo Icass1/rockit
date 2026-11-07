@@ -4,7 +4,27 @@ const expoConfig = require("eslint-config-expo/flat");
 const path = require("path");
 
 module.exports = defineConfig([
+    {
+        ignores: [
+            "**/*.json",
+            "dist/**",
+            ".expo/**",
+            "android/**",
+            "ios/**",
+            "node_modules/**",
+        ],
+    },
     expoConfig,
+    {
+        files: ["**/*.js", "**/*.cjs"],
+        languageOptions: {
+            globals: {
+                __dirname: "readonly",
+                require: "readonly",
+                module: "readonly",
+            },
+        },
+    },
     {
         ignores: ["dist/*"],
         languageOptions: {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useStore } from "@nanostores/react";
 import { useDesignTheme } from "@rockit/ui";
 import { Pressable, Text, View } from "react-native";
 import { Http } from "@/lib/http";
@@ -8,6 +9,7 @@ import { useVocabulary } from "@/lib/vocabulary";
 
 export default function ThemeSection() {
     const theme = useDesignTheme();
+    const session = useStore(userManager.sessionAtom);
     const { vocabulary } = useVocabulary();
     const [saving, setSaving] = useState(false);
     const choices = [
@@ -37,8 +39,7 @@ export default function ThemeSection() {
                     accessibilityRole="radio"
                     accessibilityLabel={item.label}
                     accessibilityState={{
-                        checked:
-                            userManager.sessionAtom.get()?.theme === item.value,
+                        checked: session?.theme === item.value,
                         disabled: saving,
                     }}
                     disabled={saving}

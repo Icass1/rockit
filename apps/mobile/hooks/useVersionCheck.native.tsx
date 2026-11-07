@@ -27,8 +27,10 @@ export function useVersionCheck() {
     const { show } = useModal();
 
     useEffect(() => {
+        let cancelled = false;
         Http.getLatestVersion()
             .then((response) => {
+                if (cancelled) return;
                 if (response.isOk()) {
                     if (isNewerVersion(response.result.version, APP_VERSION)) {
                         toasterManager.notifyInfo(
@@ -37,7 +39,7 @@ export function useVersionCheck() {
                         setApkUrl(response.result.apkUrl);
                         setLatestVersion(response.result.version);
                         show({
-                            title: "Update Available",
+                            title: vocabulary.NEW_VERSION_AVAILABLE,
                             content: (
                                 <UpdateModalContent
                                     apkUrl={response.result.apkUrl}
@@ -53,6 +55,9 @@ export function useVersionCheck() {
             .catch(() => {
                 // Silently ignore — no update check should not break the app
             });
+        return () => {
+            cancelled = true;
+        };
     }, [vocabulary.NEW_VERSION_AVAILABLE, show]);
 
     return { apkUrl, latestVersion };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { capabilities } from "@/platform/capabilities";
 import { EPlatform } from "@rockit/shared";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
@@ -43,7 +44,7 @@ export default function LoginScreen() {
             const result = await Http.login({
                 username,
                 password,
-                platform: "MOBILE",
+                platform: capabilities.sessionPlatform,
                 rememberMe,
             });
 

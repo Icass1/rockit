@@ -1,8 +1,7 @@
 import { APP_VERSION } from "@/constants/version";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { vocabularyManager } from "@/lib/managers/vocabularyManager";
-import { getModalRef, useModal, type ModalContent } from "@/lib/ModalContext";
+import { useModal } from "@/lib/ModalContext";
 import { useVocabulary } from "@/lib/vocabulary";
 
 interface UpdateModalContentProps {
@@ -48,18 +47,6 @@ export function UpdateModalContent({
             </Pressable>
         </>
     );
-}
-
-export function showUpdateModal(apkUrl: string, latestVersion: string): void {
-    const ref = getModalRef();
-    const content: ModalContent = {
-        title: vocabularyManager.vocabulary.NEW_VERSION_AVAILABLE,
-        content: (
-            <UpdateModalContent apkUrl={apkUrl} latestVersion={latestVersion} />
-        ),
-    };
-
-    ref.show(content);
 }
 
 const createStyles = (theme: DesignTheme) =>

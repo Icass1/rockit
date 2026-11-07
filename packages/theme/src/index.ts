@@ -47,3 +47,13 @@ export function getLegacyColors(mode: ThemeMode = "dark") {
         gray800: theme["border-subtle"],
     };
 }
+
+export function getBookmarkColors(mode: ThemeMode) {
+    const colors = getTheme(mode);
+    return {
+        NOTHING: colors["bookmark-none"],
+        AUTOSKIP: colors["bookmark-autoskip"],
+        REPEAT_FROM_BEGINNING: colors["bookmark-repeat"],
+        PREVIOUS_BOOKMARK: colors["bookmark-previous"],
+    } as Record<string, string>;
+}

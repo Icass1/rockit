@@ -1,4 +1,6 @@
-# Rockit
+# Rockit documentation
+
+For the project overview, features, and getting started, visit the [main README](../README.md). This directory contains technical references and feature guides.
 
 Self-hosted music player, using the app-template monorepo layout.
 

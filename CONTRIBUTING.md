@@ -22,7 +22,8 @@ Remove credentials, session cookies, tokens, and personal data from reports and 
 - Use configured absolute imports and the shared HTTP client. Validate API responses with generated Zod schemas and preserve authentication and session handling.
 - Expose public UUIDs in client APIs; keep database integer IDs internal.
 - Put shared TypeScript types in `packages/shared/src/models/` and app-specific types in the app's `models/` directory. Keep browser and native integrations in their respective app adapters.
-- Use vocabulary managers for user-facing strings. Add feature-prefixed keys to the backend vocabulary and update the relevant languages.
+- Use the vocabulary Context in web clients and the server vocabulary resolver in Server Components; native uses its vocabulary manager/provider. Add feature-prefixed keys to `Vocabulary.xlsx`, translate every supported language, and regenerate the vocabulary artifacts.
+- Use semantic theme tokens and existing `components/ui/` primitives rather than feature-local colors or competing base components.
 - Store persistent media in S3-compatible storage. Local media files are temporary processing artifacts.
 - Keep secrets in environment configuration and avoid production `console.log` or `console.warn` statements.
 
@@ -100,4 +101,4 @@ These scripts install dependencies. The backend script regenerates DTOs; the fro
 - Call out API, configuration, database, or storage changes and any migration steps.
 - Ensure checks pass and respond to review feedback.
 
-Contributions are made under the project's [MIT License](LICENSE).
+Contributions are made under the project's [MIT License](LICENSE). Preserve existing copyright and license notices. Third-party code and assets must retain their applicable notices and license terms.

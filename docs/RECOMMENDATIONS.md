@@ -5,31 +5,34 @@ Rockit recommends music from two independent sources:
 1. **Local engine** (always on, offline, zero setup) — ranks songs this
    instance already knows using Rockit's own data.
 2. **Last.fm suggestions** (enabled for everyone when the server has a key) — tracks from
-   Last.fm, shown in a separate "Discover" row. They may not
+   Last.fm, preferred over local picks in recommendation displays. They may not
    be on this instance yet; tapping one searches the existing providers once
    and starts a normal download.
 
-External suggestions never replace local ones. If a provider is disabled,
-misconfigured, slow, rate limited or returns nothing usable, the response
-simply carries no `discover` items and `discoverStatus` tells the client why.
+The API retains local songs and external discoveries as separate fields. The
+player and recommendation carousels prefer usable external discoveries; local
+songs are the fallback when discovery is disabled, unavailable, empty, or filtered
+out of the autoplay queue. `discoverStatus` reports the external outcome.
 
 ## Endpoints
 
-| Endpoint                                | Seed                                        |
-| --------------------------------------- | ------------------------------------------- |
-| `GET /recommendation/for-you`           | The user's recent plays and likes           |
-| `GET /recommendation/playlist/{id}`     | Every song/video in the playlist            |
-| `GET /media/song/{id}/related`          | One song or video                           |
-| `POST /recommendation/prepare`          | The next two playback suggestions only      |
+| Endpoint                            | Seed                                   |
+| ----------------------------------- | -------------------------------------- |
+| `GET /recommendation/for-you`       | The user's recent plays and likes      |
+| `GET /recommendation/playlist/{id}` | Every song/video in the playlist       |
+| `GET /media/song/{id}/related`      | One song or video                      |
+| `POST /recommendation/prepare`      | The next two playback suggestions only |
 
 All three recommendation endpoints return `SongListResponse`:
 
 ```jsonc
 {
-  "songs": [/* BaseSongWithAlbumResponse: local, playable/queueable */],
-  "discover": [/* BaseSearchResultsItem: external, play if publicId, else download */],
-  "discoverProvider": "Last.fm",       // or null
-  "discoverStatus": "ok"                // "disabled" | "ok" | "empty" | "unavailable"
+    "songs": [/* BaseSongWithAlbumResponse: local, playable/queueable */],
+    "discover": [
+        /* BaseSearchResultsItem: external, play if publicId, else download */
+    ],
+    "discoverProvider": "Last.fm", // or null
+    "discoverStatus": "ok", // "disabled" | "ok" | "empty" | "unavailable"
 }
 ```
 
@@ -41,33 +44,33 @@ that collects signals) and `apps/backend/core/framework/recommendationRanking.py
 
 This is transparent heuristic scoring, not machine learning:
 
-| Signal                                   | Weight | Transform        |
-| ---------------------------------------- | ------ | ---------------- |
-| Shares a playlist with a seed            | 3.0    | `log1p(count)`   |
-| Played within 20 min of a seed (session) | 2.0    | `log1p(count)`   |
-| Shares an artist with a seed             | 1.5    | `min(count, 2)`  |
-| Same album as a seed                     | 0.75   | yes/no           |
-| Shares a genre with a seed               | 1.0    | `log1p(count)`   |
-| Plays across the instance (popularity)   | 0.25   | `log1p(count)`   |
+| Signal                                   | Weight | Transform       |
+| ---------------------------------------- | ------ | --------------- |
+| Shares a playlist with a seed            | 3.0    | `log1p(count)`  |
+| Played within 20 min of a seed (session) | 2.0    | `log1p(count)`  |
+| Shares an artist with a seed             | 1.5    | `min(count, 2)` |
+| Same album as a seed                     | 0.75   | yes/no          |
+| Shares a genre with a seed               | 1.0    | `log1p(count)`  |
+| Plays across the instance (popularity)   | 0.25   | `log1p(count)`  |
 
-* Ties break on `public_id`. A stable hash of the user, song and six-hour
+- Ties break on `public_id`. A stable hash of the user, song and six-hour
   period gives a bounded exploration bonus; equal inputs within that period
   stay stable. Recently repeated songs are penalized using the user's own
   play count over the last 14 days: `score / (1 + 0.6 * log1p(plays))`.
   This is broader than simply repeating the user's two-week top list.
-* **Diversity:** a greedy re-rank multiplies a candidate's score by 0.6 per
+- **Diversity:** a greedy re-rank multiplies a candidate's score by 0.6 per
   song already picked from the same artist (0.8 per same album), and no artist
   may exceed 30% of the list while alternatives exist.
-* **Exclusions:** the seed/current track; "For you" excludes the five most
+- **Exclusions:** the seed/current track; "For you" excludes the five most
   recently played songs. Older familiar music remains eligible as fallback,
   so a small library does not disappear once it has been listened to.
-* **Cold start:** if history is too sparse to fill the list, it is padded with
+- **Cold start:** if history is too sparse to fill the list, it is padded with
   a rotating pool from the instance, ranked with popularity and diversity. An empty library returns
   empty lists.
-* **Cost:** at most 300 candidate rows per query; ranked lists for "For you"
+- **Cost:** at most 300 candidate rows per query; ranked lists for "For you"
   and "related" are cached in memory for 60 seconds (playlists are not cached
   because they change right after a suggestion is added).
-* Genres only exist for providers that store them (currently Spotify artist
+- Genres only exist for providers that store them (currently Spotify artist
   genres). Missing artist/album/genre data is simply a missing signal.
 
 ## Last.fm
@@ -96,15 +99,15 @@ The local engine supplies personal ranking and remains available independently.
 
 **Rate limits & resilience:**
 
-* The shared Last.fm provider spaces requests at least 250 ms apart per process.
-* HTTP 429 is retried once, only when the requested wait is at most 2 s.
+- The shared Last.fm provider spaces requests at least 250 ms apart per process.
+- HTTP 429 is retried once, only when the requested wait is at most 2 s.
   Timeouts, connection errors and 5xx are not retried.
-* Each provider call has a hard deadline (2 × the per-request timeout).
-* Failed seeds have a five-minute in-memory backoff.
-* Successful answers are cached in `core.cache_external_recommendation` for
+- Each provider call has a hard deadline (2 × the per-request timeout).
+- Failed seeds have a five-minute in-memory backoff.
+- Successful answers are cached in `core.cache_external_recommendation` for
   `RECOMMENDATION_EXTERNAL_CACHE_HOURS` (default 24 h); empty answers for one hour.
   Failures are not persisted as successful cache entries.
-* Without a key, with no usable seed, or on failure, Rockit serves its local
+- Without a key, with no usable seed, or on failure, Rockit serves its local
   recommendations. No user action or settings screen is required.
 
 ## Configuration
@@ -124,12 +127,11 @@ for every user automatically; there is no per-user opt-in or credentials form.
 
 ## Limitations
 
-* Rockit stores no MusicBrainz IDs, so external suggestions are matched to
+- Rockit stores no MusicBrainz IDs, so external suggestions are matched to
   the local library by fuzzy artist + title (`pg_trgm`, conservative
   thresholds). Downloading one runs a single provider search on tap.
-* Recently *recommended* (as opposed to played) songs are not persisted.
+- Recently _recommended_ (as opposed to played) songs are not persisted.
   Rotation changes every six hours; recent actual plays affect the next ranking.
-
 
 ## Home and Up next
 
@@ -175,3 +177,13 @@ remain ordinary downloads and can finish; they are not cancelled on pause.
 
 External suggestions are matched conservatively by both artist and title before
 importing provider metadata. Rendering a card never searches media providers.
+
+## Artwork
+
+External discoveries reuse available local song/album covers. Missing or broken
+external covers are resolved near the viewport through authenticated
+`GET /recommendation/artwork`, which delegates to the provider capability. Last.fm
+uses `track.getInfo` album artwork with identity checks, pacing, caching and bounded
+concurrency. Missing images do not block discovery or playback; a bundled
+placeholder remains when no valid cover is available. See
+[the artwork and scrolling notes](PIP_RECOMMENDATION_SCROLL.md).

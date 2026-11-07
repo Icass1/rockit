@@ -40,7 +40,7 @@ export default function PlayerTabsPanel({
         }
         if (activeTab === "related") return <PlayerRelated />;
         return null;
-    }, [activeTab, close]);
+    }, [activeTab, close, styles, vocabulary]);
 
     useEffect(() => {
         logSheetDebug("playerTabs.effect", {

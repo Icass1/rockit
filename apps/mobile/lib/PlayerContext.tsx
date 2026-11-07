@@ -5,6 +5,7 @@ import {
     ERepeatMode,
     isDownloadable,
     isVideo,
+    type QueueMediaItem,
     type TQueueMedia,
 } from "@rockit/shared";
 import {
@@ -24,6 +25,9 @@ interface PlayerTimeContextType {
 interface PlayerContextType {
     currentMedia: TQueueMedia | undefined;
     queue: TQueueMedia[];
+    queueItems: QueueMediaItem[];
+    currentQueueMediaId: number | null | undefined;
+    playQueueItem(queueMediaId: number): void;
     currentIndex: number;
     isPlaying: boolean;
     isLoading: boolean;
@@ -87,7 +91,7 @@ export function PlayerProvider({
     return <PlayerServices value={services}>{children}</PlayerServices>;
 }
 
-function usePlayerServices() {
+export function usePlayerServices() {
     const services = useContext(PlayerServices);
     if (!services) throw new Error("PlayerProvider is required");
     return services;
@@ -123,6 +127,16 @@ export function usePlayer(): PlayerContextType {
     return {
         currentMedia,
         queue,
+        queueItems,
+        currentQueueMediaId,
+        playQueueItem: (id) => {
+            const item = services.queueManager.queue.find(
+                (item) => item.queueMediaId === id
+            );
+            if (!item || !isPlayableSource(item.media, services)) return;
+            services.queueManager.setQueueMediaId(id);
+            services.mediaPlayerManager.play();
+        },
         originalQueue,
         currentIndex,
         isPlaying,

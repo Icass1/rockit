@@ -802,6 +802,7 @@
     "PREVIOUS_BOOKMARK": "Previous bookmark",
     "PREVIOUS_MEDIA": "Previous media",
     "QUEUE": "Queue",
+    "QUEUE_LOAD_PREVIOUS": "Load earlier queue items",
     "QUICK_SELECTIONS": "Quick selections",
     "RADIO": "Radio",
     "RADIO_CLEAR": "Clear filters",

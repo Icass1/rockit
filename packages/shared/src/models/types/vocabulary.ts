@@ -996,4 +996,5 @@ export interface Vocabulary {
     MOBILE_STATS_YEAR: string;
     MOBILE_STATS_CUSTOM: string;
     MOBILE_STATS_RANGE: string;
+    QUEUE_LOAD_PREVIOUS: string;
 }

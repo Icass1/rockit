@@ -238,7 +238,10 @@ function FullscreenMediaContent({
                                 onBookmarksChange(true);
                             }}
                         >
-                            <Bookmark size={24} color={theme.legacy.white} />
+                            <Bookmark
+                                size={24}
+                                color={theme.colors["on-media"]}
+                            />
                         </Pressable>
                         <Pressable
                             style={styles.button}
@@ -248,7 +251,10 @@ function FullscreenMediaContent({
                                 vocabulary.PLAYER_EXIT_FULLSCREEN
                             }
                         >
-                            <Minimize size={24} color={theme.legacy.white} />
+                            <Minimize
+                                size={24}
+                                color={theme.colors["on-media"]}
+                            />
                         </Pressable>
                     </View>
                     <View
@@ -264,7 +270,10 @@ function FullscreenMediaContent({
                             accessibilityRole="button"
                             accessibilityLabel={vocabulary.PREVIOUS_MEDIA}
                         >
-                            <SkipBack size={28} color={theme.legacy.white} />
+                            <SkipBack
+                                size={28}
+                                color={theme.colors["on-media"]}
+                            />
                         </Pressable>
                         <Pressable
                             style={styles.seekButton}
@@ -275,7 +284,10 @@ function FullscreenMediaContent({
                                 vocabulary.PLAYER_REWIND_TEN_SECONDS
                             }
                         >
-                            <RotateCcw size={28} color={theme.legacy.white} />
+                            <RotateCcw
+                                size={28}
+                                color={theme.colors["on-media"]}
+                            />
                             <Text style={styles.seekLabel}>10</Text>
                         </Pressable>
                         <Pressable
@@ -289,20 +301,20 @@ function FullscreenMediaContent({
                             {isLoading ? (
                                 <ActivityIndicator
                                     size="large"
-                                    color={theme.legacy.white}
+                                    color={theme.colors["on-media"]}
                                     pointerEvents="none"
                                 />
                             ) : isPlaying ? (
                                 <Pause
                                     size={42}
-                                    color={theme.legacy.white}
-                                    fill={theme.legacy.white}
+                                    color={theme.colors["on-media"]}
+                                    fill={theme.colors["on-media"]}
                                 />
                             ) : (
                                 <Play
                                     size={42}
-                                    color={theme.legacy.white}
-                                    fill={theme.legacy.white}
+                                    color={theme.colors["on-media"]}
+                                    fill={theme.colors["on-media"]}
                                 />
                             )}
                         </Pressable>
@@ -315,7 +327,10 @@ function FullscreenMediaContent({
                                 vocabulary.PLAYER_FORWARD_TEN_SECONDS
                             }
                         >
-                            <RotateCw size={28} color={theme.legacy.white} />
+                            <RotateCw
+                                size={28}
+                                color={theme.colors["on-media"]}
+                            />
                             <Text style={styles.seekLabel}>10</Text>
                         </Pressable>
                         <Pressable
@@ -327,7 +342,10 @@ function FullscreenMediaContent({
                             accessibilityRole="button"
                             accessibilityLabel={vocabulary.NEXT_MEDIA}
                         >
-                            <SkipForward size={28} color={theme.legacy.white} />
+                            <SkipForward
+                                size={28}
+                                color={theme.colors["on-media"]}
+                            />
                         </Pressable>
                     </View>
                     <View style={styles.progress}>
@@ -394,7 +412,7 @@ const createStyles = (theme: DesignTheme) =>
         },
         title: {
             flex: 1,
-            color: theme.legacy.white,
+            color: theme.colors["on-media"],
             fontSize: theme.typography.subtitle,
             fontWeight: "600",
         },
@@ -426,7 +444,7 @@ const createStyles = (theme: DesignTheme) =>
             justifyContent: "center",
         },
         seekLabel: {
-            color: theme.legacy.white,
+            color: theme.colors["on-media"],
             fontSize: theme.typography.caption,
             marginTop: 2,
         },

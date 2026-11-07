@@ -1,45 +1,20 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { HttpResult } from "@rockit/shared";
-import { IUseFetch } from "@/models/interfaces/useFetch";
+import type { HttpResult } from "@rockit/shared";
+import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
+import type { IUseFetch } from "@/models/interfaces/useFetch";
 import { Http } from "@/lib/http";
 
-async function update<T>(
-    func: () => Promise<HttpResult<T>>,
-    setData: Dispatch<SetStateAction<T | undefined>>,
-    setLoading: Dispatch<SetStateAction<boolean>>,
-    setError: Dispatch<SetStateAction<string | undefined>>
-): Promise<void> {
-    setLoading(true);
-    const response = await func.bind(Http)();
-    setLoading(false);
-
-    if (response.isOk()) {
-        setData(response.result);
-        setError(undefined);
-    } else {
-        setData(undefined);
-        setError(response.message);
-    }
-}
-
 export default function useFetch<T>(
-    func: () => Promise<HttpResult<T>>
+    load: () => Promise<HttpResult<T>>
 ): IUseFetch<T> {
-    const [data, setData] = useState<T | undefined>(undefined);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | undefined>(undefined);
-    const funcRef = useRef(func);
-    funcRef.current = func;
-
-    useEffect((): void => {
-        update(funcRef.current, setData, setLoading, setError);
-    }, []);
-
+    const resource = useAsyncResource(async () => {
+        const response = await load.call(Http);
+        if (!response.isOk()) throw new Error(response.message);
+        return response.result;
+    });
     return {
-        data: data,
-        update: (): Promise<void> =>
-            update(funcRef.current, setData, setLoading, setError),
-        loading,
-        error,
+        data: resource.data,
+        loading: resource.loading,
+        error: resource.error?.message,
+        update: resource.refresh,
     };
 }

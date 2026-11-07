@@ -71,3 +71,8 @@ export {
     preferredLanguage,
     vocabularyText,
 } from "./i18n/vocabulary";
+export type {
+    PagedSearchRequest,
+    PagedSearchResult,
+    PagedSearchState,
+} from "@/models/interfaces/pagedSearch";

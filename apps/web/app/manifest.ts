@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { designTokens } from "@rockit/theme";
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
@@ -9,9 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
         scope: "/",
         categories: ["music"],
         display: "standalone",
-        theme_color: "#000000",
-        background_color: "#000000",
-        orientation: "portrait",
+        theme_color: designTokens.themes.dark.background,
+        background_color: designTokens.themes.dark.background,
         icons: [
             {
                 src: "/logo-512.png",

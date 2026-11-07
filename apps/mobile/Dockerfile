@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:22-alpine
+FROM node:24-alpine
 RUN --mount=type=secret,id=proxy_ca \
     if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi \
     && apk add --no-cache libc6-compat && \
@@ -11,6 +11,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/mobile/package.json ./apps/mobile/
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/theme/package.json ./packages/theme/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/platform-browser/package.json ./packages/platform-browser/
 COPY patches/ ./patches/
 RUN --mount=type=cache,id=pnpm-expo,target=/root/.local/share/pnpm/store \
     --mount=type=secret,id=proxy_ca \

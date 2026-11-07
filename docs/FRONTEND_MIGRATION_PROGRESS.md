@@ -36,8 +36,8 @@ Target: [desktop and universal mobile architecture](FRONTEND_PLATFORM_ARCHITECTU
 ## Verification strategy
 
 The user explicitly authorized essential frontend tests for this migration.
-Run changed behavior tests while implementing, then the frontend gate once the
-stages are integrated. Avoid unrelated local backend suites. Tests must validate
+Complete implementation first, then run the consolidated frontend gate and fix
+its failures. Avoid unrelated local backend suites. Tests must validate
 observable behavior and real HTTP contracts, including authentication, failures,
 cancellation, stale responses, pagination, queue actions, vocabulary and platform
 boundaries. Mock data and artwork must not depend on external providers.
@@ -111,3 +111,19 @@ installation, Android services or lock-screen behavior. Record each separately.
   passed backend quality but exposed missing shared-source path mappings in the
   UI package; its compiler configuration is being corrected. Subsequent artwork,
   native cache and feature work has not yet been revalidated.
+
+- Feature integration: mobile now exposes paginated artist catalogs, all five
+  personal RockIt lists, Library stations/shared collections, navigation anchors,
+  radio search/play/save, friends/requests/activity, media sharing and listening
+  sessions through portable account-scoped services also used by desktop.
+  Native queue actions retain queue-item IDs, including repeated songs. Related
+  rows use the common external-first recommendation and artwork fallback policy.
+- Offline integration: mobile browser downloads use IndexedDB audio/artwork records;
+  native files retain their existing locations. Metadata is private per session,
+  and storage errors remain optional. Local availability checks avoid reading a
+  Blob for every row. These increments are committed; their final verification is
+  intentionally pending.
+- Deployment: added a separate static mobile PWA Docker target and opt-in Compose
+  overlay. Desktop no longer mounts its old hidden mobile shell. The rollout guide
+  documents authentication origins, installed-PWA storage isolation and required
+  device acceptance; no production routing or storage was changed.

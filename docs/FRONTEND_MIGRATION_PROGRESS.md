@@ -25,7 +25,7 @@ Target: [desktop and universal mobile architecture](FRONTEND_PLATFORM_ARCHITECTU
 | 1. Shared design system | In progress | Single token source for web CSS and native values; colors, spacing, radii and typography; no component palettes. |
 | 2. Portable application boundaries | In progress | Lifecycle/config/session/storage contracts, browser/native adapters, shared policy outside UI, import-boundary checks. |
 | 3. Shared presentation | In progress | Universal primitives/headless bindings actually consumed by desktop and mobile; vocabulary from Excel, accessibility names. |
-| 4. Universal mobile runtime | Pending | Expo web/PWA boot with browser session, playback and offline adapters; native Android retains native services. |
+| 4. Universal mobile runtime | In progress | Expo web/PWA boot with browser session, playback and offline adapters; native Android retains native services. |
 | 5. Feature migration and parity | Pending | Home, Library/search, collections, player/queue/lyrics, downloader, settings and existing ancillary routes work on both mobile targets. |
 | 6. Desktop separation | Pending | Desktop entry excludes mobile shell/integrations; independent build/deployment configuration and documented origin migration. |
 | 7. Frontend test system | In progress | Contract-validating fake backend, unit/component tests, browser interaction tests and native component coverage; deterministic assets and timings. |
@@ -73,3 +73,8 @@ installation, Android services or lock-screen behavior. Record each separately.
   tests pass. The existing directed browser regressions still pass (76 including
   SSR loader checks). Frontend test reporters record timings; these are test
   execution times, not measured production latency.
+- Platform qualification: native filesystem, secure session, media and orientation
+  modules now have `.native` entry points. Browser HTTP/session/socket entries
+  use browser cookies without exposing HttpOnly tokens; web updates no longer
+  inspect native APK versions. Native typecheck and 3 new transport tests pass.
+  Browser playback/storage boot and logout orchestration remain in progress.

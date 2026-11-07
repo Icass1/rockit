@@ -1,3 +1,4 @@
+import { createSocket } from "@/platform/socket";
 import {
     BACKEND_URL,
     CurrentMediaMessageRequest,
@@ -20,7 +21,6 @@ import {
     type MediaRemovedFromPlaylistMessage,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
-import { getSessionCookie, refreshSessionFromBackend } from "@/lib/api";
 
 function getWsUrl(): string {
     const url = BACKEND_URL.replace(/^http:\/\//, "ws://").replace(
@@ -143,30 +143,8 @@ export class WebSocketManager {
 
             if (this._webSocket?.readyState === WebSocket.OPEN) break;
 
-            let cookie = await getSessionCookie();
-            if (!cookie) {
-                cookie = await refreshSessionFromBackend();
-            }
-            if (!cookie) {
-                console.error(
-                    "WebSocket connection requires a session cookie."
-                );
-                retries++;
-                continue;
-            }
-
             try {
-                // React Native's WebSocket accepts headers as a non-standard 3rd argument.
-                // The session cookie must be passed explicitly since SecureStore is not
-                // the system cookie jar and Android/OkHttp won't include it automatically.
-
-                this._webSocket = new (WebSocket as any)(
-                    getWsUrl(),
-                    undefined,
-                    {
-                        headers: { Cookie: `session_id=${cookie}` },
-                    }
-                );
+                this._webSocket = await createSocket(getWsUrl());
 
                 if (!this._webSocket) return;
 

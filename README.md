@@ -30,7 +30,7 @@ storage holds persistent media and artwork.
 
 ## Made for your music
 
-|                                      | Experience                                                                                                                                                                                        |
+| Capability                           | Experience                                                                                                                                                                                        |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **A library you can explore**        | Organize songs, albums, and playlists. Search for individual tracks inside albums and playlists, then play just the song you wanted.                                                              |
 | **Your collection, within reach**    | Anchor albums, artists, playlists, and personal Rockit lists in navigation. Drag songs or albums into playlists you own.                                                                          |

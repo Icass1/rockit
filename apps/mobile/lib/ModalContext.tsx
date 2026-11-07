@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useState } from "react";
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, View, type ViewStyle } from "react-native";
 import { useSheet } from "@/lib/SheetContext";
 
@@ -43,6 +43,7 @@ export function getModalRef(): ModalContextType {
 }
 
 export function ModalProvider({ children }: { children: ReactNode }) {
+    const styles = useThemedStyles(createStyles);
     const { open, close } = useSheet();
     const [visible, setVisible] = useState(false);
     const [content, setContent] = useState<ModalContent | null>(null);
@@ -85,18 +86,19 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     );
 }
 
-const styles = StyleSheet.create({
-    card: {
-        backgroundColor: COLORS.bgCard,
-        paddingHorizontal: 24,
-        paddingTop: 8,
-        paddingBottom: 32,
-        gap: 12,
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 20,
-        fontWeight: "700",
-        marginBottom: 4,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        card: {
+            backgroundColor: theme.legacy.bgCard,
+            paddingHorizontal: theme.spacing.xl,
+            paddingTop: theme.spacing.sm,
+            paddingBottom: theme.spacing.xxl,
+            gap: theme.spacing.md,
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: 20,
+            fontWeight: "700",
+            marginBottom: theme.spacing.xs,
+        },
+    });

@@ -55,3 +55,8 @@ installation, Android services or lock-screen behavior. Record each separately.
   shared. Existing semantic-theme regressions (3), theme typecheck and generated
   artifact check pass. Component literals and live native theme propagation are
   tracked in the next presentation increment.
+- Portable runtime: extracted vocabulary completion/fallback into shared code;
+  removed the native player's inline English dictionary. Shared playback now
+  receives resume events through an adapter hook, with browser visibility and
+  native AppState implementations. Web/mobile TypeScript passed; 63 directed
+  transition/Media Session regressions passed without changing audio policies.

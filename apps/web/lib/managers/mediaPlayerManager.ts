@@ -30,6 +30,16 @@ import { isIOS } from "@/lib/utils/isIOS";
 export class MediaPlayerManager extends BaseMediaPlayerManager {
     static #instance: MediaPlayerManager;
 
+    protected override subscribeToResume(listener: () => void): () => void {
+        if (typeof document === "undefined") return () => {};
+        const onVisibility = (): void => {
+            if (!document.hidden) listener();
+        };
+        document.addEventListener("visibilitychange", onVisibility);
+        return () =>
+            document.removeEventListener("visibilitychange", onVisibility);
+    }
+
     private static _isiOS(): boolean {
         return isIOS();
     }

@@ -64,3 +64,10 @@ export type { AutoplayRecommendation } from "@/models/types/autoplayRecommendati
 export { mixHomeRecommendations } from "@/lib/homeRecommendations";
 
 export * from "@/utils/lyricsTiming";
+
+export {
+    completeVocabulary,
+    fallbackVocabulary,
+    preferredLanguage,
+    vocabularyText,
+} from "./i18n/vocabulary";

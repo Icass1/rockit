@@ -15,6 +15,7 @@ import {
     type AudioStatus,
 } from "expo-audio";
 import { createVideoPlayer, type VideoPlayer } from "expo-video";
+import { AppState } from "react-native";
 import {
     DEFAULT_CROSSFADE,
     type CrossfadeSettings,
@@ -31,6 +32,13 @@ import { mediaStorage } from "@/lib/storage/mediaStorage";
  * dropped so mobile matches web's canonical single-element behavior.
  */
 export class MediaPlayerManager extends BaseMediaPlayerManager {
+    protected override subscribeToResume(listener: () => void): () => void {
+        const subscription = AppState.addEventListener("change", (state) => {
+            if (state === "active") listener();
+        });
+        return () => subscription.remove();
+    }
+
     private _audioPlayer: AudioPlayer | null = null;
     private _audioSub: { remove: () => void } | null = null;
 

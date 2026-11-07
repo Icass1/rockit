@@ -17,7 +17,7 @@ A personal library, a player that travels with you, and music worth discovering 
 
 [Get started](#local-development) · [Features](#made-for-your-music) · [Architecture](#under-the-hood) · [Documentation](#explore-the-documentation) · [Contribute](CONTRIBUTING.md)
 
-**🏠 Self-hosted · 🎵 Music library · 📱 Web / PWA / Mobile · 🤝 Social listening · ☁️ S3-compatible**
+**Self-hosted · Music library · Web / PWA / Mobile · Social listening · S3-compatible**
 
 </div>
 
@@ -30,24 +30,24 @@ storage holds persistent media and artwork.
 
 ## Made for your music
 
-|                                         | Experience                                                                                                                                                                                        |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎵 **A library you can explore**        | Organize songs, albums, and playlists. Search for individual tracks inside albums and playlists, then play just the song you wanted.                                                              |
-| 📌 **Your collection, within reach**    | Anchor albums, artists, playlists, and personal Rockit lists in navigation. Drag songs or albums into playlists you own.                                                                          |
-| ▶️ **A player that keeps up**           | Playback queues, shuffle, repeat, track transitions, and system media controls. Picture-in-Picture and the animated vinyl view are available on supported browsers.                               |
-| 🎤 **Lyrics that follow the recording** | Plain and synchronized lyrics, version-aware matching, and reviewed timing corrections. Availability and alignment depend on the source recording and lyrics metadata.                            |
-| 🔎 **Discovery with a fallback**        | Last.fm suggestions when configured, with Rockit's local recommendations as a fallback. Artwork is resolved lazily and cached.                                                                    |
-| 🤝 **Listen together**                  | Friends, music sharing, activity, and host-led listening sessions. Each participant streams through their own authenticated session.                                                              |
-| 📥 **Bring sources together**           | Provider integrations for Spotify, YouTube, and YouTube Music, alongside uploaded music. Background download processing selects catalogue audio for songs and preserves separate video downloads. |
-| 📱 **Choose your screen**               | A responsive web app and installable PWA, plus an Expo / React Native app with shared client and application logic.                                                                               |
-| 🎨 **Make it feel like yours**          | Account themes, translated interface vocabulary, and a shared visual system across the web experience.                                                                                            |
+|                                      | Experience                                                                                                                                                                                        |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A library you can explore**        | Organize songs, albums, and playlists. Search for individual tracks inside albums and playlists, then play just the song you wanted.                                                              |
+| **Your collection, within reach**    | Anchor albums, artists, playlists, and personal Rockit lists in navigation. Drag songs or albums into playlists you own.                                                                          |
+| **A player that keeps up**           | Playback queues, shuffle, repeat, track transitions, and system media controls. Picture-in-Picture and the animated vinyl view are available on supported browsers.                               |
+| **Lyrics that follow the recording** | Plain and synchronized lyrics, version-aware matching, and reviewed timing corrections. Availability and alignment depend on the source recording and lyrics metadata.                            |
+| **Discovery with a fallback**        | Last.fm suggestions when configured, with Rockit's local recommendations as a fallback. Artwork is resolved lazily and cached.                                                                    |
+| **Listen together**                  | Friends, music sharing, activity, and host-led listening sessions. Each participant streams through their own authenticated session.                                                              |
+| **Bring sources together**           | Provider integrations for Spotify, YouTube, and YouTube Music, alongside uploaded music. Background download processing selects catalogue audio for songs and preserves separate video downloads. |
+| **Choose your screen**               | A responsive web app and installable PWA, plus an Expo / React Native app with shared client and application logic.                                                                               |
+| **Make it feel like yours**          | Account themes, translated interface vocabulary, and a shared visual system across the web experience.                                                                                            |
 
 Provider availability depends on your configuration and the upstream service.
 Native builds and browser-specific playback features have their own requirements;
 see the linked guides before deploying or building for a device.
 
 <details>
-<summary><strong>📸 A look at Rockit — screenshots from an earlier interface</strong></summary>
+<summary><strong>A look at Rockit — screenshots from an earlier interface</strong></summary>
 
 These images are already part of the repository. They show an earlier interface,
 not a freshly captured preview of the current branch.

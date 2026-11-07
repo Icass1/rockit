@@ -41,6 +41,8 @@ export default function LanguageSection() {
                 <Pressable
                     key={item.langCode}
                     accessibilityRole="radio"
+                    aria-checked={item.langCode === lang}
+                    aria-disabled={saving}
                     accessibilityState={{
                         checked: item.langCode === lang,
                         disabled: saving,

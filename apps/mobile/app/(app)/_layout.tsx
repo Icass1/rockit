@@ -123,6 +123,7 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
                             accessibilityRole="button"
                             accessibilityLabel={tab.label}
                             accessibilityState={{ selected: isFocused }}
+                            aria-pressed={isFocused}
                         >
                             <tab.icon
                                 color={
@@ -232,65 +233,81 @@ function AppLayoutInner({
     safeBottom: number;
     vocabulary: Vocabulary;
 }) {
-    const { hidePlayer } = usePlayer();
+    const { hidePlayer, currentMedia } = usePlayer();
     const theme = useDesignTheme();
     return (
         <View style={{ flex: 1 }}>
-            <Tabs tabBar={() => null} screenOptions={{ headerShown: false }}>
-                <Tabs.Screen
-                    name="index"
-                    options={{
-                        title: vocabulary.HOME,
-                        tabBarIcon: ({ color, size }) => (
-                            <Home color={String(color)} size={size} />
-                        ),
-                    }}
-                />
-                <Tabs.Screen
-                    name="library"
-                    options={{
-                        title: vocabulary.LIBRARY,
-                        tabBarIcon: ({ color, size }) => (
-                            <BookOpen color={String(color)} size={size} />
-                        ),
-                    }}
-                />
-                <Tabs.Screen
-                    name="search"
-                    options={{
-                        title: vocabulary.SEARCH,
-                        tabBarIcon: ({ color, size }) => (
-                            <Search color={String(color)} size={size} />
-                        ),
-                    }}
-                />
-                <Tabs.Screen
-                    name="downloader"
-                    options={{
-                        title: vocabulary.DOWNLOADS,
-                        tabBarIcon: ({ color, size }) => (
-                            <Download color={String(color)} size={size} />
-                        ),
-                    }}
-                />
-                <Tabs.Screen
-                    name="radio"
-                    options={{ title: vocabulary.RADIO }}
-                />
-                <Tabs.Screen
-                    name="friends"
-                    options={{ title: vocabulary.FRIENDS }}
-                />
-                <Tabs.Screen
-                    name="settings"
-                    options={{
-                        title: vocabulary.SETTINGS,
-                        tabBarIcon: ({ color, size }) => (
-                            <Settings color={String(color)} size={size} />
-                        ),
-                    }}
-                />
-            </Tabs>
+            <View
+                style={{
+                    flex: 1,
+                    marginBottom:
+                        theme.layout.tabBar +
+                        safeBottom +
+                        (currentMedia
+                            ? theme.layout.miniPlayerHeight +
+                              theme.layout.miniPlayerGap
+                            : 0),
+                }}
+            >
+                <Tabs
+                    tabBar={() => null}
+                    screenOptions={{ headerShown: false }}
+                >
+                    <Tabs.Screen
+                        name="index"
+                        options={{
+                            title: vocabulary.HOME,
+                            tabBarIcon: ({ color, size }) => (
+                                <Home color={String(color)} size={size} />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="library"
+                        options={{
+                            title: vocabulary.LIBRARY,
+                            tabBarIcon: ({ color, size }) => (
+                                <BookOpen color={String(color)} size={size} />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="search"
+                        options={{
+                            title: vocabulary.SEARCH,
+                            tabBarIcon: ({ color, size }) => (
+                                <Search color={String(color)} size={size} />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="downloader"
+                        options={{
+                            title: vocabulary.DOWNLOADS,
+                            tabBarIcon: ({ color, size }) => (
+                                <Download color={String(color)} size={size} />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="radio"
+                        options={{ title: vocabulary.RADIO }}
+                    />
+                    <Tabs.Screen
+                        name="friends"
+                        options={{ title: vocabulary.FRIENDS }}
+                    />
+                    <Tabs.Screen
+                        name="settings"
+                        options={{
+                            title: vocabulary.SETTINGS,
+                            tabBarIcon: ({ color, size }) => (
+                                <Settings color={String(color)} size={size} />
+                            ),
+                        }}
+                    />
+                </Tabs>
+            </View>
 
             <FullPlayer />
             <StandaloneTabBar onTabPress={hidePlayer} />

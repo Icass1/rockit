@@ -382,6 +382,13 @@ export async function createFixtureBackend(port = 0) {
                     { items: [], unreadCount: 0, totalCount: 0 },
                     dto.NotificationPageResponseSchema
                 );
+            if (path === "/stats/streak")
+                return send({ currentStreak: 2 }, dto.StreakResponseSchema);
+            if (path.endsWith("/listening-heatmap"))
+                return send(
+                    { segments: [] },
+                    dto.ListeningHeatmapResponseSchema
+                );
             if (path === "/stats/user") {
                 dto.UserStatsRequestSchema.parse(body);
                 return send(
@@ -509,7 +516,7 @@ export async function createFixtureBackend(port = 0) {
                     { imageUrl: song.imageUrl },
                     dto.RecommendationArtworkResponseSchema
                 );
-            if (path === "/user/navigation-pins" && method === "POST") {
+            if (path === "/user/navigation/pins" && method === "POST") {
                 const value = dto.PinNavigationRequestSchema.parse(body);
                 if (value.publicId === album.publicId && !pins.length)
                     pins = [
@@ -525,7 +532,7 @@ export async function createFixtureBackend(port = 0) {
                 return send({ pins }, dto.NavigationPinsResponseSchema);
             }
             if (
-                path.startsWith("/user/navigation-pins/") &&
+                path.startsWith("/user/navigation/pins/") &&
                 method === "DELETE"
             ) {
                 pins = [];
@@ -664,7 +671,7 @@ export async function createFixtureBackend(port = 0) {
                 );
             if (path === "/user/liked-media")
                 return send({ media: [] }, dto.LikedMediaResponseSchema);
-            if (path === "/user/navigation-pins")
+            if (path === "/user/navigation/pins")
                 return send({ pins }, dto.NavigationPinsResponseSchema);
             if (path === "/stats/home")
                 return send(
@@ -786,11 +793,19 @@ export async function createFixtureBackend(port = 0) {
                             ) ?? song
                         ),
                     }));
-                } else if (message.type === "current_media")
-                    currentQueueMediaId =
-                        dto.CurrentMediaMessageRequestSchema.parse(
-                            message
-                        ).queueMediaId;
+                } else if (message.type === "current_media") {
+                    const payload =
+                        dto.CurrentMediaMessageRequestSchema.parse(message);
+                    currentQueueMediaId = payload.queueMediaId;
+                    socket.send(
+                        JSON.stringify(
+                            dto.CurrentMediaMessageSchema.parse({
+                                ...payload,
+                                isPlaybackOwner: true,
+                            })
+                        )
+                    );
+                }
             } catch (error) {
                 protocolErrors.push(String(error));
             }

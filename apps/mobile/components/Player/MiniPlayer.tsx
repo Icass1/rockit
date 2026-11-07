@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getMediaArtistsString } from "@rockit/shared";
-import { withAlpha } from "@rockit/theme";
+import { designTokens, withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Pause, Play, SkipForward } from "@rockit/ui/icons";
 import { Image } from "expo-image";
@@ -18,7 +18,7 @@ import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
 import { useVocabulary } from "@/lib/vocabulary";
 
-export const MINI_PLAYER_HEIGHT = 56;
+export const MINI_PLAYER_HEIGHT = designTokens.layout.miniPlayerHeight;
 
 export default function MiniPlayer() {
     const { vocabulary } = useVocabulary();

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { getTheme } from "@rockit/theme";
-import { DesignThemeProvider, MediaIdentity } from "@rockit/ui";
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, expect, it } from "vitest";
+import { ActionButton, DesignThemeProvider, MediaIdentity } from "@rockit/ui";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
 
 afterEach(cleanup);
 
@@ -32,4 +32,25 @@ it("renders the same accessible media identity with dynamic theme values on the 
     expect(getTheme("light")["foreground-strong"]).not.toBe(
         getTheme("dark")["foreground-strong"]
     );
+});
+
+it("exposes toggle state in the web accessibility tree and ignores disabled presses", () => {
+    const press = vi.fn();
+    const view = render(
+        <ActionButton
+            label="Fixture action"
+            onPress={press}
+            selected
+            disabled
+        />
+    );
+    const button = screen.getByRole("button", { name: "Fixture action" });
+    expect(button.getAttribute("aria-pressed")).toBe("true");
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(button);
+    expect(press).not.toHaveBeenCalled();
+    view.rerender(<ActionButton label="Fixture action" onPress={press} />);
+    expect(button.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(button);
+    expect(press).toHaveBeenCalledOnce();
 });

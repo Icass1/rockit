@@ -37,6 +37,8 @@ export default function ThemeSection() {
                 <Pressable
                     key={item.value}
                     accessibilityRole="radio"
+                    aria-checked={session?.theme === item.value}
+                    aria-disabled={saving}
                     accessibilityLabel={item.label}
                     accessibilityState={{
                         checked: session?.theme === item.value,

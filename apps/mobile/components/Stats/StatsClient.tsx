@@ -6,7 +6,7 @@ import {
     type StatsRange as Range,
 } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import type { DateInputEvent } from "@/models/interfaces/dateInput";
 import { Http } from "@/lib/http";

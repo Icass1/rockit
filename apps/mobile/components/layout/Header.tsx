@@ -21,7 +21,7 @@ export default function Header({ showNotifications = false }: HeaderProps) {
             <LinearGradient
                 colors={[
                     theme.legacy.bg,
-                    withAlpha(theme.colors["backdrop"], 1),
+                    withAlpha(theme.colors.background, 0.9),
                     "transparent",
                 ]}
                 locations={[0, 0.6, 1]}

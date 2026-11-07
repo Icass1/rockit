@@ -22,6 +22,8 @@ export function ActionButton({
             accessibilityRole="button"
             accessibilityLabel={label}
             accessibilityState={{ disabled, selected }}
+            aria-disabled={disabled}
+            aria-pressed={selected}
             disabled={disabled}
             onPress={onPress}
             style={({ pressed }) => ({

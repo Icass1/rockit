@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import {
+    buildRecommendationQueue,
     getDiscoverKey,
     getMediaArtistsString,
     isDiscoverItemInLibrary,
@@ -10,9 +11,13 @@ import {
     type BaseSongWithAlbumResponse,
 } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    ResolvedMediaArtwork,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
 import { Download, Radio } from "@rockit/ui/icons";
-import { Image } from "expo-image";
 import {
     ActivityIndicator,
     Pressable,
@@ -53,7 +58,7 @@ export default function PlayerRelated() {
     const seedPublicId = currentMedia?.publicId;
     const isCurrentSeed =
         seedPublicId !== undefined && loadedSeed === seedPublicId;
-    const visibleSongs = isCurrentSeed ? songs : [];
+    const visibleSongs = isCurrentSeed && discover.length === 0 ? songs : [];
     const visibleDiscover = isCurrentSeed ? discover : [];
     const loading = seedPublicId !== undefined && !isCurrentSeed;
 
@@ -62,12 +67,28 @@ export default function PlayerRelated() {
 
         let cancelled = false;
 
-        Http.getRelatedSongs(seedPublicId, RELATED_LIMIT).then((response) => {
-            if (cancelled) return;
-            setSongs(response.isOk() ? response.result.songs : []);
-            setDiscover(response.isOk() ? response.result.discover : []);
-            setLoadedSeed(seedPublicId);
-        });
+        Http.getRelatedSongs(seedPublicId, RELATED_LIMIT, true).then(
+            (response) => {
+                if (cancelled) return;
+                const queue = response.isOk()
+                    ? buildRecommendationQueue(
+                          response.result,
+                          new Set([seedPublicId])
+                      )
+                    : [];
+                setSongs(
+                    queue.flatMap((item) =>
+                        item.kind === "song" ? [item.song] : []
+                    )
+                );
+                setDiscover(
+                    queue.flatMap((item) =>
+                        item.kind === "discover" ? [item.item] : []
+                    )
+                );
+                setLoadedSeed(seedPublicId);
+            }
+        );
 
         return () => {
             cancelled = true;
@@ -201,15 +222,21 @@ export default function PlayerRelated() {
                                 disabled={isDownloading}
                                 onPress={() => handleSongPress(item)}
                             >
-                                <Image
-                                    source={{ uri: item.imageUrl }}
-                                    style={[
-                                        styles.image,
-                                        needsDownload && styles.imageDiscover,
-                                    ]}
-                                    contentFit="cover"
-                                    transition={200}
-                                />
+                                <View
+                                    style={
+                                        needsDownload && styles.imageDiscover
+                                    }
+                                >
+                                    <ResolvedMediaArtwork
+                                        resolver={
+                                            rockIt.recommendationArtworkManager
+                                        }
+                                        uri={item.imageUrl}
+                                        provider={""}
+                                        artist={getMediaArtistsString(item)}
+                                        track={item.name}
+                                    />
+                                </View>
                                 <View style={styles.info}>
                                     <Text
                                         style={[
@@ -265,15 +292,19 @@ export default function PlayerRelated() {
                                 disabled={isDownloading}
                                 onPress={() => handleDiscoverPress(item)}
                             >
-                                <Image
-                                    source={{ uri: item.imageUrl }}
-                                    style={[
-                                        styles.image,
-                                        !inLibrary && styles.imageDiscover,
-                                    ]}
-                                    contentFit="cover"
-                                    transition={200}
-                                />
+                                <View
+                                    style={!inLibrary && styles.imageDiscover}
+                                >
+                                    <ResolvedMediaArtwork
+                                        resolver={
+                                            rockIt.recommendationArtworkManager
+                                        }
+                                        uri={item.imageUrl}
+                                        provider={item.provider}
+                                        artist={getMediaArtistsString(item)}
+                                        track={item.name}
+                                    />
+                                </View>
                                 <View style={styles.info}>
                                     <Text
                                         style={[

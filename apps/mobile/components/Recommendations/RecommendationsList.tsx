@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import {
+    buildRecommendationQueue,
     getDiscoverKey,
     getMediaArtistsString,
     isDiscoverItemInLibrary,
@@ -9,9 +10,13 @@ import {
     type BaseSearchResultsItem,
     type BaseSongWithAlbumResponse,
 } from "@rockit/shared";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { Download, Music } from "@rockit/ui/icons";
-import { Image } from "expo-image";
+import {
+    ResolvedMediaArtwork,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
+import { Download } from "@rockit/ui/icons";
 import {
     ActivityIndicator,
     Pressable,
@@ -48,13 +53,29 @@ export default function RecommendationsList({
 
     useEffect(() => {
         let cancelled = false;
-        Http.getRelatedSongs(seedSongPublicId, RECOMMENDATIONS_LIMIT).then(
-            (response) => {
-                if (cancelled) return;
-                setSongs(response.isOk() ? response.result.songs : []);
-                setDiscover(response.isOk() ? response.result.discover : []);
-            }
-        );
+        Http.getRelatedSongs(
+            seedSongPublicId,
+            RECOMMENDATIONS_LIMIT,
+            true
+        ).then((response) => {
+            if (cancelled) return;
+            const queue = response.isOk()
+                ? buildRecommendationQueue(
+                      response.result,
+                      new Set([seedSongPublicId])
+                  )
+                : [];
+            setSongs(
+                queue.flatMap((item) =>
+                    item.kind === "song" ? [item.song] : []
+                )
+            );
+            setDiscover(
+                queue.flatMap((item) =>
+                    item.kind === "discover" ? [item.item] : []
+                )
+            );
+        });
         return () => {
             cancelled = true;
         };
@@ -139,7 +160,7 @@ export default function RecommendationsList({
         <View style={styles.container}>
             <Text style={styles.header}>{$vocabulary.RECOMMENDED_SONGS}</Text>
 
-            {songs.map((item) => {
+            {(discover.length ? [] : songs).map((item) => {
                 const needsDownload = isDownloadable(item) && !item.downloaded;
                 const isDownloading = downloadingKeys.has(item.publicId);
                 return (
@@ -163,6 +184,7 @@ export default function RecommendationsList({
                 return (
                     <Row
                         key={key}
+                        provider={item.provider}
                         name={item.name}
                         artists={item.artists.map((a) => a.name).join(", ")}
                         imageUrl={item.imageUrl}
@@ -181,6 +203,7 @@ function Row({
     name,
     artists,
     imageUrl,
+    provider = "",
     dimmed,
     showDownload,
     isDownloading,
@@ -189,6 +212,7 @@ function Row({
     name: string;
     artists: string;
     imageUrl: string;
+    provider?: string;
     dimmed: boolean;
     showDownload: boolean;
     isDownloading: boolean;
@@ -202,18 +226,15 @@ function Row({
             disabled={isDownloading}
             onPress={onPress}
         >
-            {imageUrl ? (
-                <Image
-                    source={{ uri: imageUrl }}
-                    style={[styles.image, dimmed && styles.imageDimmed]}
-                    contentFit="cover"
-                    transition={200}
+            <View style={dimmed && styles.imageDimmed}>
+                <ResolvedMediaArtwork
+                    resolver={rockIt.recommendationArtworkManager}
+                    uri={imageUrl}
+                    provider={provider}
+                    artist={artists}
+                    track={name}
                 />
-            ) : (
-                <View style={[styles.image, styles.imagePlaceholder]}>
-                    <Music size={18} color={theme.legacy.gray600} />
-                </View>
-            )}
+            </View>
             <View style={styles.info}>
                 <Text
                     style={[styles.title, dimmed && styles.titleDimmed]}

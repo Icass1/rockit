@@ -2,170 +2,129 @@ import {
     BACKEND_URL,
     BaseHttp,
     HttpResult,
-    IApiFetchOptions,
-} from "@/shared/index";
+    isOfflineMetadataPath,
+    OFFLINE_METADATA_POLICY,
+    type IApiFetchOptions,
+} from "@rockit/shared";
+import { CryptoDigestAlgorithm, digestStringAsync } from "expo-crypto";
 import { Directory, File, Paths } from "expo-file-system";
-import { getItemAsync } from "expo-secure-store";
-import { saveSessionCookie } from "@/lib/api";
 import {
-    denormalizeAndLoad,
-    ensureMediaDirs,
-    normalizeAndSave,
-} from "@/lib/http/storageNormalizer";
+    clearSessionCookie,
+    getSessionCacheScope,
+    getSessionCookie,
+    saveSessionCookie,
+    sessionGeneration,
+} from "@/lib/api";
 
 export class Http extends BaseHttp {
     protected static override async baseApiFetchAsync(
         path: string,
         options: IApiFetchOptions = {}
     ): Promise<Response> {
-        const simulateOffline = false;
-
-        if (simulateOffline) {
-            throw new TypeError("Network request failed");
-        }
-
-        const { method = "GET", headers, body, signal } = options;
-
-        const SESSION_KEY = "session_id";
-
-        const cookie = await getItemAsync(SESSION_KEY);
-
-        const requestHeaders: Record<string, string> = {
-            "Content-Type": "application/json",
-            ...(typeof headers === "object" && !Array.isArray(headers)
-                ? (headers as Record<string, string>)
-                : {}),
-            ...(cookie ? { Cookie: `session_id=${cookie}` } : {}),
-        };
-
+        const cookie = await getSessionCookie();
+        const headers = new Headers(options.headers);
+        headers.set("Content-Type", "application/json");
+        if (cookie) headers.set("Cookie", `session_id=${cookie}`);
         const response = await fetch(`${BACKEND_URL}${path}`, {
-            method,
-            headers: requestHeaders,
-            body,
+            ...options,
+            headers,
             credentials: "include",
-            signal,
         });
-
         await saveSessionCookie(response);
-
         return response;
     }
 }
 
-const routes: { [key: string]: string } = {
-    "/vocabulary/user": "vocabulary.json",
-    "/user/session": "session.json",
-    "/user/library/medias": "libraryMedias.json",
-    "/user/queue": "userQueue.json",
-    "/media/album/<id>": "album/<id>.json",
-    "/media/playlist/<id>": "playlist/<id>.json",
-    "/lyrics/dynamic/<id>": "lyrics/dynamic/<id>.json",
-};
-
-function resolveRoute(path: string): string | undefined {
-    if (path.startsWith("/media/collection/")) {
-        // Keep each page/search separate, using bounded filename segments.
-        const key = encodeURIComponent(path.replace(/\/queue$/, "/playable"));
-        return `collections/${key.match(/.{1,100}/g)?.join("/")}.json`;
-    }
-    for (const [pattern, target] of Object.entries(routes)) {
-        const names = [...pattern.matchAll(/<([^>]+)>/g)].map((m) => m[1]);
-
-        const regex = new RegExp(
-            "^" + pattern.replace(/<[^>]+>/g, "(.+)") + "$"
-        );
-
-        const match = path.match(regex);
-        if (!match) continue;
-
-        let result = target;
-
-        names.forEach((name, i) => {
-            result = result.replaceAll(`<${name}>`, match[i + 1]);
-        });
-
-        return result;
-    }
-
-    return undefined;
-}
-
-ensureMediaDirs();
-["lyrics", "lyrics/dynamic"].map((dirname) => {
-    const dir = new Directory(Paths.document, dirname);
-    dir.create({ idempotent: true });
-});
-
-// Reset middlewares.
-Http.middlewares = [];
-
-// Add middlewares.
-Http.middlewares.push(async (next, context) => {
-    const response = await next();
-
-    if (response.code === 401) {
-        return response;
-    }
-    const filePath = resolveRoute(context.path);
-
-    if (filePath) {
-        const parent = new Directory(
-            Paths.document,
-            ...filePath.split("/").slice(0, -1)
-        );
-        const file = new File(Paths.document, filePath);
-        if (response.isOk()) {
-            // Cache to disk in the background. normalizeAndSave performs one
-            // synchronous file write per media object, which can take several
-            // seconds for large responses — do not block the response on it.
-            void (async () => {
-                try {
-                    parent.create({ idempotent: true, intermediates: true });
-                    const normalized = context.path.startsWith(
-                        "/media/collection/"
-                    )
-                        ? response.result
-                        : await normalizeAndSave(response.result);
-                    file.write(JSON.stringify(normalized));
-                } catch {
-                    // Caching is best-effort; ignore write failures.
-                }
-            })();
-        } else {
-            if (context.options.method && context.options.method !== "GET")
-                return response;
-            if (!file.exists) {
-                return new HttpResult({
-                    code: 404,
-                    ok: false,
-                    message: `File ${filePath} not found`,
-                    detail: {},
-                });
-            }
-
-            const contents = await file.text();
-            let json;
-            try {
-                json = JSON.parse(contents);
-            } catch {
-                return new HttpResult({
-                    code: 403,
-                    ok: false,
-                    message: "Error parsing JSON file",
-                    detail: {},
-                });
-            }
-
-            const denormalized = await denormalizeAndLoad(json);
-
-            return new HttpResult({
-                code: 200,
-                ok: true,
-                message: "From middleware",
-                result: context.schema.parse(denormalized),
-            });
+let writes = Promise.resolve();
+Http.middlewares = [
+    async (next, context) => {
+        const stamp = sessionGeneration();
+        const scope = await getSessionCacheScope().catch(() => null);
+        const response = await next();
+        if (response.code === 401 && stamp === sessionGeneration()) {
+            await clearSessionCookie();
+            return response;
         }
-    }
-
-    return response;
-});
+        if (
+            !scope ||
+            stamp !== sessionGeneration() ||
+            !isOfflineMetadataPath(context.path) ||
+            (context.options.method && context.options.method !== "GET")
+        )
+            return response;
+        try {
+            const directory = new Directory(
+                Paths.document,
+                "metadata-v2",
+                scope
+            );
+            const key = await digestStringAsync(
+                CryptoDigestAlgorithm.SHA256,
+                context.path
+            );
+            if (stamp !== sessionGeneration()) return response;
+            const file = new File(directory, `${key}.json`);
+            const sessionKey = await digestStringAsync(
+                CryptoDigestAlgorithm.SHA256,
+                "/user/session"
+            );
+            if (response.isOk()) {
+                // A single self-contained response avoids hundreds of synchronous
+                // per-media writes and cross-account references during normalization.
+                const value = { savedAt: Date.now(), data: response.result };
+                writes = writes
+                    .then(() => {
+                        if (stamp !== sessionGeneration()) return;
+                        directory.create({
+                            idempotent: true,
+                            intermediates: true,
+                        });
+                        file.write(JSON.stringify(value));
+                        const entries = directory
+                            .list()
+                            .filter(
+                                (item): item is File => item instanceof File
+                            )
+                            .sort(
+                                (left, right) =>
+                                    (left.modificationTime ?? 0) -
+                                    (right.modificationTime ?? 0)
+                            );
+                        for (const expired of entries.slice(
+                            0,
+                            Math.max(
+                                0,
+                                entries.length -
+                                    OFFLINE_METADATA_POLICY.maxPages
+                            )
+                        ))
+                            expired.delete();
+                    })
+                    .catch(() => {});
+                if (context.path === "/user/session") await writes;
+            } else if (response.code === 0 && file.exists) {
+                const value: unknown = JSON.parse(await file.text());
+                if (
+                    !value ||
+                    typeof value !== "object" ||
+                    !("savedAt" in value) ||
+                    !("data" in value) ||
+                    typeof value.savedAt !== "number" ||
+                    Date.now() - value.savedAt >
+                        OFFLINE_METADATA_POLICY.maxAgeMs ||
+                    stamp !== sessionGeneration()
+                )
+                    return response;
+                return new HttpResult({
+                    ok: true,
+                    code: 200,
+                    message: "Offline cache",
+                    result: context.schema.parse(value.data),
+                });
+            }
+        } catch {
+            /* Missing, corrupt or unavailable storage never masks an API result. */
+        }
+        return response;
+    },
+];

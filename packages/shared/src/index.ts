@@ -77,3 +77,8 @@ export type {
     PagedSearchState,
 } from "@/models/interfaces/pagedSearch";
 export { validateUsername } from "@/auth/validation";
+export {
+    OFFLINE_METADATA_POLICY,
+    isOfflineMetadataPath,
+} from "@/utils/offlineMetadataPolicy";
+

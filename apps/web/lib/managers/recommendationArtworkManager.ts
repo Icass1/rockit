@@ -1,4 +1,4 @@
-import { RecommendationArtworkManager as SharedArtworkManager } from "@rockit/shared";
+import { RecommendationArtworkManager as SharedArtworkManager } from "@/managers/recommendationArtworkManager";
 import { Http } from "@/lib/api/browser";
 
 export class RecommendationArtworkManager extends SharedArtworkManager {

@@ -1,12 +1,12 @@
+import type { SharedMediaItem } from "@rockit/shared";
 import type {
     Friend,
     FriendActivity,
     FriendRequest,
     LeaderboardEntry,
     ListenSession,
-    SharedMediaItem,
     UserSearchResult,
-} from "@rockit/shared";
+} from "@/models/interfaces";
 
 export type MobileSocialTab =
     | "friends"

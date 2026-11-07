@@ -42,8 +42,6 @@ export class WebSocketManager {
     private _connectionGeneration = 0;
     private _messageHandlers: Map<
         EWebSocketMessage,
-        SocialSnapshotMessageSchema,
-        FriendActivityItemSchema,
         Set<WebSocketMessageHandler<EWebSocketMessage>>
     > = new Map();
 

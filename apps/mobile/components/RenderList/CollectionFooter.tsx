@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useStore } from "@nanostores/react";
 import { CollectionPager } from "@rockit/shared";
-import { useDesignTheme, type DesignTheme } from "@rockit/ui";
+import { useDesignTheme } from "@rockit/ui";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 

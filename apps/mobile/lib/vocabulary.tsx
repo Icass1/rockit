@@ -43,16 +43,17 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         vocabularyManager.setVocabulary({ ...vocabulary });
     }, [vocabulary]);
+    const { refresh } = resource;
     const setLanguage = useCallback(
         async (lang: string) => {
             const response = await Http.updateLang({ lang });
             if (response.isOk()) {
                 toasterManager.notifySuccess(vocabulary.LANGUAGE_CHANGED);
-                await resource.refresh();
+                await refresh();
             } else
                 toasterManager.notifyError(vocabulary.LANGUAGE_CHANGE_FAILED);
         },
-        [vocabulary, resource.refresh]
+        [vocabulary, refresh]
     );
     return (
         <VocabularyContext

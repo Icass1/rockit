@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EEvent } from "@rockit/shared";
 import { usePagedSearch } from "@rockit/ui/headless/usePagedSearch";
 import { EFilterMode } from "@/models/enums/filterMode";
 import type { LibrarySongSearchState } from "@/models/interfaces/librarySongSearch";
+import type { PagedSearchResult } from "@/models/interfaces/pagedSearch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -57,7 +59,11 @@ export function useLibrarySongSearch(
     return { ...result, songs: result.items };
 }
 
-async function fetchSongs(query: string, offset: number, sort: string) {
+async function fetchSongs(
+    query: string,
+    offset: number,
+    sort: string
+): Promise<PagedSearchResult<BaseSongWithAlbumResponse>> {
     const response = await Http.searchLibrarySongsAsync(
         query,
         offset,

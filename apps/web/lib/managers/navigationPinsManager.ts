@@ -1,4 +1,4 @@
-import { NavigationPinsManager as SharedManager } from "@rockit/shared";
+import { NavigationPinsManager as SharedManager } from "@/managers/navigationPinsManager";
 import type { NavigationPinsServices } from "@/models/interfaces/navigationPinsServices";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";

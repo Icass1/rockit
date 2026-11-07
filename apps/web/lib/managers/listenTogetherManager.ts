@@ -1,4 +1,4 @@
-import { ListenTogetherManager as SharedManager } from "@rockit/shared";
+import { ListenTogetherManager as SharedManager } from "@/managers/listenTogetherManager";
 import type { ListenTogetherServices } from "@/models/interfaces/listenTogetherServices";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";

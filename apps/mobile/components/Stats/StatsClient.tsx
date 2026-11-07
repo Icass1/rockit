@@ -29,7 +29,6 @@ function LoadingSkeleton() {
 }
 
 export default function StatsClient() {
-    const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const { lang, vocabulary } = useVocabulary();
     const [range, setRange] = useState<Range>("7d");

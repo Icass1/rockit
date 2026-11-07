@@ -19,7 +19,6 @@ class MediaStorageManager {
         try {
             this._baseDir.create({ idempotent: true });
 
-            if (coverUrl) await this.downloadImage(publicId, coverUrl);
             const songsDir = new Directory(this._baseDir, SONGS_DIR_NAME);
             const videosDir = new Directory(this._baseDir, VIDEOS_DIR_NAME);
             const imagesDir = new Directory(this._baseDir, IMAGES_DIR_NAME);
@@ -43,6 +42,7 @@ class MediaStorageManager {
         _name?: string
     ): Promise<string | null> {
         await this.init();
+        if (coverUrl) await this.downloadImage(publicId, coverUrl);
 
         const songsDir = new Directory(this._baseDir, SONGS_DIR_NAME);
         const filename = this._getFilename(publicId, url, "song");

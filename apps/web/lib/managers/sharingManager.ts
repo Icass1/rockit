@@ -1,4 +1,4 @@
-import { SharingManager as SharedManager } from "@rockit/shared";
+import { SharingManager as SharedManager } from "@/managers/sharingManager";
 import type { SharingServices } from "@/models/interfaces/sharingServices";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";

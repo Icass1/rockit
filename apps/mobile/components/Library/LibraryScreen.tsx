@@ -10,13 +10,7 @@ import type {
 import { filterBySearch, sortItems } from "@rockit/shared";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { LayoutGrid, List } from "@rockit/ui/icons";
-import {
-    ActivityIndicator,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useLibrarySongSearch } from "@/hooks/useLibrarySongSearch";
 import { useVocabulary } from "@/lib/vocabulary";

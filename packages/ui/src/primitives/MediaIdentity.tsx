@@ -6,14 +6,14 @@ import { useDesignTheme } from "@rockit/ui/theme";
 
 export function MediaIdentity({
     title,
-    subtitle,
+    subtitle = "",
     imageUrl,
     imageLabel,
     fallbackUri,
     round = false,
 }: {
     title: string;
-    subtitle: string;
+    subtitle?: string;
     imageUrl?: string | null;
     imageLabel?: string;
     fallbackUri?: string;

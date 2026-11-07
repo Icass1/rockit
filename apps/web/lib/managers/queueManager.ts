@@ -1,8 +1,6 @@
-import {
-    BACKEND_URL,
-    BaseQueueManager,
-    type QueueResponse,
-} from "@rockit/shared";
+import type { QueueResponse } from "@/dto";
+import { BACKEND_URL } from "@/environment";
+import { BaseQueueManager } from "@/managers/baseQueueManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, type ReadonlyAtom } from "@/lib/store";
 

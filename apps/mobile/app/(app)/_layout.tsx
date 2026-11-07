@@ -169,7 +169,6 @@ function AppLayoutContent() {
 
     useEffect(() => {
         let cancelled = false;
-        setFailed(false);
         void getSession()
             .then(async (session) => {
                 if (cancelled) return;
@@ -207,7 +206,10 @@ function AppLayoutContent() {
                         </Text>
                         <ActionButton
                             label={vocabulary.RETRY}
-                            onPress={() => setAttempt((value) => value + 1)}
+                            onPress={() => {
+                                setFailed(false);
+                                setAttempt((value) => value + 1);
+                            }}
                         />
                     </>
                 ) : (

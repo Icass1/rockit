@@ -18,7 +18,7 @@ interface Language {
 }
 
 export default function SettingsClient({
-    vocabulary,
+    vocabulary: initialVocabulary,
 }: SettingsClientProps): JSX.Element {
     const vocabulary = useVocabulary();
 
@@ -30,8 +30,8 @@ export default function SettingsClient({
     const [loading, setLoading] = useState(true);
 
     useEffect((): void => {
-        rockIt.vocabularyManager.setVocabulary(vocabulary);
-    }, [vocabulary]);
+        rockIt.vocabularyManager.setVocabulary(initialVocabulary);
+    }, [initialVocabulary]);
 
     useEffect((): void => {
         async function fetchLanguages(): Promise<void> {
@@ -39,18 +39,18 @@ export default function SettingsClient({
             if (result.isOk()) {
                 setLanguages(result.result.languages);
             } else {
-                console.warn("Failed to fetch languages:", result.detail);
+                rockIt.notificationManager.notifyError(vocabulary.ERROR);
             }
             setLoading(false);
         }
         fetchLanguages();
-    }, []);
+    }, [vocabulary.ERROR]);
 
     const handleLanguageChange = async (langCode: string): Promise<void> => {
         const success = await rockIt.userManager.setLangAsync(langCode);
         if (success) {
             rockIt.notificationManager.notifySuccess(
-                $vocabulary.LANGUAGE + " updated"
+                $vocabulary.LANGUAGE_CHANGED
             );
         }
     };

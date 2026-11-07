@@ -8,7 +8,7 @@ import {
     type IMediaAddedToPlaylistEvent,
     type IMediaRemovedFromPlaylistEvent,
 } from "@rockit/shared";
-import { useDesignTheme, type DesignTheme } from "@rockit/ui";
+import { useDesignTheme } from "@rockit/ui";
 import { View } from "react-native";
 import RecommendationsList from "@/components/Recommendations/RecommendationsList";
 import CollectionControls from "@/components/RenderList/CollectionControls";

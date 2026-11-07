@@ -1,3 +1,4 @@
+import { Directory, File, Paths } from "expo-file-system";
 import { Platform } from "react-native";
 import { getSessionCookie } from "@/lib/api";
 
@@ -11,7 +12,6 @@ interface CachedEntry {
 
 function createNativeDir() {
     try {
-        const { Directory, Paths } = require("expo-file-system");
         return new Directory(Paths.cache, "media_cache");
     } catch {
         return null;
@@ -44,7 +44,6 @@ class MediaCacheManager {
         const dir = this._getCacheDir();
         if (!dir) return null;
         try {
-            const { File } = require("expo-file-system");
             return new File(dir, this._fileNameFor(url, publicId));
         } catch {
             return null;
@@ -68,7 +67,6 @@ class MediaCacheManager {
         const entry = this._cache.get(url);
         if (entry && entry.publicId === publicId) {
             try {
-                const { File } = require("expo-file-system");
                 const cachedFile = new File(entry.cachedUri);
                 if (cachedFile.exists) {
                     return entry.cachedUri;
@@ -123,8 +121,6 @@ class MediaCacheManager {
             const dir = this._getCacheDir();
             if (!dir) return url;
 
-            const { File } = require("expo-file-system");
-
             const cookie = await getSessionCookie();
             const headers: Record<string, string> = {};
             if (cookie) {
@@ -155,7 +151,7 @@ class MediaCacheManager {
 
             return null;
         } catch (e) {
-            console.warn("MediaCacheManager download failed:", e);
+            console.error("MediaCacheManager download failed:", e);
             return null;
         } finally {
             this._isDownloading.delete(url);
@@ -167,7 +163,6 @@ class MediaCacheManager {
         const entry = this._cache.get(url);
         if (entry) {
             try {
-                const { File } = require("expo-file-system");
                 const file = new File(entry.cachedUri);
                 if (file.exists) {
                     file.delete();

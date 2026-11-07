@@ -1,10 +1,10 @@
 import { useState } from "react";
-import type { Vocabulary } from "@rockit/shared";
 import {
     getMediaArtistsString,
     getMediaSubtitle,
     isSongWithAlbum,
     type TMedia,
+    type Vocabulary,
 } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";

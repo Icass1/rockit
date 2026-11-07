@@ -98,7 +98,7 @@ export default function FriendsScreen() {
         fontSize: theme.typography.body,
     };
     const confirm = async (label: string, action: () => Promise<unknown>) => {
-        if (await confirmAction(label, label, v.YES, v.CANCEL)) await action();
+        if (await confirmAction(label, label, label, v.CANCEL)) await action();
     };
     return (
         <FlatList

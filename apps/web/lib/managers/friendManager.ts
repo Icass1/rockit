@@ -1,4 +1,4 @@
-import { FriendManager as SharedManager } from "@rockit/shared";
+import { FriendManager as SharedManager } from "@/managers/friendManager";
 import type { FriendServices } from "@/models/interfaces/friendServices";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";

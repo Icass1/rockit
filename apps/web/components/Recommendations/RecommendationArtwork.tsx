@@ -1,9 +1,9 @@
+"use client";
+
 import { useEffect, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { useArtworkCandidate } from "@rockit/ui/headless/useArtworkCandidate";
 import { useRecommendationArtwork } from "@/components/providers/RecommendationArtworkProvider";
-
-("use client");
 
 /** Resolve missing album artwork lazily; failures keep a bundled public asset. */
 export default function RecommendationArtwork({

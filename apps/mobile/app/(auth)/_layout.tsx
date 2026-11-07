@@ -1,4 +1,4 @@
-import { useDesignTheme, type DesignTheme } from "@rockit/ui";
+import { useDesignTheme } from "@rockit/ui";
 import { Stack } from "expo-router";
 
 export default function AuthLayout() {

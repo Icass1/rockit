@@ -48,7 +48,7 @@ export default function RadioScreen() {
         }
     };
     return (
-        <FlatList
+        <FlatList<BaseStationResponse | BaseSearchResultsItem>
             data={resource.data ?? []}
             keyExtractor={(item) =>
                 isSearchResult(item) ? item.providerUrl : item.publicId

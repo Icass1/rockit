@@ -1,4 +1,3 @@
-import { PLACEHOLDER } from "@/constants/assets";
 import { useStore } from "@nanostores/react";
 import {
     getMediaArtistsString,
@@ -12,7 +11,6 @@ import {
     type DesignTheme,
 } from "@rockit/ui";
 import { Download, ListPlus } from "@rockit/ui/icons";
-import { Image } from "expo-image";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { rockIt } from "@/lib/rockit/rockIt";
 

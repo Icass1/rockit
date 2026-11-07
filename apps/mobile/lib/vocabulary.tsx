@@ -7,18 +7,14 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import { type Vocabulary } from "@rockit/shared";
+import { vocabularyText, type Vocabulary } from "@rockit/shared";
 import { NativeModules, Platform } from "react-native";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { toasterManager } from "@/lib/toasterManager";
 
 function createVocabularyProxy(data: Record<string, string>): Vocabulary {
-    return new Proxy(data, {
-        get(target, prop: string) {
-            return target[prop] ?? prop;
-        },
-    }) as unknown as Vocabulary;
+    return vocabularyText({ currentLang: "en", vocabulary: data });
 }
 
 function getSystemLocale(): string {

@@ -4,17 +4,24 @@ import {
     CurrentMediaMessageRequest,
     CurrentMediaMessageSchema,
     CurrentQueueMessageRequest,
+    CurrentQueueMessageSchema,
     CurrentTimeMessageRequest,
     CurrentTimeMessageSchema,
+    DownloadProgressMessageSchema,
     EEvent,
     EventManager,
     EWebSocketMessage,
+    FriendActivityItemSchema,
+    FriendsPresenceChangedMessageSchema,
+    ListenTogetherSyncMessageSchema,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
     MediaExpandedMessageRequest,
+    QueueTypeMessageSchema,
     QueueTypeRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
+    SocialSnapshotMessageSchema,
     TWebSocketIncomingMessage,
     type DownloadProgressMessage,
     type IWebSocketMessagePayloadMap,
@@ -59,6 +66,24 @@ export class WebSocketManager {
                 if (!this._latestPlaybackId)
                     this._latestPlaybackId = data.playbackId;
             }
+
+            if (data.type === EWebSocketMessage.SocialChanged)
+                data = SocialSnapshotMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.FriendActivity)
+                data = {
+                    type: "friend_activity",
+                    ...FriendActivityItemSchema.parse(data),
+                };
+            else if (data.type === EWebSocketMessage.FriendsPresenceChanged)
+                data = FriendsPresenceChangedMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.ListenTogetherSync)
+                data = ListenTogetherSyncMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.CurrentQueue)
+                data = CurrentQueueMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.DownloadProgress)
+                data = DownloadProgressMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.QueueType)
+                data = QueueTypeMessageSchema.parse(data);
 
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);

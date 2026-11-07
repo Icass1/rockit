@@ -11,12 +11,14 @@ export function MediaArtwork({
     label,
     size,
     round = false,
+    onError,
 }: {
     uri?: string | null;
     fallbackUri?: string;
     label: string;
     size?: number;
     round?: boolean;
+    onError?: (uri: string) => void;
 }) {
     const theme = useDesignTheme();
     const [failedUri, setFailedUri] = useState<string>();
@@ -46,11 +48,11 @@ export function MediaArtwork({
                     accessibilityLabel={label}
                     resizeMode="cover"
                     style={StyleSheet.absoluteFill}
-                    onError={() =>
-                        source === uri
-                            ? setFailedUri(source)
-                            : setFailedFallback(source)
-                    }
+                    onError={() => {
+                        if (source === uri) setFailedUri(source);
+                        else setFailedFallback(source);
+                        onError?.(source);
+                    }}
                 />
             ) : (
                 <View role="img" accessibilityLabel={label} />

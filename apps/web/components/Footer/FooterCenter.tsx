@@ -77,7 +77,7 @@ export default function FooterCenter(): JSX.Element {
     );
     const isLiveStation = $currentMedia && isStation($currentMedia);
 
-    if (!$currentMedia) return <div className="hidden w-1/3 md:block" />;
+    if (!$currentMedia) return <div className="w-1/3" />;
 
     const RepeatIcon = $repeatMode === ERepeatMode.ONE ? Repeat1 : Repeat;
     const isRepeatActive =
@@ -95,7 +95,7 @@ export default function FooterCenter(): JSX.Element {
     );
 
     return (
-        <div className="hidden w-1/3 flex-col items-center justify-center space-y-4 md:flex">
+        <div className="flex w-1/3 flex-col items-center justify-center space-y-4">
             <div className="relative grid grid-cols-7 items-center justify-items-center gap-2">
                 {/* Spacer to keep play button centered with 7 items */}
                 <div className="h-4.5 w-4.5" />

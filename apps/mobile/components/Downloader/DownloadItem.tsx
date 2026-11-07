@@ -1,4 +1,4 @@
-import { COLORS } from "@/constants/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import type { DownloadInfo } from "@/hooks/useDownloads";
@@ -7,10 +7,11 @@ interface DownloadItemProps {
     item: DownloadInfo;
 }
 
-function getStatusColor(item: DownloadInfo): string {
-    if (item.message === "Error") return "#c72e2e";
-    if (item.completed >= 100 || item.message === "Done") return "#1cad60";
-    return COLORS.accent;
+function getStatusColor(item: DownloadInfo, theme: DesignTheme): string {
+    if (item.message === "Error") return theme.colors["destructive"];
+    if (item.completed >= 100 || item.message === "Done")
+        return theme.colors["success"];
+    return theme.legacy.accent;
 }
 
 function getStatusLabel(item: DownloadInfo): string {
@@ -24,7 +25,9 @@ function getStatusLabel(item: DownloadInfo): string {
 }
 
 export default function DownloadItem({ item }: DownloadItemProps) {
-    const statusColor = getStatusColor(item);
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
+    const statusColor = getStatusColor(item, theme);
     const completed = Number(item.completed) || 0;
     const progressWidth =
         item.message === "Error" ? 100 : Math.min(completed, 100);
@@ -84,68 +87,69 @@ export default function DownloadItem({ item }: DownloadItemProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-    },
-    imageContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 6,
-        overflow: "hidden",
-    },
-    imageContainerFilled: {
-        backgroundColor: COLORS.bgCard,
-    },
-    image: {
-        width: "100%",
-        height: "100%",
-    },
-    imagePlaceholder: {
-        width: "100%",
-        height: "100%",
-        backgroundColor: COLORS.bgCardLight,
-    },
-    content: {
-        flex: 1,
-        gap: 6,
-    },
-    header: {
-        flexDirection: "row",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: 8,
-    },
-    titleContainer: {
-        flex: 1,
-    },
-    title: {
-        fontSize: 14,
-        fontWeight: "500",
-        color: COLORS.white,
-    },
-    subtitle: {
-        fontSize: 12,
-        color: COLORS.gray400,
-        marginTop: 2,
-    },
-    status: {
-        fontSize: 12,
-        fontWeight: "700",
-        flexShrink: 0,
-    },
-    progressContainer: {
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: COLORS.bgCardLight,
-        overflow: "hidden",
-    },
-    progressBar: {
-        height: "100%",
-        borderRadius: 2,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.md,
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: 10,
+        },
+        imageContainer: {
+            width: 44,
+            height: 44,
+            borderRadius: 6,
+            overflow: "hidden",
+        },
+        imageContainerFilled: {
+            backgroundColor: theme.legacy.bgCard,
+        },
+        image: {
+            width: "100%",
+            height: "100%",
+        },
+        imagePlaceholder: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: theme.legacy.bgCardLight,
+        },
+        content: {
+            flex: 1,
+            gap: 6,
+        },
+        header: {
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: theme.spacing.sm,
+        },
+        titleContainer: {
+            flex: 1,
+        },
+        title: {
+            fontSize: theme.typography.body,
+            fontWeight: "500",
+            color: theme.legacy.white,
+        },
+        subtitle: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray400,
+            marginTop: 2,
+        },
+        status: {
+            fontSize: theme.typography.caption,
+            fontWeight: "700",
+            flexShrink: 0,
+        },
+        progressContainer: {
+            height: 3,
+            borderRadius: theme.radius.xs,
+            backgroundColor: theme.legacy.bgCardLight,
+            overflow: "hidden",
+        },
+        progressBar: {
+            height: "100%",
+            borderRadius: theme.radius.xs,
+        },
+    });

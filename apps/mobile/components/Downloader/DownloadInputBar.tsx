@@ -1,13 +1,17 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
-import { Download } from "lucide-react-native";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Download } from "@rockit/ui/icons";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface DownloadInputBarProps {
     onSubmit: (url: string) => Promise<unknown>;
 }
 
 export default function DownloadInputBar({ onSubmit }: DownloadInputBarProps) {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const [url, setUrl] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
@@ -27,8 +31,8 @@ export default function DownloadInputBar({ onSubmit }: DownloadInputBarProps) {
         <View style={styles.container}>
             <TextInput
                 style={styles.input}
-                placeholder="Spotify or YouTube URL…"
-                placeholderTextColor={COLORS.gray600}
+                placeholder={vocabulary.MOBILE_DOWNLOAD_URL}
+                placeholderTextColor={theme.legacy.gray600}
                 value={url}
                 onChangeText={setUrl}
                 onSubmitEditing={handleSubmit}
@@ -47,41 +51,42 @@ export default function DownloadInputBar({ onSubmit }: DownloadInputBarProps) {
                 onPress={handleSubmit}
                 disabled={!url.trim() || submitting}
             >
-                <Download size={20} color={COLORS.white} />
+                <Download size={20} color={theme.legacy.white} />
             </Pressable>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-    },
-    input: {
-        flex: 1,
-        backgroundColor: COLORS.bgCardLight,
-        borderRadius: 24,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        fontSize: 14,
-        color: COLORS.white,
-    },
-    button: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: COLORS.accent,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    buttonPressed: {
-        backgroundColor: "#d00e74",
-    },
-    buttonDisabled: {
-        opacity: 0.4,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.sm,
+        },
+        input: {
+            flex: 1,
+            backgroundColor: theme.legacy.bgCardLight,
+            borderRadius: 24,
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: 10,
+            fontSize: theme.typography.body,
+            color: theme.legacy.white,
+        },
+        button: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: theme.legacy.accent,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        buttonPressed: {
+            backgroundColor: theme.colors["primary-hover"],
+        },
+        buttonDisabled: {
+            opacity: 0.4,
+        },
+    });

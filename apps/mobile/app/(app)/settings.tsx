@@ -1,3 +1,5 @@
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 import { Header, PageContainer, SectionTitle } from "@/components/layout";
@@ -9,6 +11,7 @@ import {
     ProfileSection,
     StorageButton,
 } from "@/components/Settings";
+import ThemeSection from "@/components/Settings/ThemeSection";
 
 function SettingsSection({
     title,
@@ -17,6 +20,7 @@ function SettingsSection({
     title: string;
     children: React.ReactNode;
 }) {
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.section}>
             <SectionTitle>{title}</SectionTitle>
@@ -38,11 +42,15 @@ export default function SettingsScreen() {
                     <AccountSection />
                 </SettingsSection>
 
+                <SettingsSection title={vocabulary.SETTINGS_THEME}>
+                    <ThemeSection />
+                </SettingsSection>
+
                 <SettingsSection title={vocabulary.LANGUAGE}>
                     <LanguageSection />
                 </SettingsSection>
 
-                <SettingsSection title={vocabulary.DOWNLOAD_APP}>
+                <SettingsSection title={vocabulary.AUDIO_TRANSITIONS}>
                     <AudioSection />
                 </SettingsSection>
                 <SettingsSection title={vocabulary.LOGS}>
@@ -56,16 +64,17 @@ export default function SettingsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    section: {
-        marginBottom: 24,
-    },
-    sectionContent: {
-        backgroundColor: "rgba(26, 26, 26, 0.6)",
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: "rgba(38, 38, 38, 0.8)",
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        section: {
+            marginBottom: theme.spacing.xl,
+        },
+        sectionContent: {
+            backgroundColor: withAlpha(theme.colors["secondary"], 0.6),
+            borderRadius: theme.radius.xl,
+            borderWidth: 1,
+            borderColor: withAlpha(theme.colors["surface-raised"], 0.8),
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.lg,
+        },
+    });

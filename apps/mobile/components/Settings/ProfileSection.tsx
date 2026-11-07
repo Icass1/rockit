@@ -1,12 +1,16 @@
 import { PLACEHOLDER } from "@/constants/assets";
-import { COLORS } from "@/constants/theme";
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
+import { useVocabulary } from "@/lib/vocabulary";
 import LogoutButton from "@/components/Settings/LogoutButton";
 import StatsButton from "@/components/Settings/StatsButton";
 
 export default function ProfileSection() {
+    const { vocabulary } = useVocabulary();
+    const styles = useThemedStyles(createStyles);
     const { username, image, admin, isLoading } = useSettingsUser();
 
     return (
@@ -27,15 +31,19 @@ export default function ProfileSection() {
             ) : (
                 <View style={styles.userInfo}>
                     <Text style={styles.username} numberOfLines={1}>
-                        {username || "User"}
+                        {username || vocabulary.USER}
                     </Text>
-                    <Text style={styles.atUsername}>@{username || "user"}</Text>
+                    <Text style={styles.atUsername}>
+                        @{username || vocabulary.USER}
+                    </Text>
                 </View>
             )}
 
             {admin && (
                 <View style={styles.adminBadge}>
-                    <Text style={styles.adminText}>Admin</Text>
+                    <Text style={styles.adminText}>
+                        {vocabulary.MOBILE_ACCOUNT_ADMIN}
+                    </Text>
                 </View>
             )}
 
@@ -47,65 +55,66 @@ export default function ProfileSection() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        alignItems: "center",
-        paddingVertical: 24,
-        gap: 16,
-    },
-    avatarContainer: {
-        position: "relative",
-    },
-    avatar: {
-        width: 150,
-        height: 150,
-        borderRadius: 750,
-        borderWidth: 2,
-        borderColor: COLORS.gray800,
-    },
-    userInfo: {
-        alignItems: "center",
-    },
-    username: {
-        color: COLORS.white,
-        fontSize: 22,
-        fontWeight: "bold",
-    },
-    atUsername: {
-        color: COLORS.gray600,
-        fontSize: 14,
-        marginTop: 2,
-    },
-    adminBadge: {
-        backgroundColor: "rgba(238, 16, 134, 0.15)",
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    adminText: {
-        color: COLORS.accent,
-        fontSize: 12,
-        fontWeight: "600",
-    },
-    actions: {
-        flexDirection: "row",
-        gap: 12,
-        marginTop: 8,
-    },
-    skeleton: {
-        alignItems: "center",
-        gap: 8,
-    },
-    skeletonName: {
-        width: 120,
-        height: 22,
-        backgroundColor: COLORS.gray800,
-        borderRadius: 4,
-    },
-    skeletonUsername: {
-        width: 80,
-        height: 16,
-        backgroundColor: COLORS.gray800,
-        borderRadius: 4,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            alignItems: "center",
+            paddingVertical: theme.spacing.xl,
+            gap: theme.spacing.lg,
+        },
+        avatarContainer: {
+            position: "relative",
+        },
+        avatar: {
+            width: 150,
+            height: 150,
+            borderRadius: 750,
+            borderWidth: 2,
+            borderColor: theme.legacy.gray800,
+        },
+        userInfo: {
+            alignItems: "center",
+        },
+        username: {
+            color: theme.legacy.white,
+            fontSize: 22,
+            fontWeight: "bold",
+        },
+        atUsername: {
+            color: theme.legacy.gray600,
+            fontSize: theme.typography.body,
+            marginTop: 2,
+        },
+        adminBadge: {
+            backgroundColor: withAlpha(theme.colors["primary"], 0.15),
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: theme.spacing.xs,
+            borderRadius: theme.radius.lg,
+        },
+        adminText: {
+            color: theme.legacy.accent,
+            fontSize: theme.typography.caption,
+            fontWeight: "600",
+        },
+        actions: {
+            flexDirection: "row",
+            gap: theme.spacing.md,
+            marginTop: theme.spacing.sm,
+        },
+        skeleton: {
+            alignItems: "center",
+            gap: theme.spacing.sm,
+        },
+        skeletonName: {
+            width: 120,
+            height: 22,
+            backgroundColor: theme.legacy.gray800,
+            borderRadius: theme.radius.sm,
+        },
+        skeletonUsername: {
+            width: 80,
+            height: 16,
+            backgroundColor: theme.legacy.gray800,
+            borderRadius: theme.radius.sm,
+        },
+    });

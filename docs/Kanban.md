@@ -14,7 +14,7 @@
 - priority: high
 - workload: Easy
     ```md
-    Corregido el rechazo de grabaciones cuyo catálogo acredita colaboradores ausentes en los metadatos de origen. Todos los artistas conocidos deben seguir presentes; coincidencia parcial, artistas ajenos, videoclips y versiones incompatibles siguen rechazados. Regresión con los metadatos del log de Fever (Dua Lipa / Angèle), sin descargas ni cambios de almacenamiento. Pendiente de revisión del usuario. Ver docs/SONG_RECORDING_SELECTION.md.
+    Corregido el rechazo de grabaciones cuyo catálogo acredita colaboradores ausentes en los metadatos de origen. Todos los artistas conocidos deben seguir presentes; coincidencia parcial, artistas ajenos, videoclips y versiones incompatibles siguen rechazados. Extracción y persistencia conservan todos los créditos de artista; enlaces por lotes e idempotentes también al recibir metadatos de canciones existentes. Regresión con los metadatos del log de Fever (Dua Lipa / Angèle), sin descargas ni cambios de almacenamiento. Pendiente de revisión del usuario. Ver docs/SONG_RECORDING_SELECTION.md.
     ```
 
 ### [RECOMMENDATIONS] Portadas fiables y prioridad de recomendaciones externas

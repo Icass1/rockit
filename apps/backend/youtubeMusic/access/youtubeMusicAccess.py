@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import Result as DBResult
 from sqlalchemy import Select, and_, func
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -483,6 +484,61 @@ class YoutubeMusicAccess:
 
     @staticmethod
     @safe_async
+    async def get_or_create_track_artists_async(
+        session: AsyncSession, names: list[str], provider_id: int, image_id: int
+    ) -> Result[dict[str, ArtistRow]]:
+        """Create missing collaborator identities in a batch, without new image downloads."""
+        identities = {name: f"artist-{name}" for name in names if name.strip()}
+        if not identities:
+            return Result(code=ResultCode.OK, message="OK", result={})
+        result = await session.execute(
+            select(ArtistRow).where(ArtistRow.youtube_id.in_(list(identities.values())))
+        )
+        existing = {artist.youtube_id: artist for artist in result.scalars().all()}
+        missing = {
+            name: CoreMediaRow(
+                public_id=create_id(32),
+                provider_id=provider_id,
+                media_type_key=MediaTypeEnum.ARTIST.value,
+            )
+            for name, identity in identities.items()
+            if identity not in existing
+        }
+        if missing:
+            session.add_all(list(missing.values()))
+            await session.flush()
+            artists = [
+                ArtistRow(id=media.id, youtube_id=identities[name], name=name, image_id=image_id)
+                for name, media in missing.items()
+            ]
+            session.add_all(artists)
+            await session.flush()
+            existing.update({artist.youtube_id: artist for artist in artists})
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result={name: existing[identity] for name, identity in identities.items()},
+        )
+
+    @staticmethod
+    @safe_async
+    async def add_track_artist_links_async(
+        session: AsyncSession, track_id: int, names: list[str], artist_map: dict[str, ArtistRow]
+    ) -> Result[bool]:
+        """Add every supplied credit in one idempotent statement; retain existing credits."""
+        artist_ids = {artist.id for artist in artist_map.values() if artist.name in names}
+        if artist_ids:
+            await session.execute(
+                insert(track_artists)
+                .values(
+                    [{"track_id": track_id, "artist_id": artist_id} for artist_id in artist_ids]
+                )
+                .on_conflict_do_nothing()
+            )
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
     async def get_or_create_album_with_image_id_async(
         session: AsyncSession,
         raw: "YoutubeMusicAlbum",
@@ -553,6 +609,12 @@ class YoutubeMusicAccess:
         result = await session.execute(stmt)
         existing: TrackRow | None = result.scalar_one_or_none()
         if existing:
+            linked = await YoutubeMusicAccess.add_track_artist_links_async(
+                session=session, track_id=existing.id, names=raw.artists, artist_map=artist_map
+            )
+            if linked.is_not_ok():
+                logger.error(f"Could not complete track credits. {linked.info()}")
+                return Result(code=linked.code(), message=linked.message())
             return Result(code=ResultCode.OK, message="OK", result=existing)
 
         core_track = CoreMediaRow(
@@ -579,13 +641,12 @@ class YoutubeMusicAccess:
         track_row.core_song = core_track
         track_row.album = album_row
 
-        for artist_name in raw.artists:
-            for yt_artist in artist_map.values():
-                if yt_artist.name == artist_name:
-                    await session.execute(
-                        track_artists.insert().values(track_id=track_row.id, artist_id=yt_artist.id)
-                    )
-                    break
+        linked = await YoutubeMusicAccess.add_track_artist_links_async(
+            session=session, track_id=track_row.id, names=raw.artists, artist_map=artist_map
+        )
+        if linked.is_not_ok():
+            logger.error(f"Could not save track credits. {linked.info()}")
+            return Result(code=linked.code(), message=linked.message())
 
         await session.flush()
         return Result(code=ResultCode.OK, message="OK", result=track_row)

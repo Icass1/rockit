@@ -205,6 +205,18 @@ class YoutubeMusic:
             return Result(code=a_result_img.code(), message=a_result_img.message())
         image_id = a_result_img.result().id
 
+        # Album/artist pages may provide a map containing only the album artist.
+        # Resolve all additional track credits together instead of silently losing them.
+        missing = list(dict.fromkeys(name for name in raw.artists if name not in artist_map))
+        if missing:
+            additional = await YoutubeMusicAccess.get_or_create_track_artists_async(
+                session=session, names=missing, provider_id=provider_id, image_id=image_id
+            )
+            if additional.is_not_ok():
+                logger.error(f"Could not preserve track collaborators. {additional.info()}")
+                return Result(code=additional.code(), message=additional.message())
+            artist_map = {**artist_map, **additional.result()}
+
         return await YoutubeMusicAccess.get_or_create_track_with_image_id_async(
             session=session,
             raw=raw,

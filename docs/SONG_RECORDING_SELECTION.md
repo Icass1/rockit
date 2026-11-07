@@ -88,3 +88,13 @@ with controlled responses; it selects the art track and rejects unrelated artist
 live versions and the OMV clip. This is log-based evidence, not a fresh live lookup.
 Metadata matching still cannot prove audio identity or detect an unlabelled alternate
 recording when source metadata lacks collaborators or timing information.
+
+YouTube Music ingestion also preserves structured yt-dlp artists before falling
+back to its display artist field (without splitting band names). Both direct
+track and playlist extraction use this policy. Track persistence resolves missing
+collaborators in a batch rather than restricting credits to the album artist map.
+Association writes add all supplied artists idempotently, including existing tracks
+when complete metadata is ingested, without removing earlier credits. Existing
+rows are not bulk refreshed from the remote service; the subset matching rule
+also allows retries with already incomplete stored credits. No migration or
+storage-object changes are required.

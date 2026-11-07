@@ -4,6 +4,7 @@ import {
     type BaseAlbumWithoutSongsResponse,
     type BasePlaylistWithoutMediasResponse,
     type BaseSongWithAlbumResponse,
+    type BaseStationResponse,
     type BaseVideoResponse,
     type TMedia,
 } from "@rockit/shared";
@@ -22,11 +23,13 @@ interface LibraryContentProps {
     playlists: BasePlaylistWithoutMediasResponse[];
     songs: BaseSongWithAlbumResponse[];
     videos: BaseVideoResponse[];
+    stations: BaseStationResponse[];
+    shared: BasePlaylistWithoutMediasResponse[];
     activeType: ELibraryActiveType;
     viewMode: "grid" | "list";
 }
 
-type ItemType = "album" | "playlist" | "song" | "video";
+type ItemType = "album" | "playlist" | "song" | "video" | "station";
 
 interface Section {
     title: string;
@@ -39,6 +42,8 @@ export default function LibraryContent({
     playlists,
     songs,
     videos,
+    stations,
+    shared,
     activeType,
     viewMode,
 }: LibraryContentProps) {
@@ -91,8 +96,29 @@ export default function LibraryContent({
                 renderType: viewMode,
             });
         }
+        if (stations.length)
+            result.push({
+                title: vocabulary.RADIO_STATIONS,
+                data: createRows(stations),
+                renderType: viewMode,
+            });
+        if (shared.length)
+            result.push({
+                title: vocabulary.SHARED_2_YOU,
+                data: createRows(shared),
+                renderType: viewMode,
+            });
         return result;
-    }, [albums, playlists, songs, videos, vocabulary, viewMode]);
+    }, [
+        albums,
+        playlists,
+        songs,
+        videos,
+        stations,
+        shared,
+        vocabulary,
+        viewMode,
+    ]);
 
     const renderSectionHeader = useCallback(
         ({ section }: { section: Section }) => (
@@ -169,6 +195,12 @@ export default function LibraryContent({
             break;
         case ELibraryActiveType.Songs:
             items = songs;
+            break;
+        case ELibraryActiveType.Stations:
+            items = stations;
+            break;
+        case ELibraryActiveType.Shared:
+            items = shared;
             break;
         case ELibraryActiveType.Videos:
             items = videos;

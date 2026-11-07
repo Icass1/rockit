@@ -1,8 +1,14 @@
+import { subscribeToResume } from "@/platform/resume";
 import {
+    FriendManager,
     HttpResult,
+    ListenTogetherManager,
     MediaResponse,
+    NavigationPinsManager,
     RecommendationArtworkManager,
     setRockIt,
+    SharingManager,
+    StationManager,
     type SessionResponse,
 } from "@rockit/shared";
 import { atom } from "nanostores";
@@ -36,6 +42,17 @@ class MediaManager {
 
 class RockIt {
     mediaManager = new MediaManager();
+    stationManager = new StationManager(() => this);
+    navigationPinsManager = new NavigationPinsManager(() => ({
+        ...this,
+        subscribeToResume,
+    }));
+    sharingManager = new SharingManager(() => this);
+    friendManager = new FriendManager(() => this);
+    listenTogetherManager = new ListenTogetherManager(() => ({
+        ...this,
+        subscribeToResume: subscribeToResume,
+    }));
     recommendationArtworkManager = new RecommendationArtworkManager(Http);
     bookmarkManager = new BookmarkManager();
     // `toasterManager` kept for existing consumers; `notificationManager` is the
@@ -67,6 +84,10 @@ class RockIt {
         if (this._initializing) return this._initializing;
         const generation = this._generation;
         const initialize = async () => {
+            this.friendManager.start();
+            this.sharingManager.start();
+            this.navigationPinsManager.start();
+            this.listenTogetherManager.start();
             void this.webSocketManager.init();
             this.mediaPlayerManager.init();
             this.bookmarkManager.init();
@@ -92,8 +113,13 @@ class RockIt {
     stop(): void {
         this._generation++;
         this._initializing = undefined;
+        this.friendManager.stop();
+        this.sharingManager.stop();
+        this.navigationPinsManager.stop();
+        this.listenTogetherManager.stop();
         this.webSocketManager.stop();
         this.bookmarkManager.stop();
+        this.stationManager.clearStation();
         this.mediaPlayerManager.stopAndClear();
         this.mediaPlayerManager.stopSynchronization();
         this.queueManager.reset();

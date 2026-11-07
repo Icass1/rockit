@@ -1,10 +1,25 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { BookOpen, Download, Home, Search, Settings } from "@rockit/ui/icons";
+import type { Vocabulary } from "@rockit/shared";
+import {
+    ActionButton,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
+import {
+    BookOpen,
+    Download,
+    Home,
+    Radio,
+    Search,
+    Settings,
+    Users,
+} from "@rockit/ui/icons";
 import { Tabs, useRouter, useSegments } from "expo-router";
 import {
     Pressable,
     StyleSheet,
+    Text,
     View,
     type LayoutChangeEvent,
 } from "react-native";
@@ -58,6 +73,18 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
             label: vocabulary.DOWNLOADS,
             icon: Download,
             path: "/(app)/downloader" as const,
+        },
+        {
+            name: "radio",
+            label: vocabulary.RADIO,
+            icon: Radio,
+            path: "/(app)/radio" as const,
+        },
+        {
+            name: "friends",
+            label: vocabulary.FRIENDS,
+            icon: Users,
+            path: "/(app)/friends" as const,
         },
         {
             name: "settings",
@@ -120,11 +147,11 @@ const createStyles = (theme: DesignTheme) =>
             backgroundColor: theme.legacy.bgCard,
             borderTopWidth: StyleSheet.hairlineWidth,
             borderTopColor: theme.legacy.gray800,
-            height: 50,
+            height: theme.layout.tabBar,
         },
         tabItem: {
             flex: 1,
-            height: 50,
+            height: theme.layout.tabBar,
             alignItems: "center",
             justifyContent: "center",
         },
@@ -135,9 +162,13 @@ function AppLayoutContent() {
     const { bottom: safeBottom } = useSafeAreaInsets();
     const { vocabulary } = useVocabulary();
     const [ready, setReady] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const [attempt, setAttempt] = useState(0);
+    const theme = useDesignTheme();
 
     useEffect(() => {
         let cancelled = false;
+        setFailed(false);
         void getSession()
             .then(async (session) => {
                 if (cancelled) return;
@@ -149,16 +180,43 @@ function AppLayoutContent() {
                     if (!cancelled) setReady(true);
                 }
             })
-            .catch((error) =>
-                console.error("Session initialization failed", error)
-            );
+            .catch(() => {
+                if (!cancelled) setFailed(true);
+            });
         return () => {
             cancelled = true;
         };
-    }, [router]);
+    }, [router, attempt]);
 
     if (!ready)
-        return <View accessibilityRole="progressbar" style={{ flex: 1 }} />;
+        return (
+            <View
+                style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: theme.colors.background,
+                    gap: theme.spacing.lg,
+                }}
+            >
+                {failed ? (
+                    <>
+                        <Text style={{ color: theme.colors.destructive }}>
+                            {vocabulary.ERROR}
+                        </Text>
+                        <ActionButton
+                            label={vocabulary.RETRY}
+                            onPress={() => setAttempt((value) => value + 1)}
+                        />
+                    </>
+                ) : (
+                    <View
+                        accessibilityRole="progressbar"
+                        accessibilityLabel={vocabulary.MOBILE_LOADING}
+                    />
+                )}
+            </View>
+        );
 
     return <AppLayoutInner safeBottom={safeBottom} vocabulary={vocabulary} />;
 }
@@ -169,9 +227,10 @@ function AppLayoutInner({
     vocabulary,
 }: {
     safeBottom: number;
-    vocabulary: any;
+    vocabulary: Vocabulary;
 }) {
     const { hidePlayer } = usePlayer();
+    const theme = useDesignTheme();
     return (
         <View style={{ flex: 1 }}>
             <Tabs tabBar={() => null} screenOptions={{ headerShown: false }}>
@@ -212,6 +271,14 @@ function AppLayoutInner({
                     }}
                 />
                 <Tabs.Screen
+                    name="radio"
+                    options={{ title: vocabulary.RADIO }}
+                />
+                <Tabs.Screen
+                    name="friends"
+                    options={{ title: vocabulary.FRIENDS }}
+                />
+                <Tabs.Screen
                     name="settings"
                     options={{
                         title: vocabulary.SETTINGS,
@@ -230,7 +297,10 @@ function AppLayoutInner({
                     position: "absolute",
                     left: 0,
                     right: 0,
-                    bottom: 50 + safeBottom + 12,
+                    bottom:
+                        theme.layout.tabBar +
+                        safeBottom +
+                        theme.layout.miniPlayerGap,
                     zIndex: 400,
                 }}
             >

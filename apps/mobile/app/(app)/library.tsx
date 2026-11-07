@@ -16,13 +16,20 @@ export default function LibraryPage() {
         ELibraryActiveType.All
     );
 
-    const { albums, playlists, songs, videos, loading, error } = useLibraryData(
-        {
-            filterMode: sortMode,
-            searchQuery,
-            activeType,
-        }
-    );
+    const {
+        albums,
+        playlists,
+        songs,
+        videos,
+        stations,
+        shared,
+        loading,
+        error,
+    } = useLibraryData({
+        filterMode: sortMode,
+        searchQuery,
+        activeType,
+    });
 
     if (loading) {
         return (
@@ -58,6 +65,8 @@ export default function LibraryPage() {
                     playlists={playlists}
                     songs={songs}
                     videos={videos}
+                    stations={stations}
+                    shared={shared}
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
                     activeType={activeType}

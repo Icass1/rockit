@@ -112,6 +112,7 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
                     return (
                         <Pressable
                             key={tab.name}
+                            testID={`navigation-${tab.name}`}
                             onPress={() => {
                                 if (!isFocused) {
                                     onTabPress?.();
@@ -317,7 +318,7 @@ function AppLayoutInner({
                     pointerEvents: "box-none",
                 }}
             >
-                <Header />
+                <Header showNotifications />
             </View>
         </View>
     );

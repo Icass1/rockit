@@ -118,4 +118,12 @@ export {
     statsDateBoundary,
     formatListeningDuration,
     statsInsightMetrics,
-} from "@/stats/presentation";
+} from "@/utils/statsPresentation";
+
+export { NotificationInbox } from "@/managers/notificationInbox";
+export {
+    notificationVocabularyText,
+    replaceNotificationGaps,
+    notificationPageHref,
+    unreadNotifications,
+} from "@/utils/notifications";

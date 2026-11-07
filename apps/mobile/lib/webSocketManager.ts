@@ -17,6 +17,7 @@ import {
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
     MediaExpandedMessageRequest,
+    NotificationStateMessageSchema,
     QueueTypeMessageSchema,
     QueueTypeRequest,
     SeekMessageRequest,
@@ -84,6 +85,9 @@ export class WebSocketManager {
                 data = DownloadProgressMessageSchema.parse(data);
             else if (data.type === EWebSocketMessage.QueueType)
                 data = QueueTypeMessageSchema.parse(data);
+
+            if (data.type === EWebSocketMessage.NotificationState)
+                data = NotificationStateMessageSchema.parse(data);
 
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);

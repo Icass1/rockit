@@ -61,3 +61,10 @@ export interface NavigationPinsServices extends Pick<
 > {
     subscribeToResume?: (listener: () => void) => () => void;
 }
+
+export interface NotificationInboxServices extends Pick<
+    FriendServices,
+    "http" | "userManager" | "webSocketManager"
+> {
+    onReset?: () => void;
+}

@@ -4,14 +4,16 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import NotificationButton from "@/components/Notifications/NotificationButton";
 
 export const HEADER_HEIGHT = 90;
 
 interface HeaderProps {
     showSearch?: boolean;
+    showNotifications?: boolean;
 }
 
-export default function Header({ showSearch = false }: HeaderProps) {
+export default function Header({ showNotifications = false }: HeaderProps) {
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     return (
@@ -31,6 +33,7 @@ export default function Header({ showSearch = false }: HeaderProps) {
                     style={styles.logo}
                     contentFit="contain"
                 />
+                {showNotifications && <NotificationButton />}
             </View>
         </SafeAreaView>
     );
@@ -50,6 +53,8 @@ const createStyles = (theme: DesignTheme) =>
             paddingHorizontal: theme.spacing.lg,
             paddingVertical: theme.spacing.md,
             alignItems: "center",
+            flexDirection: "row",
+            justifyContent: "center",
         },
         logo: {
             width: 210,

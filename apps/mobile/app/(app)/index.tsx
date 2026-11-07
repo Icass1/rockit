@@ -18,7 +18,7 @@ import FeaturedCarousel from "@/components/Home/FeaturedCarousel";
 import HomeHeader from "@/components/Home/HomeHeader";
 import HorizontalSongRow from "@/components/Home/HorizontalSongRow";
 import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
-import Header, { HEADER_HEIGHT } from "@/components/layout/Header";
+import { HEADER_HEIGHT } from "@/components/layout/Header";
 import HorizontalScrollList from "@/components/Media/HorizontalScrollList";
 import MediaCard from "@/components/Media/MediaCard";
 import AutoplayDiscovery from "@/components/Recommendations/AutoplayDiscovery";
@@ -78,7 +78,6 @@ export default function HomeScreen() {
     if (loading || isLoading) {
         return (
             <SafeAreaView style={styles.container} edges={["top"]}>
-                <Header />
                 <View style={styles.centerContainer}>
                     <ActivityIndicator
                         size="large"
@@ -92,7 +91,6 @@ export default function HomeScreen() {
     if (error || !data) {
         return (
             <SafeAreaView style={styles.container} edges={["top"]}>
-                <Header />
                 <View style={styles.centerContainer}>
                     <Text style={styles.errorText}>
                         {error ?? vocabulary.ERROR}
@@ -109,7 +107,6 @@ export default function HomeScreen() {
     ) {
         return (
             <SafeAreaView style={styles.container} edges={["top"]}>
-                <Header />
                 <View style={styles.centerContainer}>
                     <Text style={styles.emptyText}>{vocabulary.NO_SONGS}</Text>
                 </View>
@@ -119,7 +116,6 @@ export default function HomeScreen() {
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            <Header />
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.content}

@@ -51,7 +51,7 @@ export function getRockitListName(
         "last-month": vocabulary.NAV_LAST_MONTH,
         "year-recap": vocabulary.NAV_YEAR_RECAP,
     };
-    return Object.hasOwn(names, key)
+    return Object.prototype.hasOwnProperty.call(names, key)
         ? names[key as FeaturedCollectionKey]
         : fallback;
 }

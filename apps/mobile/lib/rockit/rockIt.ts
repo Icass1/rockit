@@ -5,6 +5,7 @@ import {
     ListenTogetherManager,
     MediaResponse,
     NavigationPinsManager,
+    NotificationInbox,
     RecommendationArtworkManager,
     setRockIt,
     SharingManager,
@@ -43,6 +44,10 @@ class MediaManager {
 class RockIt {
     mediaManager = new MediaManager();
     stationManager = new StationManager(() => this);
+    notificationInbox = new NotificationInbox(() => ({
+        ...this,
+        onReset: () => toasterManager.clear(),
+    }));
     navigationPinsManager = new NavigationPinsManager(() => ({
         ...this,
         subscribeToResume,
@@ -87,6 +92,7 @@ class RockIt {
             this.friendManager.start();
             this.sharingManager.start();
             this.navigationPinsManager.start();
+            this.notificationInbox.start();
             this.listenTogetherManager.start();
             void this.webSocketManager.init();
             this.mediaPlayerManager.init();
@@ -116,6 +122,7 @@ class RockIt {
         this.friendManager.stop();
         this.sharingManager.stop();
         this.navigationPinsManager.stop();
+        this.notificationInbox.stop();
         this.listenTogetherManager.stop();
         this.webSocketManager.stop();
         this.bookmarkManager.stop();

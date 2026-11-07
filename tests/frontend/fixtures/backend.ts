@@ -39,6 +39,7 @@ export async function createFixtureBackend(port = 0) {
     const protocolErrors: string[] = [];
     const messages: unknown[] = [];
     let pins: dto.NavigationPinResponse[] = [];
+    let sentShares: dto.SharedMediaItem[] = [];
     let theme = "dark";
     let lang = "en";
     let volume = 1;
@@ -197,6 +198,7 @@ export async function createFixtureBackend(port = 0) {
             unhandled.length = 0;
             faults.clear();
             pins = [];
+            sentShares = [];
             messages.length = 0;
             protocolErrors.length = 0;
             queue = [];
@@ -349,8 +351,62 @@ export async function createFixtureBackend(port = 0) {
                     { playlists: [fullPlaylist] },
                     dto.UserPlaylistsResponseSchema
                 );
-            if (path === "/friends" || path === "/friends/blocked")
+            if (path === "/friends")
+                return send(
+                    {
+                        friends: [
+                            {
+                                publicId: "friend-1",
+                                username: "Fixture Friend",
+                                imageUrl: null,
+                                status: "accepted",
+                                isOnline: false,
+                                nowPlaying: null,
+                                level: 1,
+                                levelTitle: null,
+                                dateAdded: "2026-01-01T00:00:00Z",
+                            },
+                        ],
+                    },
+                    dto.FriendListResponseSchema
+                );
+            if (path === "/friends/blocked")
                 return send({ friends: [] }, dto.FriendListResponseSchema);
+            if (path === "/friends/share" && method === "POST") {
+                const parsed = dto.ShareMediaRequestSchema.safeParse(body);
+                if (!parsed.success)
+                    return send(
+                        { detail: "Invalid share request" },
+                        undefined,
+                        422
+                    );
+                const media = [song, playlistSong, album, playlist].find(
+                    (item) => item.publicId === parsed.data.mediaPublicId
+                );
+                if (!media || parsed.data.recipientPublicId !== "friend-1")
+                    return send(
+                        { detail: "Unknown share target" },
+                        undefined,
+                        404
+                    );
+                sentShares.push({
+                    publicId: `share-${sentShares.length + 1}`,
+                    senderPublicId: "fixture-user",
+                    senderUsername: "fixture",
+                    senderImageUrl: null,
+                    recipientPublicId: "friend-1",
+                    recipientUsername: "Fixture Friend",
+                    mediaPublicId: media.publicId,
+                    mediaName: media.name,
+                    mediaImageUrl: media.imageUrl,
+                    mediaType: media.type,
+                    artistName: "Fixture Ensemble",
+                    message: parsed.data.message,
+                    seen: false,
+                    dateAdded: "2026-01-01T00:00:00Z",
+                });
+                return send({ status: "OK" }, dto.OkResponseSchema);
+            }
             if (path === "/friends/requests")
                 return send(
                     { incoming: [], sent: [] },
@@ -366,7 +422,10 @@ export async function createFixtureBackend(port = 0) {
             if (path === "/friends/share/inbox")
                 return send({ items: [] }, dto.SharedMediaInboxResponseSchema);
             if (path === "/friends/share/sent")
-                return send({ items: [] }, dto.SharedMediaSentResponseSchema);
+                return send(
+                    { items: sentShares },
+                    dto.SharedMediaSentResponseSchema
+                );
             if (path === "/friends/listen-together/sessions")
                 return send(
                     { sessions: [] },
@@ -536,6 +595,7 @@ export async function createFixtureBackend(port = 0) {
                 method === "DELETE"
             ) {
                 pins = [];
+                sentShares = [];
                 return send({ pins }, dto.NavigationPinsResponseSchema);
             }
             if (path === "/bookmark/list")

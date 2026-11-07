@@ -37,6 +37,7 @@ import { getSession } from "@/lib/session";
 import { SheetProvider } from "@/lib/SheetContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
 import { useVocabulary } from "@/lib/vocabulary";
+import ShareMediaComposer from "@/components/Friends/ShareMediaComposer";
 import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
 
@@ -309,6 +310,7 @@ function AppLayoutInner({
                 </Tabs>
             </View>
 
+            <ShareMediaComposer />
             <FullPlayer />
             <StandaloneTabBar onTabPress={hidePlayer} />
             {/* MiniPlayer always rendered – its opacity animates based on FullPlayer visibility */}

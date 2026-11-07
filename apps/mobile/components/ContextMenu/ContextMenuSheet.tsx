@@ -47,6 +47,8 @@ export function ContextMenuSheetContent({
             {config.options.map((option, index) => (
                 <Pressable
                     key={`${option.label}-${index}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={option.label}
                     style={({ pressed }) => [
                         styles.option,
                         pressed && styles.optionPressed,

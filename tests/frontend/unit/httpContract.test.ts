@@ -84,6 +84,21 @@ describe("real generated HTTP contracts against the local backend", () => {
         expect(result.result.songs[0].imageUrl).toMatch(/127\.0\.0\.1/);
         expect(backend.unhandled).toEqual([]);
     });
+    it("sends accented share messages using the real request and response contracts", async () => {
+        const response = await Client.shareMedia({
+            recipientPublicId: "friend-1",
+            mediaPublicId: "song-2",
+            message: "Canción para ti — déjà vu",
+        });
+        expect(response.isOk()).toBe(true);
+        const sent = await Client.getShareSent();
+        if (!sent.isOk()) throw new Error(sent.message);
+        expect(sent.result.items[0]).toMatchObject({
+            mediaPublicId: "song-2",
+            recipientPublicId: "friend-1",
+            message: "Canción para ti — déjà vu",
+        });
+    });
     it("reads actual workbook translations through the generated vocabulary contract", async () => {
         const result = await Client.getVocabularyByCode("es");
         if (!result.isOk()) throw new Error(result.message);

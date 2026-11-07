@@ -30,6 +30,7 @@ import {
     Play,
     PlusCircle,
     Radio,
+    Share2,
     Shuffle,
 } from "@rockit/ui/icons";
 import { Pressable } from "react-native";
@@ -162,7 +163,6 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     label: vocabulary.PLAY,
                     icon: Play,
                     onPress: () => {
-                        console.log("Playing media from context menu", media);
                         if (listPublicId)
                             void rockIt.queueManager.playCollection(
                                 listPublicId,
@@ -362,6 +362,17 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                             media.publicId,
                             !pinned
                         );
+                    },
+                });
+            }
+
+            if (!isSearchResult(media)) {
+                options.push({
+                    label: vocabulary.FRIENDS_SHARE,
+                    icon: Share2,
+                    onPress: () => {
+                        hide();
+                        rockIt.sharingManager.compose(media.publicId);
                     },
                 });
             }

@@ -211,3 +211,49 @@ test("keeps the installed shell and private library metadata available after the
     ).toBeVisible();
     await context.setOffline(false);
 });
+
+test("shares a playlist-only song from its long-press menu using the common account-scoped service", async ({
+    page,
+    context,
+    request,
+}) => {
+    await context.addCookies([
+        { name: "session_id", value: "fixture", url: backend, httpOnly: true },
+    ]);
+    await page.goto(mobile + "/library");
+    await page.getByPlaceholder(/search.*library/i).fill("Playlist exclusive");
+    const song = page
+        .getByRole("button", { name: "Playlist exclusive", exact: true })
+        .first();
+    await song.hover();
+    await page.mouse.down();
+    try {
+        await expect(
+            page.getByRole("button", { name: "Share", exact: true })
+        ).toBeVisible();
+    } finally {
+        await page.mouse.up();
+    }
+    await page.getByRole("button", { name: "Share", exact: true }).click();
+    await page
+        .getByRole("button", { name: "Fixture Friend", exact: true })
+        .click();
+    await page
+        .getByLabel("Message (optional)")
+        .fill("Canción para ti — déjà vu");
+    await page.getByRole("button", { name: "Share", exact: true }).click();
+    await expect(page.getByText("Music shared", { exact: true })).toBeVisible();
+    const result = await (
+        await request.get(backend + "/__fixture/calls")
+    ).json();
+    expect(
+        result.calls.find(
+            (call: { path: string; method: string }) =>
+                call.path === "/friends/share" && call.method === "POST"
+        )?.body
+    ).toEqual({
+        recipientPublicId: "friend-1",
+        mediaPublicId: "song-2",
+        message: "Canción para ti — déjà vu",
+    });
+});

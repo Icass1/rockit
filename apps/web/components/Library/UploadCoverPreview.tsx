@@ -23,7 +23,7 @@ export default function UploadCoverPreview({
         <img
             ref={imageRef}
             alt={alt}
-            className="h-20 w-20 shrink-0 rounded-md bg-neutral-700 object-cover"
+            className="bg-accent h-20 w-20 shrink-0 rounded-md object-cover"
         />
     );
 }

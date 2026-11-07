@@ -70,24 +70,24 @@
     left: 1.7px;
     width: 16.7px;
     height: 16.7px;
-    background: #ee1086;
-    box-shadow: 0 0 1.7px 1.3px #ee1086;
+    background: var(--theme-primary);
+    box-shadow: 0 0 1.7px 1.3px var(--theme-primary);
 }
 
 .flame.orange {
     left: 3.3px;
     width: 13.3px;
     height: 13.3px;
-    background: #f53a76;
-    box-shadow: 0 0 3px 1.3px #f53a76;
+    background: var(--theme-brand-mid);
+    box-shadow: 0 0 3px 1.3px var(--theme-brand-mid);
 }
 
 .flame.yellow {
     left: 5px;
     width: 10px;
     height: 10px;
-    background: #fb6467;
-    box-shadow: 0 0 3px 1.3px #fb6467;
+    background: var(--theme-brand-light);
+    box-shadow: 0 0 3px 1.3px var(--theme-brand-light);
 }
 
 .flame.white {
@@ -95,8 +95,8 @@
     bottom: -1.3px;
     width: 10px;
     height: 10px;
-    background: #ffaacc;
-    box-shadow: 0 0 4px 2px #ffaacc;
+    background: var(--theme-primary-soft);
+    box-shadow: 0 0 4px 2px var(--theme-primary-soft);
 }
 
 /* ── Ember / glow at the base ────────────────────────────────── */
@@ -111,8 +111,8 @@
     height: 3.3px;
     left: 8.3px;
     bottom: -6px;
-    background: white;
-    box-shadow: 0 0 5px 3.3px white;
+    background: var(--theme-on-media);
+    box-shadow: 0 0 5px 3.3px var(--theme-on-media);
     animation: ember-pulse 1.2s ease-in-out infinite alternate;
 }
 

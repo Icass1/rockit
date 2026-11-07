@@ -235,10 +235,6 @@ export {
     type DownloadProgressMessage,
 } from "./downloadProgressMessage";
 export {
-    DownloadSettingsResponseSchema,
-    type DownloadSettingsResponse,
-} from "./downloadSettingsResponse";
-export {
     DownloadTotalsResponseSchema,
     type DownloadTotalsResponse,
 } from "./downloadTotalsResponse";
@@ -381,6 +377,10 @@ export {
     ListenTogetherSessionResponseSchema,
     type ListenTogetherSessionResponse,
 } from "./listenTogetherSessionResponse";
+export {
+    ListenTogetherSyncMessageSchema,
+    type ListenTogetherSyncMessage,
+} from "./listenTogetherSyncMessage";
 export {
     ListenTogetherSyncRequestSchema,
     type ListenTogetherSyncRequest,
@@ -541,6 +541,10 @@ export {
     RadioBrowserStationResponseSchema,
     type RadioBrowserStationResponse,
 } from "./radioBrowserStationResponse";
+export {
+    RecommendationArtworkResponseSchema,
+    type RecommendationArtworkResponse,
+} from "./recommendationArtworkResponse";
 export {
     RecommendationTrackRequestSchema,
     type RecommendationTrackRequest,
@@ -769,6 +773,10 @@ export {
     type UpdateCrossfadeRequest,
 } from "./updateCrossfadeRequest";
 export {
+    UpdateDownloadSettingsRequestSchema,
+    type UpdateDownloadSettingsRequest,
+} from "./updateDownloadSettingsRequest";
+export {
     UpdateLangRequestSchema,
     type UpdateLangRequest,
 } from "./updateLangRequest";
@@ -788,6 +796,10 @@ export {
     UpdatePlaylistRequestSchema,
     type UpdatePlaylistRequest,
 } from "./updatePlaylistRequest";
+export {
+    UpdateThemeRequestSchema,
+    type UpdateThemeRequest,
+} from "./updateThemeRequest";
 export {
     UpdateTimestampItemSchema,
     type UpdateTimestampItem,
@@ -909,3 +921,4 @@ export {
 } from "./notificationEventKey";
 export { StrictBoolSchema, type StrictBool } from "./strictBool";
 export { StrictIntSchema, type StrictInt } from "./strictInt";
+export { ThemePreferenceSchema, type ThemePreference } from "./themePreference";

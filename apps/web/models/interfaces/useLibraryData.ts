@@ -9,6 +9,8 @@ import {
 import { EFilterMode } from "@/models/enums/filterMode";
 
 export interface IUseLibraryDataProps {
+    data: LibraryMediasResponse;
+    username: string;
     filterMode: EFilterMode;
     searchQuery: string;
 }
@@ -23,7 +25,6 @@ export type TFilteredLibrary = {
 };
 
 export interface IUseLibraryDataReturn extends TFilteredLibrary {
-    loading: boolean;
     librarySongIds: string[];
     filtered: TFilteredLibrary;
 }

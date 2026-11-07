@@ -3,7 +3,6 @@
 import { useCallback, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import type { CollectionPager } from "@rockit/shared";
 import { MoreHorizontal, Play } from "lucide-react";
@@ -17,6 +16,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import DurationToggle from "@/components/DurationToggle";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 export default function RenderList({
@@ -48,7 +48,7 @@ export default function RenderList({
 }): JSX.Element {
     const playableMedia = getAllPlayableMedia(media);
 
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handlePlay = useCallback((): void => {
         if (listPublicId) void rockIt.queueManager.playCollection(listPublicId);
@@ -85,10 +85,10 @@ export default function RenderList({
                         <button
                             type="button"
                             onClick={handlePlay}
-                            className="absolute right-2 bottom-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-linear-45 from-(--color-rockit-pink) to-(--color-rockit-pink-light) text-white opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:scale-105"
+                            className="from-primary to-brand-light text-foreground-strong absolute right-2 bottom-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-linear-45 opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:scale-105"
                             aria-label="Play"
                         >
-                            <Play className="ml-0.5 h-6 w-6" fill="white" />
+                            <Play className="fill-on-media ml-0.5 h-6 w-6" />
                         </button>
                     </div>
                     <div className="relative w-full px-2">
@@ -104,7 +104,7 @@ export default function RenderList({
                                 <button
                                     type="button"
                                     aria-label="More options"
-                                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+                                    className="text-muted-foreground hover:bg-muted hover:text-foreground-strong flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors"
                                 >
                                     <MoreHorizontal className="h-5 w-5" />
                                 </button>
@@ -113,9 +113,9 @@ export default function RenderList({
                     </div>
                     <Artists
                         artists={artists}
-                        className="text-lg font-semibold text-balance text-neutral-400"
+                        className="text-muted-foreground text-lg font-semibold text-balance"
                     />
-                    <p className="flex items-center justify-center gap-2 text-center font-semibold text-balance text-neutral-400">
+                    <p className="text-muted-foreground flex items-center justify-center gap-2 text-center font-semibold text-balance">
                         <span>
                             {total ?? playableMedia.length}{" "}
                             {playableMedia.length === 1 ? "song" : "songs"}
@@ -133,7 +133,7 @@ export default function RenderList({
                         substractArtists={artists.map((artist) => artist.name)}
                     />
                     {media.length === 0 && (
-                        <p className="text-center text-lg font-semibold text-balance text-neutral-400">
+                        <p className="text-muted-foreground text-center text-lg font-semibold text-balance">
                             {$vocabulary.NO_MEDIA_FOUND}
                         </p>
                     )}

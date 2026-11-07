@@ -5,14 +5,12 @@ import {
     EMediaType,
     TMedia,
 } from "@rockit/shared";
-import { getFeaturedListAsync } from "@/lib/services/mediaService";
+import { getFeaturedListAsync } from "@/lib/server/resources";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
     async (): Promise<BasePlaylistWithMediasResponse | undefined> => {
-        return getFeaturedListAsync("year-recap").catch(
-            (): undefined => undefined
-        );
+        return getFeaturedListAsync("year-recap");
     }
 );
 
@@ -53,7 +51,7 @@ export default async function YearRecapPage(): Promise<JSX.Element> {
             expandedByMediaId={expandedByMediaId}
             coverOverlay={
                 <div
-                    className="flex items-center justify-center gap-1 leading-none text-white"
+                    className="text-foreground-strong flex items-center justify-center gap-1 leading-none"
                     style={{
                         fontFamily:
                             "'Nunito', 'Segoe UI', system-ui, sans-serif",

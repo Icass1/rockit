@@ -36,7 +36,7 @@ export default function RecentlyClickedSection({
     if (mediaItems.length === 0) return null;
 
     return (
-        <section className="mt-8 text-white md:pl-12">
+        <section className="text-foreground-strong mt-8 md:pl-12">
             <h2 className="px-5 text-2xl font-bold md:text-3xl">
                 Recently opened
             </h2>
@@ -54,7 +54,7 @@ export default function RecentlyClickedSection({
                             <p className="mt-2 truncate text-sm font-semibold">
                                 {media.name}
                             </p>
-                            <p className="truncate text-xs text-neutral-400">
+                            <p className="text-muted-foreground truncate text-xs">
                                 {getMediaSubtitle(media)}
                             </p>
                         </>

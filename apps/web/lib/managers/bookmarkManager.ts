@@ -1,4 +1,5 @@
 import { type BookmarkResponse } from "@/dto";
+import type { BookmarkServices } from "@/models/interfaces/bookmarkServices";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
@@ -12,44 +13,83 @@ export type EBookmarkMode =
     "NOTHING" | "AUTOSKIP" | "REPEAT_FROM_BEGINNING" | "PREVIOUS_BOOKMARK";
 
 export const BOOKMARK_MODE_COLORS: Record<EBookmarkMode, string> = {
-    NOTHING: "#ffffff",
-    AUTOSKIP: "#00ff00",
-    REPEAT_FROM_BEGINNING: "#00ffff",
-    PREVIOUS_BOOKMARK: "#ff8000",
+    NOTHING: "var(--theme-bookmark-none)",
+    AUTOSKIP: "var(--theme-bookmark-autoskip)",
+    REPEAT_FROM_BEGINNING: "var(--theme-bookmark-repeat)",
+    PREVIOUS_BOOKMARK: "var(--theme-bookmark-previous)",
 };
 
 export const BOOKMARK_MODE_MUTED_COLORS: Record<EBookmarkMode, string> = {
-    NOTHING: "#999999",
-    AUTOSKIP: "#006600",
-    REPEAT_FROM_BEGINNING: "#006666",
-    PREVIOUS_BOOKMARK: "#b35900",
+    NOTHING: "var(--theme-bookmark-none-muted)",
+    AUTOSKIP: "var(--theme-bookmark-autoskip-muted)",
+    REPEAT_FROM_BEGINNING: "var(--theme-bookmark-repeat-muted)",
+    PREVIOUS_BOOKMARK: "var(--theme-bookmark-previous-muted)",
 };
 
 export class BookmarkManager {
     private _currentMediaBookmarksAtom = createArrayAtom<BookmarkResponse>([]);
     private _showPopupAtom = createAtom<boolean>(false);
     private _editingBookmarkAtom = createAtom<BookmarkResponse | null>(null);
-    private _initialized = false;
+    private _active = false;
+    private _unsubscribers: (() => void)[] = [];
+    private _username?: string;
     private _bookmarksMediaId?: string;
     private _bookmarksRequest = 0;
 
-    async init(): Promise<void> {
-        if (this._initialized) return;
-        this._initialized = true;
+    constructor(private readonly dependencies?: BookmarkServices) {}
 
-        // Subscribe to currentMediaAtom changes so bookmarks load
-        // immediately when user skips tracks or media changes
-        rockIt.queueManager.currentMediaAtom.subscribe(() => {
-            this._fetchCurrentMediaBookmarksAsync();
-        });
+    private get services(): BookmarkServices {
+        return this.dependencies ?? rockIt;
+    }
+
+    start(): void {
+        if (this._active || typeof window === "undefined") return;
+        this._active = true;
+        this._unsubscribers = [
+            this.services.userManager.sessionAtom.subscribe((session) => {
+                if (session?.username === this._username) return;
+                this._username = session?.username;
+                this.reset();
+                void this._fetchCurrentMediaBookmarksAsync();
+            }),
+            this.services.queueManager.currentMediaAtom.listen(() => {
+                void this._fetchCurrentMediaBookmarksAsync();
+            }),
+        ];
+    }
+
+    stop(): void {
+        this._active = false;
+        for (const unsubscribe of this._unsubscribers) unsubscribe();
+        this._unsubscribers = [];
+        this._username = undefined;
+        this.reset();
+    }
+
+    private reset(): void {
+        this._bookmarksRequest++;
+        this._bookmarksMediaId = undefined;
+        this._currentMediaBookmarksAtom.set([]);
+        this.hidePopup();
+    }
+
+    private isCurrentRequest(request: number, mediaPublicId: string): boolean {
+        return (
+            this._active &&
+            !!this._username &&
+            request === this._bookmarksRequest &&
+            this.services.queueManager.currentMedia?.publicId === mediaPublicId
+        );
     }
 
     private async _fetchCurrentMediaBookmarksAsync(): Promise<void> {
-        const media = rockIt.queueManager.currentMedia;
+        if (!this._active || !this._username) return;
+        const media = this.services.queueManager.currentMedia;
         if (media?.publicId === this._bookmarksMediaId) return;
         this._bookmarksMediaId = media?.publicId;
         const request = ++this._bookmarksRequest;
         this._currentMediaBookmarksAtom.set([]);
+        this.hidePopup();
         if (!media) {
             return;
         }
@@ -58,11 +98,7 @@ export class BookmarkManager {
             mediaPublicId: media.publicId,
         });
 
-        if (
-            request !== this._bookmarksRequest ||
-            rockIt.queueManager.currentMedia?.publicId !== media.publicId
-        )
-            return;
+        if (!this.isCurrentRequest(request, media.publicId)) return;
 
         if (response.isOk() && response.result) {
             this._currentMediaBookmarksAtom.set(response.result.bookmarks);
@@ -76,8 +112,8 @@ export class BookmarkManager {
         description: string | null,
         mode: EBookmarkMode = "NOTHING"
     ): Promise<BookmarkResponse | null> {
-        const media = rockIt.queueManager.currentMedia;
-        if (!media) return null;
+        const media = this.services.queueManager.currentMedia;
+        if (!media || !this._active || !this._username) return null;
 
         const request = this._bookmarksRequest;
         const response = await Http.createBookmark({
@@ -87,19 +123,17 @@ export class BookmarkManager {
             mode,
         });
 
+        if (!this.isCurrentRequest(request, media.publicId)) return null;
+
         if (response.isOk() && response.result) {
-            if (
-                request === this._bookmarksRequest &&
-                rockIt.queueManager.currentMedia?.publicId === media.publicId
-            )
-                this._currentMediaBookmarksAtom.push(response.result);
-            rockIt.notificationManager.notifySuccess("Bookmark saved");
+            this._currentMediaBookmarksAtom.push(response.result);
+            this.services.notificationManager.notifySuccess("Bookmark saved");
             return response.result;
         }
 
         // Log detailed error for debugging
         console.error("Bookmark create error detail:", response);
-        rockIt.notificationManager.notifyError(
+        this.services.notificationManager.notifyError(
             typeof response.detail === "string"
                 ? response.detail
                 : "Failed to save bookmark"
@@ -113,11 +147,16 @@ export class BookmarkManager {
         description: string | null,
         mode: EBookmarkMode | null
     ): Promise<BookmarkResponse | null> {
+        const media = this.services.queueManager.currentMedia;
+        if (!media || !this._active || !this._username) return null;
+        const request = this._bookmarksRequest;
         const response = await Http.updateBookmark(publicId, {
             timestamp,
             description,
             mode,
         });
+
+        if (!this.isCurrentRequest(request, media.publicId)) return null;
 
         if (response.isOk() && response.result) {
             const bookmarks = this._currentMediaBookmarksAtom.get();
@@ -128,16 +167,23 @@ export class BookmarkManager {
                 bookmarks[index] = response.result;
                 this._currentMediaBookmarksAtom.set([...bookmarks]);
             }
-            rockIt.notificationManager.notifySuccess("Bookmark updated");
+            this.services.notificationManager.notifySuccess("Bookmark updated");
             return response.result;
         }
 
-        rockIt.notificationManager.notifyError("Failed to update bookmark");
+        this.services.notificationManager.notifyError(
+            "Failed to update bookmark"
+        );
         return null;
     }
 
     async deleteBookmarkAsync(publicId: string): Promise<boolean> {
+        const media = this.services.queueManager.currentMedia;
+        if (!media || !this._active || !this._username) return false;
+        const request = this._bookmarksRequest;
         const response = await Http.deleteBookmark(publicId);
+
+        if (!this.isCurrentRequest(request, media.publicId)) return false;
 
         if (response.isOk()) {
             const bookmarks = this._currentMediaBookmarksAtom.get();
@@ -148,24 +194,30 @@ export class BookmarkManager {
                 bookmarks.splice(index, 1);
                 this._currentMediaBookmarksAtom.set([...bookmarks]);
             }
-            rockIt.notificationManager.notifySuccess("Bookmark deleted");
+            this.services.notificationManager.notifySuccess("Bookmark deleted");
             return true;
         }
 
-        rockIt.notificationManager.notifyError("Failed to delete bookmark");
+        this.services.notificationManager.notifyError(
+            "Failed to delete bookmark"
+        );
         return false;
     }
 
     skipToNextBookmark(): boolean {
         const bookmarks = this._currentMediaBookmarksAtom.get();
-        const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
+        const currentTime =
+            this.services.mediaPlayerManager.currentTimeAtom.get();
         if (!bookmarks.length || currentTime === null) return false;
 
         const sorted = [...bookmarks].sort((a, b) => a.timestamp - b.timestamp);
 
         const next = sorted.find((b) => b.timestamp > currentTime + 0.5);
         if (next) {
-            rockIt.mediaPlayerManager.setCurrentTime(next.timestamp, true);
+            this.services.mediaPlayerManager.setCurrentTime(
+                next.timestamp,
+                true
+            );
             return true;
         }
         return false;
@@ -173,7 +225,8 @@ export class BookmarkManager {
 
     skipToPrevBookmark(): boolean {
         const bookmarks = this._currentMediaBookmarksAtom.get();
-        const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
+        const currentTime =
+            this.services.mediaPlayerManager.currentTimeAtom.get();
         if (!bookmarks.length || currentTime === null) return false;
 
         const sorted = [...bookmarks].sort((a, b) => a.timestamp - b.timestamp);
@@ -183,14 +236,17 @@ export class BookmarkManager {
             .reverse()
             .find((b) => b.timestamp < currentTime - 0.5);
         if (prev) {
-            rockIt.mediaPlayerManager.setCurrentTime(prev.timestamp, true);
+            this.services.mediaPlayerManager.setCurrentTime(
+                prev.timestamp,
+                true
+            );
             return true;
         }
         if (
             currentTime >= sorted[0].timestamp - 0.5 &&
             sorted[0].timestamp > 0.5
         ) {
-            rockIt.mediaPlayerManager.setCurrentTime(0, true);
+            this.services.mediaPlayerManager.setCurrentTime(0, true);
             return true;
         }
         return false;

@@ -19,6 +19,7 @@ import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStat
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 function getArtistNames(
@@ -50,7 +51,7 @@ export function PlayableMedia({
     listPublicId?: string;
 }): JSX.Element {
     const $media = useMedia(_media);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
     const isLiked = $likedMedias.includes($media.publicId);
 
@@ -86,7 +87,7 @@ export function PlayableMedia({
                 onClick={handleClick}
             >
                 {showMediaIndex && (
-                    <p className="h-fit w-6 pr-1 text-right text-gray-400">
+                    <p className="text-muted-foreground h-fit w-6 pr-1 text-right">
                         {index + 1}
                     </p>
                 )}
@@ -107,7 +108,7 @@ export function PlayableMedia({
                             className="h-5 w-5"
                         />
                         <p
-                            className={`text-md truncate font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
+                            className={`text-md truncate font-semibold ${!downloaded && "text-muted-foreground group-hover:text-foreground-strong transition-colors duration-300"}`}
                         >
                             {$media.name}
                         </p>
@@ -122,13 +123,13 @@ export function PlayableMedia({
                                 <Artists
                                     artists={artists}
                                     linkable={false}
-                                    className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
+                                    className={`${!downloaded && "text-muted-foreground group-hover:text-foreground-strong transition-colors duration-300"}`}
                                 />
                             </div>
                         )}
                     </div>
                     {!downloaded && (
-                        <p className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border border-white bg-black px-2 py-1 text-sm font-semibold text-white group-hover:block">
+                        <p className="border-foreground-strong bg-backdrop text-foreground-strong absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border px-2 py-1 text-sm font-semibold group-hover:block">
                             {$vocabulary.CLICK_TO_DOWNLOAD}
                         </p>
                     )}

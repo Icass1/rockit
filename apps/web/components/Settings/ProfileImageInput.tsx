@@ -2,10 +2,14 @@
 
 import { useRef, useState, type JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import { ImageUp, LoaderCircle } from "lucide-react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 export default function ProfileImageInput({
     image,
@@ -14,11 +18,12 @@ export default function ProfileImageInput({
     image: string;
     username: string;
 }): JSX.Element {
+    const { userManager, notificationManager } = useRuntimeServices();
     const input = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
     const [failedImage, setFailedImage] = useState<string | null>(null);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     const notifySaved = useSettingsFeedback();
     const text = (key: string, english: string, spanish: string): string => {
         const value = (vocabulary as unknown as Record<string, string>)[key];
@@ -46,7 +51,7 @@ export default function ProfileImageInput({
                     width={200}
                     height={200}
                     onError={(): void => setFailedImage(source)}
-                    className="h-32 w-32 rounded-full object-cover ring-2 ring-neutral-700 md:h-44 md:w-44"
+                    className="ring-border h-32 w-32 rounded-full object-cover ring-2 md:h-44 md:w-44"
                 />
                 <button
                     type="button"
@@ -54,7 +59,7 @@ export default function ProfileImageInput({
                     title={changeLabel}
                     disabled={uploading}
                     onClick={(): void => input.current?.click()}
-                    className="absolute right-0 bottom-0 grid size-11 place-items-center rounded-full border border-neutral-600 bg-neutral-800 text-white shadow-lg hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+                    className="border-border-strong bg-muted text-foreground-strong hover:bg-accent focus-visible:outline-foreground-strong absolute right-0 bottom-0 grid size-11 place-items-center rounded-full border shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
                 >
                     {uploading ? (
                         <LoaderCircle
@@ -76,15 +81,15 @@ export default function ProfileImageInput({
                         const file = event.currentTarget.files?.[0];
                         event.currentTarget.value = "";
                         if (!file || uploading) return;
+                        const scope = userManager.scopeAtom.get();
                         setUploading(true);
                         try {
                             const saved =
-                                await rockIt.userManager.uploadProfileImageAsync(
-                                    file
-                                );
+                                await userManager.uploadProfileImageAsync(file);
+                            if (scope !== userManager.scopeAtom.get()) return;
                             if (saved) notifySaved();
                             else
-                                rockIt.notificationManager.notifyError(
+                                notificationManager.notifyError(
                                     text(
                                         "SETTINGS_PROFILE_IMAGE_ERROR",
                                         "Could not save the image. Use JPG, PNG or WebP up to 5 MB.",
@@ -97,7 +102,7 @@ export default function ProfileImageInput({
                     }}
                 />
             </div>
-            <p className="text-center text-xs text-neutral-500">
+            <p className="text-subtle-foreground text-center text-xs">
                 {text(
                     "SETTINGS_PROFILE_IMAGE_FORMAT",
                     "JPG, PNG or WebP · up to 5 MB",

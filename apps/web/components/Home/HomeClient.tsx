@@ -1,27 +1,44 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type JSX } from "react";
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type JSX,
+    type ReactNode,
+} from "react";
 import { useStore } from "@nanostores/react";
+import type { HomeData } from "@/models/interfaces/homeData";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
 import HomeHeroCoverflow, {
     type CoverflowCard,
 } from "@/components/Home/HomeHeroCoverflow";
-import HomeSkeleton from "@/components/Home/HomeSkeleton";
 import { useGreeting } from "@/components/Home/hooks/useGreeting";
-import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import RecentlyClickedSection from "@/components/Home/RecentlyClickedSection";
 import BentoSection from "@/components/Home/sections/BentoSection";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
-import RecommendationsSection from "@/components/Recommendations/RecommendationsSection";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
-export default function HomeClient(): JSX.Element {
-    const data = useHomeData();
-    const greeting = useGreeting();
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const $username = useStore(rockIt.userManager.usernameAtom);
+export default function HomeClient({
+    data,
+    username,
+    initialHour,
+    discovery,
+}: {
+    data: HomeData;
+    username: string;
+    initialHour: number;
+    discovery: ReactNode;
+}): JSX.Element {
+    const greeting = useGreeting(initialHour);
+    const $vocabulary = useVocabulary();
+    const $username = username;
 
-    const [ambientColor, setAmbientColor] = useState("#787882");
+    const [ambientColor, setAmbientColor] = useState(
+        "var(--color-media-accent-default)"
+    );
 
     const greetingName = $username ? `${greeting}, ${$username}` : greeting;
 
@@ -112,8 +129,6 @@ export default function HomeClient(): JSX.Element {
         );
     }, [$currentMedia, $playing, coverflowCards]);
 
-    if (!data) return <HomeSkeleton />;
-
     return (
         <div className="flex flex-col">
             {/* Ambient glow — covers Hero + Quick Selections */}
@@ -175,13 +190,6 @@ export default function HomeClient(): JSX.Element {
                         title={$vocabulary.FOR_YOU}
                         songs={data.recommendations.songs}
                     />
-                    <RecommendationsSection
-                        title={$vocabulary.PLAYER_DISCOVER_TITLE}
-                        songs={[]}
-                        discover={data.recommendations.discover}
-                        discoverProvider={data.recommendations.discoverProvider}
-                        discoverStatus={data.recommendations.discoverStatus}
-                    />
                 </>
             ) : data.recommendationsLoading ? (
                 <div className="px-5 py-6 md:px-12" aria-busy="true">
@@ -196,6 +204,8 @@ export default function HomeClient(): JSX.Element {
                     </div>
                 </div>
             ) : null}
+
+            {discovery}
 
             {/* Bento sections — each section gets its own grid layout */}
             <RecentlyClickedSection items={data.recentlyClickedMedia} />

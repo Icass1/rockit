@@ -2,13 +2,13 @@
 
 import { useEffect, useState, type JSX } from "react";
 import type { BaseSearchResultsItem } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { Check, Download, LoaderCircle } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     downloadArtistSource,
     findArtistSources,
 } from "@/lib/services/artistSourceService";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function ArtistSources({
     artist,
@@ -19,7 +19,7 @@ export default function ArtistSources({
     title: string;
     type: "album" | "song";
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [sources, setSources] = useState<BaseSearchResultsItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);

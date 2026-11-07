@@ -1,10 +1,9 @@
 "use client";
 
 import { useCallback, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import RecommendationsSection from "@/components/Recommendations/RecommendationsSection";
 
 /** Recommendations seeded from a single song, for contexts that have no
@@ -16,7 +15,7 @@ export default function SongSeededRecommendations({
 }: {
     seedSongPublicId: string;
 }): JSX.Element | null {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const fetcher = useCallback(
         () => Http.getRelatedSongs(seedSongPublicId, 10),
         [seedSongPublicId]

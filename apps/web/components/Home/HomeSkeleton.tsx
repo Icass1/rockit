@@ -40,7 +40,7 @@ export default function HomeSkeleton(): JSX.Element {
                             {[0, 1, 2, 3].map((row) => (
                                 <div
                                     key={row}
-                                    className="flex items-center gap-3 rounded-lg bg-white/5 p-2"
+                                    className="bg-foreground-strong/5 flex items-center gap-3 rounded-lg p-2"
                                 >
                                     <div className="skeleton h-12 w-12 flex-none rounded" />
                                     <div className="flex-1 space-y-1.5">

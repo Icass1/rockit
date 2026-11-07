@@ -30,13 +30,13 @@ export default function MiniPlayer(): JSX.Element {
         >
             {$currentMedia && (
                 <>
-                    <div className="flex h-7 items-center gap-1 bg-(--color-elevated)/95 px-2">
-                        <span className="w-8 text-[10px] text-neutral-400 tabular-nums">
+                    <div className="bg-secondary/95 flex h-7 items-center gap-1 px-2">
+                        <span className="text-muted-foreground w-8 text-[10px] tabular-nums">
                             {getTime($currentTime ?? 0)}
                         </span>
-                        <div className="relative h-1 flex-1 rounded-full bg-neutral-700">
+                        <div className="bg-accent relative h-1 flex-1 rounded-full">
                             <div
-                                className="absolute top-0 left-0 h-full rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light)"
+                                className="from-primary to-brand-light absolute top-0 left-0 h-full rounded-full bg-linear-to-r"
                                 style={{
                                     width: `${Math.min(100, Math.max(0, (($currentTime ?? 0) / (duration || 1)) * 100))}%`,
                                 }}
@@ -67,12 +67,12 @@ export default function MiniPlayer(): JSX.Element {
                                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                             />
                         </div>
-                        <span className="w-8 text-right text-[10px] text-neutral-400 tabular-nums">
+                        <span className="text-muted-foreground w-8 text-right text-[10px] tabular-nums">
                             {getTime(duration)}
                         </span>
                     </div>
 
-                    <div className="flex h-14 items-center gap-2 border-t border-neutral-800 bg-(--color-elevated)/95 px-2 backdrop-blur-md">
+                    <div className="border-border-subtle bg-secondary/95 flex h-14 items-center gap-2 border-t px-2 backdrop-blur-md">
                         <Image
                             width={36}
                             height={36}
@@ -81,10 +81,10 @@ export default function MiniPlayer(): JSX.Element {
                             className="h-9 w-9 rounded-md object-cover"
                         />
                         <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm leading-tight font-semibold text-white">
+                            <p className="text-foreground-strong truncate text-sm leading-tight font-semibold">
                                 {$currentMedia.name}
                             </p>
-                            <p className="truncate text-xs leading-tight text-neutral-400">
+                            <p className="text-muted-foreground truncate text-xs leading-tight">
                                 {getMediaArtists($currentMedia)
                                     ?.map((a): string => a.name)
                                     .join(", ") ?? ""}
@@ -98,7 +98,7 @@ export default function MiniPlayer(): JSX.Element {
                                 className="flex h-9 w-9 items-center justify-center"
                             >
                                 <Shuffle
-                                    className={`h-5 w-5 ${$queueType === EQueueType.RANDOM ? "text-(--color-rockit-pink)" : "text-neutral-400"}`}
+                                    className={`h-5 w-5 ${$queueType === EQueueType.RANDOM ? "text-primary" : "text-muted-foreground"}`}
                                 />
                             </button>
                             <button
@@ -107,7 +107,7 @@ export default function MiniPlayer(): JSX.Element {
                                 }
                                 className="flex h-9 w-9 items-center justify-center"
                             >
-                                <SkipBack className="h-5 w-5 fill-current text-neutral-400" />
+                                <SkipBack className="text-muted-foreground h-5 w-5 fill-current" />
                             </button>
                             <button
                                 onClick={(): void =>
@@ -116,9 +116,9 @@ export default function MiniPlayer(): JSX.Element {
                                 className="flex h-9 w-9 items-center justify-center"
                             >
                                 {$playing ? (
-                                    <Pause className="h-5 w-5 fill-current text-white" />
+                                    <Pause className="text-foreground-strong h-5 w-5 fill-current" />
                                 ) : (
-                                    <Play className="h-5 w-5 fill-current text-white" />
+                                    <Play className="text-foreground-strong h-5 w-5 fill-current" />
                                 )}
                             </button>
                             <button
@@ -127,7 +127,7 @@ export default function MiniPlayer(): JSX.Element {
                                 }
                                 className="flex h-9 w-9 items-center justify-center"
                             >
-                                <SkipForward className="h-5 w-5 fill-current text-neutral-400" />
+                                <SkipForward className="text-muted-foreground h-5 w-5 fill-current" />
                             </button>
                         </div>
                     </div>
@@ -135,9 +135,9 @@ export default function MiniPlayer(): JSX.Element {
             )}
             {$currentStation && !$currentMedia && (
                 <>
-                    <div className="flex h-7 items-center bg-(--color-elevated)/95 px-2" />
+                    <div className="bg-secondary/95 flex h-7 items-center px-2" />
 
-                    <div className="flex h-14 items-center gap-2 border-t border-neutral-800 bg-(--color-elevated)/95 px-2 backdrop-blur-md">
+                    <div className="border-border-subtle bg-secondary/95 flex h-14 items-center gap-2 border-t px-2 backdrop-blur-md">
                         <Image
                             width={36}
                             height={36}
@@ -146,10 +146,10 @@ export default function MiniPlayer(): JSX.Element {
                             className="h-9 w-9 rounded-md object-cover"
                         />
                         <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm leading-tight font-semibold text-white">
+                            <p className="text-foreground-strong truncate text-sm leading-tight font-semibold">
                                 {$currentStation.name}
                             </p>
-                            <p className="truncate text-xs leading-tight text-neutral-400">
+                            <p className="text-muted-foreground truncate text-xs leading-tight">
                                 {$currentStation.country}
                             </p>
                         </div>
@@ -161,9 +161,9 @@ export default function MiniPlayer(): JSX.Element {
                                 className="flex h-9 w-9 items-center justify-center"
                             >
                                 {$playing ? (
-                                    <Pause className="h-5 w-5 fill-current text-white" />
+                                    <Pause className="text-foreground-strong h-5 w-5 fill-current" />
                                 ) : (
-                                    <Play className="h-5 w-5 fill-current text-white" />
+                                    <Play className="text-foreground-strong h-5 w-5 fill-current" />
                                 )}
                             </button>
                         </div>

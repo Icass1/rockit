@@ -1,27 +1,15 @@
 "use client";
 
-import { JSX } from "react";
-import { EErrorCode } from "@/models/enums/errorCode";
-import { AppError } from "@/lib/errors/AppError";
+import type { JSX } from "react";
 import ErrorPage from "@/components/ErrorPage/ErrorPage";
 
-const VALID_CODES = [
-    EErrorCode.UNAUTHORIZED,
-    EErrorCode.FORBIDDEN,
-    EErrorCode.NOT_FOUND,
-    EErrorCode.INTERNAL_SERVER_ERROR,
-] as const;
-
+// Server error properties are sanitized in production. Expected statuses are
+// classified in the server loader; this boundary handles unexpected failures.
 export default function Error({
-    error,
+    reset,
 }: {
     error: Error;
     reset: () => void;
 }): JSX.Element {
-    const status = error instanceof AppError ? error.status : 500;
-    const code = VALID_CODES.includes(status as (typeof VALID_CODES)[number])
-        ? (status as (typeof VALID_CODES)[number])
-        : EErrorCode.INTERNAL_SERVER_ERROR;
-
-    return <ErrorPage code={code} />;
+    return <ErrorPage code={500} retry={reset} />;
 }

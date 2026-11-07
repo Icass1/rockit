@@ -4,7 +4,7 @@ import {
     getMediaDuration,
     type TPlayableMedia,
 } from "@rockit/shared";
-import { rockIt } from "@/lib/rockit/rockIt";
+import type { MediaSessionServices } from "@/models/interfaces/playbackServices";
 
 // Strictly standards-compliant silent PCM WAV (16-byte fmt chunk, mono,
 // 8 kHz, 8-bit, one silent sample). The previously used data URI declared an
@@ -24,7 +24,8 @@ const ACTION_HANDLERS: MediaSessionAction[] = [
 ];
 
 export class MediaSessionManager {
-    private _supported: boolean;
+    private _initialized = false;
+    private _generation = 0;
     private _keepaliveCtx?: AudioContext;
     private _keepaliveOsc?: OscillatorNode;
     private _keepaliveGain?: GainNode;
@@ -38,13 +39,17 @@ export class MediaSessionManager {
         );
     }
 
-    constructor() {
-        this._supported =
-            typeof window !== "undefined" && "mediaSession" in navigator;
-    }
+    constructor(private readonly services: MediaSessionServices) {}
 
     init(): void {
-        if (!this._supported) return;
+        if (
+            this._initialized ||
+            typeof navigator === "undefined" ||
+            !("mediaSession" in navigator)
+        )
+            return;
+        this._initialized = true;
+        this._generation++;
         this._registerActionHandlers();
         this._subscribeToChanges();
 
@@ -80,12 +85,16 @@ export class MediaSessionManager {
     }
 
     destroy(): void {
+        this._generation++;
         this._unsubscribers.forEach((fn): void => fn());
         this._unsubscribers = [];
         this._stopKeepalive();
         this._stopAudioKeepalive();
 
-        if (this._supported) {
+        if (this._initialized) {
+            this._initialized = false;
+            navigator.mediaSession.metadata = null;
+            this._updatePlaybackStateForStop();
             for (const action of ACTION_HANDLERS) {
                 try {
                     navigator.mediaSession.setActionHandler(action, null);
@@ -132,9 +141,9 @@ export class MediaSessionManager {
             this._keepaliveGain = gain;
 
             ctx.addEventListener("statechange", (): void => {
-                if (ctx.state === "suspended") {
+                if (this._keepaliveCtx === ctx && ctx.state === "suspended") {
                     ctx.resume().catch((): void => {
-                        this._stopKeepalive();
+                        if (this._keepaliveCtx === ctx) this._stopKeepalive();
                     });
                 }
             });
@@ -188,13 +197,15 @@ export class MediaSessionManager {
     }
 
     private async _recoverKeepaliveOnVisible(): Promise<void> {
-        if (!this._keepaliveCtx) return;
-
-        if (this._keepaliveCtx.state === "running") return;
+        const ctx = this._keepaliveCtx;
+        const generation = this._generation;
+        if (!ctx || ctx.state === "running") return;
 
         try {
-            await this._keepaliveCtx.resume();
+            await ctx.resume();
         } catch {
+            if (generation !== this._generation || this._keepaliveCtx !== ctx)
+                return;
             this._stopKeepalive();
             this._startKeepalive();
         }
@@ -207,7 +218,7 @@ export class MediaSessionManager {
 
         try {
             session.setActionHandler("play", (): void => {
-                rockIt.mediaPlayerManager.play();
+                this.services.mediaPlayerManager.play();
             });
         } catch {
             /* not supported */
@@ -215,7 +226,7 @@ export class MediaSessionManager {
 
         try {
             session.setActionHandler("pause", (): void => {
-                rockIt.mediaPlayerManager.pause();
+                this.services.mediaPlayerManager.pause();
             });
         } catch {
             /* not supported */
@@ -223,7 +234,7 @@ export class MediaSessionManager {
 
         try {
             session.setActionHandler("previoustrack", (): void => {
-                rockIt.queueManager.skipBack();
+                this.services.queueManager.skipBack();
             });
         } catch {
             /* not supported */
@@ -231,7 +242,7 @@ export class MediaSessionManager {
 
         try {
             session.setActionHandler("nexttrack", (): void => {
-                rockIt.queueManager.skipForward();
+                this.services.queueManager.skipForward();
             });
         } catch {
             /* not supported */
@@ -243,7 +254,7 @@ export class MediaSessionManager {
                 (details: MediaSessionActionDetails): void => {
                     const seekTime = details.seekTime;
                     if (seekTime !== null && seekTime !== undefined) {
-                        rockIt.mediaPlayerManager.setCurrentTime(
+                        this.services.mediaPlayerManager.setCurrentTime(
                             seekTime,
                             true
                         );
@@ -269,8 +280,8 @@ export class MediaSessionManager {
         } else {
             try {
                 session.setActionHandler("seekbackward", (): void => {
-                    const time = rockIt.mediaPlayerManager.currentTime;
-                    rockIt.mediaPlayerManager.setCurrentTime(
+                    const time = this.services.mediaPlayerManager.currentTime;
+                    this.services.mediaPlayerManager.setCurrentTime(
                         Math.max(0, time - 10),
                         true
                     );
@@ -281,8 +292,11 @@ export class MediaSessionManager {
 
             try {
                 session.setActionHandler("seekforward", (): void => {
-                    const time = rockIt.mediaPlayerManager.currentTime;
-                    rockIt.mediaPlayerManager.setCurrentTime(time + 10, true);
+                    const time = this.services.mediaPlayerManager.currentTime;
+                    this.services.mediaPlayerManager.setCurrentTime(
+                        time + 10,
+                        true
+                    );
                 });
             } catch {
                 /* not supported */
@@ -291,7 +305,7 @@ export class MediaSessionManager {
 
         try {
             session.setActionHandler("stop", (): void => {
-                rockIt.mediaPlayerManager.pause();
+                this.services.mediaPlayerManager.pause();
             });
         } catch {
             /* not supported */
@@ -299,37 +313,48 @@ export class MediaSessionManager {
     }
 
     private _subscribeToChanges(): void {
-        const unsubMedia = rockIt.queueManager.currentMediaAtom.subscribe(
-            (media: TPlayableMedia | undefined): void => {
-                this._updateMetadata(media);
-            }
-        );
+        const unsubMedia =
+            this.services.queueManager.currentMediaAtom.subscribe(
+                (media: TPlayableMedia | undefined): void => {
+                    this._updateMetadata(media);
+                }
+            );
         this._unsubscribers.push(unsubMedia);
 
-        const unsubPlaying = rockIt.mediaPlayerManager.playingAtom.subscribe(
-            (): void => this._updatePlaybackState()
-        );
+        const unsubPlaying =
+            this.services.mediaPlayerManager.playingAtom.subscribe((): void =>
+                this._updatePlaybackState()
+            );
         this._unsubscribers.push(unsubPlaying);
 
-        const unsubTime = rockIt.mediaPlayerManager.currentTimeAtom.subscribe(
-            (time: number): void => {
-                this._updatePositionState(time);
-                // Native now-playing controls can lose their declared state at
-                // a track handoff even while our playing atom stays unchanged.
-                this._updatePlaybackState();
-            }
-        );
+        const unsubTime =
+            this.services.mediaPlayerManager.currentTimeAtom.subscribe(
+                (time: number): void => {
+                    this._updatePositionState(time);
+                    // Native now-playing controls can lose their declared state at
+                    // a track handoff even while our playing atom stays unchanged.
+                    this._updatePlaybackState();
+                }
+            );
         this._unsubscribers.push(unsubTime);
+    }
+
+    private _updatePlaybackStateForStop(): void {
+        try {
+            navigator.mediaSession.playbackState = "none";
+        } catch {
+            /* Some implementations do not support playbackState. */
+        }
     }
 
     private _updatePlaybackState(): void {
         // Report the latest player state only. Never start, pause or seek media
         // to repair a stale lock-screen indicator, including during transitions.
         try {
-            navigator.mediaSession.playbackState = !rockIt.queueManager
+            navigator.mediaSession.playbackState = !this.services.queueManager
                 .currentMedia
                 ? "none"
-                : rockIt.mediaPlayerManager.playingAtom.get()
+                : this.services.mediaPlayerManager.playingAtom.get()
                   ? "playing"
                   : "paused";
         } catch {
@@ -403,7 +428,7 @@ export class MediaSessionManager {
     }
 
     private _updatePositionState(time: number): void {
-        const media = rockIt.queueManager.currentMedia;
+        const media = this.services.queueManager.currentMedia;
         const duration = getMediaDuration(media);
 
         if (!media || !duration || duration <= 0) return;

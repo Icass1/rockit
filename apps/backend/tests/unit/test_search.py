@@ -281,7 +281,7 @@ def test_search_vocabulary_is_translated_and_has_no_literal_image_labels() -> No
         root / "apps/web/components/MediaContextMenu/actions" / name
         for name in ("LibraryActions.tsx", "DownloadActions.tsx")
     )
-    files.append(root / "apps/web/components/ContextMenu/Content.tsx")
+    files.append(root / "apps/web/components/ui/ContextMenu/Content.tsx")
     keys: set[str] = set()
     for file in files:
         source = file.read_text()

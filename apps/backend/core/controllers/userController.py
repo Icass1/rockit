@@ -23,9 +23,11 @@ from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.requests.likeMediaRequest import LikeMediaRequest
 from core.requests.notificationRequests import UpdateNotificationSubscriptionsRequest
 from core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
+from core.requests.updateDownloadSettingsRequest import UpdateDownloadSettingsRequest
 from core.requests.updateLangRequest import UpdateLangRequest
 from core.requests.updateListeningHeatmapRequest import UpdateListeningHeatmapRequest
 from core.requests.updatePasswordRequest import UpdatePasswordRequest
+from core.requests.updateThemeRequest import UpdateThemeRequest
 from core.requests.updateVolumeRequest import UpdateVolumeRequest
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
@@ -84,6 +86,7 @@ async def get_user(request: Request) -> UserSettingsResponse:
         crossfade=user.cross_fade_ms,
         volume=user.volume,
         showListeningHeatmap=user.show_listening_heatmap,
+        theme=user.theme,
         queueType=QueueTypeEnum(user.queue_type_enum),
         repeatMode=RepeatModeEnum(user.repeat_mode_enum),
     )
@@ -187,7 +190,47 @@ async def get_session(request: Request) -> SessionResponse:
         currentTimeMs=a_result_user.result().current_time_ms,
         volume=a_result_user.result().volume,
         showListeningHeatmap=a_result_user.result().show_listening_heatmap,
+        autoAddToLibrary=a_result_user.result().auto_add_downloads_to_library,
+        theme=a_result_user.result().theme,
     )
+
+
+@router.post("/theme")
+async def update_theme(request: Request, payload: UpdateThemeRequest) -> OkResponse:
+    """Persist only the authenticated user's interface theme."""
+    current_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify theme preference owner: %s", current_user.info())
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
+    result = await User.update_theme_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user=current_user.result(),
+        theme=payload.theme,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot save theme preference: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
+
+
+@router.post("/download-settings")
+async def update_download_settings(
+    request: Request, payload: UpdateDownloadSettingsRequest
+) -> OkResponse:
+    """Persist the authenticated user's download preference across devices."""
+    current_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify download preference owner: %s", current_user.info())
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
+    result = await User.update_download_settings_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user=current_user.result(),
+        auto_add=payload.autoAddToLibrary,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot save download preference: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
 
 
 @router.get(path="/queue")

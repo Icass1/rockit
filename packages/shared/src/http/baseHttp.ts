@@ -529,22 +529,6 @@ export class BaseHttp {
         );
     }
 
-    static async getDownloadSettings() {
-        return this.apiGetAsync(
-            `/downloader/settings`,
-            dto.DownloadSettingsResponseSchema
-        );
-    }
-
-    static async updateDownloadSettings(payload: dto.DownloadSettingsResponse) {
-        return this.apiPostAsync(
-            `/downloader/settings`,
-            dto.DownloadSettingsResponseSchema,
-            dto.OkResponseSchema,
-            payload
-        );
-    }
-
     static async startDownload(payload: dto.StartDownloadRequest) {
         return this.apiPostAsync(
             `/downloader/start-downloads`,
@@ -1223,6 +1207,22 @@ export class BaseHttp {
         );
     }
 
+    static async getRecommendationArtwork(
+        provider: string,
+        artist: string,
+        track: string
+    ) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("provider", `${provider}`);
+        queryParams.append("artist", `${artist}`);
+        queryParams.append("track", `${track}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/recommendation/artwork${queryString ? `?${queryString}` : ""}`,
+            dto.RecommendationArtworkResponseSchema
+        );
+    }
+
     static async getRecommendationsForYou(limit?: number, external?: boolean) {
         const queryParams = new URLSearchParams();
         if (limit !== undefined) queryParams.append("limit", `${limit}`);
@@ -1466,6 +1466,17 @@ export class BaseHttp {
         );
     }
 
+    static async updateDownloadSettings(
+        payload: dto.UpdateDownloadSettingsRequest
+    ) {
+        return this.apiPostAsync(
+            `/user/download-settings`,
+            dto.UpdateDownloadSettingsRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
     static async uploadProfileImage(file: Blob, filename: string) {
         return this.apiPostFileAsync(
             `/user/image`,
@@ -1631,6 +1642,15 @@ export class BaseHttp {
 
     static async getSession() {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
+    }
+
+    static async updateTheme(payload: dto.UpdateThemeRequest) {
+        return this.apiPostAsync(
+            `/user/theme`,
+            dto.UpdateThemeRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
     }
 
     static async updateVolume(payload: dto.UpdateVolumeRequest) {

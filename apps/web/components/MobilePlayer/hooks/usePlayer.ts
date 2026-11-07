@@ -3,7 +3,7 @@
 import { useStore } from "@nanostores/react";
 import { EQueueType, ERepeatMode } from "@rockit/shared";
 import type { QueueItem } from "@/models/interfaces/queue";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 
 /**
  * Web-compatible `usePlayer()` — wraps the existing rockIt nanostores
@@ -33,66 +33,68 @@ export function usePlayer(): {
     addToQueueEnd: (media: QueueItem["media"]) => void;
     addToQueueNext: (media: QueueItem["media"]) => void;
 } {
-    const currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const isPlaying = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const isLoading = useStore(rockIt.mediaPlayerManager.loadingAtom);
-    const isPlayerVisible = useStore(rockIt.playerUIManager.visibleAtom);
-    const repeatMode = useStore(rockIt.userManager.repeatModeAtom);
-    const queueType = useStore(rockIt.userManager.queueTypeAtom);
-    const queue = useStore(rockIt.queueManager.queueAtom);
+    const { mediaPlayerManager, queueManager, userManager, playerUIManager } =
+        usePlaybackServices();
+    const currentMedia = useStore(queueManager.currentMediaAtom);
+    const isPlaying = useStore(mediaPlayerManager.playingAtom);
+    const isLoading = useStore(mediaPlayerManager.loadingAtom);
+    const isPlayerVisible = useStore(playerUIManager.visibleAtom);
+    const repeatMode = useStore(userManager.repeatModeAtom);
+    const queueType = useStore(userManager.queueTypeAtom);
+    const queue = useStore(queueManager.queueAtom);
 
     function togglePlayPause(): void {
-        rockIt.mediaPlayerManager.togglePlayPause();
+        mediaPlayerManager.togglePlayPause();
     }
 
     function skipForward(): void {
-        rockIt.queueManager.skipForward();
+        queueManager.skipForward();
     }
 
     function skipBack(): void {
-        rockIt.queueManager.skipBack();
+        queueManager.skipBack();
     }
 
     function toggleRandomQueue(): void {
-        rockIt.userManager.toggleRandomQueue();
+        userManager.toggleRandomQueue();
     }
 
     function cycleRepeat(): void {
-        rockIt.userManager.cycleRepeatMode();
+        userManager.cycleRepeatMode();
     }
 
     function showPlayer(): void {
-        rockIt.playerUIManager.show();
+        playerUIManager.show();
     }
 
     function hidePlayer(): void {
-        rockIt.playerUIManager.hide();
+        playerUIManager.hide();
     }
 
     function seekTo(seconds: number): void {
-        rockIt.mediaPlayerManager.setCurrentTime(seconds, true);
+        mediaPlayerManager.setCurrentTime(seconds, true);
     }
 
     function removeFromQueue(index: number): void {
-        const item = rockIt.queueManager.queue[index];
-        if (item) rockIt.queueManager.removeMediaFromQueue(item.media);
+        const item = queueManager.queue[index];
+        if (item) queueManager.removeMediaFromQueue(item.media);
     }
 
     function reorderQueue(fromIndex: number, toIndex: number): void {
-        rockIt.queueManager.reorderQueue(fromIndex, toIndex);
+        queueManager.reorderQueue(fromIndex, toIndex);
     }
 
     function playQueueItem(queueMediaId: number): void {
-        rockIt.queueManager.setQueueMediaId(queueMediaId);
-        rockIt.mediaPlayerManager.play();
+        queueManager.setQueueMediaId(queueMediaId);
+        mediaPlayerManager.play();
     }
 
     function addToQueueEnd(media: QueueItem["media"]): void {
-        rockIt.queueManager.addMediaToEnd(media);
+        queueManager.addMediaToEnd(media);
     }
 
     function addToQueueNext(media: QueueItem["media"]): void {
-        rockIt.queueManager.addMediaNext(media);
+        queueManager.addMediaNext(media);
     }
 
     return {
@@ -123,8 +125,9 @@ export function usePlayerTime(): {
     currentTime: number;
     duration: number;
 } {
-    const currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const duration = useStore(rockIt.mediaPlayerManager.durationAtom);
+    const { mediaPlayerManager } = usePlaybackServices();
+    const currentTime = useStore(mediaPlayerManager.currentTimeAtom);
+    const duration = useStore(mediaPlayerManager.durationAtom);
 
     return { currentTime, duration };
 }

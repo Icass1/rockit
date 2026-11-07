@@ -10,8 +10,8 @@ import {
 import { CircleArrowDown, Loader2, Trash2 } from "lucide-react";
 import { offlineStatusMap } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 /**
  * Download or remove an entire album/playlist on this device for offline use.

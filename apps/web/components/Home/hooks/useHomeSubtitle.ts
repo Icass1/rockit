@@ -1,7 +1,6 @@
 import { useMemo } from "react";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import type { CoverflowCard } from "@/components/Home/HomeHeroCoverflow";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface HomeSubtitleContext {
     cards: CoverflowCard[];
@@ -16,7 +15,7 @@ export function useHomeSubtitle({
     streak,
     minutesThisWeek,
 }: HomeSubtitleContext): string {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     return useMemo(() => {
         const currentCard = cards[centerIndex];

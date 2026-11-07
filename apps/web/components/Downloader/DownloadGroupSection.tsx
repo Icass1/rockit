@@ -18,12 +18,13 @@ import {
     Trash2,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import { useContextMenu } from "@/components/ContextMenu/context";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import DownloadCoverCard from "@/components/Downloader/DownloadCoverCard";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import ContextMenuContent from "@/components/ui/ContextMenu/Content";
+import { useContextMenu } from "@/components/ui/ContextMenu/context";
+import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
 
 function GroupMenuButton({
     label,
@@ -58,7 +59,7 @@ function DownloadGroupSection({
 }: {
     group: DownloadBrowseGroupResponse;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const detail = useStore(rockIt.downloaderManager.detailAtom);
     const pending = useStore(rockIt.downloaderManager.groupPendingAtom)[
         group.publicId
@@ -73,10 +74,10 @@ function DownloadGroupSection({
               : vocabulary.DOWNLOADS;
     const items = expanded ? detail.items : group.items;
     const buttonClass =
-        "flex items-center gap-2 rounded-lg bg-neutral-800 px-3 py-2 text-xs text-neutral-200 hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40";
+        "flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-xs text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40";
     return (
         <section
-            className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4"
+            className="border-border-subtle bg-secondary/40 rounded-xl border p-4"
             aria-busy={!!pending}
         >
             <ContextMenu>
@@ -84,7 +85,7 @@ function DownloadGroupSection({
                     <div className="min-w-0 flex-1">
                         <ContextMenuTrigger>
                             <div className="flex items-start gap-4">
-                                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
+                                <div className="bg-muted relative h-20 w-20 shrink-0 overflow-hidden rounded-lg">
                                     {group.imageUrl ? (
                                         <Image
                                             src={group.imageUrl}
@@ -94,17 +95,17 @@ function DownloadGroupSection({
                                             className="object-cover"
                                         />
                                     ) : (
-                                        <Music className="m-6 h-8 w-8 text-neutral-500" />
+                                        <Music className="text-subtle-foreground m-6 h-8 w-8" />
                                     )}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-xs text-neutral-400">
+                                    <p className="text-muted-foreground text-xs">
                                         {title}
                                         {group.provider
                                             ? ` · ${group.provider}`
                                             : ""}
                                     </p>
-                                    <h2 className="mt-1 truncate font-semibold text-white">
+                                    <h2 className="text-foreground-strong mt-1 truncate font-semibold">
                                         {group.sourceUrl ? (
                                             <Link
                                                 href={group.sourceUrl}
@@ -116,7 +117,7 @@ function DownloadGroupSection({
                                             group.name
                                         )}
                                     </h2>
-                                    <p className="mt-1 text-xs text-neutral-400">
+                                    <p className="text-muted-foreground mt-1 text-xs">
                                         {group.total} {vocabulary.SONGS} ·{" "}
                                         {group.success} {vocabulary.COMPLETED} ·{" "}
                                         {group.fail} {vocabulary.FAILED}
@@ -124,7 +125,7 @@ function DownloadGroupSection({
                                     {group.active > 0 && (
                                         <p
                                             role="status"
-                                            className="mt-1 text-xs text-pink-400"
+                                            className="text-primary-soft mt-1 text-xs"
                                         >
                                             {vocabulary.DOWNLOADING} ·{" "}
                                             {group.active}
@@ -245,7 +246,7 @@ function DownloadGroupSection({
                 </ContextMenuContent>
             </ContextMenu>
             <button
-                className="my-4 flex items-center gap-2 text-sm text-neutral-300"
+                className="text-foreground my-4 flex items-center gap-2 text-sm"
                 aria-expanded={expanded}
                 aria-controls={`tracks-${group.publicId}`}
                 onClick={() =>
@@ -269,13 +270,13 @@ function DownloadGroupSection({
                 {expanded && detail.loading ? (
                     <div
                         role="status"
-                        className="flex items-center gap-2 text-sm text-neutral-400"
+                        className="text-muted-foreground flex items-center gap-2 text-sm"
                     >
                         <LoaderCircle size={20} className="animate-spin" />
                         {vocabulary.DOWNLOADING}
                     </div>
                 ) : expanded && detail.error ? (
-                    <div role="alert" className="text-red-400">
+                    <div role="alert" className="text-destructive-soft">
                         {detail.error}
                         <button
                             className={buttonClass}
@@ -301,7 +302,7 @@ function DownloadGroupSection({
                 )}
             </div>
             {expanded && !detail.loading && (
-                <div className="mt-4 flex items-center justify-end gap-3 text-xs text-neutral-400">
+                <div className="text-muted-foreground mt-4 flex items-center justify-end gap-3 text-xs">
                     <button
                         className={buttonClass}
                         aria-label={vocabulary.DOWNLOADER_PREVIOUS_PAGE}
@@ -337,12 +338,12 @@ function DownloadGroupSection({
             <dialog
                 ref={confirmation}
                 aria-labelledby={`delete-${group.publicId}`}
-                className="m-auto max-w-md rounded-xl border border-neutral-700 bg-neutral-900 p-6 text-white backdrop:bg-black/70"
+                className="border-border bg-secondary text-foreground-strong backdrop:bg-backdrop/70 m-auto max-w-md rounded-xl border p-6"
             >
                 <h3 id={`delete-${group.publicId}`} className="font-semibold">
                     {group.name}
                 </h3>
-                <p className="my-4 text-sm text-neutral-300">
+                <p className="text-foreground my-4 text-sm">
                     {vocabulary.DOWNLOADER_DELETE_GROUP}
                 </p>
                 <div className="flex justify-end gap-3">

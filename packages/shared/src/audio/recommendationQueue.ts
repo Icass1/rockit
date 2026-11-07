@@ -1,33 +1,26 @@
 import type { SongListResponse } from "@/dto";
 import type { AutoplayRecommendation } from "@/models/types/autoplayRecommendation";
 
-/** Two local picks for each discovery pick keep a playable fallback nearby. */
+/** External discoveries take priority; local songs are the fallback. */
 export function buildRecommendationQueue(
     result: SongListResponse,
     excluded: Set<string>
 ): AutoplayRecommendation[] {
-    const songs = result.songs.filter((song) => !excluded.has(song.publicId));
-    const discoveries = result.discover.filter(
-        (item) => !item.publicId || !excluded.has(item.publicId)
-    );
-    const items: AutoplayRecommendation[] = [];
     const seen = new Set(excluded);
-    let songIndex = 0;
-    let discoverIndex = 0;
-    while (songIndex < songs.length || discoverIndex < discoveries.length) {
-        for (let count = 0; count < 2 && songIndex < songs.length; count++) {
-            const song = songs[songIndex++];
-            if (seen.has(song.publicId)) continue;
-            seen.add(song.publicId);
-            items.push({ kind: "song", song });
-        }
-        const item = discoveries[discoverIndex++];
-        if (item && (!item.publicId || !seen.has(item.publicId))) {
-            if (item.publicId) seen.add(item.publicId);
-            items.push({ kind: "discover", item });
-        }
+    const discoveries: AutoplayRecommendation[] = [];
+    for (const item of result.discover) {
+        if (item.publicId && seen.has(item.publicId)) continue;
+        if (item.publicId) seen.add(item.publicId);
+        discoveries.push({ kind: "discover", item });
     }
-    return items;
+    if (discoveries.length > 0) return discoveries;
+    const songs: AutoplayRecommendation[] = [];
+    for (const song of result.songs) {
+        if (seen.has(song.publicId)) continue;
+        seen.add(song.publicId);
+        songs.push({ kind: "song", song });
+    }
+    return songs;
 }
 
 /** The real queue also occupies the two-song lookahead window. */

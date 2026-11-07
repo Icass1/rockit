@@ -2,11 +2,10 @@
 
 import { useEffect, useState, type JSX } from "react";
 import type { LyricsCorrectionContextResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { lyricsCorrectionSchema } from "@/models/schemas/lyricsCorrection";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { LyricsPreview } from "@/components/Lyrics/LyricsPreview";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function LoadedProposalPreview({
     payload,
@@ -15,7 +14,7 @@ function LoadedProposalPreview({
     payload: string;
     mediaPublicId: string;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [current, setCurrent] = useState<LyricsCorrectionContextResponse>();
     const [after, setAfter] = useState(true);
     const [failed, setFailed] = useState(false);
@@ -54,7 +53,7 @@ function LoadedProposalPreview({
     return (
         <div className="space-y-2">
             {stale && (
-                <p role="alert" className="text-amber-400">
+                <p role="alert" className="text-warning">
                     {vocabulary.LYRICS_STALE_PROPOSAL}
                 </p>
             )}
@@ -76,7 +75,7 @@ function LoadedProposalPreview({
                 lines={after ? proposal.data.lines : current.lines}
                 offset={after ? proposal.data.offset : current.offset}
             />
-            <p className="text-sm text-neutral-400">
+            <p className="text-muted-foreground text-sm">
                 {vocabulary.LYRICS_REVIEW_HELP}
             </p>
         </div>
@@ -90,7 +89,7 @@ export function LyricsProposalPreview({
     payload: string;
     mediaPublicId: string;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [open, setOpen] = useState(false);
     return (
         <details onToggle={(event) => setOpen(event.currentTarget.open)}>

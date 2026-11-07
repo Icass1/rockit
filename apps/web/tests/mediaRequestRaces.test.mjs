@@ -52,13 +52,27 @@ function setup() {
     vm.runInContext(outputFiles[0].text, context);
     const { createAtom } = context.module;
     const media = createAtom(undefined);
+    const session = createAtom({ username: "first" });
+    const notices = [];
+    rockIt.userManager.sessionAtom = session;
+    rockIt.notificationManager = {
+        notifySuccess: (message) => notices.push(message),
+        notifyError: (message) => notices.push(message),
+    };
     rockIt.queueManager = {
         currentMediaAtom: media,
         get currentMedia() {
             return media.get();
         },
     };
-    return { ...context.module, calls, media };
+    return {
+        ...context.module,
+        calls,
+        media,
+        session,
+        notices,
+        services: rockIt,
+    };
 }
 function respond(call, body) {
     call.resolve(new Response(JSON.stringify(body), { status: 200 }));
@@ -113,7 +127,7 @@ test("lyrics views share in-flight requests and refresh after settlement", async
 test("late bookmarks cannot overwrite newer media, including a return to the same track", async () => {
     const { BookmarkManager, media, calls } = setup();
     const manager = new BookmarkManager();
-    await manager.init();
+    manager.start();
     media.set({ publicId: "a" });
     media.set({ publicId: "b" });
     respond(calls[1], { bookmarks: [bookmark("b")] });
@@ -133,6 +147,139 @@ test("late bookmarks cannot overwrite newer media, including a return to the sam
     respond(calls[3], { bookmarks: [bookmark("c")] });
     await flush();
     assert.equal(manager.currentMediaBookmarksAtom.get().length, 0);
+    manager.stop();
+});
+
+test("bookmark lifecycle balances subscriptions and discards responses after Strict Mode cleanup", async () => {
+    const { BookmarkManager, services, session, media, calls } = setup();
+    media.set({ publicId: "a" });
+    const manager = new BookmarkManager(services);
+    assert.equal(media.lc, 0);
+    assert.equal(session.lc, 0);
+    assert.equal(calls.length, 0);
+    manager.start();
+    manager.start();
+    assert.equal(media.lc, 1);
+    assert.equal(session.lc, 1);
+    assert.equal(calls.length, 1);
+    manager.togglePopup();
+    manager.stop();
+    manager.stop();
+    assert.equal(media.lc, 0);
+    assert.equal(session.lc, 0);
+    assert.equal(manager.showPopupAtom.get(), false);
+    manager.start();
+    assert.equal(calls.length, 2);
+    respond(calls[1], { bookmarks: [bookmark("a")] });
+    await flush();
+    respond(calls[0], { bookmarks: [] });
+    await flush();
+    assert.equal(manager.currentMediaBookmarksAtom.get().length, 1);
+    manager.stop();
+    media.set({ publicId: "b" });
+    session.set({ username: "second" });
+    assert.equal(calls.length, 2);
+});
+
+test("account changes clear bookmark state and reject old reads even on a return to the same account", async () => {
+    const { BookmarkManager, services, session, media, calls } = setup();
+    media.set({ publicId: "a" });
+    const manager = new BookmarkManager(services);
+    manager.start();
+    session.set({ username: "first", image: "updated" });
+    assert.equal(calls.length, 1);
+    session.set({ username: "second" });
+    assert.equal(calls.length, 2);
+    respond(calls[1], { bookmarks: [bookmark("a")] });
+    await flush();
+    manager.openEditForBookmark("bookmark-a");
+    assert.equal(manager.showPopupAtom.get(), true);
+    session.set(null);
+    assert.equal(manager.currentMediaBookmarksAtom.get().length, 0);
+    assert.equal(manager.editingBookmarkAtom.get(), null);
+    assert.equal(manager.showPopupAtom.get(), false);
+    media.set({ publicId: "b" });
+    assert.equal(calls.length, 2);
+    media.set({ publicId: "a" });
+    session.set({ username: "first" });
+    respond(calls[2], { bookmarks: [bookmark("new")] });
+    await flush();
+    respond(calls[0], { bookmarks: [bookmark("old")] });
+    await flush();
+    assert.equal(
+        manager.currentMediaBookmarksAtom.get()[0].mediaPublicId,
+        "new"
+    );
+    manager.stop();
+});
+
+test("late bookmark mutations cannot modify another account or notify after cleanup", async () => {
+    for (const operation of ["create", "update", "delete"]) {
+        for (const invalidation of ["account", "stop", "media"]) {
+            const {
+                BookmarkManager,
+                services,
+                session,
+                media,
+                calls,
+                notices,
+            } = setup();
+            media.set({ publicId: "a" });
+            const manager = new BookmarkManager(services);
+            manager.start();
+            respond(calls[0], { bookmarks: [bookmark("a")] });
+            await flush();
+            const pending =
+                operation === "create"
+                    ? manager.createBookmarkAsync(5, null)
+                    : operation === "update"
+                      ? manager.updateBookmarkAsync(
+                            "bookmark-a",
+                            10,
+                            null,
+                            null
+                        )
+                      : manager.deleteBookmarkAsync("bookmark-a");
+            if (invalidation === "account") session.set({ username: "second" });
+            else if (invalidation === "stop") manager.stop();
+            else media.set({ publicId: "b" });
+            respond(calls[1], bookmark("a"));
+            assert.equal(await pending, operation === "delete" ? false : null);
+            assert.equal(manager.currentMediaBookmarksAtom.get().length, 0);
+            assert.deepEqual(notices, []);
+            manager.stop();
+        }
+    }
+});
+
+test("active bookmark mutations and navigation keep using the injected state owners", async () => {
+    const { BookmarkManager, services, media, calls, notices, createAtom } =
+        setup();
+    const seeks = [];
+    services.mediaPlayerManager = {
+        currentTimeAtom: createAtom(0),
+        setCurrentTime: (time) => seeks.push(time),
+    };
+    media.set({ publicId: "a" });
+    const manager = new BookmarkManager(services);
+    manager.start();
+    respond(calls[0], { bookmarks: [] });
+    await flush();
+    const creating = manager.createBookmarkAsync(5, null);
+    respond(calls[1], bookmark("a"));
+    assert.equal((await creating).timestamp, 5);
+    assert.equal(manager.skipToNextBookmark(), true);
+    assert.deepEqual(seeks, [5]);
+    const updating = manager.updateBookmarkAsync("bookmark-a", 10, null, null);
+    respond(calls[2], { ...bookmark("a"), timestamp: 10 });
+    assert.equal((await updating).timestamp, 10);
+    assert.equal(manager.currentMediaBookmarksAtom.get()[0].timestamp, 10);
+    const deleting = manager.deleteBookmarkAsync("bookmark-a");
+    respond(calls[3], { message: "Deleted" });
+    assert.equal(await deleting, true);
+    assert.equal(manager.currentMediaBookmarksAtom.get().length, 0);
+    assert.equal(notices.length, 3);
+    manager.stop();
 });
 
 test("delayed playback acknowledgements are discarded before reaching queue subscribers", () => {

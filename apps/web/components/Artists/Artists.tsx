@@ -39,7 +39,7 @@ export default function Artists({
                             onContextMenu={(event): void =>
                                 event.stopPropagation()
                             }
-                            className="truncate hover:underline focus-visible:underline focus-visible:outline-2 focus-visible:outline-white"
+                            className="focus-visible:outline-foreground-strong truncate hover:underline focus-visible:underline focus-visible:outline-2"
                         >
                             {artist.name}
                         </Link>

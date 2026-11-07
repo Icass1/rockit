@@ -25,7 +25,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
 
     return (
         <div
-            className="fixed inset-x-0 z-40 h-14 bg-black/80 shadow-lg"
+            className="bg-secondary/95 fixed inset-x-0 z-40 h-14 shadow-lg"
             style={{
                 height: MINI_PLAYER_HEIGHT,
                 bottom: "calc(56px + env(safe-area-inset-bottom, 0px) + 12px)",
@@ -33,7 +33,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
         >
             <div
                 className={`absolute top-0 left-0 h-full w-0.75 transition-colors ${
-                    isPlaying ? "bg-(--color-rockit-pink)" : "bg-transparent"
+                    isPlaying ? "bg-primary" : "bg-transparent"
                 }`}
             />
 
@@ -53,10 +53,10 @@ export default function MiniPlayerBar(): JSX.Element | null {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-semibold text-white">
+                    <p className="text-foreground-strong truncate text-base font-semibold">
                         {currentMedia.name}
                     </p>
-                    <p className="truncate text-sm text-(--color-muted)">
+                    <p className="text-muted-foreground truncate text-sm">
                         {getMediaArtistsString(currentMedia)}
                     </p>
                 </div>
@@ -71,11 +71,17 @@ export default function MiniPlayerBar(): JSX.Element | null {
                     className="flex h-10 w-10 shrink-0 items-center justify-center"
                 >
                     {isLoading ? (
-                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        <span className="border-foreground-strong/30 border-t-foreground-strong h-5 w-5 animate-spin rounded-full border-2" />
                     ) : isPlaying ? (
-                        <Pause size={22} className="fill-current text-white" />
+                        <Pause
+                            size={22}
+                            className="text-foreground-strong fill-current"
+                        />
                     ) : (
-                        <Play size={22} className="fill-current text-white" />
+                        <Play
+                            size={22}
+                            className="text-foreground-strong fill-current"
+                        />
                     )}
                 </span>
 
@@ -90,15 +96,15 @@ export default function MiniPlayerBar(): JSX.Element | null {
                 >
                     <SkipForward
                         size={22}
-                        className="fill-current text-white"
+                        className="text-foreground-strong fill-current"
                     />
                 </span>
             </button>
 
             {/* Progress hint */}
-            <div className="absolute inset-x-0 bottom-0 h-0.5 bg-white/10">
+            <div className="bg-foreground-strong/10 absolute inset-x-0 bottom-0 h-0.5">
                 <div
-                    className="h-full bg-linear-to-r from-(--color-rockit-pink) via-(--color-rockit-pink-mid) to-(--color-rockit-pink-light) transition-[width] duration-300"
+                    className="from-primary via-brand-mid to-brand-light h-full bg-linear-to-r transition-[width] duration-300"
                     style={{ width: `${progressPercent}%` }}
                 />
             </div>

@@ -19,6 +19,8 @@ class PlaylistMediaRow(DefaultBase, TableAutoincrementId, TableDateAdded, TableD
     __table_args__ = (
         UniqueConstraint("playlist_id", "position", name="uq_playlist_media_position"),
         Index("ix_playlist_media_media_id", "media_id"),
+        Index("ix_recommendation_playlist_media_playlist", "media_id", "playlist_id"),
+        Index("ix_recommendation_playlist_playlist_media", "playlist_id", "media_id"),
         {"schema": "default_schema", "extend_existing": True},
     )
 

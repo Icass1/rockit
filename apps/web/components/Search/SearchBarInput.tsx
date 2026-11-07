@@ -4,11 +4,12 @@ import { useId, type JSX } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function SearchBarInput(): JSX.Element {
     const value = useStore(rockIt.searchManager.inputAtom);
     const id = useId();
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const pathname = usePathname();
     const router = useRouter();
     const searching = useStore(rockIt.searchManager.searchingAtom);
@@ -28,7 +29,7 @@ export default function SearchBarInput(): JSX.Element {
                 onClick={(): void => {
                     if (pathname !== "/search") router.push("/search");
                 }}
-                className="z-10 block h-10 w-full rounded-full bg-neutral-900 px-10 text-base font-semibold text-white shadow placeholder:text-neutral-400 placeholder:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-300 md:z-50"
+                className="bg-secondary text-foreground-strong placeholder:text-muted-foreground focus-visible:outline-primary z-10 block h-10 w-full rounded-full px-10 text-base font-semibold shadow placeholder:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 md:z-50"
                 style={{
                     backgroundImage: "url(/search-icon.png)",
                     backgroundPosition: "15px center",
@@ -40,7 +41,7 @@ export default function SearchBarInput(): JSX.Element {
 
             {searching && (
                 <div className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-(--color-rockit-pink)" />
+                    <div className="border-border-strong h-4 w-4 animate-spin rounded-full border-2 border-t-(--color-rockit-pink)" />
                 </div>
             )}
         </div>

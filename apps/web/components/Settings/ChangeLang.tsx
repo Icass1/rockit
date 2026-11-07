@@ -1,8 +1,11 @@
 "use client";
 
 import { JSX } from "react";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 const LANGUAGES = [
     { value: "en", label: "English" },
@@ -17,14 +20,15 @@ const LANGUAGES = [
 ];
 
 export default function ChangeLang(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const $lang = useStore(rockIt.vocabularyManager.langAtom);
+    const { userManager } = useRuntimeServices();
+    const $vocabulary = useVocabulary();
+    const $lang = useLanguage();
 
     return (
         <div className="flex flex-col gap-1.5">
             <label
                 htmlFor="lang-select"
-                className="text-sm font-medium text-neutral-400"
+                className="text-muted-foreground text-sm font-medium"
             >
                 {$vocabulary.LANGUAGE}
             </label>
@@ -32,9 +36,9 @@ export default function ChangeLang(): JSX.Element {
                 id="lang-select"
                 value={$lang}
                 onChange={(e): Promise<boolean> =>
-                    rockIt.userManager.setLangAsync(e.currentTarget.value)
+                    userManager.setLangAsync(e.currentTarget.value)
                 }
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none"
+                className="border-border bg-muted text-foreground-strong focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-2.5 text-sm transition-colors focus:ring-1 focus:outline-none"
             >
                 {LANGUAGES.map((l): JSX.Element => (
                     <option key={l.value} value={l.value}>

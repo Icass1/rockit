@@ -255,6 +255,8 @@ export async function clearSessionOffline(): Promise<void> {
 
     await Promise.all(
         [
+            "rockit-pages",
+            "rockit-vocabulary",
             "rockit-session",
             "rockit-lists",
             "rockit-details",

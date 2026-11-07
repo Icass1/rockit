@@ -8,11 +8,9 @@ from core.access.db.ormModels.download import DownloadRow
 from core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from core.access.db.ormModels.media import CoreMediaRow
-from core.access.db.ormModels.user import UserRow
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadReuseAccess import DownloadReuseAccess
 from core.access.mediaAccess import MediaAccess
-from core.access.userAccess import UserAccess
 from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers
@@ -658,15 +656,6 @@ class Downloader:
             return Result(code=a_result_mark.code(), message=a_result_mark.message())
 
         return Result(code=ResultCode.OK, message="OK", result=True)
-
-    @staticmethod
-    async def update_settings_async(
-        session: AsyncSession, user: UserRow, auto_add: bool
-    ) -> Result[bool]:
-        """Update the download preference through the access layer."""
-        return await UserAccess.update_download_settings_async(
-            session=session, user=user, auto_add=auto_add
-        )
 
     @staticmethod
     async def delete_download_async(

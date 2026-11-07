@@ -49,28 +49,28 @@ export function DownloadStatusIcon({
                 cy="10"
                 r="8"
                 fill="none"
-                stroke="#404040"
                 strokeWidth={stroke * 2}
+                className="stroke-border"
             />
             <circle
                 cx="10"
                 cy="10"
                 r="8"
                 fill="none"
-                stroke="#ee1086"
                 strokeWidth={stroke * 2}
                 strokeDasharray={circumference}
                 strokeDashoffset={circumference * (1 - progress / 100)}
                 strokeLinecap="round"
                 transform="rotate(-90 10 10)"
+                className="stroke-primary"
             />
             <path
                 d="M10 7v5M7 10l3 3 3-3"
-                stroke="#ee1086"
                 strokeWidth={stroke * 1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 fill="none"
+                className="stroke-primary"
             />
         </svg>
     );

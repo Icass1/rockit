@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    ReactNode,
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-    type JSX,
-} from "react";
+import { ReactNode, useMemo, useState, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -18,14 +11,12 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { Play } from "lucide-react";
 import { EContentType } from "@/models/enums/contentType";
 import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
 import { useIncrementalList } from "@/hooks/useIncrementalList";
 import { useInView } from "@/hooks/useInView";
-import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     expandAlbumsToPlayable,
@@ -48,12 +39,13 @@ import {
     StationRow,
     VideoRow,
 } from "@/components/Library/LibraryRows";
-import LibrarySkeleton from "@/components/Library/LibrarySkeleton";
 import { LibrarySongSearchResults } from "@/components/Library/LibrarySongSearchResults";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
 import RockitFeaturedLists from "@/components/Library/RockitFeaturedLists";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
+import { useSession } from "@/components/providers/SessionProvider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
@@ -115,9 +107,9 @@ function SectionPlayButton({
         <button
             onClick={onClick}
             title={label}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light) transition-transform md:hover:scale-105"
+            className="from-primary to-brand-light flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-r transition-transform md:hover:scale-105"
         >
-            <Play className="h-1/2 w-1/2" fill="white" />
+            <Play className="fill-on-media h-1/2 w-1/2" />
         </button>
     );
 }
@@ -141,7 +133,7 @@ function SectionHeader({
 
 function EmptyState({ message }: { message: string }): JSX.Element {
     return (
-        <div className="flex items-center justify-center py-16 text-neutral-500">
+        <div className="text-subtle-foreground flex items-center justify-center py-16">
             <p className="text-base font-medium">{message}</p>
         </div>
     );
@@ -448,13 +440,17 @@ function OfflineMix({
 /* ------------------------------------------------------- */
 
 export function LibraryLists({
+    initialData,
     filterMode,
     searchQuery,
     activeType,
     viewMode,
 }: ILibraryListsProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const { filtered, loading, librarySongIds } = useLibraryData({
+    const $vocabulary = useVocabulary();
+    const session = useSession();
+    const { filtered, librarySongIds } = useLibraryData({
+        data: initialData.library,
+        username: initialData.username,
         filterMode,
         searchQuery,
     });
@@ -496,32 +492,8 @@ export function LibraryLists({
     );
 
     const TOP_LIMIT = 5;
-    const [topAlbums, setTopAlbums] = useState<
-        Array<{
-            publicId: string;
-            name: string;
-            href: string;
-            imageUrl: string | null;
-            subtitle: string | null;
-        }>
-    >([]);
-
-    const fetchStats = useCallback(
-        () =>
-            Http.getUserStats({
-                range: "30d",
-                start: null,
-                end: null,
-                timezoneOffsetMinutes: new Date().getTimezoneOffset(),
-            }),
-        []
-    );
-
-    useEffect(() => {
-        fetchStats().then((res) => {
-            if (res.isOk()) setTopAlbums(res.result.topAlbums);
-        });
-    }, [fetchStats]);
+    const topAlbums =
+        session?.username === initialData.username ? initialData.topAlbums : [];
 
     const showAll = activeType === EContentType.All;
     const hasGeneralMatches = [
@@ -582,8 +554,6 @@ export function LibraryLists({
         rockIt.mediaPlayerManager.play();
     };
 
-    if (loading) return <LibrarySkeleton />;
-
     return (
         <section>
             {!searching && (
@@ -620,7 +590,7 @@ export function LibraryLists({
                                         {album.name}
                                     </p>
                                     <p
-                                        className="truncate text-center text-sm text-gray-400"
+                                        className="text-muted-foreground truncate text-center text-sm"
                                         title={album.subtitle ?? undefined}
                                     >
                                         {album.subtitle}

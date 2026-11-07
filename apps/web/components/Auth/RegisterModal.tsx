@@ -1,155 +1,122 @@
 "use client";
 
-import { JSX, useCallback, useEffect, useState } from "react";
+import { useState, type FormEvent, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import UsernameInput from "@/components/Auth/UsernameInput";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import { Button } from "@/components/ui/Button";
+import { Field } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Input";
 
-export default function SignupModal(): JSX.Element {
+export default function RegisterModal(): JSX.Element {
     const router = useRouter();
-
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-
+    const vocabulary = useVocabulary();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const language =
-            navigator.language.split(/[-_]/)[0]?.toLowerCase() || "en";
-        const func = async (): Promise<void> => {
-            const b =
-                await rockIt.vocabularyManager.getVocabularyAsync(language);
-            if (b.isOk()) rockIt.vocabularyManager.setVocabulary(b.result);
-        };
-        func();
-    }, []);
-
-    const handleSubmit = useCallback(async (): Promise<void> => {
-        setError("");
-
+    async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
+        event.preventDefault();
         if (loading) return;
-
+        setError("");
         if (!username || !password || !repeatPassword) {
-            setError(rockIt.vocabularyManager.vocabulary.ALL_FIELDS_REQUIRED);
+            setError(vocabulary.ALL_FIELDS_REQUIRED);
             return;
         }
-
         if (password !== repeatPassword) {
-            setError(rockIt.vocabularyManager.vocabulary.PASSWORDS_DONT_MATCH);
+            setError(vocabulary.PASSWORDS_DONT_MATCH);
             return;
         }
-
         setLoading(true);
-
-        const result = await rockIt.authManager.registerAsync(
-            username,
-            password,
-            repeatPassword
-        );
-
-        if (!result.success) {
-            setError(
-                result.error ||
-                    rockIt.vocabularyManager.vocabulary.ERROR_REGISTER
+        try {
+            const result = await rockIt.authManager.registerAsync(
+                username,
+                password,
+                repeatPassword
             );
-            setLoading(false);
-            return;
-        }
-
-        router.push("/");
-        router.refresh();
-    }, [loading, password, repeatPassword, router, username]);
-
-    useEffect((): (() => void) => {
-        const handleKeyDown = (event: KeyboardEvent): void => {
-            if (event.key === "Enter") {
-                handleSubmit();
+            if (!result.success) {
+                setError(result.error || vocabulary.ERROR_REGISTER);
+                return;
             }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return (): void =>
-            document.removeEventListener("keydown", handleKeyDown);
-    }, [handleSubmit]);
+            router.replace("/");
+            router.refresh();
+        } catch {
+            setError(vocabulary.ERROR_REGISTER);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
-        <div className="absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black/70 p-8 text-center shadow-lg backdrop-blur-2xl md:w-full">
+        <div className="bg-scrim text-foreground absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl p-8 text-center shadow-xl backdrop-blur-2xl">
             <Image
                 width={2028}
                 height={614}
                 src="/logo-banner.png"
-                className="w-1/3"
+                className="brand-image mx-auto w-1/3"
                 alt="RockIt!"
                 priority
             />
-
-            <h2 className="text-foreground mt-4 text-3xl font-extrabold">
-                {$vocabulary.CREATE_ACCOUNT}
-            </h2>
-
-            <p className="mt-2 text-sm">
-                <Link
-                    href="/login"
-                    className="text-primary md:hover:text-primary/80 font-bold"
-                >
-                    {$vocabulary.OR_LOG_IN}
-                </Link>
-            </p>
-
-            <div className="mt-5 space-y-6">
-                <div className="space-y-4">
-                    <UsernameInput
+            <h1 className="mt-4 text-3xl font-bold">
+                {vocabulary.CREATE_ACCOUNT}
+            </h1>
+            <Link
+                href="/login"
+                className="text-primary focus-visible:outline-ring mt-3 inline-block font-semibold focus-visible:outline-2"
+            >
+                {vocabulary.OR_LOG_IN}
+            </Link>
+            <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
+                <Field id="register-username" label={vocabulary.USERNAME}>
+                    <Input
+                        id="register-username"
+                        autoComplete="username"
+                        required
+                        minLength={3}
+                        maxLength={30}
+                        pattern="[a-zA-Z0-9_-]+"
                         value={username}
-                        onChange={(e): void =>
-                            setUsername(e.currentTarget.value)
-                        }
+                        onChange={(event) => setUsername(event.target.value)}
                     />
-
-                    <input
+                </Field>
+                <Field id="register-password" label={vocabulary.PASSWORD}>
+                    <Input
+                        id="register-password"
                         type="password"
+                        autoComplete="new-password"
+                        required
                         value={password}
-                        onChange={(e): void =>
-                            setPassword(e.currentTarget.value)
-                        }
-                        autoComplete="new-password"
-                        className="text-1xl mt-1 w-4/5 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
-                        placeholder={$vocabulary.PASSWORD}
+                        onChange={(event) => setPassword(event.target.value)}
                     />
-
-                    <input
+                </Field>
+                <Field
+                    id="register-repeat-password"
+                    label={vocabulary.REPEAT_PASSWORD}
+                >
+                    <Input
+                        id="register-repeat-password"
                         type="password"
-                        value={repeatPassword}
-                        onChange={(e): void =>
-                            setRepeatPassword(e.currentTarget.value)
-                        }
                         autoComplete="new-password"
-                        className="text-1xl mt-1 w-4/5 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
-                        placeholder={$vocabulary.REPEAT_PASSWORD}
+                        required
+                        value={repeatPassword}
+                        onChange={(event) =>
+                            setRepeatPassword(event.target.value)
+                        }
                     />
-                </div>
-
+                </Field>
                 {error && (
-                    <p className="mx-auto w-fit rounded-md bg-(--color-error) px-2 py-1 text-white">
+                    <p role="alert" className="text-destructive text-sm">
                         {error}
                     </p>
                 )}
-
-                <div className="flex justify-center">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="flex h-8 w-1/3 items-center justify-center rounded-md bg-blue-600 font-bold disabled:opacity-50 md:hover:bg-blue-800"
-                    >
-                        {loading ? $vocabulary.CREATING : $vocabulary.SIGN_UP}
-                    </button>
-                </div>
-            </div>
+                <Button type="submit" loading={loading}>
+                    {vocabulary.CREATE_ACCOUNT}
+                </Button>
+            </form>
         </div>
     );
 }

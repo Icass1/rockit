@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import PlayButton from "@/components/Home/PlayButton";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface DockedItem {
     song: BaseSongWithAlbumResponse;
@@ -26,7 +27,7 @@ export default function DockedQuickAccessBar({
 }: DockedQuickAccessBarProps): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     function handleClick(
         song: BaseSongWithAlbumResponse,
@@ -50,7 +51,7 @@ export default function DockedQuickAccessBar({
                     transition={{ duration: 0.25, ease: "easeOut" }}
                     className="fixed inset-x-0 top-0 z-40 flex justify-center px-4 pt-3"
                 >
-                    <div className="flex items-center gap-2 rounded-full bg-black/70 px-3 py-2 shadow-lg backdrop-blur-md">
+                    <div className="bg-backdrop/70 flex items-center gap-2 rounded-full px-3 py-2 shadow-lg backdrop-blur-md">
                         {items.map(({ song, queue, label }) => {
                             const isThisPlaying =
                                 $currentMedia?.publicId === song.publicId &&
@@ -62,7 +63,7 @@ export default function DockedQuickAccessBar({
                                     type="button"
                                     aria-label={label}
                                     onClick={() => handleClick(song, queue)}
-                                    className="group flex items-center gap-2 rounded-full py-1 pr-3 pl-1 transition hover:bg-white/10"
+                                    className="group hover:bg-foreground-strong/10 flex items-center gap-2 rounded-full py-1 pr-3 pl-1 transition"
                                 >
                                     <Image
                                         src={song.imageUrl}
@@ -71,7 +72,7 @@ export default function DockedQuickAccessBar({
                                         height={32}
                                         className="rounded-full object-cover"
                                     />
-                                    <span className="hidden max-w-28 truncate text-sm font-medium text-white sm:inline">
+                                    <span className="text-foreground-strong hidden max-w-28 truncate text-sm font-medium sm:inline">
                                         {song.name}
                                     </span>
                                     {isThisPlaying && (

@@ -2,7 +2,6 @@
 
 import { JSX, useEffect, useState } from "react";
 import { type RequestLogStatsResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import {
     Activity,
     BarChart3,
@@ -29,20 +28,20 @@ import {
     YAxis,
 } from "recharts";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 const STATUS_COLORS: Record<string, string> = {
-    "2": "#22c55e",
-    "3": "#3b82f6",
-    "4": "#eab308",
-    "5": "#ef4444",
+    "2": "var(--theme-success)",
+    "3": "var(--theme-info)",
+    "4": "var(--theme-warning)",
+    "5": "var(--theme-destructive)",
 };
 
-const PINK = "#ee1086";
-const PINK_LIGHT = "#fb6467";
-const NEUTRAL_600 = "#525252";
-const NEUTRAL_500 = "#737373";
-const NEUTRAL_700 = "#404040";
+const PRIMARY = "var(--theme-primary)";
+const BRAND_LIGHT = "var(--theme-brand-light)";
+const AXIS_MUTED = "var(--theme-border-strong)";
+const LABEL_MUTED = "var(--theme-subtle-foreground)";
+const CHART_GRID = "var(--theme-border)";
 
 function formatMs(ms: number): string {
     if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`;
@@ -64,14 +63,18 @@ interface StatCardProps {
 
 function StatCard({ icon, label, value, sub }: StatCardProps): JSX.Element {
     return (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
-            <div className="mb-2 flex items-center gap-2 text-sm text-neutral-500">
+        <div className="border-border-subtle bg-secondary rounded-xl border p-4">
+            <div className="text-subtle-foreground mb-2 flex items-center gap-2 text-sm">
                 {icon}
                 <span>{label}</span>
             </div>
-            <div className="text-2xl font-bold text-white">{value}</div>
+            <div className="text-foreground-strong text-2xl font-bold">
+                {value}
+            </div>
             {sub && (
-                <div className="mt-0.5 text-xs text-neutral-600">{sub}</div>
+                <div className="text-disabled-foreground mt-0.5 text-xs">
+                    {sub}
+                </div>
             )}
         </div>
     );
@@ -85,10 +88,12 @@ interface SectionHeaderProps {
 function SectionHeader({ title, icon }: SectionHeaderProps): JSX.Element {
     return (
         <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-(--color-rockit-pink)/10">
+            <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
                 {icon}
             </div>
-            <h2 className="text-lg font-semibold text-white">{title}</h2>
+            <h2 className="text-foreground-strong text-lg font-semibold">
+                {title}
+            </h2>
         </div>
     );
 }
@@ -97,7 +102,7 @@ export default function AdminStats(): JSX.Element {
     const [data, setData] = useState<RequestLogStatsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     useEffect((): void => {
         const fetchStats = async (): Promise<void> => {
@@ -130,14 +135,14 @@ export default function AdminStats(): JSX.Element {
 
     if (error || !data) {
         return (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                <Activity className="mb-4 h-12 w-12 text-neutral-600" />
-                <p className="text-neutral-500">
+            <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                <Activity className="text-disabled-foreground mb-4 h-12 w-12" />
+                <p className="text-subtle-foreground">
                     {error || $vocabulary.ADMIN_NO_STATS}
                 </p>
                 <button
                     onClick={(): void => window.location.reload()}
-                    className="mt-4 rounded-lg bg-(--color-rockit-pink) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid)"
+                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
                 >
                     {$vocabulary.RETRY}
                 </button>
@@ -154,7 +159,7 @@ export default function AdminStats(): JSX.Element {
         (c): { name: string; count: number; fill: string } => ({
             name: `${c.code}`,
             count: c.count,
-            fill: STATUS_COLORS[String(c.code)[0]] || NEUTRAL_600,
+            fill: STATUS_COLORS[String(c.code)[0]] || AXIS_MUTED,
         })
     );
     const methodChartData = data.methodDistribution.map(
@@ -168,9 +173,9 @@ export default function AdminStats(): JSX.Element {
 
     if (noData) {
         return (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                <BarChart3 className="mb-4 h-12 w-12 text-neutral-600" />
-                <p className="text-neutral-500">
+            <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                <BarChart3 className="text-disabled-foreground mb-4 h-12 w-12" />
+                <p className="text-subtle-foreground">
                     {$vocabulary.ADMIN_NO_DATA_YET}{" "}
                     {$vocabulary.ADMIN_NO_DATA_DESC}
                 </p>
@@ -208,11 +213,9 @@ export default function AdminStats(): JSX.Element {
             <div>
                 <SectionHeader
                     title={$vocabulary.ADMIN_REQUESTS_OVER_TIME}
-                    icon={
-                        <Activity className="h-4 w-4 text-(--color-rockit-pink)" />
-                    }
+                    icon={<Activity className="text-primary h-4 w-4" />}
                 />
-                <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+                <div className="border-border-subtle bg-secondary rounded-xl border p-4">
                     <ResponsiveContainer width="100%" height={280}>
                         <AreaChart data={timeSeriesReversed}>
                             <defs>
@@ -225,41 +228,42 @@ export default function AdminStats(): JSX.Element {
                                 >
                                     <stop
                                         offset="5%"
-                                        stopColor={PINK}
+                                        stopColor={PRIMARY}
                                         stopOpacity={0.3}
                                     />
                                     <stop
                                         offset="95%"
-                                        stopColor={PINK}
+                                        stopColor={PRIMARY}
                                         stopOpacity={0}
                                     />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid
                                 strokeDasharray="3 3"
-                                stroke={NEUTRAL_700}
+                                stroke={CHART_GRID}
                             />
                             <XAxis
                                 dataKey="timestamp"
-                                tick={{ fill: NEUTRAL_500, fontSize: 11 }}
+                                tick={{ fill: LABEL_MUTED, fontSize: 11 }}
                                 tickFormatter={(v: string): string => {
                                     const parts = v.split(" ");
                                     return parts.length > 1
                                         ? parts[1].substring(0, 5)
                                         : v.substring(5);
                                 }}
-                                stroke={NEUTRAL_700}
+                                stroke={CHART_GRID}
                             />
                             <YAxis
-                                tick={{ fill: NEUTRAL_500, fontSize: 11 }}
-                                stroke={NEUTRAL_700}
+                                tick={{ fill: LABEL_MUTED, fontSize: 11 }}
+                                stroke={CHART_GRID}
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: "#262626",
-                                    border: "1px solid #404040",
+                                    backgroundColor:
+                                        "var(--theme-surface-raised)",
+                                    border: "1px solid var(--theme-border)",
                                     borderRadius: "8px",
-                                    color: "#fff",
+                                    color: "var(--theme-foreground-strong)",
                                 }}
                                 labelFormatter={(label): string =>
                                     String(label)
@@ -268,7 +272,7 @@ export default function AdminStats(): JSX.Element {
                             <Area
                                 type="monotone"
                                 dataKey="count"
-                                stroke={PINK}
+                                stroke={PRIMARY}
                                 fillOpacity={1}
                                 fill="url(#requestGradient)"
                                 strokeWidth={2}
@@ -282,21 +286,19 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_AVG_RESPONSE_TIME}
-                        icon={
-                            <Clock className="h-4 w-4 text-(--color-rockit-pink)" />
-                        }
+                        icon={<Clock className="text-primary h-4 w-4" />}
                     />
-                    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+                    <div className="border-border-subtle bg-secondary rounded-xl border p-4">
                         <ResponsiveContainer width="100%" height={260}>
                             <LineChart data={timeSeriesReversed}>
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <XAxis
                                     dataKey="timestamp"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
                                     tickFormatter={(v: string): string => {
@@ -305,24 +307,25 @@ export default function AdminStats(): JSX.Element {
                                             ? parts[1].substring(0, 5)
                                             : v.substring(5);
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <YAxis
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                     tickFormatter={(v: number): string =>
                                         `${v}ms`
                                     }
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "#262626",
-                                        border: "1px solid #404040",
+                                        backgroundColor:
+                                            "var(--theme-surface-raised)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: "8px",
-                                        color: "#fff",
+                                        color: "var(--theme-foreground-strong)",
                                     }}
                                     formatter={(
                                         value: unknown
@@ -334,7 +337,7 @@ export default function AdminStats(): JSX.Element {
                                 <Line
                                     type="monotone"
                                     dataKey="avgTimeMs"
-                                    stroke={PINK_LIGHT}
+                                    stroke={BRAND_LIGHT}
                                     strokeWidth={2}
                                     dot={false}
                                 />
@@ -346,41 +349,40 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_HOURLY_ACTIVITY}
-                        icon={
-                            <BarChart3 className="h-4 w-4 text-(--color-rockit-pink)" />
-                        }
+                        icon={<BarChart3 className="text-primary h-4 w-4" />}
                     />
-                    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+                    <div className="border-border-subtle bg-secondary rounded-xl border p-4">
                         <ResponsiveContainer width="100%" height={260}>
                             <BarChart data={data.hourlyStats}>
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <XAxis
                                     dataKey="hour"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
                                     tickFormatter={(v: number): string =>
                                         `${v}h`
                                     }
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <YAxis
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "#262626",
-                                        border: "1px solid #404040",
+                                        backgroundColor:
+                                            "var(--theme-surface-raised)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: "8px",
-                                        color: "#fff",
+                                        color: "var(--theme-foreground-strong)",
                                     }}
                                     labelFormatter={(label: unknown): string =>
                                         `${String(label)}:00`
@@ -388,7 +390,7 @@ export default function AdminStats(): JSX.Element {
                                 />
                                 <Bar
                                     dataKey="count"
-                                    fill={PINK}
+                                    fill={PRIMARY}
                                     radius={[4, 4, 0, 0]}
                                 />
                             </BarChart>
@@ -401,40 +403,39 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_RESPONSE_CODES}
-                        icon={
-                            <Route className="h-4 w-4 text-(--color-rockit-pink)" />
-                        }
+                        icon={<Route className="text-primary h-4 w-4" />}
                     />
-                    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+                    <div className="border-border-subtle bg-secondary rounded-xl border p-4">
                         <ResponsiveContainer width="100%" height={260}>
                             <BarChart data={codeChartData} layout="vertical">
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <XAxis
                                     type="number"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <YAxis
                                     type="category"
                                     dataKey="name"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "#262626",
-                                        border: "1px solid #404040",
+                                        backgroundColor:
+                                            "var(--theme-surface-raised)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: "8px",
-                                        color: "#fff",
+                                        color: "var(--theme-foreground-strong)",
                                     }}
                                     formatter={(
                                         value: unknown
@@ -458,43 +459,42 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_HTTP_METHODS}
-                        icon={
-                            <Route className="h-4 w-4 text-(--color-rockit-pink)" />
-                        }
+                        icon={<Route className="text-primary h-4 w-4" />}
                     />
-                    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+                    <div className="border-border-subtle bg-secondary rounded-xl border p-4">
                         <ResponsiveContainer width="100%" height={260}>
                             <BarChart data={methodChartData}>
                                 <CartesianGrid
                                     strokeDasharray="3 3"
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <XAxis
                                     dataKey="name"
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <YAxis
                                     tick={{
-                                        fill: NEUTRAL_500,
+                                        fill: LABEL_MUTED,
                                         fontSize: 11,
                                     }}
-                                    stroke={NEUTRAL_700}
+                                    stroke={CHART_GRID}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "#262626",
-                                        border: "1px solid #404040",
+                                        backgroundColor:
+                                            "var(--theme-surface-raised)",
+                                        border: "1px solid var(--theme-border)",
                                         borderRadius: "8px",
-                                        color: "#fff",
+                                        color: "var(--theme-foreground-strong)",
                                     }}
                                 />
                                 <Bar
                                     dataKey="count"
-                                    fill={PINK}
+                                    fill={PRIMARY}
                                     radius={[4, 4, 0, 0]}
                                 />
                             </BarChart>
@@ -506,31 +506,29 @@ export default function AdminStats(): JSX.Element {
             <div>
                 <SectionHeader
                     title={$vocabulary.ADMIN_TOP_ROUTES}
-                    icon={
-                        <Route className="h-4 w-4 text-(--color-rockit-pink)" />
-                    }
+                    icon={<Route className="text-primary h-4 w-4" />}
                 />
-                <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
+                <div className="border-border-subtle bg-secondary overflow-hidden rounded-xl border">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead>
-                                <tr className="border-b border-neutral-800 bg-neutral-950/50">
-                                    <th className="px-4 py-3 font-medium text-neutral-400">
+                                <tr className="border-border-subtle bg-background/50 border-b">
+                                    <th className="text-muted-foreground px-4 py-3 font-medium">
                                         {$vocabulary.ADMIN_ROUTE}
                                     </th>
-                                    <th className="px-4 py-3 font-medium text-neutral-400">
+                                    <th className="text-muted-foreground px-4 py-3 font-medium">
                                         {$vocabulary.ADMIN_METHOD}
                                     </th>
-                                    <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                    <th className="text-muted-foreground px-4 py-3 text-right font-medium">
                                         {$vocabulary.ADMIN_COUNT}
                                     </th>
-                                    <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                    <th className="text-muted-foreground px-4 py-3 text-right font-medium">
                                         {$vocabulary.ADMIN_AVG_TIME}
                                     </th>
-                                    <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                    <th className="text-muted-foreground px-4 py-3 text-right font-medium">
                                         {$vocabulary.ADMIN_MIN}
                                     </th>
-                                    <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                    <th className="text-muted-foreground px-4 py-3 text-right font-medium">
                                         {$vocabulary.ADMIN_MAX}
                                     </th>
                                 </tr>
@@ -539,26 +537,26 @@ export default function AdminStats(): JSX.Element {
                                 {routeTop.map((r, i): JSX.Element => (
                                     <tr
                                         key={i}
-                                        className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                        className="border-border-subtle/50 hover:bg-muted/30 border-b transition"
                                     >
-                                        <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-white">
+                                        <td className="text-foreground-strong max-w-xs truncate px-4 py-3 font-mono text-xs">
                                             {r.normalizedRoute}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className="rounded bg-neutral-800 px-2 py-0.5 text-xs font-medium text-neutral-300">
+                                            <span className="bg-muted text-foreground rounded px-2 py-0.5 text-xs font-medium">
                                                 {r.method}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-right text-white">
+                                        <td className="text-foreground-strong px-4 py-3 text-right">
                                             {r.count.toLocaleString()}
                                         </td>
-                                        <td className="px-4 py-3 text-right text-neutral-400">
+                                        <td className="text-muted-foreground px-4 py-3 text-right">
                                             {formatMs(r.avgTimeMs)}
                                         </td>
-                                        <td className="px-4 py-3 text-right text-neutral-500">
+                                        <td className="text-subtle-foreground px-4 py-3 text-right">
                                             {formatMs(r.minTimeMs)}
                                         </td>
-                                        <td className="px-4 py-3 text-right text-neutral-500">
+                                        <td className="text-subtle-foreground px-4 py-3 text-right">
                                             {formatMs(r.maxTimeMs)}
                                         </td>
                                     </tr>
@@ -573,22 +571,20 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_USER_ACTIVITY}
-                        icon={
-                            <Users className="h-4 w-4 text-(--color-rockit-pink)" />
-                        }
+                        icon={<Users className="text-primary h-4 w-4" />}
                     />
-                    <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
+                    <div className="border-border-subtle bg-secondary overflow-hidden rounded-xl border">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead>
-                                    <tr className="border-b border-neutral-800 bg-neutral-950/50">
-                                        <th className="px-4 py-3 font-medium text-neutral-400">
+                                    <tr className="border-border-subtle bg-background/50 border-b">
+                                        <th className="text-muted-foreground px-4 py-3 font-medium">
                                             {$vocabulary.ADMIN_USER}
                                         </th>
-                                        <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                        <th className="text-muted-foreground px-4 py-3 text-right font-medium">
                                             {$vocabulary.ADMIN_REQUESTS}
                                         </th>
-                                        <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                        <th className="text-muted-foreground px-4 py-3 text-right font-medium">
                                             {$vocabulary.ADMIN_AVG_TIME}
                                         </th>
                                     </tr>
@@ -598,16 +594,16 @@ export default function AdminStats(): JSX.Element {
                                         (u, i): JSX.Element => (
                                             <tr
                                                 key={i}
-                                                className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                                className="border-border-subtle/50 hover:bg-muted/30 border-b transition"
                                             >
-                                                <td className="px-4 py-3 text-white">
+                                                <td className="text-foreground-strong px-4 py-3">
                                                     {u.username ||
                                                         $vocabulary.ADMIN_ANONYMOUS}
                                                 </td>
-                                                <td className="px-4 py-3 text-right text-white">
+                                                <td className="text-foreground-strong px-4 py-3 text-right">
                                                     {u.requestCount.toLocaleString()}
                                                 </td>
-                                                <td className="px-4 py-3 text-right text-neutral-400">
+                                                <td className="text-muted-foreground px-4 py-3 text-right">
                                                     {formatMs(u.avgTimeMs)}
                                                 </td>
                                             </tr>
@@ -624,19 +620,17 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_TOP_IPS}
-                        icon={
-                            <Fingerprint className="h-4 w-4 text-(--color-rockit-pink)" />
-                        }
+                        icon={<Fingerprint className="text-primary h-4 w-4" />}
                     />
-                    <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
+                    <div className="border-border-subtle bg-secondary overflow-hidden rounded-xl border">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead>
-                                    <tr className="border-b border-neutral-800 bg-neutral-950/50">
-                                        <th className="px-4 py-3 font-medium text-neutral-400">
+                                    <tr className="border-border-subtle bg-background/50 border-b">
+                                        <th className="text-muted-foreground px-4 py-3 font-medium">
                                             {$vocabulary.ADMIN_IP}
                                         </th>
-                                        <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                        <th className="text-muted-foreground px-4 py-3 text-right font-medium">
                                             {$vocabulary.ADMIN_REQUESTS}
                                         </th>
                                     </tr>
@@ -645,12 +639,12 @@ export default function AdminStats(): JSX.Element {
                                     {data.topIps.map((ip, i): JSX.Element => (
                                         <tr
                                             key={i}
-                                            className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                            className="border-border-subtle/50 hover:bg-muted/30 border-b transition"
                                         >
-                                            <td className="px-4 py-3 font-mono text-xs text-white">
+                                            <td className="text-foreground-strong px-4 py-3 font-mono text-xs">
                                                 {ip.ip}
                                             </td>
-                                            <td className="px-4 py-3 text-right text-white">
+                                            <td className="text-foreground-strong px-4 py-3 text-right">
                                                 {ip.count.toLocaleString()}
                                             </td>
                                         </tr>

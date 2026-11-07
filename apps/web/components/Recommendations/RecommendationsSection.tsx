@@ -1,23 +1,23 @@
 "use client";
 
 import { useCallback, type JSX } from "react";
-import Image from "next/image";
 import type {
     BaseSearchResultsItem,
     BaseSongWithAlbumResponse,
     SongListResponse,
 } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation, isDiscoverItemInLibrary } from "@rockit/shared";
-import { Download, Music, Play } from "lucide-react";
+import { Download, Play } from "lucide-react";
 import { isDownloadable, isQueueable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import RecommendationArtwork from "@/components/Recommendations/RecommendationArtwork";
+import ContextMenuContent from "@/components/ui/ContextMenu/Content";
+import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
 
 /** Queue identifier used when playing straight from a recommendation card
  * (BentoSection uses "bento" the same way). */
@@ -34,7 +34,7 @@ function KnownSongCard({
     queue: BaseSongWithAlbumResponse[];
 }): JSX.Element {
     const $song = useMedia(_song);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const downloaded = !isDownloadable($song) || $song.downloaded === true;
 
@@ -56,7 +56,11 @@ function KnownSongCard({
     }, [$song, queue, downloaded]);
 
     return (
-        <MediaContextMenu media={$song} location={EMediaContextLocation.HOME}>
+        <MediaContextMenu
+            media={$song}
+            location={EMediaContextLocation.HOME}
+            onPlay={handleClick}
+        >
             <RecommendationCard
                 name={$song.name}
                 imageUrl={$song.imageUrl}
@@ -74,7 +78,7 @@ function KnownSongCard({
  * instance already has downloaded (flagged in the backend with
  * downloaded=true + publicId) play right away. */
 function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const inLibrary = isDiscoverItemInLibrary(item);
 
     const handleClick = useCallback((): void => {
@@ -111,6 +115,7 @@ function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
         <RecommendationCard
             name={item.name}
             imageUrl={item.imageUrl}
+            artworkProvider={item.provider}
             artistNames={item.artists.map((a): string => a.name)}
             dimmed={!inLibrary}
             hint={!inLibrary ? $vocabulary.CLICK_TO_DOWNLOAD : undefined}
@@ -157,6 +162,7 @@ function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
 function RecommendationCard({
     name,
     imageUrl,
+    artworkProvider = "",
     artistNames,
     dimmed,
     hint,
@@ -164,43 +170,36 @@ function RecommendationCard({
 }: {
     name: string;
     imageUrl: string;
+    artworkProvider?: string;
     artistNames: string[];
     dimmed: boolean;
     hint?: string;
     onClick?: () => void;
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     return (
         <div
             className={`group relative w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${dimmed ? "opacity-50" : ""}`}
             onClick={onClick}
         >
-            {imageUrl ? (
-                <Image
-                    width={350}
-                    height={350}
-                    className="aspect-square w-full rounded-lg object-cover select-none"
-                    src={imageUrl}
-                    alt={vocabulary.COVER_OF.replace("{name}", name)}
-                />
-            ) : (
-                // Suggestions no provider could resolve have no artwork.
-                <div
-                    className="flex aspect-square w-full items-center justify-center rounded-lg bg-neutral-800 select-none"
-                    aria-hidden="true"
-                >
-                    <Music className="h-8 w-8 text-neutral-600" />
-                </div>
-            )}
+            <RecommendationArtwork
+                src={imageUrl}
+                provider={artworkProvider}
+                artist={artistNames[0]}
+                track={name}
+                size={350}
+                className="aspect-square w-full rounded-lg object-cover select-none"
+                alt={vocabulary.COVER_OF.replace("{name}", name)}
+            />
             {hint && (
-                <p className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border border-white bg-black px-2 py-1 text-center text-sm font-semibold text-white group-hover:block">
+                <p className="border-foreground-strong bg-backdrop text-foreground-strong absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border px-2 py-1 text-center text-sm font-semibold group-hover:block">
                     {hint}
                 </p>
             )}
             <span className="mt-2 block truncate text-center font-semibold">
                 {name}
             </span>
-            <span className="block truncate text-center text-sm text-gray-400">
+            <span className="text-muted-foreground block truncate text-center text-sm">
                 {artistNames.join(", ")}
             </span>
         </div>
@@ -223,7 +222,7 @@ export default function RecommendationsSection({
     discoverProvider?: string | null;
     discoverStatus?: SongListResponse["discoverStatus"];
 }): JSX.Element | null {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     if (songs.length === 0 && discover.length === 0) return null;
 
@@ -232,11 +231,11 @@ export default function RecommendationsSection({
         : $vocabulary.PLAYER_DISCOVER_TITLE;
 
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
+        <section className="text-foreground-strong py-2 md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {title}
             </h2>
-            {songs.length > 0 && (
+            {discover.length === 0 && songs.length > 0 && (
                 <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                     {songs.map((song): JSX.Element => (
                         <KnownSongCard
@@ -249,7 +248,7 @@ export default function RecommendationsSection({
             )}
             {discover.length > 0 && (
                 <>
-                    <h3 className="px-5 text-left text-lg font-semibold text-neutral-400 md:px-0">
+                    <h3 className="text-muted-foreground px-5 text-left text-lg font-semibold md:px-0">
                         {discoverTitle}
                     </h3>
                     <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
@@ -268,7 +267,7 @@ export default function RecommendationsSection({
             {discoverStatus === "unavailable" && (
                 // Shown inline once per section, never as a toast, so a
                 // flaky external service does not spam the user.
-                <p className="px-5 text-left text-xs text-neutral-500 md:px-0">
+                <p className="text-subtle-foreground px-5 text-left text-xs md:px-0">
                     {$vocabulary.DISCOVER_UNAVAILABLE}
                 </p>
             )}

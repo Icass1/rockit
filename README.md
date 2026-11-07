@@ -219,6 +219,11 @@ bug reports, translations, accessibility improvements, documentation, and code.
 For playback issues, include your browser/device, playback mode, and steps to
 reproduce. Remove credentials, cookies, and personal information from logs.
 
+## Security
+
+Please report suspected vulnerabilities privately. See [SECURITY.md](SECURITY.md)
+for reporting instructions, scope, version policy, and responsible testing.
+
 ## Credits and license
 
 Created by **[Ignacio Casado · Icass1](https://github.com/Icass1)** and

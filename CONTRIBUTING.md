@@ -13,7 +13,7 @@ Contributions to the RockIt! web app, mobile app, backend, tests, and documentat
 
 For a bug report, include the affected app, steps to reproduce, expected and actual behavior, and relevant browser, device, or server details. Include sanitized logs or screenshots when useful. For feature requests, describe the use case and the behavior you would like.
 
-Remove credentials, session cookies, tokens, and personal data from reports and logs. Report security vulnerabilities through GitHub's private vulnerability reporting feature if available; avoid publishing exploit details or secrets in public issues.
+Remove credentials, session cookies, tokens, and personal data from reports and logs. For suspected vulnerabilities, follow [SECURITY.md](SECURITY.md) and use a private reporting channel before sharing technical details.
 
 ## Development conventions
 

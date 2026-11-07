@@ -51,6 +51,7 @@ class ExternalSuggestion:
     score: float = 0.0
     recording_mbid: str | None = None
     album_name: str | None = None
+    image_url: str | None = None
 
 
 class ERecommendationContextKind(Enum):

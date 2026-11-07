@@ -36,7 +36,7 @@ RECORDING = YoutubeCandidate(
         (replace(RECORDING, video_type="MUSIC_VIDEO_TYPE_UGC"), False),
         (replace(RECORDING, catalog_song=False, video_type=None), False),
         (replace(RECORDING, artists=["Another Artist"]), False),
-        (replace(RECORDING, artists=["The Artist", "Another Artist"]), False),
+        (replace(RECORDING, artists=["The Artist", "Another Artist"]), True),
         (replace(RECORDING, duration_seconds=196), False),
         (replace(RECORDING, duration_seconds=None), False),
         (replace(RECORDING, title="My Song (Live)"), False),
@@ -54,6 +54,51 @@ def test_identity_gates_cannot_be_outweighed_by_title_or_album(
     candidate = replace(candidate)
     score_candidate(candidate=candidate, song=SONG)
     assert (candidate.score >= 0.85) is accepted
+
+
+@pytest.mark.parametrize(
+    "requested,credits,accepted",
+    [
+        (["Dua Lipa"], ["Dua Lipa", "Angèle"], True),
+        (["Angèle", "Dua Lipa"], ["Dua Lipa", "Angèle"], True),
+        (["Dua Lipa", "Angèle"], ["Dua Lipa"], False),
+        (["Dua Lipa", "Angèle"], ["Dua Lipa", "Other Artist"], False),
+        (["Dua Lipa"], ["Other Artist", "Another Artist"], False),
+        ([], ["Dua Lipa", "Angèle"], False),
+    ],
+)
+def test_catalogue_may_add_but_not_remove_known_artist_credits(
+    requested: list[str], credits: list[str], accepted: bool
+) -> None:
+    candidate = replace(RECORDING, artists=credits)
+    score_candidate(candidate=candidate, song=replace(SONG, artists=requested))
+    assert (candidate.score >= 0.85) is accepted
+
+
+async def test_fever_log_recording_is_selected_without_trusting_the_videoclip(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Replay the metadata in the production log; no live API or media download.
+    valid = dict(
+        row("k47GpDvnyBo"),
+        title="Fever",
+        duration_seconds=157,
+        artists=[{"name": "Dua Lipa"}, {"name": "Angèle"}],
+        album={"name": "Future Nostalgia"},
+    )
+    unrelated = dict(
+        valid, videoId="kEadqPrfxMA", artists=[{"name": "Don Diablo"}, {"name": "CID"}]
+    )
+    live = dict(valid, videoId="liveversion", title="Fever (Live)")
+    clip = dict(valid, videoId="vs61OHs2g-w", videoType="MUSIC_VIDEO_TYPE_OMV")
+    client(monkeypatch, [unrelated, clip, live, valid])
+    result = await YoutubeSearch.find_video_urls_async(
+        song=YoutubeSongQuery(
+            title="Fever", artists=["Dua Lipa"], album_title="Future Nostalgia", duration_ms=0
+        )
+    )
+    assert result.is_ok(), result.info()
+    assert result.result() == ["https://music.youtube.com/watch?v=k47GpDvnyBo"]
 
 
 def test_requested_live_recording_is_preserved() -> None:

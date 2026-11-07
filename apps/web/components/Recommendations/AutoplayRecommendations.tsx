@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, type JSX } from "react";
-import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { ERepeatMode, getMediaArtistsString } from "@rockit/shared";
 import { Download, ListPlus } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import RecommendationArtwork from "@/components/Recommendations/RecommendationArtwork";
 
 /** Shared by the desktop player and the compact PWA player. */
 export default function AutoplayRecommendations(): JSX.Element {
@@ -22,7 +22,7 @@ export default function AutoplayRecommendations(): JSX.Element {
 
     return (
         <section
-            className="border-foreground-strong/10 mt-4 border-t pt-4"
+            className="border-foreground-strong/10 mt-4 shrink-0 border-t pt-4"
             aria-busy={loading}
         >
             <h3 className="text-muted-foreground px-4 pb-3 text-sm font-semibold">
@@ -73,14 +73,14 @@ export default function AutoplayRecommendations(): JSX.Element {
                                 : vocabulary.CLICK_TO_DOWNLOAD
                         }
                     >
-                        <Image
-                            src={
-                                media.imageUrl ||
-                                rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        <RecommendationArtwork
+                            src={media.imageUrl}
+                            provider={
+                                entry.kind === "discover" ? media.provider : ""
                             }
-                            alt=""
-                            width={48}
-                            height={48}
+                            artist={media.artists[0]?.name}
+                            track={media.name}
+                            size={48}
                             className="h-12 w-12 shrink-0 rounded object-cover"
                         />
                         <span className="min-w-0 flex-1">

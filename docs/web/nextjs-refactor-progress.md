@@ -867,3 +867,13 @@ their complete acceptance gates pass.
 - Backend vocabulary tests: three passed; changed Python files passed Ruff format/check; backend Pyright passed with zero errors or warnings.
 - Production SSR smoke: passed with isolated fixture servers and no production data.
 - Production browser performance, real audio, native devices, and offline worker behavior: pending.
+
+## PR 179 integration after develop rebase
+
+Retained Vocabulary Context, semantic theme roles and ui/ context-menu imports in
+recommendations while integrating artwork and bounded virtual scrolling. The
+shared queue retains develop's lifecycle-generation guard around the single
+external-enabled suggestion request. Artwork cache ownership now lives in scoped Context rather than the compatibility singleton; metadata requests use the browser HTTP adapter. No user-visible strings were added. Static
+web types and lint are checked; CI checks are recorded in PR 179. Earlier browser
+fixtures remain historical evidence; runtime acceptance on the rebased application
+and physical PiP/Vivaldi verification remain open.

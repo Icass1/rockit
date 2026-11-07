@@ -108,7 +108,10 @@ def score_candidate(candidate: YoutubeCandidate, song: YoutubeSongQuery) -> None
     normalized_credits = [
         _normalize(re.sub(r"\s*-\s*Topic$", "", artist, flags=re.IGNORECASE)) for artist in credits
     ]
-    if not expected_artists or expected_artists != set(normalized_credits):
+    # Source metadata can omit collaborators (album tracks often list only the
+    # album artist). Keep every known requested artist, while allowing the
+    # catalogue to supply additional credits. Mere overlap is insufficient.
+    if not expected_artists or not expected_artists.issubset(set(normalized_credits)):
         candidate.reasons.append("different_artist")
         return
     expected_duration = song.duration_seconds()
@@ -122,6 +125,8 @@ def score_candidate(candidate: YoutubeCandidate, song: YoutubeSongQuery) -> None
         duration_score = 1 - abs(duration - expected_duration) / (tolerance * 2)
     candidate.score = title_score * 0.6 + 0.3 + duration_score * 0.1
     candidate.reasons.extend(["catalog_audio", "title_match", "artist_match"])
+    if expected_artists != set(normalized_credits):
+        candidate.reasons.append("additional_catalogue_artists")
     if expected_duration is not None:
         candidate.reasons.append("duration_match")
     if song.album_title and _normalize(candidate.album_title) == _normalize(song.album_title):

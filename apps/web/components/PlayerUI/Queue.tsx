@@ -54,7 +54,7 @@ export default function PlayerUIQueue({
             !$playerUIVisible
         )
             return;
-        if (followDisabledRef.current) return;
+        if (followDisabledRef.current || isUserScrollingRef.current) return;
         const el = queueContainerRef.current.querySelector(
             `[data-queue-media-id="${$currentQueueMediaId}"]`
         );
@@ -168,10 +168,24 @@ export default function PlayerUIQueue({
                         });
                 }
             }}
+            onPointerDown={markUserScrolling}
+            onKeyDown={(event): void => {
+                if (
+                    [
+                        "ArrowUp",
+                        "ArrowDown",
+                        "PageUp",
+                        "PageDown",
+                        "Home",
+                        "End",
+                        " ",
+                    ].includes(event.key)
+                )
+                    markUserScrolling();
+            }}
             onWheel={markUserScrolling}
             onTouchMove={markUserScrolling}
             className="flex h-full max-h-full min-h-0 w-full max-w-full min-w-0 flex-col overflow-y-auto mask-t-from-90% mask-b-from-90% py-16"
-            style={{ scrollBehavior: "smooth" }}
         >
             <div style={{ height: topPadding, flexShrink: 0 }} />
             {$queue

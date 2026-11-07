@@ -542,6 +542,10 @@ export {
     type RadioBrowserStationResponse,
 } from "./radioBrowserStationResponse";
 export {
+    RecommendationArtworkResponseSchema,
+    type RecommendationArtworkResponse,
+} from "./recommendationArtworkResponse";
+export {
     RecommendationTrackRequestSchema,
     type RecommendationTrackRequest,
 } from "./recommendationTrackRequest";

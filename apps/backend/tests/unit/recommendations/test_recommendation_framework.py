@@ -16,6 +16,7 @@ from core.framework.externalRecommendation.externalRecommendations import (
 from core.framework.models.media import MediaModel
 from core.framework.models.recommendation import (
     EExternalStatus,
+    ExternalSuggestion,
     LocalCandidate,
     SeedTrack,
 )
@@ -119,6 +120,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
             songs = [make_song(pid) for pid in public_ids]
             for song in songs:
                 song.downloaded = song.publicId not in self.missing_audio
+                song.imageUrl = f"https://covers.example/{song.publicId}.jpg"
             return songs
 
         async def candidates(session: object, **kwargs: object) -> Result[list[LocalCandidate]]:
@@ -358,6 +360,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         result = await self.for_you()
         self.assertEqual(result.discover[0].publicId, None)
         self.assertFalse(result.discover[0].downloaded)
+        self.assertEqual(result.discover[0].imageUrl, "https://covers.example/metadata-only.jpg")
 
     async def test_discovery_can_reuse_a_downloaded_alternative(self) -> None:
         self.use_providers(FakeProvider("external", ok(("Artist", "Song"))))
@@ -369,6 +372,50 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
             result = await self.for_you()
         self.assertEqual(result.discover[0].publicId, "playable-version")
         self.assertTrue(result.discover[0].downloaded)
+        self.assertEqual(result.discover[0].imageUrl, "https://covers.example/playable-version.jpg")
+
+    def test_discovery_preserves_external_artwork_and_prefers_resolved_artwork(self) -> None:
+        suggestion = ExternalSuggestion(
+            artist_name="Artist", track_name="Song", image_url="https://covers.example/external.jpg"
+        )
+        external = Recommendation.build_discover_item(
+            suggestion=suggestion, provider_name="External", public_id=None
+        )
+        self.assertEqual(external.imageUrl, suggestion.image_url)
+        local = Recommendation.build_discover_item(
+            suggestion=suggestion,
+            provider_name="External",
+            public_id="known",
+            image_url="https://covers.example/local.jpg",
+        )
+        self.assertEqual(local.imageUrl, "https://covers.example/local.jpg")
+
+    async def test_artwork_delegates_to_configured_capability_only(self) -> None:
+        provider = FakeProvider("external", ok())
+        self.use_providers(provider)
+        with mock.patch.object(
+            provider,
+            "get_artwork_async",
+            mock.AsyncMock(return_value=ok_result("https://covers.example/album.jpg")),
+        ) as lookup:
+            result = await Recommendation.get_artwork_async(
+                provider_name="External", artist="Artist", track="Song"
+            )
+            self.assertTrue(result.is_ok())
+            self.assertEqual(result.result(), "https://covers.example/album.jpg")
+            lookup.assert_awaited_once_with(artist_name="Artist", track_name="Song")
+            unsupported = await Recommendation.get_artwork_async(
+                provider_name="Unknown", artist="Artist", track="Song"
+            )
+            self.assertTrue(unsupported.is_ok())
+            self.assertEqual(unsupported.result(), "")
+            provider._configured = False  # pyright: ignore[reportPrivateUsage]
+            disabled = await Recommendation.get_artwork_async(
+                provider_name="External", artist="Artist", track="Song"
+            )
+            self.assertTrue(disabled.is_ok())
+            self.assertEqual(disabled.result(), "")
+            lookup.assert_awaited_once()
 
     async def test_response_contract(self) -> None:
         self.use_providers(FakeProvider("primary", ok(("New Artist", "New Song"))))

@@ -1,19 +1,19 @@
 "use client";
 
 import { useCallback, type JSX } from "react";
-import Image from "next/image";
 import type {
     BaseSearchResultsItem,
     BaseSongWithAlbumResponse,
     SongListResponse,
 } from "@/dto";
 import { EMediaContextLocation, isDiscoverItemInLibrary } from "@rockit/shared";
-import { Download, Music, Play } from "lucide-react";
+import { Download, Play } from "lucide-react";
 import { isDownloadable, isQueueable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import RecommendationArtwork from "@/components/Recommendations/RecommendationArtwork";
 import ContextMenuContent from "@/components/ui/ContextMenu/Content";
 import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ui/ContextMenu/Option";
@@ -115,6 +115,7 @@ function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
         <RecommendationCard
             name={item.name}
             imageUrl={item.imageUrl}
+            artworkProvider={item.provider}
             artistNames={item.artists.map((a): string => a.name)}
             dimmed={!inLibrary}
             hint={!inLibrary ? $vocabulary.CLICK_TO_DOWNLOAD : undefined}
@@ -161,6 +162,7 @@ function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
 function RecommendationCard({
     name,
     imageUrl,
+    artworkProvider = "",
     artistNames,
     dimmed,
     hint,
@@ -168,6 +170,7 @@ function RecommendationCard({
 }: {
     name: string;
     imageUrl: string;
+    artworkProvider?: string;
     artistNames: string[];
     dimmed: boolean;
     hint?: string;
@@ -179,23 +182,15 @@ function RecommendationCard({
             className={`group relative w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${dimmed ? "opacity-50" : ""}`}
             onClick={onClick}
         >
-            {imageUrl ? (
-                <Image
-                    width={350}
-                    height={350}
-                    className="aspect-square w-full rounded-lg object-cover select-none"
-                    src={imageUrl}
-                    alt={vocabulary.COVER_OF.replace("{name}", name)}
-                />
-            ) : (
-                // Suggestions no provider could resolve have no artwork.
-                <div
-                    className="bg-muted flex aspect-square w-full items-center justify-center rounded-lg select-none"
-                    aria-hidden="true"
-                >
-                    <Music className="text-disabled-foreground h-8 w-8" />
-                </div>
-            )}
+            <RecommendationArtwork
+                src={imageUrl}
+                provider={artworkProvider}
+                artist={artistNames[0]}
+                track={name}
+                size={350}
+                className="aspect-square w-full rounded-lg object-cover select-none"
+                alt={vocabulary.COVER_OF.replace("{name}", name)}
+            />
             {hint && (
                 <p className="border-foreground-strong bg-backdrop text-foreground-strong absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border px-2 py-1 text-center text-sm font-semibold group-hover:block">
                     {hint}
@@ -240,7 +235,7 @@ export default function RecommendationsSection({
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {title}
             </h2>
-            {songs.length > 0 && (
+            {discover.length === 0 && songs.length > 0 && (
                 <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                     {songs.map((song): JSX.Element => (
                         <KnownSongCard

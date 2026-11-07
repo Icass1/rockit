@@ -5,7 +5,7 @@ import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Svg, { G, Rect, Text as SvgText } from "react-native-svg";
-import { useVocabulary, useVocabulary } from "@/lib/vocabulary";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface ListeningHeatmapProps {
     data: StatsHeatmapCellResponse[];

@@ -79,7 +79,7 @@ export default function RockitFeaturedLists(): JSX.Element {
                                 {name}
                             </p>
                             <p className="text-muted-foreground block truncate text-center text-sm">
-                                {vocabulary.BY} Rock It!
+                                {vocabulary.BY} RockIt!
                             </p>
                         </Link>
                     </NavigationPinMenu>

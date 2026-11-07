@@ -9,6 +9,7 @@ import {
     Text,
     View,
 } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useHomeData } from "@/hooks/useHomeData";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -23,46 +24,34 @@ import MediaCard from "@/components/Media/MediaCard";
 import AutoplayDiscovery from "@/components/Recommendations/AutoplayDiscovery";
 
 function useFadeIn(delay: number = 0) {
+    const theme = useDesignTheme();
+    const reduceMotion = useReducedMotion();
     const [opacity] = useState(() => new Animated.Value(0));
     const [translateY] = useState(() => new Animated.Value(20));
 
     useEffect(() => {
+        if (reduceMotion) {
+            opacity.setValue(1);
+            translateY.setValue(0);
+            return;
+        }
         Animated.parallel([
             Animated.timing(opacity, {
                 toValue: 1,
-                duration: 400,
+                duration: theme.motion.slow,
                 delay,
                 useNativeDriver: true,
             }),
             Animated.timing(translateY, {
                 toValue: 0,
-                duration: 400,
+                duration: theme.motion.slow,
                 delay,
                 useNativeDriver: true,
             }),
         ]).start();
-    }, [opacity, translateY, delay]);
+    }, [opacity, translateY, delay, reduceMotion, theme.motion.slow]);
 
     return { opacity, transform: [{ translateY }] };
-}
-
-function getPreviousMonthName(): string {
-    // TODO: This should be keys in capital letters and then use vocabulary to get the correct translation.
-    const MONTH_NAMES = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-    ];
-    return MONTH_NAMES[(new Date().getMonth() + 11) % 12];
 }
 
 export default function HomeScreen() {
@@ -127,8 +116,6 @@ export default function HomeScreen() {
             </SafeAreaView>
         );
     }
-
-    const previousMonth = getPreviousMonthName();
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
@@ -221,7 +208,7 @@ export default function HomeScreen() {
                 {data.monthlyTop.length > 0 && (
                     <Animated.View style={section5}>
                         <HorizontalSongRow
-                            title={`${previousMonth} Recap`}
+                            title={vocabulary.NAV_LAST_MONTH}
                             songs={data.monthlyTop}
                             listKey="monthly"
                             onSongPress={handleSongPress}

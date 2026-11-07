@@ -107,3 +107,15 @@ export type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listeningQ
 export { SharingManager } from "@/managers/sharingManager";
 
 export { NavigationPinsManager } from "@/managers/navigationPinsManager";
+
+export type {
+    StatsRange,
+    StatsRangeOption,
+} from "@/models/interfaces/statsPresentation";
+export {
+    statsRangeOptions,
+    formatStatsRange,
+    statsDateBoundary,
+    formatListeningDuration,
+    statsInsightMetrics,
+} from "@/stats/presentation";

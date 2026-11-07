@@ -13,6 +13,7 @@ import type {
 } from "@/dto";
 import { getMediaSubtitle, isList, isPlayable } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 type RecentlyClickedMedia =
     | BaseAlbumWithSongsResponse
@@ -26,6 +27,8 @@ export default function RecentlyClickedSection({
 }: {
     items: MediaResponse["media"][];
 }): JSX.Element | null {
+    const vocabulary = useVocabulary();
+
     const mediaItems = items.filter(
         (item): item is RecentlyClickedMedia =>
             item.type === "album" ||
@@ -38,7 +41,7 @@ export default function RecentlyClickedSection({
     return (
         <section className="text-foreground-strong mt-8 md:pl-12">
             <h2 className="px-5 text-2xl font-bold md:text-3xl">
-                Recently opened
+                {vocabulary.MOBILE_RECENTLY_OPENED}
             </h2>
             <div className="scrollbar-hide flex snap-x gap-3 overflow-x-auto px-5 py-4 md:px-2">
                 {mediaItems.map((media) => {

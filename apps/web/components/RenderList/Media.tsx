@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { isList, isPlayable, TMedia } from "@/models/types/media";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import { ListMedia } from "@/components/RenderList/ListMedia";
 import { PlayableMedia } from "@/components/RenderList/PlayableMedia";
 
@@ -24,6 +25,7 @@ export function Media({
     expandedByMediaId?: Record<string, boolean>;
     onToggle?: () => void;
 }): JSX.Element {
+    const $vocabulary = useVocabulary();
     if (isPlayable(media)) {
         return (
             <PlayableMedia
@@ -48,5 +50,5 @@ export function Media({
             />
         );
     }
-    return <div>Unsupported media type</div>;
+    return <div>{$vocabulary.MOBILE_UNSUPPORTED_MEDIA}</div>;
 }

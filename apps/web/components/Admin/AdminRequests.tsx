@@ -182,7 +182,7 @@ export default function AdminRequests(): JSX.Element {
                     onClick={() => window.location.reload()}
                     className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
                 >
-                    Retry
+                    {$vocabulary.RETRY}
                 </button>
             </div>
         );
@@ -204,7 +204,7 @@ export default function AdminRequests(): JSX.Element {
                     onClick={() => window.location.reload()}
                     className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
                 >
-                    Retry
+                    {$vocabulary.RETRY}
                 </button>
             </div>
         );
@@ -217,8 +217,7 @@ export default function AdminRequests(): JSX.Element {
                     {$vocabulary.ADMIN_REQUESTS_TITLE}
                 </h1>
                 <p className="text-subtle-foreground mt-1 text-sm">
-                    Manage user suggestions for lyrics, metadata, and content
-                    corrections
+                    {$vocabulary.ADMIN_SUGGESTIONS_DESCRIPTION}
                 </p>
             </div>
 
@@ -258,7 +257,9 @@ export default function AdminRequests(): JSX.Element {
             {filteredRequests.length === 0 ? (
                 <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
                     <MessageSquare className="text-disabled-foreground mb-4 h-12 w-12" />
-                    <p className="text-subtle-foreground">No requests found</p>
+                    <p className="text-subtle-foreground">
+                        {$vocabulary.ADMIN_REQUESTS_EMPTY}
+                    </p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -295,7 +296,9 @@ export default function AdminRequests(): JSX.Element {
                                         <div className="mb-3 space-y-2">
                                             <div className="bg-muted/50 rounded-lg p-3">
                                                 <p className="text-subtle-foreground text-xs font-medium tracking-wider uppercase">
-                                                    Proposed change
+                                                    {
+                                                        $vocabulary.ADMIN_PROPOSED_CHANGE
+                                                    }
                                                 </p>
                                                 {req.requestType === "LYRICS" &&
                                                 req.mediaPublicId ? (
@@ -317,7 +320,9 @@ export default function AdminRequests(): JSX.Element {
                                             {req.comment && (
                                                 <div className="bg-muted/30 rounded-lg p-3">
                                                     <p className="text-subtle-foreground text-xs font-medium tracking-wider uppercase">
-                                                        User comment
+                                                        {
+                                                            $vocabulary.ADMIN_USER_COMMENT
+                                                        }
                                                     </p>
                                                     <p className="text-foreground mt-1 text-sm">
                                                         {req.comment}
@@ -328,7 +333,9 @@ export default function AdminRequests(): JSX.Element {
                                             {req.reviewComment && (
                                                 <div className="bg-muted/30 rounded-lg p-3">
                                                     <p className="text-subtle-foreground text-xs font-medium tracking-wider uppercase">
-                                                        Review note
+                                                        {
+                                                            $vocabulary.ADMIN_REVIEW_NOTE
+                                                        }
                                                     </p>
                                                     <p className="text-foreground mt-1 text-sm">
                                                         {req.reviewComment}
@@ -380,7 +387,7 @@ export default function AdminRequests(): JSX.Element {
                                                 ) : (
                                                     <ThumbsUp className="h-4 w-4" />
                                                 )}
-                                                Accept
+                                                {$vocabulary.ADMIN_ACCEPT}
                                             </button>
                                             <button
                                                 onClick={() =>
@@ -400,7 +407,7 @@ export default function AdminRequests(): JSX.Element {
                                                 ) : (
                                                     <XCircle className="h-4 w-4" />
                                                 )}
-                                                Reject
+                                                {$vocabulary.ADMIN_REJECT}
                                             </button>
                                         </div>
                                     )}

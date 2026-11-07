@@ -2,12 +2,16 @@
 
 import { JSX, useMemo } from "react";
 import type { StatsHeatmapCellResponse } from "@/dto";
+import { localizedWeekdays } from "@rockit/shared";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 interface ListeningHeatmapProps {
     data: StatsHeatmapCellResponse[];
 }
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 function cellColor(value: number, maxValue: number): string {
@@ -23,6 +27,10 @@ function cellColor(value: number, maxValue: number): string {
 export default function ListeningHeatmap({
     data,
 }: ListeningHeatmapProps): JSX.Element {
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
+    const days = localizedWeekdays(lang);
+
     const { values, maxValue } = useMemo(() => {
         const indexed = new Map(
             data.map((cell) => [`${cell.day}-${cell.hour}`, cell.value])
@@ -46,7 +54,7 @@ export default function ListeningHeatmap({
                             {hour % 3 === 0 ? `${hour}:00` : ""}
                         </div>
                     ))}
-                    {DAY_LABELS.map((day, dayIndex) => (
+                    {days.map((day, dayIndex) => (
                         <div key={day} className="contents">
                             <div className="text-subtle-foreground flex items-center text-xs font-medium">
                                 {day}
@@ -57,8 +65,24 @@ export default function ListeningHeatmap({
                                 return (
                                     <div
                                         key={`${day}-${hour}`}
-                                        title={`${day} ${hour.toString().padStart(2, "0")}:00 · ${value} min`}
-                                        aria-label={`${day} at ${hour}:00, ${value} minutes listened`}
+                                        title={vocabulary.STATS_HEATMAP_CELL.replace(
+                                            "{day}",
+                                            day
+                                        )
+                                            .replace("{hour}", `${hour}:00`)
+                                            .replace(
+                                                "{minutes}",
+                                                value.toLocaleString(lang)
+                                            )}
+                                        aria-label={vocabulary.STATS_HEATMAP_CELL.replace(
+                                            "{day}",
+                                            day
+                                        )
+                                            .replace("{hour}", `${hour}:00`)
+                                            .replace(
+                                                "{minutes}",
+                                                value.toLocaleString(lang)
+                                            )}
                                         className={`hover:ring-foreground-strong/40 aspect-square rounded-[5px] transition-transform hover:scale-125 hover:ring-2 ${cellColor(value, maxValue)}`}
                                     />
                                 );
@@ -67,7 +91,7 @@ export default function ListeningHeatmap({
                     ))}
                 </div>
                 <div className="text-disabled-foreground mt-5 flex items-center justify-end gap-2 text-[10px] font-medium">
-                    <span>Less</span>
+                    <span>{vocabulary.LISTENING_HEATMAP_LESS}</span>
                     {[
                         "bg-foreground-strong/4",
                         "bg-primary-hover",
@@ -79,7 +103,7 @@ export default function ListeningHeatmap({
                             className={`h-3 w-3 rounded-sm ${color}`}
                         />
                     ))}
-                    <span>More</span>
+                    <span>{vocabulary.LISTENING_HEATMAP_MORE}</span>
                 </div>
             </div>
         </div>

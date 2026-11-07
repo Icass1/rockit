@@ -1,5 +1,7 @@
+import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface StatsPillsProps {
     total: number;
@@ -18,7 +20,9 @@ function Pill({ count, color, label }: PillProps) {
     const styles = useThemedStyles(createStyles);
     if (count === 0) return null;
     return (
-        <View style={[styles.pill, { backgroundColor: `${color}15` }]}>
+        <View
+            style={[styles.pill, { backgroundColor: withAlpha(color, 0.08) }]}
+        >
             <Text style={[styles.pillText, { color }]}>
                 {count} {label}
             </Text>
@@ -33,16 +37,29 @@ export default function StatsPills({
     failed,
 }: StatsPillsProps) {
     const theme = useDesignTheme();
+    const { vocabulary } = useVocabulary();
     const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.container}>
-            <Pill count={total} color={theme.legacy.white} label="total" />
-            <Pill count={active} color={theme.legacy.accent} label="active" />
-            <Pill count={done} color={theme.colors["success"]} label="done" />
+            <Pill
+                count={total}
+                color={theme.legacy.white}
+                label={vocabulary.SONGS}
+            />
+            <Pill
+                count={active}
+                color={theme.legacy.accent}
+                label={vocabulary.ACTIVE}
+            />
+            <Pill
+                count={done}
+                color={theme.colors["success"]}
+                label={vocabulary.COMPLETED}
+            />
             <Pill
                 count={failed}
                 color={theme.colors["destructive"]}
-                label="failed"
+                label={vocabulary.FAILED}
             />
         </View>
     );

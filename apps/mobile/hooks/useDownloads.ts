@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import type { DownloadProgressMessage } from "@rockit/shared";
 import { EWebSocketMessage } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme } from "@rockit/ui";
 import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -29,6 +30,7 @@ export interface DownloadGroup {
 }
 
 export function useDownloads() {
+    const theme = useDesignTheme();
     const [downloads, setDownloads] = useState<DownloadInfo[]>([]);
     const { vocabulary } = useVocabulary();
 
@@ -194,27 +196,27 @@ export function useDownloads() {
     const groups: DownloadGroup[] = [
         {
             id: "active",
-            label: "Active",
+            label: vocabulary.ACTIVE,
             items: active,
             isOpen: true,
-            color: COLORS.accent,
-            badgeColor: "rgba(238, 16, 134, 0.15)",
+            color: theme.colors.primary,
+            badgeColor: withAlpha(theme.colors.primary, 0.15),
         },
         {
             id: "completed",
-            label: "Completed",
+            label: vocabulary.COMPLETED,
             items: completed,
             isOpen: false,
-            color: "#1cad60",
-            badgeColor: "rgba(28, 173, 96, 0.15)",
+            color: theme.colors.success,
+            badgeColor: withAlpha(theme.colors.success, 0.15),
         },
         {
             id: "failed",
-            label: "Failed",
+            label: vocabulary.FAILED,
             items: failed,
             isOpen: true,
-            color: "#c72e2e",
-            badgeColor: "rgba(199, 46, 46, 0.15)",
+            color: theme.colors.destructive,
+            badgeColor: withAlpha(theme.colors.destructive, 0.15),
         },
     ];
 

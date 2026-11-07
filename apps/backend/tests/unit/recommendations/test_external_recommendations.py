@@ -198,6 +198,31 @@ class ExternalRecommendationsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(provider.calls, 1)
         self.assertEqual([s.track_name for s in result.suggestions], ["One"])
 
+    async def test_artwork_survives_cache_roundtrip_and_legacy_rows_still_work(self) -> None:
+        provider = FakeProvider(
+            "art",
+            Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=[
+                    ExternalSuggestion(
+                        artist_name="Artist",
+                        track_name="Song",
+                        image_url="https://covers.example/cover.jpg",
+                    )
+                ],
+            ),
+        )
+        orchestrator = self.orchestrator(provider)
+        await self.run_orchestrator(orchestrator)
+        cached = await self.run_orchestrator(orchestrator)
+        self.assertEqual(cached.suggestions[0].image_url, "https://covers.example/cover.jpg")
+        self.assertEqual(provider.calls, 1)
+        del self.cache["art|test"][0]["image_url"]
+        legacy = await self.run_orchestrator(orchestrator)
+        self.assertIsNone(legacy.suggestions[0].image_url)
+        self.assertEqual(provider.calls, 1)
+
     async def test_stale_cache_is_refreshed(self) -> None:
         provider = FakeProvider("a", ok(("A", "One")))
         orchestrator = self.orchestrator(provider)

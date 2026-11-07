@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 import { withSerwist } from "@serwist/turbopack";
 
 const isDev = process.env.NODE_ENV === "development";
+const workspaceRoot = path.join(__dirname, "../..");
 const s3PublicEndpoint = process.env.NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL;
 const s3PublicPattern = s3PublicEndpoint
     ? (() => {
@@ -29,10 +30,45 @@ const nextConfig: NextConfig = {
             { encoding: "utf8" }
         ).trim(),
     },
-    output: "standalone",
-    outputFileTracingRoot: path.join(__dirname, "../.."),
+    outputFileTracingRoot: workspaceRoot,
     transpilePackages: ["@rockit/shared"],
-    webpack: (config) => {
+    onDemandEntries: {
+        // Keep only the current route in the development compiler's buffer.
+        maxInactiveAge: 15_000,
+        pagesBufferLength: 1,
+    },
+    experimental: {
+        // Avoid loading every route entry during dev server startup.
+        preloadEntriesOnStart: false,
+        // The dev script uses Webpack so this Next.js memory optimization
+        // applies to its route compilations.
+        webpackMemoryOptimizations: true,
+    },
+    webpack: (config, { dev, isServer, webpack }) => {
+        if (dev) {
+            let lastProgress = -1;
+
+            config.plugins.push(
+                new webpack.ProgressPlugin({
+                    activeModules: false,
+                    dependencies: false,
+                    entries: true,
+                    modules: true,
+                    handler: (percentage, message) => {
+                        const progress = Math.floor(percentage * 10);
+                        if (progress === lastProgress && percentage < 1) {
+                            return;
+                        }
+
+                        lastProgress = progress;
+                        process.stderr.write(
+                            `[webpack:${isServer ? "server" : "client"}] ${Math.round(percentage * 100)}% ${message}\n`
+                        );
+                    },
+                })
+            );
+        }
+
         config.resolve.alias = {
             ...config.resolve.alias,
             "@/lib": path.resolve(__dirname, "./lib"),
@@ -53,7 +89,7 @@ const nextConfig: NextConfig = {
         return config;
     },
     turbopack: {
-        root: path.resolve(__dirname, "..", ".."),
+        root: workspaceRoot,
     },
     images: {
         // Only disable image optimization in dev
@@ -64,6 +100,16 @@ const nextConfig: NextConfig = {
             1920, 2048, 3840,
         ],
         remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "lastfm.freetls.fastly.net",
+                pathname: "/i/u/**",
+            },
+            {
+                protocol: "https",
+                hostname: "lastfm-img2.akamaized.net",
+                pathname: "/i/u/**",
+            },
             {
                 protocol: "https",
                 hostname: "commons.wikimedia.org",
@@ -93,6 +139,17 @@ const nextConfig: NextConfig = {
             {
                 protocol: "https",
                 hostname: "yt3.googleusercontent.com",
+                pathname: "/**",
+            },
+            {
+                protocol: "https",
+                hostname: "fs-rockit.rockhosting.org",
+                pathname: "/**",
+            },
+            {
+                protocol: "http",
+                hostname: "rockit.rockhosting.lan",
+                port: "9102",
                 pathname: "/**",
             },
             ...(s3PublicPattern ? [s3PublicPattern] : []),

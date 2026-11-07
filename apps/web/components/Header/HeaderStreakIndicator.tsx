@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import StreakFlame from "@/components/Header/StreakFlame";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function StreakIndicator(): JSX.Element | null {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [streak, setStreak] = useState<number | null>(null);
 
     useEffect(() => {
@@ -22,7 +21,7 @@ export default function StreakIndicator(): JSX.Element | null {
 
     return (
         <div
-            className="flex items-center gap-1 text-orange-100"
+            className="text-warning-foreground flex items-center gap-1"
             title={`${streak} ${vocabulary.HOME_STREAK_DAYS}`}
         >
             <span className="text-sm font-semibold tabular-nums">{streak}</span>

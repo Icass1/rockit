@@ -10,7 +10,6 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
     TMediaWithSearch,
@@ -22,12 +21,14 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import { LibraryDragDropSurface } from "@/components/Library/LibraryDragDrop";
 import {
     isZippable,
     useLibrarySelection,
 } from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -40,8 +41,21 @@ const COVER_PX = 250;
 const COVER_SIZES = "(max-width: 640px) 50vw, 250px";
 
 /** Shared wrapper for every grid card — enforces the 250 px cap. */
-function CardShell({ children }: { children: ReactNode }): JSX.Element {
-    return <div className="mx-auto w-full max-w-62.5">{children}</div>;
+function CardShell({
+    media,
+    children,
+}: {
+    media: TMediaWithSearch;
+    children: ReactNode;
+}): JSX.Element {
+    return (
+        <LibraryDragDropSurface
+            media={media}
+            className="mx-auto w-full max-w-62.5"
+        >
+            {children}
+        </LibraryDragDropSurface>
+    );
 }
 
 /* ------------------------------------------------------- */
@@ -85,7 +99,7 @@ function LibraryCard({
     undownloadedCount,
     children,
 }: LibraryCardProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const linkClass = `library-item relative flex flex-col select-none transition-transform [-webkit-touch-callout:none] md:hover:scale-105 ${className}`;
     const isVideo = aspectRatio === "video";
     const fallbackImage =
@@ -159,11 +173,11 @@ function LibraryCard({
                 />
             )}
             <div className="absolute top-1 left-1 flex gap-1">
-                <span className="rounded bg-black/60 px-1 text-[10px] leading-4 font-semibold text-white">
+                <span className="bg-backdrop/60 text-on-media rounded px-1 text-[10px] leading-4 font-semibold">
                     {$vocabulary[badge].toUpperCase()}
                 </span>
                 {undownloadedCount !== undefined && undownloadedCount > 0 && (
-                    <span className="flex items-center gap-0.5 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                    <span className="bg-backdrop/60 text-on-media flex items-center gap-0.5 rounded px-1 text-[10px] leading-4">
                         ↓{undownloadedCount}
                     </span>
                 )}
@@ -180,11 +194,11 @@ function LibraryCard({
     const subtitleBlock =
         subtitle !== undefined ? (
             typeof subtitle === "string" ? (
-                <p className="truncate text-center text-sm text-gray-400">
+                <p className="text-muted-foreground truncate text-center text-sm">
                     {subtitle}
                 </p>
             ) : (
-                <div className="text-center text-sm text-gray-400">
+                <div className="text-muted-foreground text-center text-sm">
                     {subtitle}
                 </div>
             )
@@ -220,20 +234,20 @@ function LibraryCard({
             tabIndex={0}
             onClick={handleSelectionClick}
             onKeyDown={handleSelectionKeyDown}
-            className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded bg-black/60"
+            className="bg-backdrop/60 absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded"
         >
             {"publicId" in media &&
             media.publicId !== null &&
             isSelected(media.publicId) ? (
-                <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
+                <SquareCheck className="text-primary h-5 w-5" />
             ) : (
-                <SquareDashed className="h-5 w-5 text-white/80" />
+                <SquareDashed className="text-foreground-strong/80 h-5 w-5" />
             )}
         </div>
     ) : null;
 
     return (
-        <CardShell>
+        <CardShell media={media}>
             <MediaContextMenu media={media} location={location}>
                 {href ? (
                     <div className={linkClass}>
@@ -261,7 +275,19 @@ function LibraryCard({
                     </div>
                 ) : (
                     <div
-                        className={`${linkClass} cursor-pointer`}
+                        className={`${linkClass} focus-visible:outline-primary cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4`}
+                        role="button"
+                        data-library-drag-handle="true"
+                        tabIndex={selectable ? -1 : 0}
+                        onKeyDown={(event): void => {
+                            if (
+                                event.target === event.currentTarget &&
+                                (event.key === "Enter" || event.key === " ")
+                            ) {
+                                event.preventDefault();
+                                event.currentTarget.click();
+                            }
+                        }}
                         onClick={(event): void => {
                             if (selectable) {
                                 handleSelectionClick(event);
@@ -315,7 +341,7 @@ export function AlbumCard({
             subtitle={
                 <Artists
                     artists={album.artists}
-                    className="text-sm text-gray-400"
+                    className="text-muted-foreground text-sm"
                 />
             }
             href={album.url}
@@ -353,7 +379,7 @@ export function VideoCard({
             subtitle={
                 <Artists
                     artists={$video.artists}
-                    className="text-sm text-gray-400"
+                    className="text-muted-foreground text-sm"
                 />
             }
             onClick={handleClick}
@@ -365,8 +391,12 @@ export function VideoCard({
 /** Square song card — used only inside the masonry "All" view. */
 export function SongCard({
     song: _song,
+    albumName,
+    location = EMediaContextLocation.LIBRARY,
 }: {
     song: BaseSongWithoutAlbumResponse;
+    albumName?: string;
+    location?: EMediaContextLocation;
 }): JSX.Element {
     const $song = useMedia(_song);
     const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
@@ -385,6 +415,7 @@ export function SongCard({
     return (
         <LibraryCard
             media={$song}
+            location={location}
             imageUrl={$song.imageUrl}
             badge="SONG"
             name={$song.name}
@@ -395,10 +426,20 @@ export function SongCard({
                 />
             }
             subtitle={
-                <Artists
-                    artists={$song.artists}
-                    className="text-sm text-gray-400"
-                />
+                <>
+                    <Artists
+                        artists={$song.artists}
+                        className="text-muted-foreground text-sm"
+                    />
+                    {albumName && (
+                        <p
+                            className="text-muted-foreground truncate text-sm"
+                            title={albumName}
+                        >
+                            {albumName}
+                        </p>
+                    )}
+                </>
             }
             onClick={handleClick}
             contentClassName={!downloaded ? "opacity-50" : ""}
@@ -418,7 +459,7 @@ export function StationCard({
 }: {
     station: BaseStationResponse;
 }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const $station = useMedia(_station);
 
     const handlePlay = (): void => {

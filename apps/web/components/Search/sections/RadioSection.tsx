@@ -2,9 +2,9 @@
 
 import { JSX, useState } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import SearchRail from "@/components/Search/SearchRail";
 
 function RadioStationCard({
@@ -48,7 +48,7 @@ export default function RadioSection({
 }: {
     stations: BaseSearchResultsItem[];
 }): JSX.Element | null {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     if (stations.length === 0) return null;
 
@@ -62,7 +62,7 @@ export default function RadioSection({
     };
 
     return (
-        <section className="py-2 text-white md:py-6 md:pl-12">
+        <section className="text-foreground-strong py-2 md:py-6 md:pl-12">
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {$vocabulary.RADIO_STATIONS}
             </h2>

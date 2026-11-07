@@ -1,0 +1,600 @@
+/* eslint @typescript-eslint/explicit-function-return-type: "off" */
+import assert from "node:assert/strict";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { createRequire } from "node:module";
+import test from "node:test";
+import { createElement } from "react";
+import { build } from "esbuild";
+import { atom } from "nanostores";
+import { renderToString } from "react-dom/server";
+
+async function load(source, globals = {}) {
+    const { outputFiles } = await build({
+        stdin: {
+            contents: source,
+            resolveDir: new URL("../", import.meta.url).pathname,
+        },
+        bundle: true,
+        write: false,
+        format: "cjs",
+        platform: "node",
+        external: ["react", "react/jsx-runtime"],
+        tsconfig: new URL("../tsconfig.json", import.meta.url).pathname,
+        plugins: [
+            {
+                name: "server-fixtures",
+                setup(builder) {
+                    builder.onResolve(
+                        {
+                            filter: /^@\/components\/(LikeButton\/LikeButton|MediaContextMenu\/MediaContextMenu|ListeningHeatmap\/ListeningHeatmap|Footer\/BookmarkPopup|Footer\/PictureInPicture\/PictureInPicture)$/,
+                        },
+                        ({ path }) => ({ path, namespace: "peripheral" })
+                    );
+                    builder.onLoad(
+                        { filter: /.*/, namespace: "peripheral" },
+                        () => ({
+                            contents:
+                                "export default function Peripheral({children}) { return children ?? null; }",
+                        })
+                    );
+                    builder.onResolve(
+                        {
+                            filter: /^(server-only|next\/headers|next\/navigation|next\/image|next\/link|@\/lib\/rockit\/rockIt)$/,
+                        },
+                        ({ path }) => ({ path, namespace: "fixture" })
+                    );
+                    builder.onLoad(
+                        { filter: /.*/, namespace: "fixture" },
+                        ({ path }) => ({
+                            contents: {
+                                "server-only": "",
+                                "next/image":
+                                    "import {createElement} from 'react'; export default function Image({src, alt, width, height, className}) { return createElement('img', {src, alt, width, height, className}); }",
+                                "next/link":
+                                    "import {createElement} from 'react'; export default function Link({children, href, className}) { return createElement('a', {href, className}, children); }",
+                                "next/headers":
+                                    "export const cookies = () => globals.cookies(); export const headers = () => globals.headers();",
+                                "next/navigation":
+                                    "export const useRouter = () => ({ refresh() {} }); export const redirect = (url) => { throw new Error('redirect:' + url); }; export const notFound = () => { throw new Error('not-found'); };",
+                                "@/lib/rockit/rockIt":
+                                    "export const rockIt = globals.rockIt;",
+                            }[path],
+                        })
+                    );
+                },
+            },
+        ],
+    });
+    const testModule = { exports: {} };
+    new Function(
+        "require",
+        "module",
+        "exports",
+        "globals",
+        outputFiles[0].text
+    )(createRequire(import.meta.url), testModule, testModule.exports, globals);
+    return testModule.exports;
+}
+const runtime = {
+    queueManager: { readyAtom: atom(false), currentMediaAtom: atom(undefined) },
+    mediaPlayerManager: {
+        playingAtom: atom(false),
+        durationAtom: atom(0),
+        currentTimeAtom: atom(0),
+        loadingAtom: atom(false),
+        volumeAtom: atom(1),
+        triggeredBookmarkPublicIdsAtom: atom([]),
+    },
+    userManager: {
+        showListeningHeatmapAtom: atom(true),
+        queueTypeAtom: atom("SORTED"),
+        repeatModeAtom: atom("OFF"),
+    },
+    bookmarkManager: {
+        currentMediaBookmarksAtom: atom([]),
+        showPopupAtom: atom(false),
+    },
+    playerUIManager: { visibleAtom: atom(false) },
+};
+const vocabulary = await load(
+    `export {VocabularyProvider, useVocabulary, useLanguage} from './components/providers/VocabularyProvider';
+export {default as Footer} from './components/Footer/Footer';
+export {preferredLanguage, completeVocabulary} from './lib/i18n/vocabulary';
+export {QueueProvider, useQueueManager} from './components/providers/QueueProvider';
+export {PlaybackProvider, usePlaybackServices} from './components/providers/PlaybackProvider';
+export {RuntimeProvider, useRuntimeServices} from './components/providers/RuntimeProvider';
+export {usePlayer} from './components/MobilePlayer/hooks/usePlayer';
+export {QueueManager} from './lib/managers/queueManager';
+export {setRockIt} from '../../packages/shared/src/rockit/rockitRef';`,
+    { rockIt: runtime }
+);
+function Heading() {
+    const text = vocabulary.useVocabulary();
+    return createElement(
+        "h1",
+        { lang: vocabulary.useLanguage() },
+        `${text.LIBRARY} / ${text.LOG_IN}`
+    );
+}
+function render(lang, text, component = Heading, initial = {}) {
+    return renderToString(
+        createElement(
+            vocabulary.VocabularyProvider,
+            { initial: { currentLang: lang, vocabulary: text } },
+            createElement(
+                vocabulary.QueueProvider,
+                { initial },
+                createElement(component)
+            )
+        )
+    );
+}
+test("translated first-render HTML needs no effect or global store mutation", () => {
+    assert.match(
+        render("es", { LIBRARY: "Biblioteca", LOG_IN: "Entrar" }),
+        /Biblioteca \/ Entrar/
+    );
+    assert.match(
+        render("fr", { LIBRARY: "Bibliothèque", LOG_IN: "Connexion" }),
+        /Bibliothèque \/ Connexion/
+    );
+    assert.match(
+        render("es", { LIBRARY: "Biblioteca", LOG_IN: "Entrar" }),
+        /lang="es"/
+    );
+});
+test("missing and empty translations use workbook English instead of keys", () => {
+    const html = render("es", { LIBRARY: "Biblioteca", LOG_IN: "" });
+    assert.doesNotMatch(html, /LOG_IN|LIBRARY/);
+    assert.match(html, /Biblioteca/);
+    assert.equal(
+        vocabulary.completeVocabulary({ currentLang: "en", vocabulary: {} })
+            .vocabulary.LOG_IN.length > 0,
+        true
+    );
+});
+test("footer text is in the first server render without live playback state", () => {
+    for (const [lang, text] of [
+        ["es", "No se está reproduciendo nada"],
+        ["fr", "Aucun média en cours de lecture"],
+    ]) {
+        const html = render(
+            lang,
+            { NO_MEDIA_PLAYING: text },
+            vocabulary.Footer
+        );
+        assert.match(html, /<footer id="app-footer"/);
+        assert.ok(html.includes(text));
+        assert.doesNotMatch(html, /NO_MEDIA_PLAYING/);
+    }
+});
+test("footer falls back to workbook text for missing, blank and key-placeholder translations", () => {
+    for (const text of [
+        undefined,
+        "",
+        "   ",
+        "NO_MEDIA_PLAYING",
+        " NO_MEDIA_PLAYING ",
+    ]) {
+        const html = render(
+            "es",
+            text === undefined ? {} : { NO_MEDIA_PLAYING: text },
+            vocabulary.Footer
+        );
+        assert.match(html, /No media playing/);
+        assert.doesNotMatch(html, /NO_MEDIA_PLAYING/);
+    }
+});
+const serverSong = {
+    type: "song",
+    publicId: "server-song",
+    name: "Server current song",
+    imageUrl: "/logo-192.png",
+    duration_ms: 120000,
+    artists: [
+        { publicId: "artist", name: "Server artist", url: "/artist/artist" },
+    ],
+    album: { name: "Server album", url: "/album/album" },
+};
+function queueFor(media) {
+    return {
+        currentQueueMediaId: 42,
+        queueType: "RANDOM",
+        offset: 150,
+        total: 200,
+        queue: [
+            {
+                queueMediaId: 41,
+                listPublicId: "album",
+                media: { ...serverSong, name: "Earlier track" },
+                sortedIndex: 1,
+                randomIndex: 150,
+            },
+            {
+                queueMediaId: 42,
+                listPublicId: "album",
+                media,
+                sortedIndex: 0,
+                randomIndex: 151,
+            },
+        ],
+    };
+}
+test("current song, artwork, artist, album and controls render on the server without seeding runtime state", () => {
+    const html = render("en", {}, vocabulary.Footer, {
+        queue: queueFor(serverSong),
+        session: { currentTimeMs: 30000, volume: 0.25, repeatMode: "ONE" },
+    });
+    for (const text of [
+        "Server current song",
+        "Server artist",
+        "Server album",
+        "0:30",
+        "2:00",
+    ])
+        assert.ok(html.includes(text), text);
+    assert.match(html, /src="\/logo-192.png"/);
+    assert.match(html, /type="range"/);
+    assert.doesNotMatch(
+        html,
+        /No media playing|NO_MEDIA_PLAYING|Earlier track/
+    );
+    assert.equal(runtime.queueManager.currentMediaAtom.get(), undefined);
+    assert.equal(runtime.queueManager.readyAtom.get(), false);
+});
+test("radio station renders immediately and request snapshots remain isolated from live browser state", () => {
+    runtime.queueManager.currentMediaAtom.set(serverSong);
+    runtime.queueManager.readyAtom.set(true);
+    try {
+        const html = render("en", {}, vocabulary.Footer, {
+            queue: queueFor({
+                type: "station",
+                name: "Server station",
+                country: "Spain",
+                imageUrl: "/radio-placeholder.png",
+            }),
+        });
+        assert.match(html, /Server station/);
+        assert.match(html, /Spain/);
+        assert.doesNotMatch(html, /Server current song|No media playing/);
+        const empty = render("en", {}, vocabulary.Footer, {
+            queue: {
+                queue: [],
+                currentQueueMediaId: null,
+                queueType: "SORTED",
+                offset: 0,
+                total: 0,
+            },
+        });
+        assert.match(empty, /No media playing/);
+        assert.doesNotMatch(empty, /Server current song|Server station/);
+    } finally {
+        runtime.queueManager.currentMediaAtom.set(undefined);
+        runtime.queueManager.readyAtom.set(false);
+    }
+});
+test("queue startup reuses the server page, preserves pagination and accepts subsequent refreshes", async () => {
+    const previous = runtime.queueManager;
+    const manager = new vocabulary.QueueManager();
+    const requests = [];
+    let playbackRequests = 0;
+    runtime.queueManager = manager;
+    runtime.webSocketManager = {
+        onMessage() {},
+        requestPlaybackState() {
+            playbackRequests++;
+        },
+    };
+    runtime.mediaPlayerManager.setMedia = async () => {};
+    runtime.http = {
+        getQueue: async (offset, limit) => {
+            requests.push({ offset, limit });
+            return {
+                isOk: () => true,
+                isNotOk: () => false,
+                result:
+                    offset === undefined
+                        ? {
+                              queue: [],
+                              currentQueueMediaId: null,
+                              queueType: "SORTED",
+                              offset: 0,
+                              total: 0,
+                          }
+                        : { ...queueFor(serverSong), offset, queue: [] },
+            };
+        },
+    };
+    vocabulary.setRockIt(runtime);
+    try {
+        manager.seedQueue(queueFor(serverSong));
+        assert.equal(manager.currentMedia.name, "Server current song");
+        assert.equal(manager.currentList, "album");
+        assert.equal(manager.queueTotalCount, 200);
+        assert.equal(manager.readyAtom.get(), true);
+        await manager.init();
+        await manager.init();
+        assert.equal(
+            requests.length,
+            0,
+            "Startup must not repeat the server queue request"
+        );
+        assert.equal(playbackRequests, 1);
+        manager.seedQueue(
+            queueFor({ ...serverSong, name: "Stale server snapshot" })
+        );
+        assert.equal(manager.currentMedia.name, "Server current song");
+        await manager.loadPreviousQueuePageAsync();
+        assert.deepEqual(requests, [{ offset: 100, limit: 50 }]);
+        await manager.refreshAsync();
+        assert.equal(manager.currentMedia, undefined);
+        assert.equal(manager.queue.length, 0);
+        assert.equal(manager.readyAtom.get(), true);
+    } finally {
+        runtime.queueManager = previous;
+    }
+});
+test("locale negotiation respects quality, regional subtags and supported languages", () => {
+    assert.equal(
+        vocabulary.preferredLanguage("de-DE, fr-FR;q=0.9, en;q=0.2"),
+        "fr"
+    );
+    assert.equal(vocabulary.preferredLanguage("es;q=0,en;q=1"), "en");
+    assert.equal(vocabulary.preferredLanguage("es-ES;q=0.8,fr;q=0.9"), "fr");
+    assert.equal(vocabulary.preferredLanguage("unknown"), "en");
+});
+test("server calls forward request-local cookies without sharing accounts", async () => {
+    const storage = new AsyncLocalStorage();
+    const calls = [];
+    const { ServerHttp } = await load(
+        "export {ServerHttp} from './lib/api/server';",
+        {
+            cookies: async () => ({
+                get: () => ({ value: storage.getStore() }),
+            }),
+        }
+    );
+    const original = globalThis.fetch;
+    globalThis.fetch = async (url, options) => {
+        calls.push({
+            url,
+            cookie: options.headers.get("cookie"),
+            cache: options.cache,
+        });
+        return Response.json({
+            username: "listener",
+            image: "",
+            admin: false,
+            queueType: "SORTED",
+            repeatMode: "OFF",
+            currentTimeMs: null,
+        });
+    };
+    try {
+        await Promise.all([
+            storage.run("account-a", () => ServerHttp.getSession()),
+            storage.run("account-b", () => ServerHttp.getSession()),
+        ]);
+        assert.deepEqual(calls.map((call) => call.cookie).sort(), [
+            "session_id=account-a",
+            "session_id=account-b",
+        ]);
+        assert.equal(
+            calls.every((call) => call.cache === "no-store"),
+            true
+        );
+    } finally {
+        globalThis.fetch = original;
+    }
+});
+test("route response classification distinguishes missing content from upstream failure", async () => {
+    const { requireResult } = await load(
+        "export {requireResult} from './lib/server/resources';"
+    );
+    const { HttpResult } = await load(
+        "export {HttpResult} from '../../packages/shared/src/models/types/httpTypes';"
+    );
+    const fail = (code) =>
+        new HttpResult({
+            ok: false,
+            code,
+            message: "Failure",
+            detail: "Failure",
+        });
+    assert.throws(() => requireResult(fail(401)), /redirect:\/login/);
+    assert.throws(() => requireResult(fail(404)), /not-found/);
+    assert.throws(() => requireResult(fail(503)), /AppError: 503/);
+    assert.throws(() => requireResult(fail(403)), /AppError: 403/);
+    assert.throws(() => requireResult(fail(200)), /AppError: 503/);
+});
+
+test("scoped playback consumers use the provided services without mutating the compatibility runtime", () => {
+    const calls = [];
+    function captureServices(name) {
+        const media = { ...serverSong, name };
+        return {
+            ...runtime,
+            mediaPlayerManager: {
+                ...runtime.mediaPlayerManager,
+                playingAtom: atom(true),
+                togglePlayPause: () => calls.push(`${name}:play`),
+                setCurrentTime: (time) => calls.push(`${name}:seek:${time}`),
+            },
+            queueManager: {
+                ...runtime.queueManager,
+                currentMediaAtom: atom(media),
+                queueAtom: atom([]),
+                skipForward: () => calls.push(`${name}:next`),
+            },
+        };
+    }
+    const first = captureServices("first");
+    const second = captureServices("second");
+    function Probe({ expected }) {
+        const services = vocabulary.usePlaybackServices();
+        const queue = vocabulary.useQueueManager();
+        const player = vocabulary.usePlayer();
+        assert.equal(services, expected);
+        assert.equal(queue, expected.queueManager);
+        player.togglePlayPause();
+        player.skipForward();
+        player.seekTo(12);
+        return createElement("span", null, player.currentMedia.name);
+    }
+    for (const services of [first, second]) {
+        const html = renderToString(
+            createElement(
+                vocabulary.PlaybackProvider,
+                { services },
+                createElement(
+                    vocabulary.QueueProvider,
+                    { initial: {} },
+                    createElement(Probe, { expected: services })
+                )
+            )
+        );
+        assert.match(
+            html,
+            new RegExp(services.queueManager.currentMediaAtom.get().name)
+        );
+    }
+    assert.deepEqual(calls, [
+        "first:play",
+        "first:next",
+        "first:seek:12",
+        "second:play",
+        "second:next",
+        "second:seek:12",
+    ]);
+    assert.equal(runtime.mediaPlayerManager.playingAtom.get(), false);
+    assert.equal(runtime.queueManager.currentMediaAtom.get(), undefined);
+});
+
+test("runtime Context isolates shell services during server rendering without starting integrations", () => {
+    const calls = [];
+    const services = (name) => ({
+        init() {
+            calls.push("init");
+            return Promise.resolve();
+        },
+        navigationPinsManager: { pinsAtom: atom([{ name }]) },
+    });
+    function Probe({ expected }) {
+        const current = vocabulary.useRuntimeServices();
+        assert.equal(current, expected);
+        return createElement(
+            "span",
+            null,
+            current.navigationPinsManager.pinsAtom.get()[0].name
+        );
+    }
+    for (const current of [services("first"), services("second")]) {
+        const html = renderToString(
+            createElement(
+                vocabulary.RuntimeProvider,
+                { services: current },
+                createElement(Probe, { expected: current })
+            )
+        );
+        assert.match(
+            html,
+            new RegExp(current.navigationPinsManager.pinsAtom.get()[0].name)
+        );
+    }
+    assert.deepEqual(calls, []);
+    assert.equal(runtime.navigationPinsManager, undefined);
+});
+
+test("library loader forwards the account session and rejects failed or invalid initial responses", async () => {
+    const storage = new AsyncLocalStorage();
+    const calls = [];
+    const { getInitialLibrary } = await load(
+        "export {getInitialLibrary} from './lib/server/library';",
+        {
+            cookies: async () => ({
+                get: () => ({ value: storage.getStore() }),
+            }),
+        }
+    );
+    const original = globalThis.fetch;
+    let failure;
+    globalThis.fetch = async (url, options) => {
+        const path = new URL(url).pathname;
+        const cookie = options.headers.get("cookie");
+        calls.push({ path, cookie, cache: options.cache });
+        if (path === "/user/session")
+            return Response.json({
+                username: cookie,
+                image: "",
+                admin: false,
+                queueType: "SORTED",
+                repeatMode: "OFF",
+                currentTimeMs: null,
+            });
+        if (path === "/user/library/medias") {
+            if (failure === "unauthorized")
+                return Response.json({}, { status: 401 });
+            if (failure === "invalid")
+                return Response.json({ songs: "invalid" });
+            return Response.json({
+                albums: [],
+                playlists: [],
+                songs: [],
+                videos: [],
+                stations: [],
+                shared: [],
+            });
+        }
+        assert.equal(path, "/stats/user");
+        if (failure === "stats") return Response.json({}, { status: 503 });
+        return Response.json({
+            summary: {
+                mediasListened: 0,
+                songsListened: 0,
+                videosListened: 0,
+                minutesListened: 0,
+                avgMinutesPerSong: 0,
+                currentStreak: 0,
+            },
+            minutes: [],
+            topSongs: [],
+            topVideos: [],
+            topAlbums: [],
+            topArtists: [],
+            heatmap: [],
+        });
+    };
+    try {
+        const results = await Promise.all([
+            storage.run("library-a", () => getInitialLibrary()),
+            storage.run("library-b", () => getInitialLibrary()),
+        ]);
+        assert.deepEqual(results.map((result) => result.username).sort(), [
+            "session_id=library-a",
+            "session_id=library-b",
+        ]);
+        for (const account of ["library-a", "library-b"]) {
+            assert.deepEqual(
+                calls
+                    .filter((call) => call.cookie === `session_id=${account}`)
+                    .map((call) => call.path)
+                    .sort(),
+                ["/stats/user", "/user/library/medias", "/user/session"]
+            );
+        }
+        assert.ok(calls.every((call) => call.cache === "no-store"));
+        for (const [scenario, error] of [
+            ["unauthorized", /redirect:\/login/],
+            ["invalid", /AppError: 503/],
+            ["stats", /AppError: 503/],
+        ]) {
+            failure = scenario;
+            await assert.rejects(
+                storage.run("library-a", () => getInitialLibrary()),
+                error
+            );
+        }
+    } finally {
+        globalThis.fetch = original;
+    }
+});

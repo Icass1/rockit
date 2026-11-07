@@ -1,17 +1,16 @@
 "use client";
 
 import { JSX, useEffect, useState } from "react";
-import { useStore } from "@nanostores/react";
 import type {
     NotificationEventKey,
     NotificationEventResponse,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { notificationVocabularyText } from "@/lib/notifications";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function NotificationSettings(): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const [events, setEvents] = useState<NotificationEventResponse[]>([]);
     const [eventKeys, setEventKeys] = useState<NotificationEventKey[]>([]);
     const [savedEventKeys, setSavedEventKeys] = useState<
@@ -94,21 +93,21 @@ export default function NotificationSettings(): JSX.Element {
 
     return (
         <div className="flex flex-col gap-4">
-            <p className="text-sm text-neutral-400">
+            <p className="text-muted-foreground text-sm">
                 {vocabulary.NOTIFICATIONS_SUBSCRIPTIONS_HINT}
             </p>
 
             {loading ? (
-                <p className="text-sm text-neutral-500">Loading...</p>
+                <p className="text-subtle-foreground text-sm">Loading...</p>
             ) : (
-                <div className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
+                <div className="divide-border-subtle border-border-subtle divide-y rounded-xl border">
                     {events.map((event) => (
                         <label
                             key={event.key}
                             htmlFor={`notification-${event.key}`}
                             className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3"
                         >
-                            <span className="text-sm text-neutral-200">
+                            <span className="text-foreground text-sm">
                                 {notificationVocabularyText(
                                     vocabulary,
                                     event.vocabularyKey
@@ -125,7 +124,7 @@ export default function NotificationSettings(): JSX.Element {
                                         input.currentTarget.checked
                                     )
                                 }
-                                className="h-4 w-4 accent-(--color-rockit-pink)"
+                                className="accent-primary h-4 w-4"
                             />
                         </label>
                     ))}
@@ -133,12 +132,12 @@ export default function NotificationSettings(): JSX.Element {
             )}
 
             {error && (
-                <p role="alert" className="text-sm text-red-400">
+                <p role="alert" className="text-destructive-soft text-sm">
                     {vocabulary.NOTIFICATIONS_LOAD_FAILED}
                 </p>
             )}
             {saved && (
-                <p role="status" className="text-sm text-green-400">
+                <p role="status" className="text-success-foreground text-sm">
                     {vocabulary.NOTIFICATIONS_SAVED}
                 </p>
             )}
@@ -148,7 +147,7 @@ export default function NotificationSettings(): JSX.Element {
                     type="button"
                     disabled={loading || saving || !hasChanges}
                     onClick={() => void save()}
-                    className="rounded-xl bg-(--color-rockit-pink) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid) disabled:cursor-not-allowed disabled:opacity-50"
+                    className="bg-primary text-primary-foreground hover:bg-brand-mid rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {saving ? "Saving..." : vocabulary.NOTIFICATIONS_SAVE}
                 </button>

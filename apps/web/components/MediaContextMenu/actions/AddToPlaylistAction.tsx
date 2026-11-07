@@ -2,11 +2,11 @@ import type { JSX } from "react";
 import type { BaseSearchResultsItem } from "@/dto";
 import { ListIcon, ListPlus } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
-import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
-import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
+import SubContextMenuContent from "@/components/ui/ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ui/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ui/ContextMenu/SubContextMenu/Trigger";
 
 export default function AddToPlaylistAction({
     vocabulary,

@@ -20,7 +20,9 @@ from core.access.db.ormModels.user_media_listen_interval import (
 from core.access.db.ormModels.user_media_listened import UserMediaListenedRow
 from core.access.db.ormModels.user_seeks import UserSeeksRow
 from core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
+from core.access.navigationPinAccess import NavigationPinAccess
 from core.framework.media.image import Image
+from core.models.themePreference import ThemePreference
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
 from core.utils.timeIt import time_it
@@ -110,7 +112,10 @@ class UserAccess:
 
     @staticmethod
     async def create_user_async(
-        session: AsyncSession, username: str, password: str
+        session: AsyncSession,
+        username: str,
+        password: str,
+        navigation_defaults: list[str] | None = None,
     ) -> Result[UserRow]:
         try:
             password_hash: str = pwd.hash(secret=password)
@@ -133,6 +138,14 @@ class UserAccess:
             )
 
             session.add(instance=user)
+            await session.flush()
+            seeded = await NavigationPinAccess.add_builtins_async(
+                session=session, user_id=user.id, keys=navigation_defaults or []
+            )
+            if seeded.is_not_ok():
+                logger.error(f"Error creating default navigation pins: {seeded.info()}")
+                await session.rollback()
+                return Result(code=seeded.code(), message=seeded.message())
             await session.commit()
             await session.refresh(instance=user)
 
@@ -334,6 +347,20 @@ class UserAccess:
 
     @staticmethod
     @safe_async
+    async def update_user_volume_async(
+        session: AsyncSession, user_id: int, volume: float
+    ) -> Result[bool]:
+        """Persist the authenticated user's normalized playback volume."""
+        user = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            logger.warning("Cannot update volume: user %s not found", user_id)
+            return Result(code=ResultCode.NOT_FOUND, message="User not found")
+        user.volume = volume
+        await session.commit()
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
     async def update_user_crossfade_async(
         session: AsyncSession, user_id: int, crossfade_ms: int
     ) -> Result[bool]:
@@ -439,10 +466,34 @@ class UserAccess:
 
     @staticmethod
     @safe_async
+    async def update_theme_async(
+        session: AsyncSession, user: UserRow, theme: ThemePreference
+    ) -> Result[bool]:
+        """Persist the authenticated user's interface theme."""
+        user.theme = theme
+        await session.flush()
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
     async def update_download_settings_async(
         session: AsyncSession, user: UserRow, auto_add: bool
     ) -> Result[bool]:
         """Persist the user's automatic library preference."""
         user.auto_add_downloads_to_library = auto_add
         await session.flush()
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def update_user_listening_heatmap_async(
+        session: AsyncSession, user_id: int, enabled: bool
+    ) -> Result[bool]:
+        """Save the user's listening history visibility preference."""
+        user = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            logger.error("Cannot update listening history preference: user not found")
+            return Result(code=ResultCode.NOT_FOUND, message="User not found")
+        user.show_listening_heatmap = enabled
+        await session.commit()
         return Result(code=ResultCode.OK, message="OK", result=True)

@@ -82,7 +82,7 @@ class LyricsAccess:
         media_id: int,
         lyrics: list[Lyrics] | None,
         dynamic_lyrics: list[DynamicLyrics] | None,
-        offset: float = 0.0,
+        offset: float | None = None,
     ) -> Result[str]:
         """Save lyrics for a media item to the database. Returns the lyrics public_id."""
 
@@ -100,12 +100,13 @@ class LyricsAccess:
 
             if existing:
                 lyrics_row = existing
-                lyrics_row.offset = offset
+                if offset is not None:
+                    lyrics_row.offset = offset
             else:
                 lyrics_row = LyricsRow(
                     public_id=create_id(32),
                     media_id=media_id,
-                    offset=offset,
+                    offset=offset if offset is not None else 0.0,
                 )
                 session.add(lyrics_row)
                 await session.flush()

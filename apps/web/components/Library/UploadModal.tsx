@@ -3,7 +3,6 @@
 import { useCallback, useRef, useState, type JSX } from "react";
 import { UploadResponseSchema, type UploadSongRequest } from "@/dto";
 import { BACKEND_URL } from "@/environment";
-import { useStore } from "@nanostores/react";
 import {
     Clapperboard,
     DiscAlbum,
@@ -21,6 +20,7 @@ import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { extractMp3Cover } from "@/lib/utils/extractMp3Cover";
 import UploadCoverPreview from "@/components/Library/UploadCoverPreview";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 // Types.
 
@@ -185,7 +185,7 @@ export default function UploadModal({
     isOpen,
     onClose,
 }: UploadModalProps): JSX.Element | null {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [uploadType, setUploadType] = useState<UploadType>("song");
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -523,11 +523,11 @@ export default function UploadModal({
     const renderEmptyDropZone = (accept: string, hint: string): JSX.Element => (
         <label
             htmlFor="upload-file-input"
-            className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 p-8 text-center text-neutral-400"
+            className="text-muted-foreground flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 p-8 text-center"
         >
             <Upload className="h-14 w-14 opacity-60" />
             <div>
-                <p className="text-base font-semibold text-white">
+                <p className="text-foreground-strong text-base font-semibold">
                     {$vocabulary.UPLOAD_DROP_ZONE}
                 </p>
                 <p className="mt-1 text-sm">{$vocabulary.UPLOAD_BROWSE}</p>
@@ -556,7 +556,7 @@ export default function UploadModal({
         <div className="flex flex-col overflow-hidden p-3">
             <label
                 htmlFor="upload-file-input"
-                className="mb-2 inline-flex cursor-pointer items-center gap-1 self-start text-sm text-pink-400 hover:text-pink-300"
+                className="text-primary-soft hover:text-primary-soft mb-2 inline-flex cursor-pointer items-center gap-1 self-start text-sm"
             >
                 <Upload className="h-3.5 w-3.5" />
                 {$vocabulary.UPLOAD_ADD_MORE}
@@ -566,13 +566,13 @@ export default function UploadModal({
                     {files.map((file): JSX.Element => (
                         <li
                             key={file.id}
-                            className="flex items-start gap-3 rounded-lg bg-neutral-800 p-3"
+                            className="bg-muted flex items-start gap-3 rounded-lg p-3"
                         >
                             <div className="mt-1 shrink-0">
                                 {/\.zip$/i.test(file.file.name) ? (
-                                    <FileArchive className="h-7 w-7 text-blue-400" />
+                                    <FileArchive className="text-info h-7 w-7" />
                                 ) : (
-                                    <FileAudio className="h-7 w-7 text-pink-400" />
+                                    <FileAudio className="text-primary-soft h-7 w-7" />
                                 )}
                             </div>
                             <div className="min-w-0 flex-1 space-y-2">
@@ -588,7 +588,7 @@ export default function UploadModal({
                                         placeholder={
                                             $vocabulary.UPLOAD_TITLE_FIELD
                                         }
-                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                        className="bg-accent text-foreground-strong placeholder:text-subtle-foreground focus:ring-primary min-w-0 flex-1 rounded-md px-2 py-1.5 text-sm focus:ring-1 focus:outline-none"
                                     />
                                 </div>
                                 <input
@@ -602,14 +602,14 @@ export default function UploadModal({
                                     placeholder={
                                         $vocabulary.UPLOAD_ARTIST_FIELD
                                     }
-                                    className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                    className="bg-accent text-foreground-strong placeholder:text-subtle-foreground focus:ring-primary w-full rounded-md px-2 py-1.5 text-sm focus:ring-1 focus:outline-none"
                                 />
                                 <label
                                     htmlFor={`song-image-${file.id}`}
                                     className={`flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition ${
                                         file.imageFile
-                                            ? "bg-green-500/10 text-green-400"
-                                            : "bg-neutral-700 text-neutral-400 hover:text-white"
+                                            ? "bg-success/10 text-success-foreground"
+                                            : "bg-accent text-muted-foreground hover:text-foreground-strong"
                                     }`}
                                 >
                                     {file.imageFile ? (
@@ -638,7 +638,7 @@ export default function UploadModal({
                             </div>
                             <button
                                 onClick={(): void => removeFile(file.id)}
-                                className="mt-1 shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
+                                className="text-subtle-foreground hover:bg-accent hover:text-foreground-strong mt-1 shrink-0 rounded-md p-1 transition"
                                 aria-label={`Remove ${file.file.name}`}
                             >
                                 <X className="h-4 w-4" />
@@ -666,8 +666,8 @@ export default function UploadModal({
         <div
             className={`flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-4 transition ${
                 coverFile
-                    ? "border-green-500/50 bg-green-500/5"
-                    : "border-neutral-700 hover:border-neutral-500"
+                    ? "border-success/50 bg-success/5"
+                    : "border-border hover:border-border-strong"
             }`}
             onClick={(): void => {
                 const el = document.getElementById("cover-file-input");
@@ -675,13 +675,13 @@ export default function UploadModal({
             }}
         >
             {coverFile ? (
-                <div className="flex items-center gap-2 text-sm text-green-400">
+                <div className="text-success-foreground flex items-center gap-2 text-sm">
                     {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon */}
                     <Image className="h-5 w-5" />
                     <span>{coverFile.name}</span>
                 </div>
             ) : (
-                <span className="flex items-center gap-2 text-sm text-neutral-400">
+                <span className="text-muted-foreground flex items-center gap-2 text-sm">
                     {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon */}
                     <Image className="h-5 w-5" />
                     {$vocabulary.UPLOAD_COVER_HINT}
@@ -709,7 +709,7 @@ export default function UploadModal({
                 value={albumTitle}
                 onChange={(e): void => setAlbumTitle(e.target.value)}
                 placeholder={$vocabulary.UPLOAD_ALBUM_TITLE}
-                className="w-full rounded-md bg-neutral-800 px-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                className="bg-muted text-foreground-strong placeholder:text-subtle-foreground focus:ring-primary w-full rounded-md px-3 py-2 text-sm focus:ring-1 focus:outline-none"
             />
 
             {/* Album artist */}
@@ -718,19 +718,19 @@ export default function UploadModal({
                 value={albumArtist}
                 onChange={(e): void => setAlbumArtist(e.target.value)}
                 placeholder={$vocabulary.UPLOAD_ARTIST_FIELD}
-                className="w-full rounded-md bg-neutral-800 px-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                className="bg-muted text-foreground-strong placeholder:text-subtle-foreground focus:ring-primary w-full rounded-md px-3 py-2 text-sm focus:ring-1 focus:outline-none"
             />
 
             {/* Cover drop */}
             {renderCoverDrop()}
 
             {/* Songs */}
-            <div className="mt-1 text-xs font-medium tracking-wide text-neutral-400 uppercase">
+            <div className="text-muted-foreground mt-1 text-xs font-medium tracking-wide uppercase">
                 {$vocabulary.UPLOAD_SONGS}
             </div>
             <label
                 htmlFor="upload-file-input"
-                className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-neutral-700 p-4 text-sm text-neutral-400 transition hover:border-neutral-500"
+                className="border-border text-muted-foreground hover:border-border-strong flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-4 text-sm transition"
             >
                 <Upload className="mr-2 h-4 w-4" />
                 {$vocabulary.UPLOAD_ADD_MORE}
@@ -741,9 +741,9 @@ export default function UploadModal({
                     {files.map((file, idx): JSX.Element => (
                         <li
                             key={file.id}
-                            className="flex items-start gap-3 rounded-lg bg-neutral-800 p-3"
+                            className="bg-muted flex items-start gap-3 rounded-lg p-3"
                         >
-                            <span className="mt-1 w-5 shrink-0 text-right text-xs font-bold text-neutral-500">
+                            <span className="text-subtle-foreground mt-1 w-5 shrink-0 text-right text-xs font-bold">
                                 {idx + 1}
                             </span>
                             <div className="min-w-0 flex-1 space-y-2">
@@ -756,7 +756,7 @@ export default function UploadModal({
                                         })
                                     }
                                     placeholder={$vocabulary.UPLOAD_TITLE_FIELD}
-                                    className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                    className="bg-accent text-foreground-strong placeholder:text-subtle-foreground focus:ring-primary w-full rounded-md px-2 py-1.5 text-sm focus:ring-1 focus:outline-none"
                                 />
                                 <input
                                     type="text"
@@ -769,12 +769,12 @@ export default function UploadModal({
                                     placeholder={
                                         $vocabulary.UPLOAD_ARTIST_FIELD
                                     }
-                                    className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                    className="bg-accent text-foreground-strong placeholder:text-subtle-foreground focus:ring-primary w-full rounded-md px-2 py-1.5 text-sm focus:ring-1 focus:outline-none"
                                 />
                             </div>
                             <button
                                 onClick={(): void => removeFile(file.id)}
-                                className="mt-1 shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
+                                className="text-subtle-foreground hover:bg-accent hover:text-foreground-strong mt-1 shrink-0 rounded-md p-1 transition"
                                 aria-label={`Remove ${file.file.name}`}
                             >
                                 <X className="h-4 w-4" />
@@ -801,10 +801,10 @@ export default function UploadModal({
             {!videoFile ? (
                 <label
                     htmlFor="upload-file-input"
-                    className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 p-8 text-center text-neutral-400"
+                    className="text-muted-foreground flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 p-8 text-center"
                 >
                     <FileVideo className="h-14 w-14 opacity-60" />
-                    <p className="text-base font-semibold text-white">
+                    <p className="text-foreground-strong text-base font-semibold">
                         {$vocabulary.UPLOAD_DROP_ZONE}
                     </p>
                     <p className="text-xs opacity-60">
@@ -813,19 +813,19 @@ export default function UploadModal({
                 </label>
             ) : (
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 rounded-lg bg-neutral-800 p-3">
-                        <FileVideo className="h-7 w-7 shrink-0 text-blue-400" />
+                    <div className="bg-muted flex items-center gap-3 rounded-lg p-3">
+                        <FileVideo className="text-info h-7 w-7 shrink-0" />
                         <div className="min-w-0 flex-1 truncate">
-                            <p className="truncate text-sm font-medium text-white">
+                            <p className="text-foreground-strong truncate text-sm font-medium">
                                 {videoFile.name}
                             </p>
-                            <p className="text-xs text-neutral-400">
+                            <p className="text-muted-foreground text-xs">
                                 {(videoFile.size / 1024 / 1024).toFixed(1)} MB
                             </p>
                         </div>
                         <button
                             onClick={(): void => setVideoFile(null)}
-                            className="shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
+                            className="text-subtle-foreground hover:bg-accent hover:text-foreground-strong shrink-0 rounded-md p-1 transition"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -835,21 +835,21 @@ export default function UploadModal({
                         value={videoTitle}
                         onChange={(e): void => setVideoTitle(e.target.value)}
                         placeholder={$vocabulary.UPLOAD_VIDEO_TITLE}
-                        className="w-full rounded-md bg-neutral-800 px-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                        className="bg-muted text-foreground-strong placeholder:text-subtle-foreground focus:ring-primary w-full rounded-md px-3 py-2 text-sm focus:ring-1 focus:outline-none"
                     />
                     <input
                         type="text"
                         value={videoArtist}
                         onChange={(e): void => setVideoArtist(e.target.value)}
                         placeholder={$vocabulary.UPLOAD_ARTIST_FIELD}
-                        className="w-full rounded-md bg-neutral-800 px-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                        className="bg-muted text-foreground-strong placeholder:text-subtle-foreground focus:ring-primary w-full rounded-md px-3 py-2 text-sm focus:ring-1 focus:outline-none"
                     />
                     <label
                         htmlFor="video-image-input"
                         className={`flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm transition ${
                             videoImageFile
-                                ? "bg-green-500/10 text-green-400"
-                                : "bg-neutral-800 text-neutral-400 hover:text-white"
+                                ? "bg-success/10 text-success-foreground"
+                                : "bg-muted text-muted-foreground hover:text-foreground-strong"
                         }`}
                     >
                         {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon */}
@@ -903,26 +903,26 @@ export default function UploadModal({
 
     return createPortal(
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            className="bg-backdrop/80 fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e): void => {
                 if (e.target === e.currentTarget) handleClose();
             }}
         >
-            <div className="flex max-h-[90vh] w-full flex-col rounded-2xl bg-neutral-900 p-5 md:max-h-[85vh] md:max-w-3xl md:p-6">
+            <div className="bg-secondary flex max-h-[90vh] w-full flex-col rounded-2xl p-5 md:max-h-[85vh] md:max-w-3xl md:p-6">
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-bold text-white">
+                        <h2 className="text-foreground-strong text-xl font-bold">
                             {$vocabulary.UPLOAD_TITLE}
                         </h2>
-                        <p className="mt-0.5 text-xs text-neutral-400">
+                        <p className="text-muted-foreground mt-0.5 text-xs">
                             {$vocabulary.UPLOAD_HINT}
                         </p>
                     </div>
                     <button
                         onClick={handleClose}
                         disabled={uploading}
-                        className="rounded-full p-2 text-neutral-400 transition hover:bg-neutral-800 hover:text-white disabled:opacity-50"
+                        className="text-muted-foreground hover:bg-muted hover:text-foreground-strong rounded-full p-2 transition disabled:opacity-50"
                         aria-label="Close"
                     >
                         <X className="h-5 w-5" />
@@ -942,8 +942,8 @@ export default function UploadModal({
                             }}
                             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                                 uploadType === key
-                                    ? "bg-pink-600 text-white"
-                                    : "bg-neutral-800 text-neutral-400 hover:text-white"
+                                    ? "bg-primary-hover text-primary-foreground"
+                                    : "bg-muted text-muted-foreground hover:text-foreground-strong"
                             }`}
                         >
                             <Icon className="h-4 w-4" />
@@ -957,8 +957,8 @@ export default function UploadModal({
                 <div
                     className={`relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
                         isDragging
-                            ? "border-pink-500 bg-pink-500/10"
-                            : "border-neutral-700 hover:border-neutral-500"
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-border-strong"
                     }`}
                     onDragEnter={handleDragEnter}
                     onDragOver={(e): void => e.preventDefault()}
@@ -973,24 +973,26 @@ export default function UploadModal({
                 {/* Footer */}
                 <div className="mt-4 flex items-center justify-between gap-3">
                     {uploadError ? (
-                        <p className="text-sm text-red-400">{uploadError}</p>
+                        <p className="text-destructive-soft text-sm">
+                            {uploadError}
+                        </p>
                     ) : totalBytes > 0 ? (
                         <div className="flex flex-1 flex-col gap-1">
-                            <div className="h-1.5 w-full max-w-60 overflow-hidden rounded-full bg-neutral-700">
+                            <div className="bg-accent h-1.5 w-full max-w-60 overflow-hidden rounded-full">
                                 <div
-                                    className="h-full rounded-full bg-pink-500 transition-all duration-300"
+                                    className="bg-primary h-full rounded-full transition-all duration-300"
                                     style={{
                                         width: `${(uploadedBytes / totalBytes) * 100}%`,
                                     }}
                                 />
                             </div>
-                            <p className="text-xs text-neutral-400">
+                            <p className="text-muted-foreground text-xs">
                                 {formatBytes(uploadedBytes)} /{" "}
                                 {formatBytes(totalBytes)}
                             </p>
                         </div>
                     ) : (
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-subtle-foreground text-xs">
                             {renderStatusText()}
                         </p>
                     )}
@@ -998,7 +1000,7 @@ export default function UploadModal({
                         <button
                             onClick={handleClose}
                             disabled={uploading}
-                            className="rounded-md border border-neutral-600 px-3 py-2 text-sm whitespace-nowrap text-neutral-300 transition hover:border-neutral-400 hover:text-white disabled:opacity-50"
+                            className="border-border-strong text-foreground hover:border-border-strong hover:text-foreground-strong rounded-md border px-3 py-2 text-sm whitespace-nowrap transition disabled:opacity-50"
                         >
                             {$vocabulary.CANCEL}
                         </button>
@@ -1010,7 +1012,7 @@ export default function UploadModal({
                                 (uploadType === "album" && !canSubmitAlbum) ||
                                 (uploadType === "video" && !canSubmitVideo)
                             }
-                            className="rounded-md bg-pink-600 px-3 py-2 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground rounded-md px-3 py-2 text-sm font-semibold whitespace-nowrap transition disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {uploading
                                 ? $vocabulary.UPLOAD_IN_PROGRESS

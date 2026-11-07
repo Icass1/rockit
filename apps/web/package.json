@@ -3,12 +3,14 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev",
+        "dev": "next dev --webpack",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint --cache app components && npx tsc --noEmit",
+        "lint": "tsc --noEmit && eslint --cache app components",
         "prettier": "prettier --write app components hooks styles environment.ts",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "test": "node --test tests/*.test.mjs",
+        "test:ssr": "node tests/ssrSmoke.mjs"
     },
     "dependencies": {
         "@nanostores/react": "^0.8.4",

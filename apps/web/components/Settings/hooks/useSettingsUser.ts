@@ -1,16 +1,16 @@
 "use client";
 
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useSession } from "@/components/providers/SessionProvider";
 
 export function useSettingsUser(): {
     username: string;
     isAuthenticated: boolean;
     image: string;
 } {
+    const session = useSession();
     return {
-        username: useStore(rockIt.userManager.usernameAtom),
-        isAuthenticated: useStore(rockIt.userManager.loggedInAtom),
-        image: useStore(rockIt.userManager.imageAtom),
+        username: session?.username ?? "",
+        isAuthenticated: !!session,
+        image: session?.image ?? "",
     };
 }

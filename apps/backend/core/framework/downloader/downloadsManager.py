@@ -254,8 +254,6 @@ class DownloadsManager:
                                 notification = await Notification.download_async(
                                     session=session,
                                     user_id=d.user_id,
-                                    public_id=download_public_id,
-                                    retry_count=download_row.retry_count,
                                     success=status_key == DownloadStatusEnum.COMPLETED.value,
                                     title=d.title,
                                 )

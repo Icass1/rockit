@@ -37,6 +37,18 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
         if (!pipWindow) return;
         const doc = pipWindow.document;
         doc.documentElement.classList.add("rockit-pip-document");
+        const syncTheme = (): void => {
+            doc.documentElement.setAttribute(
+                "data-theme",
+                document.documentElement.dataset.theme ?? "dark"
+            );
+        };
+        syncTheme();
+        const themeObserver = new MutationObserver(syncTheme);
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+        });
         const style = doc.createElement("style");
         style.dataset.rockitPip = "true";
         style.textContent = PIP_STYLES;
@@ -51,6 +63,7 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
         observer.observe(doc.documentElement);
         return (): void => {
             observer.disconnect();
+            themeObserver.disconnect();
             style.remove();
             doc.documentElement.classList.remove("rockit-pip-document");
         };

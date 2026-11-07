@@ -27,7 +27,7 @@ export default function BottomPanel({
         <div
             ref={panelRef}
             data-bottom-panel
-            className={`absolute inset-x-0 bottom-0 z-20 h-[65%] rounded-t-2xl bg-neutral-900 ${
+            className={`bg-secondary absolute inset-x-0 bottom-0 z-20 h-[65%] rounded-t-2xl ${
                 tab ? "translate-y-0" : "translate-y-full"
             }`}
             style={{
@@ -40,7 +40,7 @@ export default function BottomPanel({
                 className="flex w-full items-center justify-center py-2.5"
                 aria-label="Cerrar panel"
             >
-                <span className="h-1 w-9 rounded-full bg-white/25" />
+                <span className="bg-foreground-strong/25 h-1 w-9 rounded-full" />
             </button>
             <div
                 ref={scrollRef}

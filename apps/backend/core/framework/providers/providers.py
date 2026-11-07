@@ -20,6 +20,7 @@ from core.framework.provider.baseMetadataProvider import BaseMetadataProvider
 from core.framework.provider.baseProvider import BaseProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
 from core.framework.provider.types import AddFromUrlResult
+from core.models.navigationPin import NavigationShortcut
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -63,6 +64,19 @@ class Providers:
 
     def get_providers(self) -> list[BaseProvider]:
         return self._providers
+
+    def get_navigation_shortcuts(self) -> Result[dict[str, NavigationShortcut]]:
+        """Discover optional routes without listing providers or interpreting their keys."""
+        shortcuts: dict[str, NavigationShortcut] = {}
+        for provider in self.get_providers():
+            for shortcut in provider.get_navigation_shortcuts():
+                if shortcut.key in shortcuts:
+                    logger.error("Duplicate navigation shortcut key: %s", shortcut.key)
+                    return Result(
+                        code=ResultCode.GENERAL_ERROR, message="Duplicate navigation shortcut"
+                    )
+                shortcuts[shortcut.key] = shortcut
+        return Result(code=ResultCode.OK, message="OK", result=shortcuts)
 
     def get_media_providers(self) -> list[BaseMediaProvider]:
         return [p for p in self._providers if isinstance(p, BaseMediaProvider)]

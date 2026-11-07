@@ -255,7 +255,6 @@ async def upload_file(
         notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
-            operation_id=upload_id,
             success=a_result.is_ok(),
             title=request_model.title,
         )
@@ -290,7 +289,6 @@ async def upload_file(
         notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
-            operation_id=upload_id,
             success=a_result.is_ok(),
             title=video_request.title,
         )
@@ -418,7 +416,6 @@ async def upload_album_song_file(
         notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
-            operation_id=upload_id,
             success=a_result.is_ok(),
             title=album_request.title,
         )
@@ -530,7 +527,6 @@ async def assemble_media_upload(
         notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
-            operation_id=upload_id,
             success=a_result.is_ok(),
             title=request_model.title,
         )
@@ -565,7 +561,6 @@ async def assemble_media_upload(
         notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
-            operation_id=upload_id,
             success=a_result.is_ok(),
             title=video_request.title,
         )

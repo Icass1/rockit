@@ -1,6 +1,7 @@
-def build_cte(name: str, fragments: list[str]) -> str:
+def build_cte(name: str, fragments: list[str], *, inline: bool = False) -> str:
     """Wrap UNION ALL'd SELECT fragments in a named CTE."""
-    return f"{name} AS (\n" + "\n\nUNION ALL\n\n".join(fragments) + "\n)"
+    materialization = "NOT MATERIALIZED " if inline else ""
+    return f"{name} AS {materialization}(\n" + "\n\nUNION ALL\n\n".join(fragments) + "\n)"
 
 
 def empty_cte(name: str, columns: list[tuple[str, str]]) -> str:
@@ -9,7 +10,7 @@ def empty_cte(name: str, columns: list[tuple[str, str]]) -> str:
     return f"{name} AS (SELECT {cols} WHERE false)"
 
 
-def get_recommendation_playlist_edges_cte() -> str:
+def get_recommendation_playlist_edges_cte(*, inline: bool = False) -> str:
     """Compose playlist membership supplied by available media providers."""
     from core.framework import providers
 
@@ -23,10 +24,10 @@ def get_recommendation_playlist_edges_cte() -> str:
             "recommendation_playlist_edges",
             [("playlist_id", "int"), ("media_id", "int")],
         )
-    return build_cte("recommendation_playlist_edges", fragments)
+    return build_cte("recommendation_playlist_edges", fragments, inline=inline)
 
 
-def get_media_info_cte() -> str:
+def get_media_info_cte(*, inline: bool = False) -> str:
     """CTE aggregating (media_id, duration_ms, public_id, media_name, image_id,
     media_type_key) across every registered media provider."""
 
@@ -46,10 +47,10 @@ def get_media_info_cte() -> str:
                 ("media_type_key", "int"),
             ],
         )
-    return build_cte("media_info", frags)
+    return build_cte("media_info", frags, inline=inline)
 
 
-def get_artist_info_cte() -> str:
+def get_artist_info_cte(*, inline: bool = False) -> str:
     """CTE aggregating (media_id, artist_public_id, artist_name, artist_image_id)
     across every registered media provider."""
 
@@ -67,10 +68,10 @@ def get_artist_info_cte() -> str:
                 ("artist_image_id", "int"),
             ],
         )
-    return build_cte("artist_info", frags)
+    return build_cte("artist_info", frags, inline=inline)
 
 
-def get_genre_info_cte() -> str:
+def get_genre_info_cte(*, inline: bool = False) -> str:
     """CTE aggregating (media_id, genre_name) across every registered media
     provider that has genre data. A media item may appear multiple times
     (multiple artists/genres)."""
@@ -87,10 +88,10 @@ def get_genre_info_cte() -> str:
                 ("genre_name", "text"),
             ],
         )
-    return build_cte("genre_info", frags)
+    return build_cte("genre_info", frags, inline=inline)
 
 
-def get_album_info_cte() -> str:
+def get_album_info_cte(*, inline: bool = False) -> str:
     """CTE aggregating (media_id, album_public_id, album_name, album_image_id, album_artists)
     across every registered media provider."""
 
@@ -109,4 +110,4 @@ def get_album_info_cte() -> str:
                 ("album_artists", "text"),
             ],
         )
-    return build_cte("album_info", frags)
+    return build_cte("album_info", frags, inline=inline)

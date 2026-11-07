@@ -2,10 +2,9 @@
 
 import { useId, useState, type JSX } from "react";
 import type { ListeningBadgeResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
 import RockitEmblem from "@/components/Friends/RockitEmblem";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function searchable(value: string): string {
     return value
@@ -21,9 +20,7 @@ export default function EmblemCollection({
     badges: ListeningBadgeResponse[];
     compact?: boolean;
 }): JSX.Element {
-    const v = useStore(
-        rockIt.vocabularyManager.vocabularyAtom
-    ) as unknown as Record<string, string>;
+    const v = useVocabulary() as unknown as Record<string, string>;
     const id = useId();
     const [expanded, setExpanded] = useState(false);
     const [family, setFamily] = useState("all");

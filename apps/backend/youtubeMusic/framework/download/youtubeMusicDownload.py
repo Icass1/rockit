@@ -44,36 +44,6 @@ class YoutubeMusicDownload(BaseDownload):
         self.youtube_id = youtube_id
         self.download_url = download_url
 
-    async def _find_alternative_urls_async(
-        self, track: TrackRow, artist_names: list[str], youtube_url: str
-    ) -> list[str]:
-        """Find other uploads of this song to fall back to, empty list on failure.
-
-        Best effort: a search failure here must not fail the download, because
-        the primary URL is usually fine on its own.
-        """
-
-        a_result: Result[list[str]] = await YoutubeSearch.find_video_urls_async(
-            song=YoutubeSongQuery(
-                title=track.title,
-                artists=artist_names,
-                album_title=track.album.title,
-                duration_ms=track.duration_ms,
-                isrc=track.isrc or "",
-            )
-        )
-        if a_result.is_not_ok():
-            logger.warning(
-                f"Could not find alternative videos for {track.title}. {a_result.info()}"
-            )
-            return []
-
-        alternatives: list[str] = [
-            url for url in a_result.result() if self.youtube_id not in url and url != youtube_url
-        ]
-        logger.info(f"Found {len(alternatives)} alternative video(s) for {track.title}")
-        return alternatives
-
     async def download_method_async(self, session: AsyncSession) -> ResultCode:
         """Download the YouTube Music track as mp3 asynchronously."""
 
@@ -110,13 +80,25 @@ class YoutubeMusicDownload(BaseDownload):
 
             filename: str = f"{self.youtube_id}_{self.download_id}"
 
-            # YouTube gates individual videos, and the auto-generated "Art
-            # Track" that YouTube Music points at is among the most gated
-            # content there is. Line up other uploads of the same song so the
-            # downloader has somewhere to go when every client is refused.
-            alternative_urls: list[str] = await self._find_alternative_urls_async(
-                track=track, artist_names=artist_names, youtube_url=youtube_url
+            # The selected song ID can itself refer to a videoclip. Resolve the
+            # recording first; all retry candidates must pass the same policy.
+            source = await YoutubeSearch.find_video_urls_async(
+                song=YoutubeSongQuery(
+                    title=track.title,
+                    artists=artist_names,
+                    album_title=track.album.title,
+                    duration_ms=track.duration_ms,
+                    isrc=track.isrc or "",
+                ),
+                preferred_url=youtube_url,
+                duration_from_preferred=True,
             )
+            if source.is_not_ok():
+                logger.error("Song source lookup failed: %s", source.info())
+                return ResultCode(code=source.code(), message=source.message())
+            candidate_urls = source.result()
+            youtube_url = candidate_urls[0]
+            alternative_urls = candidate_urls[1:]
 
             a_result_download: Result[
                 dict[str, Any]

@@ -5,16 +5,16 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { ArrowUpRight, ChevronDown, Flame, Headphones } from "lucide-react";
 import type { LeaderboardEntry } from "@/models/interfaces";
-import { rockIt } from "@/lib/rockit/rockIt";
 import EmblemCollection from "@/components/Friends/EmblemCollection";
 import styles from "@/components/Friends/Friends.module.css";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function FriendLeaderboard(): JSX.Element {
-    const v = useStore(
-        rockIt.vocabularyManager.vocabularyAtom
-    ) as unknown as Record<string, string>;
-    const friends = useStore(rockIt.friendManager.friendsAtom);
-    const activity = useStore(rockIt.friendManager.activityAtom);
+    const { friendManager } = useRuntimeServices();
+    const v = useVocabulary() as unknown as Record<string, string>;
+    const friends = useStore(friendManager.friendsAtom);
+    const activity = useStore(friendManager.activityAtom);
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [self, setSelf] = useState<LeaderboardEntry | null>(null);
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export default function FriendLeaderboard(): JSX.Element {
 
     useEffect(() => {
         let live = true;
-        void rockIt.friendManager
+        void friendManager
             .fetchLeaderboard()
             .then((data) => {
                 if (!live) return;
@@ -49,7 +49,7 @@ export default function FriendLeaderboard(): JSX.Element {
         return () => {
             live = false;
         };
-    }, [friends, activity, retry]);
+    }, [friendManager, friends, activity, retry]);
 
     if (loading)
         return <div className="skeleton h-72 rounded-3xl" aria-busy="true" />;

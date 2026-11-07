@@ -20,8 +20,7 @@ import {
     TransitionMixer,
 } from "@/lib/audio/transitionMixer";
 import { resolveOfflineAudioUrl } from "@/lib/offline/store";
-
-let _visibilityBound = false;
+import { isIOS } from "@/lib/utils/isIOS";
 
 /**
  * Web media player: implements the shared BaseMediaPlayerManager primitives
@@ -32,12 +31,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     static #instance: MediaPlayerManager;
 
     private static _isiOS(): boolean {
-        return (
-            typeof navigator !== "undefined" &&
-            (/iPad|iPhone|iPod/.test(navigator.userAgent ?? "") ||
-                (navigator.platform === "MacIntel" &&
-                    navigator.maxTouchPoints > 1))
-        );
+        return isIOS();
     }
 
     private _durationAtom = createAtom<number>(0);
@@ -81,6 +75,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _preloadedForQueueMediaId?: number;
     private _endedPollTimer?: ReturnType<typeof setInterval>;
     private _lastEndedTime = 0;
+    private _browserActive = false;
+    private _browserGeneration = 0;
+    private _retryPlayGesture?: () => void;
+    private _nativePlayRequest = 0;
 
     private _transitionSettings = createAtom<WebTransitionSettings>({
         ...DEFAULT_TRANSITIONS,
@@ -96,7 +94,8 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _preloadGeneration = 0;
     private _settingsInitialized = false;
     private _bounds = new Map<string, AudioBoundsResponse>();
-    private _boundsPending = new Set<string>();
+    private _boundsPending = new Map<string, symbol>();
+    private _boundsWaits = new Map<ReturnType<typeof setTimeout>, () => void>();
     private _freshAudioSource = false;
     private _outgoingEnd?: number;
 
@@ -120,24 +119,34 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     private async _prepareBounds(publicId: string): Promise<void> {
         if (
+            !this._browserActive ||
             !this._transitionSettings.get().enabled ||
             this._boundsPending.has(publicId)
         )
             return;
-        this._boundsPending.add(publicId);
+        const generation = this._browserGeneration;
+        const ticket = Symbol();
+        this._boundsPending.set(publicId, ticket);
+        const isCurrent = (): boolean => {
+            const queue = getRockIt().queueManager;
+            return (
+                this._browserActive &&
+                generation === this._browserGeneration &&
+                this._boundsPending.get(publicId) === ticket &&
+                this._transitionSettings.get().enabled &&
+                (queue.currentMedia?.publicId === publicId ||
+                    queue.peekNextQueueItem()?.media.publicId === publicId)
+            );
+        };
         try {
             for (let attempt = 0; attempt < 6; attempt++) {
-                const queue = getRockIt().queueManager;
-                const next = queue.peekNextQueueItem();
-                if (
-                    !this._transitionSettings.get().enabled ||
-                    (queue.currentMedia?.publicId !== publicId &&
-                        next?.media.publicId !== publicId)
-                )
-                    return;
+                if (!isCurrent()) return;
                 const bounds = await fetchAudioBounds(publicId);
-                if (!bounds || bounds.status === "unavailable") return;
+                if (!isCurrent() || !bounds || bounds.status === "unavailable")
+                    return;
                 if (bounds.status === "ready") {
+                    const queue = getRockIt().queueManager;
+                    const next = queue.peekNextQueueItem();
                     // Keep only metadata for the current pair; no unbounded browser cache.
                     for (const key of this._bounds.keys()) {
                         if (
@@ -149,12 +158,19 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     this._bounds.set(publicId, bounds);
                     return;
                 }
-                await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+                await new Promise<void>((resolve) => {
+                    const timer = setTimeout((): void => {
+                        this._boundsWaits.delete(timer);
+                        resolve();
+                    }, 1000);
+                    this._boundsWaits.set(timer, resolve);
+                });
             }
         } catch {
             // Optional metadata, including offline: preserve ordinary playback.
         } finally {
-            this._boundsPending.delete(publicId);
+            if (this._boundsPending.get(publicId) === ticket)
+                this._boundsPending.delete(publicId);
         }
     }
 
@@ -236,27 +252,63 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._preloadAudio.muted = true;
         this._preloadAudio.volume = 0;
 
-        if (typeof document !== "undefined" && !_visibilityBound) {
-            _visibilityBound = true;
-            document.addEventListener("visibilitychange", (): void => {
-                if (this._usesAudioForVideo()) {
-                    if (document.hidden) this._switchToBackgroundAudio();
-                    else this._restoreForegroundVideo();
-                }
-                if (!document.hidden) {
-                    this.activateTransitionsOnGesture();
-                    void this.preloadNextTrack();
-                    this._stopEndedPoll();
-                } else if (MediaPlayerManager._isiOS()) {
-                    this._startEndedPoll();
-                }
-            });
-        }
-
         MediaPlayerManager.#instance = this;
 
         return MediaPlayerManager.#instance;
     }
+
+    startBrowserLifecycle(): void {
+        if (this._browserActive || typeof document === "undefined") return;
+        this._browserActive = true;
+        this._browserGeneration++;
+        document.addEventListener("visibilitychange", this._handleVisibility);
+        if (this._playingAtom.get()) {
+            this._onPlayingStarted();
+            if (document.hidden) this._startEndedPoll();
+        }
+    }
+
+    stopBrowserLifecycle(): void {
+        this._browserActive = false;
+        this._browserGeneration++;
+        this._nativePlayRequest++;
+        this._preloadGeneration++;
+        this._boundsPending.clear();
+        this._bounds.clear();
+        for (const [timer, resolve] of this._boundsWaits) {
+            clearTimeout(timer);
+            resolve();
+        }
+        this._boundsWaits.clear();
+        if (this._transitionTimer) clearInterval(this._transitionTimer);
+        this._transitionTimer = undefined;
+        this._cancelTransition();
+        this._preloadedUri = undefined;
+        this._preloadedForQueueMediaId = undefined;
+        this._preloadAudio?.pause();
+        this._preloadAudio?.removeAttribute("src");
+        this._preloadAudio?.load();
+        if (typeof document !== "undefined")
+            document.removeEventListener(
+                "visibilitychange",
+                this._handleVisibility
+            );
+        this._clearRetryPlayGesture();
+        this._stopEndedPoll();
+    }
+
+    private _handleVisibility = (): void => {
+        if (!this._browserActive) return;
+        if (this._usesAudioForVideo()) {
+            if (document.hidden) this._switchToBackgroundAudio();
+            else this._restoreForegroundVideo();
+        }
+        if (!document.hidden) {
+            this.activateTransitionsOnGesture();
+            void this.preloadNextTrack();
+            this._stopEndedPoll();
+        } else if (MediaPlayerManager._isiOS()) this._startEndedPoll();
+    };
 
     private _createAudio(): HTMLAudioElement {
         const el = new Audio();
@@ -374,6 +426,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 this._cancelTransition();
         };
         return el;
+    }
+
+    setVolume(value: number): void {
+        this.volume = value;
     }
 
     initializeTransitionSettings(): void {
@@ -519,8 +575,14 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._cancelTransition();
             return;
         }
+        const generation = this._browserGeneration;
         this._blendTimer = setTimeout(
             (): void => {
+                if (
+                    generation !== this._browserGeneration ||
+                    this._outgoing !== old
+                )
+                    return;
                 this._cancelTransition();
             },
             remaining * 1000 + 50
@@ -531,6 +593,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         const audio = this._audio,
             settings = this._transitionSettings.get();
         if (
+            !this._browserActive ||
             !audio ||
             audio.paused ||
             !settings.enabled ||
@@ -694,13 +757,29 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private async _restoreForegroundVideo(): Promise<void> {
         const video = this._video;
         const audio = this._audio;
-        if (!video || !audio || !this._playRequested) return;
+        if (!this._browserActive || !video || !audio || !this._playRequested)
+            return;
+        const generation = this._browserGeneration;
+        const playbackId = this._playbackId;
+        const queueId = getRockIt().queueManager.currentQueueMediaId;
         const media = getRockIt().queueManager.currentMedia;
+        const isCurrent = (): boolean =>
+            this._browserActive &&
+            generation === this._browserGeneration &&
+            playbackId === this._playbackId &&
+            queueId === getRockIt().queueManager.currentQueueMediaId &&
+            media === getRockIt().queueManager.currentMedia &&
+            !document.hidden &&
+            this._playRequested &&
+            !this._audioOnlyAtom.get();
+        if (!isCurrent()) return;
         const videoUri = media ? getMediaVideoUrl(media) : undefined;
         if (videoUri && video.src !== videoUri) {
             await this.loadNativeSource("video", videoUri);
+            if (!isCurrent()) return;
             this._loadedVideoUri = videoUri;
         }
+        if (!isCurrent()) return;
         video.currentTime = audio.currentTime;
         audio.pause();
         video.play().catch((): void => {
@@ -811,15 +890,27 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     protected override playNative(kind: TMediaKind): void {
         const el = this._el(kind);
-        if (!el) return;
+        if (!this._browserActive || !el) return;
 
         if (kind === "audio" && this._audio && this._mixer.has(this._audio))
             this._mixer.activate();
 
         this._publishDuration();
         const playbackId = this._playbackId;
+        const generation = this._browserGeneration;
+        const request = ++this._nativePlayRequest;
+        const isCurrent = (): boolean =>
+            this._browserActive &&
+            generation === this._browserGeneration &&
+            request === this._nativePlayRequest &&
+            playbackId === this._playbackId &&
+            el === this._el(kind) &&
+            this._playRequested &&
+            this._syncOwner &&
+            this._effectiveKind(getRockIt().queueManager.currentMedia) === kind;
         el.play()
             .then((): void => {
+                if (!isCurrent()) return;
                 // Safari can deliver an older pause after the incoming deck starts,
                 // or omit a fresh playing event when reusing a preloaded element.
                 // Reconcile only the active element and playback occurrence.
@@ -845,6 +936,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 }
             })
             .catch((err): void => {
+                if (!isCurrent()) return;
                 console.error(
                     `MediaPlayerManager: ${kind} play failed`,
                     err.name,
@@ -923,11 +1015,13 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     protected override _onPlayingStarted(): void {
+        if (!this._browserActive) return;
+        const generation = this._browserGeneration;
         if (this._transitionSettings.get().enabled && !this._transitionTimer) {
-            this._transitionTimer = setInterval(
-                (): void => this._transitionTick(),
-                250
-            );
+            this._transitionTimer = setInterval((): void => {
+                if (generation === this._browserGeneration)
+                    this._transitionTick();
+            }, 250);
         }
         if (
             typeof document !== "undefined" &&
@@ -939,8 +1033,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     async preloadNextTrack(): Promise<void> {
-        if (this._outgoing) return;
+        if (!this._browserActive || this._outgoing) return;
         const generation = ++this._preloadGeneration;
+        const browserGeneration = this._browserGeneration;
         const next = getRockIt().queueManager.peekNextQueueItem();
         const playbackId = this._playbackId;
         if (!next || !this._preloadAudio) return;
@@ -960,6 +1055,8 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             return;
 
         if (
+            !this._browserActive ||
+            browserGeneration !== this._browserGeneration ||
             generation !== this._preloadGeneration ||
             playbackId !== this._playbackId ||
             next.queueMediaId !==
@@ -993,10 +1090,13 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     private _retryPlayOnGesture(kind: TMediaKind): void {
+        if (!this._browserActive) return;
+        this._clearRetryPlayGesture();
         const playbackId = this._playbackId;
         const handler = (): void => {
-            document.removeEventListener("pointerup", handler);
-            document.removeEventListener("keydown", handler);
+            if (this._retryPlayGesture !== handler || !this._browserActive)
+                return;
+            this._clearRetryPlayGesture();
             const el = this._el(kind);
             if (
                 el?.paused &&
@@ -1011,14 +1111,30 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 );
             }
         };
+        this._retryPlayGesture = handler;
         document.addEventListener("pointerup", handler, { once: true });
         document.addEventListener("keydown", handler, { once: true });
     }
 
-    private _startEndedPoll(): void {
-        if (!MediaPlayerManager._isiOS() || this._endedPollTimer) return;
+    private _clearRetryPlayGesture(): void {
+        if (!this._retryPlayGesture) return;
+        document.removeEventListener("pointerup", this._retryPlayGesture);
+        document.removeEventListener("keydown", this._retryPlayGesture);
+        this._retryPlayGesture = undefined;
+    }
 
+    private _startEndedPoll(): void {
+        if (
+            !this._browserActive ||
+            !MediaPlayerManager._isiOS() ||
+            this._endedPollTimer
+        )
+            return;
+
+        const generation = this._browserGeneration;
         this._endedPollTimer = setInterval((): void => {
+            if (!this._browserActive || generation !== this._browserGeneration)
+                return;
             const el = this._audio;
             if (!el || el.paused || !el.duration || isNaN(el.duration)) return;
 

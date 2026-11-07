@@ -62,3 +62,5 @@ export * from "@/models/enums/friendTab";
 export type { AutoplayRecommendation } from "@/models/types/autoplayRecommendation";
 
 export { mixHomeRecommendations } from "@/lib/homeRecommendations";
+
+export * from "@/utils/lyricsTiming";

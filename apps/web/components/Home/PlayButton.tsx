@@ -26,7 +26,7 @@ export default function PlayButton({
             aria-label={label}
             aria-pressed={download ? undefined : isPlaying}
             onClick={onClick}
-            className="flex items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
+            className="bg-foreground-strong text-background flex items-center justify-center rounded-full shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
             style={{ width: size, height: size }}
         >
             {download ? (

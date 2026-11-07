@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import type { SearchMediaType } from "@/models/search";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function SearchRail({
     kind,
@@ -14,7 +15,7 @@ export default function SearchRail({
 }): JSX.Element {
     const providers = useStore(rockIt.searchManager.providersAtom);
     const searching = useStore(rockIt.searchManager.searchingAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const loading = providers.some((provider) =>
         provider.loadingTypes.includes(kind)
     );
@@ -49,7 +50,7 @@ export default function SearchRail({
                     void rockIt.searchManager.loadMore(kind);
                 }
             }}
-            className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-white md:pr-14 md:pl-4"
+            className="focus-visible:outline-foreground-strong relative flex items-center gap-4 overflow-x-auto px-8 py-4 outline-offset-[-2px] focus-visible:outline-2 md:pr-14 md:pl-4"
         >
             {children}
             {hasMore && (
@@ -59,7 +60,7 @@ export default function SearchRail({
                     onClick={(): void => {
                         void rockIt.searchManager.loadMore(kind);
                     }}
-                    className="min-h-11 shrink-0 rounded-full border border-neutral-600 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-white disabled:opacity-50"
+                    className="border-border-strong text-foreground-strong hover:bg-muted focus-visible:outline-foreground-strong min-h-11 shrink-0 rounded-full border px-5 py-3 text-sm font-semibold focus-visible:outline-2 disabled:opacity-50"
                 >
                     {loading
                         ? vocabulary.SEARCH_LOADING

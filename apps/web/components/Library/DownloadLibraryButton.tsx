@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { Download, LoaderCircle } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadLibraryButton(): JSX.Element {
     const [loading, setLoading] = useState(false);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handleClick = async (): Promise<void> => {
         if (loading) return;
@@ -55,7 +55,7 @@ export default function DownloadLibraryButton(): JSX.Element {
             disabled={loading}
             title={$vocabulary.LIBRARY_DOWNLOAD_ALL}
             aria-label={$vocabulary.LIBRARY_DOWNLOAD_ALL}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 transition hover:bg-neutral-700 hover:text-white disabled:cursor-wait disabled:opacity-60"
+            className="bg-muted text-foreground hover:bg-accent hover:text-foreground-strong flex h-8 w-8 items-center justify-center rounded-full transition disabled:cursor-wait disabled:opacity-60"
         >
             {loading ? (
                 <LoaderCircle className="h-4 w-4 animate-spin" />

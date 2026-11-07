@@ -1,7 +1,11 @@
 import re
+import typing
+from collections.abc import Sequence
 from pathlib import Path
-from typing import get_args, get_origin
+from types import UnionType
+from typing import Any, cast
 
+from fastapi import UploadFile
 from fastapi._compat import ModelField
 from fastapi.routing import APIRoute
 from pydantic import BaseModel
@@ -14,6 +18,23 @@ def snake_to_pascal(string: str) -> str:
 def snake_to_camel(snake_str: str) -> str:
     camel_string = snake_to_pascal(snake_str)
     return snake_str[0].lower() + camel_string[1:]
+
+
+def format_route_path(path: str, param_name: str) -> str:
+    """Interpolate and encode a route parameter, including path converters."""
+    return re.sub(
+        pattern=r"\{" + re.escape(param_name) + r"(?::[^}]+)?\}",
+        repl="${encodeURIComponent(" + snake_to_camel(param_name) + ")}",
+        string=path,
+    )
+
+
+def response_schema(response_model: object) -> str:
+    """Build a response validator while preserving list item models."""
+    if typing.get_origin(response_model) is list:
+        item_model = typing.get_args(response_model)[0]
+        return response_schema(response_model=item_model) + ".array()"
+    return f"dto.{cast(type[BaseModel], response_model).__name__}Schema"
 
 
 def build_query_params(
@@ -34,28 +55,51 @@ def build_query_params(
         return [], "", ""
 
     # Required params first so optional TS params never precede required ones.
-    ordered = sorted(query_params, key=lambda qp: not qp.required)
+    ordered = sorted(query_params, key=lambda qp: not qp.field_info.is_required())
 
     signature_parts: list[str] = []
     append_lines: list[str] = []
 
     for qp in ordered:
         camel_name = snake_to_camel(qp.name)
-        if qp.type_ is float or qp.type_ is int:
+        qp_type = qp.field_info.annotation
+        qp_origin = typing.get_origin(qp_type)
+        if qp_origin in (typing.Union, UnionType):
+            non_none_types = [arg for arg in typing.get_args(qp_type) if arg is not type(None)]
+            if len(non_none_types) == 1:
+                qp_type = non_none_types[0]
+
+        is_array = typing.get_origin(qp_type) is list
+        if is_array:
+            array_type = typing.get_args(qp_type)
+            qp_type = array_type[0] if array_type else str
+
+        if qp_type is float or qp_type is int:
             ts_type = "number"
-        elif qp.type_ is bool:
+        elif qp_type is bool:
             ts_type = "boolean"
         else:
             ts_type = "string"
+        if is_array:
+            ts_type += "[]"
 
-        optional = not qp.required
+        optional = not qp.field_info.is_required()
         signature_parts.append(f"{camel_name}{'?' if optional else ''}: {ts_type}")
 
-        append = f'queryParams.append("{qp.name}", `${{{camel_name}}}`)'
-        if optional:
-            append_lines.append(f"        if ({camel_name} !== undefined) {append}\n")
+        if is_array:
+            append = (
+                f'{camel_name}.forEach((value) => queryParams.append("{qp.name}", `${{value}}`))'
+            )
+            if optional:
+                append_lines.append(f"        if ({camel_name} !== undefined) {append}\n")
+            else:
+                append_lines.append(f"        {append}\n")
         else:
-            append_lines.append(f"        {append}\n")
+            append = f'queryParams.append("{qp.name}", `${{{camel_name}}}`)'
+            if optional:
+                append_lines.append(f"        if ({camel_name} !== undefined) {append}\n")
+            else:
+                append_lines.append(f"        {append}\n")
 
     preamble = "        const queryParams = new URLSearchParams()\n"
     preamble += "".join(append_lines)
@@ -65,40 +109,45 @@ def build_query_params(
     return signature_parts, preamble, path_suffix
 
 
-def format_route_path(path: str, parameter_name: str) -> str:
-    """Interpolate and encode route parameters, including FastAPI path converters."""
-    pattern = r"\{" + re.escape(parameter_name) + r"(?::[^}]+)?\}"
-    replacement = "${encodeURIComponent(" + snake_to_camel(parameter_name) + ")}"
-    return re.sub(pattern, lambda _match: replacement, path)
+def collect_api_routes(routes: Sequence[object]) -> list[APIRoute]:
+    """Flatten FastAPI routes.
 
+    Newer FastAPI versions (>= 0.124) defer included routers via
+    ``fastapi.routing._IncludedRouter`` instead of flattening them into
+    ``APIRoute`` instances on ``app.routes``. Recurse into
+    ``original_router.routes`` to collect every concrete ``APIRoute``.
+    """
 
-def response_schema(model: object) -> str:
-    """Generate the Zod expression for a model or a list of model responses."""
-    if get_origin(model) is list:
-        return f"{response_schema(get_args(model)[0])}.array()"
-    if isinstance(model, type) and issubclass(model, BaseModel):
-        return f"dto.{model.__name__}Schema"
-    raise TypeError(f"Unsupported response model: {model!r}")
+    api_routes: list[APIRoute] = []
+
+    for route in routes:
+        if isinstance(route, APIRoute):
+            api_routes.append(route)
+        elif type(route).__name__ == "_IncludedRouter":
+            included_router = cast(Any, route)
+            api_routes.extend(collect_api_routes(included_router.original_router.routes))
+
+    return api_routes
 
 
 async def http_methods_generator() -> None:
     from app.main import app
 
-    project_root = Path(__file__).resolve().parents[4]
-    http_path = project_root / "packages/shared/src/http/baseHttp.ts"
+    http_path = Path("packages/shared/src/http/baseHttp.ts")
     http_path.touch(exist_ok=True)
 
-    template = Path(__file__).with_name("httpTemplate.txt")
+    template = Path("apps/backend/core/utils/httpTemplate.txt")
 
     text = ""
 
-    routes: list[APIRoute] = [r for r in app.routes if isinstance(r, APIRoute)]
+    routes: list[APIRoute] = collect_api_routes(app.routes)
     for route in sorted(routes, key=lambda r: (r.path, r.name)):
-        if len(route.methods) != 1:
+        methods = route.methods
+        if len(methods) != 1:
             print("Each endpoint must support only 1 method")
             continue
 
-        method = list(route.methods)[0]
+        method = list(methods)[0]
 
         text += "\n\n\n"
 
@@ -108,10 +157,10 @@ async def http_methods_generator() -> None:
 
         path = route.path
 
-        for param_name in route.param_convertors.keys():  # type: ignore
+        for param_name in route.param_convertors.keys():
             params.append(f"{snake_to_camel(param_name)}: string")
 
-            path = format_route_path(path, param_name)
+            path = format_route_path(path=path, param_name=param_name)
 
         if not route.response_model:
             query_sig, query_preamble, query_suffix = build_query_params(
@@ -119,7 +168,7 @@ async def http_methods_generator() -> None:
             )
             params.extend(query_sig)
 
-            output = "        return `${BACKEND_URL}" + path + "`\n"
+            output = f"        return `{path}`\n"
 
             if query_suffix:
                 output = output.rsplit("`\n", 1)[0] + query_suffix + "`\n"
@@ -131,17 +180,17 @@ async def http_methods_generator() -> None:
 
             continue
 
+        schema = response_schema(response_model=route.response_model)
+
         if method == "GET":
             query_sig, query_preamble, query_suffix = build_query_params(
                 route.dependant.query_params
             )
+
             params.extend(query_sig)
             text += f"    static async {method_name}({','.join(params)})" + " {\n"
             text += query_preamble
-            text += (
-                f"        return this.apiGetAsync(`{path}{query_suffix}`, "
-                f"{response_schema(route.response_model)})\n"
-            )
+            text += f"        return this.apiGetAsync(`{path}{query_suffix}`, {schema})\n"
             text += "    }"
 
         elif method == "POST":
@@ -150,9 +199,7 @@ async def http_methods_generator() -> None:
             if not body_params:
                 text += f"    static async {method_name}({','.join(params)})" + " {\n"
                 text += (
-                    f"        return this.apiFetchAsync(`{path}`, "
-                    f"{response_schema(route.response_model)}, "
-                    f'{{ method: "POST" }})\n'
+                    f'        return this.apiFetchAsync(`{path}`, {schema}, {{ method: "POST" }})\n'
                 )
                 text += "    }"
                 continue
@@ -161,7 +208,16 @@ async def http_methods_generator() -> None:
                 print("Path", route.path, "has multiple request body")
                 continue
 
-            body_type = body_params[0].type_
+            body_type = body_params[0].field_info.annotation
+
+            if isinstance(body_type, type) and issubclass(body_type, UploadFile):
+                params.extend(["file: Blob", "filename: string"])
+                text += f"    static async {method_name}({', '.join(params)})" + " {\n"
+                text += (
+                    f"        return this.apiPostFileAsync(`{path}`, {schema}, file, filename)\n"
+                )
+                text += "    }"
+                continue
 
             if not isinstance(body_type, type) or not issubclass(body_type, BaseModel):
                 print(f"Path {route.path}: body param is not a Pydantic BaseModel, skipping")
@@ -173,37 +229,41 @@ async def http_methods_generator() -> None:
 
             text += f"    static async {method_name}({', '.join(params)})" + " {\n"
             text += (
-                f"        return this.apiPostAsync(`{path}`, "
-                f"dto.{request_model}Schema, "
-                f"{response_schema(route.response_model)}, payload)\n"
+                f"        return this.apiPostAsync(`{path}`, dto.{request_model}Schema, "
+                f"{schema}, payload)\n"
             )
             text += "    }"
 
         elif method == "DELETE":
             text += f"    static async {method_name}({','.join(params)})" + " {\n"
-            text += (
-                f"        return this.apiDeleteAsync(`{path}`, "
-                f"{response_schema(route.response_model)})\n"
-            )
+            text += f"        return this.apiDeleteAsync(`{path}`, {schema})\n"
             text += "    }"
 
         elif method == "PATCH":
             body_params = route.dependant.body_params
-            payload_argument = ""
-            if body_params:
-                body_type = body_params[0].type_
-                if (
-                    len(body_params) != 1
-                    or not isinstance(body_type, type)
-                    or not issubclass(body_type, BaseModel)
-                ):
-                    raise TypeError(f"PATCH {route.path} requires one Pydantic body model")
-                params.append(f"payload: dto.{body_type.__name__}")
-                payload_argument = ", payload"
-            text += f"    static async {method_name}({','.join(params)})" + " {\n"
+            if not body_params:
+                text += f"    static async {method_name}({','.join(params)})" + " {\n"
+                text += f"        return this.apiPatchAsync(`{path}`, {schema})\n"
+                text += "    }"
+                continue
+
+            if len(body_params) != 1:
+                print("Path", route.path, "has multiple request body")
+                continue
+
+            body_type = body_params[0].field_info.annotation
+
+            if not isinstance(body_type, type) or not issubclass(body_type, BaseModel):
+                print(f"Path {route.path}: body param is not a Pydantic BaseModel, skipping")
+                continue
+
+            request_model = body_type.__name__
+            params.append(f"payload: dto.{request_model}")
+
+            text += f"    static async {method_name}({', '.join(params)})" + " {\n"
             text += (
-                f"        return this.apiPatchAsync(`{path}`, "
-                f"{response_schema(route.response_model)}{payload_argument})\n"
+                f"        return this.apiPatchBodyAsync(`{path}`, dto.{request_model}Schema, "
+                f"{schema}, payload)\n"
             )
             text += "    }"
 
@@ -216,8 +276,8 @@ async def http_methods_generator() -> None:
         import subprocess
 
         subprocess.run(
-            ["pnpm", "exec", "prettier", "--write", str(http_path).replace("frontend/", "")],
-            cwd=Path(__file__).resolve().parents[4],
+            ["pnpm", "exec", "prettier", "--write", str(http_path)],
+            cwd=Path.cwd(),
             check=True,
         )
         print("Formatted generated files with Prettier")

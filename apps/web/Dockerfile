@@ -33,15 +33,24 @@ RUN pnpm build:web
 
 FROM base AS runner
 WORKDIR /app
+ARG ROCKIT_VERSION=2.0.0
+ARG NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL=${NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL}
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+# Keep the workspace dependency layout so next start can resolve pnpm links
+# and load the Next.js configuration at runtime.
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web ./apps/web
+COPY --from=builder --chown=nextjs:nodejs /app/packages ./packages
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /app/version.json ./version.json
+ENV ROCKIT_VERSION=${ROCKIT_VERSION}
+WORKDIR /app/apps/web
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "apps/web/server.js"]
+CMD ["node", "node_modules/next/dist/bin/next", "start", "--hostname", "0.0.0.0"]

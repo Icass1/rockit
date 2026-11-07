@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 /*
  * Incremental list rendering that scales to libraries of any size.
@@ -18,28 +18,34 @@ export function useIncrementalList<T>(
     batchSize: number = 50,
     threshold: number = 200
 ): T[] {
-    const [itemCount, setItemCount] = useState<number>(() =>
-        Math.min(items.length, threshold)
-    );
+    const [page, setPage] = useState(() => ({
+        items,
+        count: Math.min(items.length, threshold),
+    }));
 
-    // Reset the revealed count whenever the underlying list identity changes
-    // (filter, search, tab). Compare by reference when possible.
-    const itemsKey = useRef<readonly T[]>(items);
-    useEffect((): void => {
-        if (itemsKey.current !== items) {
-            itemsKey.current = items;
-            setItemCount(Math.min(items.length, threshold));
-        }
-    }, [items, threshold]);
+    // A new list starts at the first batch without scheduling a render update.
+    const itemCount =
+        page.items === items ? page.count : Math.min(items.length, threshold);
 
     // Reveal the next batch when the sentinel scrolls into view.
-    useEffect((): void => {
+    useEffect((): (() => void) | void => {
         if (!sentinelInView) return;
-        setItemCount((count): number => {
-            if (count >= items.length) return count;
-            return Math.min(items.length, count + batchSize);
+        const frame = requestAnimationFrame(() => {
+            setPage((previous) => {
+                const count =
+                    previous.items === items
+                        ? previous.count
+                        : Math.min(items.length, threshold);
+                if (previous.items === items && count >= items.length)
+                    return previous;
+                return {
+                    items,
+                    count: Math.min(items.length, count + batchSize),
+                };
+            });
         });
-    }, [sentinelInView, items.length, batchSize]);
+        return () => cancelAnimationFrame(frame);
+    }, [sentinelInView, items, batchSize, threshold]);
 
     // First batch of items is rendered immediately so the viewport fills fast.
     return useMemo((): T[] => items.slice(0, itemCount), [items, itemCount]);

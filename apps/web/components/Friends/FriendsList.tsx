@@ -5,8 +5,9 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Headphones, MoreHorizontal, Search, UserPlus, X } from "lucide-react";
 import type { Friend } from "@/models/interfaces";
-import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function Avatar({
     imageUrl,
@@ -44,9 +45,10 @@ export default function FriendsList({
 }: {
     friends: Friend[];
 }): JSX.Element {
-    const blocked = useStore(rockIt.friendManager.blockedAtom);
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const results = useStore(rockIt.friendManager.searchResultsAtom);
+    const { friendManager, listenTogetherManager } = useRuntimeServices();
+    const blocked = useStore(friendManager.blockedAtom);
+    const v = useVocabulary();
+    const results = useStore(friendManager.searchResultsAtom);
     const [query, setQuery] = useState("");
     const [expanded, setExpanded] = useState(false);
     const [searching, setSearching] = useState(false);
@@ -58,11 +60,14 @@ export default function FriendsList({
     } | null>(null);
     const showResults = query.trim().length >= 2;
     useEffect(() => {
-        if (query.trim().length < 2) return;
+        if (query.trim().length < 2) {
+            void friendManager.searchUsers("");
+            return;
+        }
         let current = true;
         const timer = setTimeout(() => {
             setSearching(true);
-            void rockIt.friendManager.searchUsers(query.trim()).finally(() => {
+            void friendManager.searchUsers(query.trim()).finally(() => {
                 if (current) {
                     setSearching(false);
                     setSettledQuery(query.trim());
@@ -73,7 +78,7 @@ export default function FriendsList({
             current = false;
             clearTimeout(timer);
         };
-    }, [query]);
+    }, [query, friendManager]);
     const run = async (
         id: string,
         action: () => Promise<unknown>
@@ -151,7 +156,7 @@ export default function FriendsList({
                                         aria-label={`${v.FRIENDS_ADD}: ${user.username}`}
                                         onClick={() => {
                                             void run(user.publicId, () =>
-                                                rockIt.friendManager.sendRequest(
+                                                friendManager.sendRequest(
                                                     user.publicId
                                                 )
                                             );
@@ -204,7 +209,7 @@ export default function FriendsList({
                                         aria-label={`${v.FRIENDS_INVITE}: ${friend.username}`}
                                         onClick={() => {
                                             void run(friend.publicId, () =>
-                                                rockIt.listenTogetherManager.invite(
+                                                listenTogetherManager.invite(
                                                     friend.publicId
                                                 )
                                             );
@@ -284,10 +289,10 @@ export default function FriendsList({
                                         onClick={() => {
                                             void run(friend.publicId, () =>
                                                 confirm.action === "block"
-                                                    ? rockIt.friendManager.blockUser(
+                                                    ? friendManager.blockUser(
                                                           friend.publicId
                                                       )
-                                                    : rockIt.friendManager.removeFriend(
+                                                    : friendManager.removeFriend(
                                                           friend.publicId
                                                       )
                                             );
@@ -337,9 +342,7 @@ export default function FriendsList({
                                 disabled={busy !== null}
                                 onClick={() => {
                                     void run(user.publicId, () =>
-                                        rockIt.friendManager.unblockUser(
-                                            user.publicId
-                                        )
+                                        friendManager.unblockUser(user.publicId)
                                     );
                                 }}
                             >

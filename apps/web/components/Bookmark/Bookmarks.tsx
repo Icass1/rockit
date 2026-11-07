@@ -1,25 +1,43 @@
 "use client";
 
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
+import type { BookmarkResponse } from "@/dto";
 import { ERepeatMode, isStation } from "@rockit/shared";
+import { getMediaDuration } from "@/models/types/media";
+import { useCurrentMedia, usePlaybackStore } from "@/hooks/usePlaybackStore";
 import {
     BOOKMARK_MODE_COLORS,
     BOOKMARK_MODE_MUTED_COLORS,
 } from "@/lib/managers/bookmarkManager";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import BookmarkTooltip from "@/components/Bookmark/BookmarkTooltip";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
+import { useInitialPlayback } from "@/components/providers/QueueProvider";
+
+const EMPTY_BOOKMARKS: BookmarkResponse[] = [];
+const EMPTY_IDS: string[] = [];
 
 export default function Bookmarks(): JSX.Element {
-    const duration = useStore(rockIt.mediaPlayerManager.durationAtom) || 1;
-    const $bookmarks = useStore(
-        rockIt.bookmarkManager.currentMediaBookmarksAtom
+    const { mediaPlayerManager, userManager, bookmarkManager } =
+        usePlaybackServices();
+    const { session } = useInitialPlayback();
+    const $currentMedia = useCurrentMedia();
+    const duration =
+        usePlaybackStore(
+            mediaPlayerManager.durationAtom,
+            getMediaDuration($currentMedia) ?? 0
+        ) || 1;
+    const $bookmarks = usePlaybackStore(
+        bookmarkManager.currentMediaBookmarksAtom,
+        EMPTY_BOOKMARKS
     );
-    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
-    const $triggeredPublicIds = useStore(
-        rockIt.mediaPlayerManager.triggeredBookmarkPublicIdsAtom
+    const $repeatMode = usePlaybackStore(
+        userManager.repeatModeAtom,
+        ERepeatMode[session?.repeatMode ?? "OFF"]
+    );
+    const $triggeredPublicIds = usePlaybackStore(
+        mediaPlayerManager.triggeredBookmarkPublicIdsAtom,
+        EMPTY_IDS
     );
     const isLiveStation = $currentMedia && isStation($currentMedia);
 
@@ -54,16 +72,11 @@ export default function Bookmarks(): JSX.Element {
                             left,
                         }}
                         onClick={(): void =>
-                            rockIt.mediaPlayerManager.setCurrentTime(
-                                b.timestamp,
-                                true
-                            )
+                            mediaPlayerManager.setCurrentTime(b.timestamp, true)
                         }
                         onContextMenu={(e): void => {
                             e.preventDefault();
-                            rockIt.bookmarkManager.openEditForBookmark(
-                                b.publicId
-                            );
+                            bookmarkManager.openEditForBookmark(b.publicId);
                         }}
                     >
                         <div

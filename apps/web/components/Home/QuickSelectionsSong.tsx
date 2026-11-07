@@ -3,13 +3,13 @@
 import { useCallback, type JSX } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import { Download } from "lucide-react";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function QuickSelectionsSong({
     song,
@@ -19,16 +19,20 @@ export default function QuickSelectionsSong({
     songs: BaseSongWithAlbumResponse[];
 }): JSX.Element {
     const $song = useMedia(song);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handleClick = useCallback((): void => {
         void rockIt.queueManager.playRecommendedSongAsync($song, songs);
     }, [$song, songs]);
 
     return (
-        <MediaContextMenu media={$song} location={EMediaContextLocation.HOME}>
+        <MediaContextMenu
+            media={$song}
+            location={EMediaContextLocation.HOME}
+            onPlay={handleClick}
+        >
             <div
-                className="flex h-fit cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
+                className="hover:bg-muted flex h-fit cursor-pointer items-center gap-2 rounded-lg p-2 transition"
                 onClick={handleClick}
             >
                 <Image
@@ -40,12 +44,12 @@ export default function QuickSelectionsSong({
                 />
                 <div className="flex w-full min-w-0 flex-col justify-center">
                     <div className="flex items-center gap-1.5">
-                        <span className="w-full min-w-0 truncate text-sm font-semibold text-white">
+                        <span className="text-foreground-strong w-full min-w-0 truncate text-sm font-semibold">
                             {$song.name}
                         </span>
                         {!$song.downloaded && (
                             <Download
-                                className="h-4 w-4 shrink-0 text-(--color-rockit-pink)"
+                                className="text-primary h-4 w-4 shrink-0"
                                 aria-label={$vocabulary.CLICK_TO_DOWNLOAD}
                             />
                         )}
@@ -54,7 +58,7 @@ export default function QuickSelectionsSong({
                             className="h-5 w-5"
                         />
                     </div>
-                    <span className="w-full min-w-0 truncate text-xs text-gray-400">
+                    <span className="text-muted-foreground w-full min-w-0 truncate text-xs">
                         {$song.artists[0]?.name ?? $vocabulary.UNKNOWN} {" • "}{" "}
                         {$song.album?.name ?? "—"}
                     </span>

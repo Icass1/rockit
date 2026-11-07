@@ -1,11 +1,11 @@
 "use client";
 
 import type { JSX } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { BaseDynamicLyricsResponse } from "@/dto";
-import type { HttpResult } from "@rockit/shared";
-import { Http } from "@/lib/http";
+import { useEffect, useMemo, useRef } from "react";
+import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { usePlayer } from "@/lib/PlayerContext";
+import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface LyricsPanelProps {
     currentTime: number;
@@ -17,40 +17,21 @@ export default function LyricsPanel({
     onSeek,
 }: LyricsPanelProps): JSX.Element {
     const { currentMedia } = usePlayer();
-    const [lyrics, setLyrics] = useState<BaseDynamicLyricsResponse>();
-    const [loading, setLoading] = useState(true);
+    const snapshot = useLyricsSnapshot(
+        currentMedia?.type === "song" ? currentMedia.publicId : undefined
+    );
+    const lyrics = snapshot.data?.dynamic;
+    const loading = snapshot.loading;
     const activeLineRef = useRef<HTMLParagraphElement>(null);
 
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLyrics(undefined);
-        setLoading(false);
-        if (currentMedia?.type !== "song") return;
-        setLoading(true);
-
-        let cancelled = false;
-
-        Http.getDynamicLyricsAsync(currentMedia.publicId).then(
-            (response: HttpResult<BaseDynamicLyricsResponse>) => {
-                if (cancelled) return;
-                if (response.isOk() && response.result) {
-                    setLyrics(response.result);
-                }
-                setLoading(false);
-            }
-        );
-
-        return (): void => {
-            cancelled = true;
-        };
-    }, [currentMedia]);
+    const $vocabulary = useVocabulary();
 
     const currentIndex = useMemo(() => {
         if (!lyrics || !lyrics.lines) return null;
         const offset: number = lyrics.offset ?? 0;
         for (let i = lyrics.lines.length - 1; i >= 0; i--) {
             const line = lyrics.lines[i];
-            if (currentTime >= (line.timestamp_s ?? 0) - offset) {
+            if (currentTime >= lyricPlaybackTime(line.timestamp_s, offset)) {
                 return i;
             }
         }
@@ -67,7 +48,7 @@ export default function LyricsPanel({
     if (loading) {
         return (
             <div className="flex h-full items-center justify-center">
-                <p className="text-base text-(--color-muted)">
+                <p className="text-muted-foreground text-base">
                     Cargando letra...
                 </p>
             </div>
@@ -76,10 +57,15 @@ export default function LyricsPanel({
 
     if (!lyrics) {
         return (
-            <div className="flex h-full items-center justify-center">
-                <p className="text-base text-(--color-muted)">
-                    No hay letra disponible
-                </p>
+            <div className="h-full overflow-y-auto px-6">
+                {snapshot.data?.lines.map((line, index) => (
+                    <p key={index} className="py-2">
+                        {line.text}
+                    </p>
+                ))}
+                {!snapshot.data?.lines.length && (
+                    <p>{$vocabulary.LYRICS_UNAVAILABLE}</p>
+                )}
             </div>
         );
     }
@@ -101,13 +87,20 @@ export default function LyricsPanel({
                         <p
                             key={index}
                             ref={isActive ? activeLineRef : undefined}
-                            onClick={() => onSeek(line.timestamp_s)}
+                            onClick={() =>
+                                onSeek(
+                                    lyricSeekTime(
+                                        line.timestamp_s,
+                                        lyrics.offset
+                                    )
+                                )
+                            }
                             className={`mb-2 cursor-pointer pr-4 leading-9 font-semibold transition-colors ${
                                 isActive
-                                    ? "text-[26px] text-white"
+                                    ? "text-foreground-strong text-[26px]"
                                     : isPast
-                                      ? "text-[22px] text-white/20"
-                                      : "text-[22px] text-white/35"
+                                      ? "text-foreground-strong/20 text-[22px]"
+                                      : "text-foreground-strong/35 text-[22px]"
                             }`}
                         >
                             {line.text}

@@ -1,4 +1,7 @@
-import { EWebSocketMessage } from "@rockit/shared";
+import {
+    EWebSocketMessage,
+    type WebSocketMessageHandler,
+} from "@rockit/shared";
 import type {
     Friend,
     FriendActivity,
@@ -6,14 +9,28 @@ import type {
     LeaderboardEntry,
     UserSearchResult,
 } from "@/models/interfaces";
+import type { FriendServices } from "@/models/interfaces/friendServices";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class FriendManager {
-    private _init = false;
+    private _active = false;
+    private _unsubscribeSession?: () => void;
+    private _username?: string;
+    private _generation = 0;
+    private _scopeAtom = createAtom(0);
     private _searchGeneration = 0;
     private _friendsGeneration = 0;
+    private _blockedGeneration = 0;
+    private _requestsGeneration = 0;
+    private _activityGeneration = 0;
+
+    constructor(private readonly dependencies?: FriendServices) {}
+
+    private get services(): FriendServices {
+        return this.dependencies ?? rockIt;
+    }
 
     private _blockedAtom = createArrayAtom<Friend>([]);
     get blockedAtom(): ReadonlyAtom<Friend[]> {
@@ -28,178 +45,269 @@ export class FriendManager {
     private _loadingAtom = createAtom<boolean>(false);
     private _errorAtom = createAtom<string | null>(null);
 
-    async init(): Promise<void> {
-        if (typeof window === "undefined") return;
-        if (this._init) return;
-        this._init = true;
-        rockIt.userManager.loggedInAtom.subscribe((loggedIn) => {
-            if (loggedIn) {
-                void this.fetchFriends();
-                void this.fetchBlocked();
-                void this.fetchRequests();
-            } else {
-                ++this._friendsGeneration;
-                this._loadingAtom.set(false);
-                this._friendsAtom.set([]);
-                this._blockedAtom.set([]);
-                this._incomingRequestsAtom.set([]);
-                this._sentRequestsAtom.set([]);
-                this._activityAtom.set([]);
-            }
-        });
-
-        rockIt.webSocketManager.onMessage(
+    start(): void {
+        if (this._active || typeof window === "undefined") return;
+        this._active = true;
+        this.services.webSocketManager.onMessage(
             EWebSocketMessage.SocialChanged,
-            () => {
-                void this.fetchFriends();
-                void this.fetchBlocked();
-                void this.fetchRequests();
-                void this.fetchActivity();
-            }
+            this._handleSocial
         );
-        rockIt.webSocketManager.onMessage(
+        this.services.webSocketManager.onMessage(
             EWebSocketMessage.FriendsPresenceChanged,
-            () => {
-                void this.fetchFriends();
-            }
+            this._handlePresence
         );
-        rockIt.webSocketManager.onMessage(
+        this.services.webSocketManager.onMessage(
             EWebSocketMessage.FriendActivity,
-            () => {
-                this.fetchActivity();
-            }
+            this._handleActivity
+        );
+        this._unsubscribeSession =
+            this.services.userManager.sessionAtom.subscribe((session) => {
+                if (session?.username === this._username) return;
+                this.reset(session?.username);
+                if (this._username) void this.fetchBlocked();
+            });
+    }
+
+    stop(): void {
+        if (!this._active) return;
+        this._active = false;
+        this._unsubscribeSession?.();
+        this._unsubscribeSession = undefined;
+        this.services.webSocketManager.offMessage(
+            EWebSocketMessage.SocialChanged,
+            this._handleSocial
+        );
+        this.services.webSocketManager.offMessage(
+            EWebSocketMessage.FriendsPresenceChanged,
+            this._handlePresence
+        );
+        this.services.webSocketManager.offMessage(
+            EWebSocketMessage.FriendActivity,
+            this._handleActivity
+        );
+        this.reset();
+    }
+
+    private reset(username?: string): void {
+        this._username = username;
+        this._generation++;
+        this._loadingAtom.set(false);
+        this._errorAtom.set(null);
+        this._friendsAtom.set([]);
+        this._blockedAtom.set([]);
+        this._incomingRequestsAtom.set([]);
+        this._sentRequestsAtom.set([]);
+        this._activityAtom.set([]);
+        this._searchResultsAtom.set([]);
+        this._scopeAtom.set(this._generation);
+    }
+
+    private isCurrent(generation: number): boolean {
+        return (
+            this._active && !!this._username && generation === this._generation
         );
     }
 
-    async fetchBlocked(): Promise<void> {
-        const requestingUser = rockIt.userManager.usernameAtom.get();
-        if (!rockIt.userManager.loggedInAtom.get()) return;
-        const result = await Http.getBlockedUsers();
-        if (
-            !rockIt.userManager.loggedInAtom.get() ||
-            requestingUser !== rockIt.userManager.usernameAtom.get()
-        )
-            return;
-        if (result.isOk()) this._blockedAtom.set(result.result.friends);
-        else {
-            console.error(result.detail);
-            this._errorAtom.set(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
+    private _handleSocial: WebSocketMessageHandler<EWebSocketMessage.SocialChanged> =
+        (message) => {
+            if (!this.isCurrent(this._generation)) return;
+            // The socket snapshot supersedes reads already in flight.
+            this._friendsGeneration++;
+            this._requestsGeneration++;
+            this._activityGeneration++;
+            this._friendsAtom.set(message.friends);
+            this._incomingRequestsAtom.set(message.incoming);
+            this._sentRequestsAtom.set(message.sent);
+            this._activityAtom.set(message.activities);
+            this._loadingAtom.set(false);
+            this._errorAtom.set(null);
+        };
+
+    private _handlePresence: WebSocketMessageHandler<EWebSocketMessage.FriendsPresenceChanged> =
+        (message) => {
+            if (!this.isCurrent(this._generation) || !message.userPublicId)
+                return;
+            this.updatePresence(
+                message.userPublicId,
+                message.isOnline ?? false,
+                message.nowPlaying ?? null
             );
+        };
+
+    private _handleActivity: WebSocketMessageHandler<EWebSocketMessage.FriendActivity> =
+        (message) => {
+            if (!this.isCurrent(this._generation)) return;
+            this._activityGeneration++;
+            const existing = this._activityAtom.get();
+            if (
+                existing.some(
+                    (item) =>
+                        item.userPublicId === message.userPublicId &&
+                        item.mediaPublicId === message.mediaPublicId &&
+                        item.listenedAt === message.listenedAt
+                )
+            )
+                return;
+            this._activityAtom.set([message, ...existing].slice(0, 30));
+        };
+
+    async fetchBlocked(): Promise<void> {
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        const revision = ++this._blockedGeneration;
+        try {
+            const result = await Http.getBlockedUsers();
+            if (
+                !this.isCurrent(generation) ||
+                revision !== this._blockedGeneration
+            )
+                return;
+            if (!result.isOk()) throw new Error(String(result.detail));
+            this._blockedAtom.set(result.result.friends);
+        } catch {
+            if (
+                this.isCurrent(generation) &&
+                revision === this._blockedGeneration
+            )
+                this._errorAtom.set(
+                    this.services.vocabularyManager.vocabulary
+                        .FRIENDS_LOAD_ERROR
+                );
         }
     }
 
     async blockUser(publicId: string): Promise<void> {
-        const result = await Http.blockUser(publicId);
-        if (!result.isOk()) {
-            console.error(result.detail);
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
-            );
-            return;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        try {
+            const result = await Http.blockUser(publicId);
+            if (!this.isCurrent(generation)) return;
+            if (!result.isOk()) throw new Error(String(result.detail));
+            await Promise.all([
+                this.fetchFriends(),
+                this.fetchBlocked(),
+                this.fetchRequests(),
+            ]);
+        } catch {
+            if (this.isCurrent(generation)) this.actionError();
         }
-        await Promise.all([
-            this.fetchFriends(),
-            this.fetchBlocked(),
-            this.fetchRequests(),
-        ]);
     }
 
     async unblockUser(publicId: string): Promise<void> {
-        const result = await Http.unblockUser(publicId);
-        if (!result.isOk()) {
-            console.error(result.detail);
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
-            );
-            return;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        try {
+            const result = await Http.unblockUser(publicId);
+            if (!this.isCurrent(generation)) return;
+            if (!result.isOk()) throw new Error(String(result.detail));
+            await this.fetchBlocked();
+        } catch {
+            if (this.isCurrent(generation)) this.actionError();
         }
-        await this.fetchBlocked();
     }
 
     async fetchFriends(): Promise<void> {
-        const requestingUser = rockIt.userManager.usernameAtom.get();
-        if (!rockIt.userManager.loggedInAtom.get()) return;
-        const generation = ++this._friendsGeneration;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        const revision = ++this._friendsGeneration;
         this._loadingAtom.set(true);
         try {
-            const res = await Http.getFriends();
+            const result = await Http.getFriends();
             if (
-                generation !== this._friendsGeneration ||
-                !rockIt.userManager.loggedInAtom.get() ||
-                requestingUser !== rockIt.userManager.usernameAtom.get()
+                !this.isCurrent(generation) ||
+                revision !== this._friendsGeneration
             )
                 return;
-            if (res.isOk()) {
-                this._friendsAtom.set(res.result.friends ?? []);
-            }
-            if (!res.isOk()) throw new Error(String(res.detail));
+            if (!result.isOk()) throw new Error(String(result.detail));
+            this._friendsAtom.set(result.result.friends);
             this._errorAtom.set(null);
-        } catch (e) {
-            if (generation !== this._friendsGeneration) return;
-            console.error(e);
-            this._errorAtom.set(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
-            );
+        } catch {
+            if (
+                this.isCurrent(generation) &&
+                revision === this._friendsGeneration
+            )
+                this._errorAtom.set(
+                    this.services.vocabularyManager.vocabulary
+                        .FRIENDS_LOAD_ERROR
+                );
         } finally {
-            if (generation === this._friendsGeneration)
+            if (
+                this.isCurrent(generation) &&
+                revision === this._friendsGeneration
+            )
                 this._loadingAtom.set(false);
         }
     }
 
     async fetchRequests(): Promise<void> {
-        const requestingUser = rockIt.userManager.usernameAtom.get();
-        if (!rockIt.userManager.loggedInAtom.get()) return;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        const revision = ++this._requestsGeneration;
         try {
-            const res = await Http.getFriendRequests();
+            const result = await Http.getFriendRequests();
             if (
-                !rockIt.userManager.loggedInAtom.get() ||
-                requestingUser !== rockIt.userManager.usernameAtom.get()
+                !this.isCurrent(generation) ||
+                revision !== this._requestsGeneration
             )
                 return;
-            if (res.isOk()) {
-                this._incomingRequestsAtom.set(res.result.incoming ?? []);
-                this._sentRequestsAtom.set(res.result.sent ?? []);
-            }
-        } catch (e) {
-            console.error(e);
-            this._errorAtom.set(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
-            );
+            if (!result.isOk()) throw new Error(String(result.detail));
+            this._incomingRequestsAtom.set(result.result.incoming);
+            this._sentRequestsAtom.set(result.result.sent);
+        } catch {
+            if (
+                this.isCurrent(generation) &&
+                revision === this._requestsGeneration
+            )
+                this._errorAtom.set(
+                    this.services.vocabularyManager.vocabulary
+                        .FRIENDS_LOAD_ERROR
+                );
         }
     }
 
     async searchUsers(query: string): Promise<void> {
-        const requestingUser = rockIt.userManager.usernameAtom.get();
-        if (!rockIt.userManager.loggedInAtom.get()) return;
-        const generation = ++this._searchGeneration;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        const revision = ++this._searchGeneration;
         if (query.length < 2) {
             this._searchResultsAtom.set([]);
             return;
         }
         try {
-            const res = await Http.searchUsers(query);
+            const result = await Http.searchUsers(query);
             if (
-                !rockIt.userManager.loggedInAtom.get() ||
-                requestingUser !== rockIt.userManager.usernameAtom.get()
+                !this.isCurrent(generation) ||
+                revision !== this._searchGeneration
             )
                 return;
-            if (res.isOk() && generation === this._searchGeneration) {
-                this._searchResultsAtom.set(res.result.results ?? []);
-            }
-        } catch (e) {
-            console.error(e);
-            this._errorAtom.set(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
-            );
+            if (!result.isOk()) throw new Error(String(result.detail));
+            this._searchResultsAtom.set(result.result.results);
+        } catch {
+            if (
+                this.isCurrent(generation) &&
+                revision === this._searchGeneration
+            )
+                this._errorAtom.set(
+                    this.services.vocabularyManager.vocabulary
+                        .FRIENDS_LOAD_ERROR
+                );
         }
     }
 
+    private actionError(): void {
+        this.services.notificationManager.notifyError(
+            this.services.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+        );
+    }
+
     async sendRequest(userPublicId: string): Promise<boolean> {
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return false;
         try {
             const res = await Http.sendFriendRequest(userPublicId);
+            if (!this.isCurrent(generation)) return false;
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchRequests();
+            this._searchGeneration++;
             this._searchResultsAtom.set(
                 this._searchResultsAtom
                     .get()
@@ -209,43 +317,60 @@ export class FriendManager {
                             : user
                     )
             );
-            rockIt.notificationManager.notifySuccess(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_REQUEST_SENT
+            this.services.notificationManager.notifySuccess(
+                this.services.vocabularyManager.vocabulary.FRIENDS_REQUEST_SENT
             );
             return true;
-        } catch (e) {
-            console.error(e);
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+        } catch {
+            if (!this.isCurrent(generation)) return false;
+            this.services.notificationManager.notifyError(
+                this.services.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
             );
             return false;
         }
     }
 
     async acceptRequest(requestPublicId: string): Promise<boolean> {
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return false;
         try {
             const res = await Http.acceptFriendRequest(requestPublicId);
+            if (!this.isCurrent(generation)) return false;
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchRequests();
-            await this.fetchFriends();
-            rockIt.notificationManager.notifySuccess(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_REQUEST_ACCEPTED
+            this._requestsGeneration++;
+            this._incomingRequestsAtom.set(
+                this._incomingRequestsAtom
+                    .get()
+                    .filter((request) => request.publicId !== requestPublicId)
+            );
+            void this.fetchFriends();
+            this.services.notificationManager.notifySuccess(
+                this.services.vocabularyManager.vocabulary
+                    .FRIENDS_REQUEST_ACCEPTED
             );
             return true;
-        } catch (e) {
-            console.error(e);
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+        } catch {
+            if (!this.isCurrent(generation)) return false;
+            this.services.notificationManager.notifyError(
+                this.services.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
             );
             return false;
         }
     }
 
     async rejectRequest(requestPublicId: string): Promise<boolean> {
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return false;
         try {
             const res = await Http.rejectFriendRequest(requestPublicId);
+            if (!this.isCurrent(generation)) return false;
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchRequests();
+            this._requestsGeneration++;
+            this._incomingRequestsAtom.set(
+                this._incomingRequestsAtom
+                    .get()
+                    .filter((request) => request.publicId !== requestPublicId)
+            );
             return true;
         } catch {
             return false;
@@ -253,12 +378,21 @@ export class FriendManager {
     }
 
     async removeFriend(userPublicId: string): Promise<boolean> {
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return false;
         try {
             const res = await Http.removeFriend(userPublicId);
+            if (!this.isCurrent(generation)) return false;
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchFriends();
-            rockIt.notificationManager.notifySuccess(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_REMOVED
+            this._friendsGeneration++;
+            this._loadingAtom.set(false);
+            this._friendsAtom.set(
+                this._friendsAtom
+                    .get()
+                    .filter((friend) => friend.publicId !== userPublicId)
+            );
+            this.services.notificationManager.notifySuccess(
+                this.services.vocabularyManager.vocabulary.FRIENDS_REMOVED
             );
             return true;
         } catch {
@@ -267,33 +401,75 @@ export class FriendManager {
     }
 
     async fetchActivity(): Promise<void> {
-        const requestingUser = rockIt.userManager.usernameAtom.get();
-        if (!rockIt.userManager.loggedInAtom.get()) return;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        const revision = ++this._activityGeneration;
         try {
-            const res = await Http.getFriendsActivity();
+            const result = await Http.getFriendsActivity();
             if (
-                !rockIt.userManager.loggedInAtom.get() ||
-                requestingUser !== rockIt.userManager.usernameAtom.get()
+                !this.isCurrent(generation) ||
+                revision !== this._activityGeneration
             )
                 return;
-            if (res.isOk()) {
-                this._activityAtom.set(res.result.activities ?? []);
-            }
+            if (!result.isOk()) throw new Error(String(result.detail));
+            this._activityAtom.set(result.result.activities);
         } catch {
-            // silent
+            if (
+                this.isCurrent(generation) &&
+                revision === this._activityGeneration
+            )
+                this._errorAtom.set(
+                    this.services.vocabularyManager.vocabulary
+                        .FRIENDS_LOAD_ERROR
+                );
         }
+    }
+
+    updatePresence(
+        publicId: string,
+        isOnline: boolean,
+        nowPlaying?: string | null
+    ): void {
+        if (!this.isCurrent(this._generation)) return;
+        this._friendsAtom.set(
+            this._friendsAtom.get().map((friend) =>
+                friend.publicId === publicId
+                    ? {
+                          ...friend,
+                          isOnline,
+                          nowPlaying:
+                              nowPlaying === undefined
+                                  ? friend.nowPlaying
+                                  : nowPlaying,
+                      }
+                    : friend
+            )
+        );
     }
 
     async fetchLeaderboard(): Promise<{
         entries: LeaderboardEntry[];
         currentUser: LeaderboardEntry | null;
     }> {
-        const res = await Http.getLeaderboard();
-        if (!res.isOk()) throw new Error("Could not load leaderboard");
-        return {
-            entries: res.result.entries ?? [],
-            currentUser: res.result.currentUser,
-        };
+        const generation = this._generation;
+        const empty = { entries: [], currentUser: null };
+        if (!this.isCurrent(generation)) return empty;
+        try {
+            const res = await Http.getLeaderboard();
+            if (!this.isCurrent(generation)) return empty;
+            if (!res.isOk()) throw new Error(String(res.detail));
+            return {
+                entries: res.result.entries ?? [],
+                currentUser: res.result.currentUser,
+            };
+        } catch (error) {
+            if (!this.isCurrent(generation)) return empty;
+            throw error;
+        }
+    }
+
+    get scopeAtom(): ReadonlyAtom<number> {
+        return this._scopeAtom.getReadonlyAtom();
     }
 
     get friendsAtom(): ReadonlyAtom<Friend[]> {

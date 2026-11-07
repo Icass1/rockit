@@ -16,7 +16,10 @@ class CreateUserRequestRequest(BaseModel):
         if isinstance(v, RequestTypeEnum):
             return v
         if isinstance(v, str):
-            return RequestTypeEnum[v.upper()]
+            try:
+                return RequestTypeEnum[v.upper()]
+            except KeyError as exc:
+                raise ValueError("Invalid request type") from exc
         raise ValueError(f"Invalid request type: {v}")
 
 
@@ -33,7 +36,10 @@ class GetAllRequestsRequest(BaseModel):
         if isinstance(v, RequestStatusEnum):
             return v
         if isinstance(v, str):
-            return RequestStatusEnum[v.upper()]
+            try:
+                return RequestStatusEnum[v.upper()]
+            except KeyError as exc:
+                raise ValueError("Invalid request status") from exc
         raise ValueError(f"Invalid status: {v}")
 
 
@@ -47,5 +53,8 @@ class ReviewUserRequestRequest(BaseModel):
         if isinstance(v, RequestStatusEnum):
             return v
         if isinstance(v, str):
-            return RequestStatusEnum[v.upper()]
+            try:
+                return RequestStatusEnum[v.upper()]
+            except KeyError as exc:
+                raise ValueError("Invalid request status") from exc
         raise ValueError(f"Invalid status: {v}")

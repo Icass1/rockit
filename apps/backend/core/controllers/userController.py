@@ -2,7 +2,7 @@ from logging import Logger
 from typing import cast
 
 from argon2 import PasswordHasher
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from core.access.db.ormModels.image import ImageRow
@@ -23,8 +23,12 @@ from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.requests.likeMediaRequest import LikeMediaRequest
 from core.requests.notificationRequests import UpdateNotificationSubscriptionsRequest
 from core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
+from core.requests.updateDownloadSettingsRequest import UpdateDownloadSettingsRequest
 from core.requests.updateLangRequest import UpdateLangRequest
+from core.requests.updateListeningHeatmapRequest import UpdateListeningHeatmapRequest
 from core.requests.updatePasswordRequest import UpdatePasswordRequest
+from core.requests.updateThemeRequest import UpdateThemeRequest
+from core.requests.updateVolumeRequest import UpdateVolumeRequest
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -80,6 +84,9 @@ async def get_user(request: Request) -> UserSettingsResponse:
         username=user.username,
         lang=user.language.lang_code,
         crossfade=user.cross_fade_ms,
+        volume=user.volume,
+        showListeningHeatmap=user.show_listening_heatmap,
+        theme=user.theme,
         queueType=QueueTypeEnum(user.queue_type_enum),
         repeatMode=RepeatModeEnum(user.repeat_mode_enum),
     )
@@ -181,12 +188,58 @@ async def get_session(request: Request) -> SessionResponse:
         queueType=QueueTypeEnum(value=a_result_user.result().queue_type_key),
         repeatMode=RepeatModeEnum(value=a_result_user.result().repeat_mode_key),
         currentTimeMs=a_result_user.result().current_time_ms,
+        volume=a_result_user.result().volume,
+        showListeningHeatmap=a_result_user.result().show_listening_heatmap,
+        autoAddToLibrary=a_result_user.result().auto_add_downloads_to_library,
+        theme=a_result_user.result().theme,
     )
 
 
+@router.post("/theme")
+async def update_theme(request: Request, payload: UpdateThemeRequest) -> OkResponse:
+    """Persist only the authenticated user's interface theme."""
+    current_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify theme preference owner: %s", current_user.info())
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
+    result = await User.update_theme_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user=current_user.result(),
+        theme=payload.theme,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot save theme preference: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
+
+
+@router.post("/download-settings")
+async def update_download_settings(
+    request: Request, payload: UpdateDownloadSettingsRequest
+) -> OkResponse:
+    """Persist the authenticated user's download preference across devices."""
+    current_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify download preference owner: %s", current_user.info())
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
+    result = await User.update_download_settings_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user=current_user.result(),
+        auto_add=payload.autoAddToLibrary,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot save download preference: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
+
+
 @router.get(path="/queue")
-async def get_queue(request: Request) -> QueueResponse:
-    """TODO"""
+async def get_queue(
+    request: Request,
+    offset: int | None = Query(default=None, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+) -> QueueResponse:
+    """Get a bounded queue page. The first page is centered near current playback."""
 
     a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
@@ -197,7 +250,10 @@ async def get_queue(request: Request) -> QueueResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
     a_result_queue: Result[QueueResponse] = await User.get_user_queue_async(
-        session=session, user_id=a_result_user.result().id
+        session=session,
+        user_id=a_result_user.result().id,
+        offset=offset,
+        limit=limit,
     )
     if a_result_queue.is_not_ok():
         logger.error(f"Error getting user queue. {a_result_queue.info()}")
@@ -439,6 +495,24 @@ async def update_crossfade(request: Request, payload: UpdateCrossfadeRequest) ->
     return OkResponse()
 
 
+@router.post("/volume")
+async def update_volume(request: Request, payload: UpdateVolumeRequest) -> OkResponse:
+    """Persist volume for the authenticated user only."""
+    current_user = AuthMiddleware.get_current_user(request=request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify volume preference owner: %s", current_user.info())
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
+    result = await User.update_volume_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=current_user.result().id,
+        volume=payload.volume,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot save volume preference: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
+
+
 @router.post("/password")
 async def update_password(request: Request, payload: UpdatePasswordRequest) -> OkResponse:
     """Update user password."""
@@ -484,4 +558,24 @@ async def cycle_repeat_mode(request: Request) -> OkResponse:
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
+    return OkResponse()
+
+
+@router.post("/listening-heatmap")
+async def update_listening_heatmap(
+    request: Request, payload: UpdateListeningHeatmapRequest
+) -> OkResponse:
+    """Persist listening history visibility for the authenticated user."""
+    current_user = AuthMiddleware.get_current_user(request=request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify listening history preference owner: %s", current_user.info())
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
+    result = await User.update_listening_heatmap_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=current_user.result().id,
+        enabled=payload.enabled,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot save listening history preference: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse()

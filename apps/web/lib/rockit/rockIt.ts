@@ -1,4 +1,4 @@
-import { EventManager, EWebSocketMessage, setRockIt } from "@rockit/shared";
+import { EventManager, setRockIt } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
@@ -10,7 +10,7 @@ import { LibraryPlaybackManager } from "@/lib/managers/libraryPlaybackManager";
 import { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
-import { MediaSessionManager } from "@/lib/managers/mediaSessionManager";
+import { NavigationPinsManager } from "@/lib/managers/navigationPinsManager";
 import { NotificationManager } from "@/lib/managers/notificationManager";
 import { OfflineManager } from "@/lib/managers/offlineManager";
 import { PlayerUIManager } from "@/lib/managers/playerUIManager";
@@ -50,6 +50,7 @@ export class RockIt {
     stationManager = new StationManager();
     downloaderManager = new DownloaderManager();
     playlistManager = new PlaylistManager();
+    navigationPinsManager = new NavigationPinsManager();
     albumManager = new AlbumManager();
     authManager = new AuthManager();
     mediaPlayerManager = new MediaPlayerManager();
@@ -62,16 +63,11 @@ export class RockIt {
     listenTogetherManager = new ListenTogetherManager();
     sharingManager = new SharingManager();
     offlineManager = new OfflineManager();
-    mediaSessionManager = new MediaSessionManager();
     http = Http;
 
     constructor() {
         setRockIt(this);
         if (typeof window === "undefined") return;
-        this.webSocketManager.onMessage(
-            EWebSocketMessage.NotificationsChanged,
-            () => void this.notificationManager.refreshAsync()
-        );
     }
 
     init(): Promise<void> {
@@ -82,10 +78,10 @@ export class RockIt {
     async refreshSessionAsync(): Promise<void> {
         // Finish startup first so an older anonymous response cannot overwrite
         // the authenticated state and all message handlers are registered.
+        const alreadyInitialized = this._initialization !== undefined;
         await this.init();
-        await this.userManager.updateAsync();
+        if (alreadyInitialized) await this.userManager.updateAsync();
         await this.vocabularyManager.init();
-        await this.notificationManager.refreshAsync();
         await this.webSocketManager.reconnectAsync();
         await this.queueManager.refreshAsync();
         await Promise.all([
@@ -95,26 +91,12 @@ export class RockIt {
     }
 
     private async initializeAsync(): Promise<void> {
-        rockIt.vocabularyManager.langAtom.listen(() => {
-            void rockIt.notificationManager.refreshAsync();
-        });
-        rockIt.mediaPlayerManager.init();
         await rockIt.userManager.init();
-        if (rockIt.userManager.loggedInAtom.get()) {
-            await rockIt.webSocketManager.init();
-        }
-        await rockIt.notificationManager.refreshAsync();
-        await rockIt.queueManager.init();
         await Promise.all([
             rockIt.downloaderManager.init(),
-            rockIt.bookmarkManager.init(),
             rockIt.playlistManager.init(),
         ]);
         rockIt.libraryManager.init();
-        rockIt.friendManager.init();
-        rockIt.sharingManager.init();
-        rockIt.listenTogetherManager.init();
-        rockIt.mediaSessionManager.init();
 
         cleanupLegacyIndexedDB();
         cleanupLegacyServiceWorker();
@@ -127,7 +109,3 @@ export class RockIt {
 }
 
 export const rockIt = new RockIt();
-
-if (typeof window !== "undefined") {
-    rockIt.init();
-}

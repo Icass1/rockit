@@ -1,12 +1,11 @@
 "use client";
 
 import { JSX, useState } from "react";
-import { useStore } from "@nanostores/react";
 import { EServiceWorkerAction } from "@/models/enums/serviceWorkerAction";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function ServiceWorkerInfo(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [status, setStatus] = useState<string>($vocabulary.NO_DATA);
 
     const handleAction = async (
@@ -55,13 +54,15 @@ export default function ServiceWorkerInfo(): JSX.Element {
                             key={action}
                             type="button"
                             onClick={(): Promise<void> => handleAction(action)}
-                            className="rounded-xl bg-neutral-800 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-neutral-700 active:bg-green-700"
+                            className="bg-muted text-foreground-strong hover:bg-accent active:bg-success-hover rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
                         >
                             {buttonLabels[action]}
                         </button>
                     ))}
             </div>
-            {status && <p className="text-xs text-neutral-500">{status}</p>}
+            {status && (
+                <p className="text-subtle-foreground text-xs">{status}</p>
+            )}
         </div>
     );
 }

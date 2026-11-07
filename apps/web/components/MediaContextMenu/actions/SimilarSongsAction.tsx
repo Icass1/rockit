@@ -4,8 +4,8 @@ import { isSearchResult, type TMedia } from "@rockit/shared";
 import { Radio } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 const SIMILAR_SONGS_PLAYLIST_LIMIT = 20;
 

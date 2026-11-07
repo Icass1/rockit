@@ -235,10 +235,6 @@ export {
     type DownloadProgressMessage,
 } from "./downloadProgressMessage";
 export {
-    DownloadSettingsResponseSchema,
-    type DownloadSettingsResponse,
-} from "./downloadSettingsResponse";
-export {
     DownloadTotalsResponseSchema,
     type DownloadTotalsResponse,
 } from "./downloadTotalsResponse";
@@ -350,6 +346,10 @@ export {
     type LibraryResponseItem,
 } from "./libraryResponseItem";
 export {
+    LibrarySongSearchResponseSchema,
+    type LibrarySongSearchResponse,
+} from "./librarySongSearchResponse";
+export {
     LikeMediaRequestSchema,
     type LikeMediaRequest,
 } from "./likeMediaRequest";
@@ -378,6 +378,10 @@ export {
     type ListenTogetherSessionResponse,
 } from "./listenTogetherSessionResponse";
 export {
+    ListenTogetherSyncMessageSchema,
+    type ListenTogetherSyncMessage,
+} from "./listenTogetherSyncMessage";
+export {
     ListenTogetherSyncRequestSchema,
     type ListenTogetherSyncRequest,
 } from "./listenTogetherSyncRequest";
@@ -386,11 +390,31 @@ export {
     type ListeningBadgeResponse,
 } from "./listeningBadgeResponse";
 export {
+    ListeningHeatmapResponseSchema,
+    type ListeningHeatmapResponse,
+} from "./listeningHeatmapResponse";
+export {
+    ListeningHeatmapSegmentSchema,
+    type ListeningHeatmapSegment,
+} from "./listeningHeatmapSegment";
+export {
     ListeningMilestoneResponseSchema,
     type ListeningMilestoneResponse,
 } from "./listeningMilestoneResponse";
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
+export {
+    LyricsCorrectionSchema,
+    type LyricsCorrection,
+} from "./lyricsCorrection";
+export {
+    LyricsCorrectionContextResponseSchema,
+    type LyricsCorrectionContextResponse,
+} from "./lyricsCorrectionContextResponse";
+export {
+    LyricsCorrectionLineSchema,
+    type LyricsCorrectionLine,
+} from "./lyricsCorrectionLine";
 export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";
 export { LyricsResponseSchema, type LyricsResponse } from "./lyricsResponse";
 export {
@@ -423,6 +447,18 @@ export {
     type MetadataResponse,
 } from "./metadataResponse";
 export {
+    NavigationPinResponseSchema,
+    type NavigationPinResponse,
+} from "./navigationPinResponse";
+export {
+    NavigationPinsResponseSchema,
+    type NavigationPinsResponse,
+} from "./navigationPinsResponse";
+export {
+    NotificationChangedMessageSchema,
+    type NotificationChangedMessage,
+} from "./notificationChangedMessage";
+export {
     NotificationDestinationSchema,
     type NotificationDestination,
 } from "./notificationDestination";
@@ -447,6 +483,10 @@ export {
     type NotificationResponse,
 } from "./notificationResponse";
 export {
+    NotificationStateMessageSchema,
+    type NotificationStateMessage,
+} from "./notificationStateMessage";
+export {
     NotificationSubscriptionsResponseSchema,
     type NotificationSubscriptionsResponse,
 } from "./notificationSubscriptionsResponse";
@@ -455,6 +495,10 @@ export {
     OnlineUsersMessageSchema,
     type OnlineUsersMessage,
 } from "./onlineUsersMessage";
+export {
+    PinNavigationRequestSchema,
+    type PinNavigationRequest,
+} from "./pinNavigationRequest";
 export {
     PlaylistContributorSchema,
     type PlaylistContributor,
@@ -497,6 +541,10 @@ export {
     RadioBrowserStationResponseSchema,
     type RadioBrowserStationResponse,
 } from "./radioBrowserStationResponse";
+export {
+    RecommendationArtworkResponseSchema,
+    type RecommendationArtworkResponse,
+} from "./recommendationArtworkResponse";
 export {
     RecommendationTrackRequestSchema,
     type RecommendationTrackRequest,
@@ -611,6 +659,10 @@ export {
     type SkipClickedMessageRequest,
 } from "./skipClickedMessageRequest";
 export {
+    SocialSnapshotMessageSchema,
+    type SocialSnapshotMessage,
+} from "./socialSnapshotMessage";
+export {
     SongListResponseSchema,
     type SongListResponse,
 } from "./songListResponse";
@@ -704,6 +756,10 @@ export {
     type StorageObjectResponse,
 } from "./storageObjectResponse";
 export {
+    StoredLyricsCorrectionSchema,
+    type StoredLyricsCorrection,
+} from "./storedLyricsCorrection";
+export {
     StreakBattleChallengeRequestSchema,
     type StreakBattleChallengeRequest,
 } from "./streakBattleChallengeRequest";
@@ -717,9 +773,17 @@ export {
     type UpdateCrossfadeRequest,
 } from "./updateCrossfadeRequest";
 export {
+    UpdateDownloadSettingsRequestSchema,
+    type UpdateDownloadSettingsRequest,
+} from "./updateDownloadSettingsRequest";
+export {
     UpdateLangRequestSchema,
     type UpdateLangRequest,
 } from "./updateLangRequest";
+export {
+    UpdateListeningHeatmapRequestSchema,
+    type UpdateListeningHeatmapRequest,
+} from "./updateListeningHeatmapRequest";
 export {
     UpdateNotificationSubscriptionsRequestSchema,
     type UpdateNotificationSubscriptionsRequest,
@@ -733,6 +797,10 @@ export {
     type UpdatePlaylistRequest,
 } from "./updatePlaylistRequest";
 export {
+    UpdateThemeRequestSchema,
+    type UpdateThemeRequest,
+} from "./updateThemeRequest";
+export {
     UpdateTimestampItemSchema,
     type UpdateTimestampItem,
 } from "./updateTimestampItem";
@@ -740,6 +808,10 @@ export {
     UpdateTimestampsRequestSchema,
     type UpdateTimestampsRequest,
 } from "./updateTimestampsRequest";
+export {
+    UpdateVolumeRequestSchema,
+    type UpdateVolumeRequest,
+} from "./updateVolumeRequest";
 export {
     UploadAlbumRequestSchema,
     type UploadAlbumRequest,
@@ -838,6 +910,7 @@ export {
     YoutubeVideoResponseSchema,
     type YoutubeVideoResponse,
 } from "./youtubeVideoResponse";
+export { LibrarySongSortSchema, type LibrarySongSort } from "./librarySongSort";
 export {
     ListeningBadgeScopeSchema,
     type ListeningBadgeScope,
@@ -846,4 +919,6 @@ export {
     NotificationEventKeySchema,
     type NotificationEventKey,
 } from "./notificationEventKey";
+export { StrictBoolSchema, type StrictBool } from "./strictBool";
 export { StrictIntSchema, type StrictInt } from "./strictInt";
+export { ThemePreferenceSchema, type ThemePreference } from "./themePreference";

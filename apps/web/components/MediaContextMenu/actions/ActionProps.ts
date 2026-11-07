@@ -11,6 +11,7 @@ export type ActionComponentProps = {
     loading: boolean;
     setLoading: (loading: boolean) => void;
     listPublicId?: string;
+    onPlay?: () => void | Promise<void>;
     handleAddToPlaylist: (
         playlist: BasePlaylistWithoutMediasResponse
     ) => Promise<void>;

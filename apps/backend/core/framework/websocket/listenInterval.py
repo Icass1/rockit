@@ -219,7 +219,7 @@ async def check_and_record_listen_threshold_async(
             if friends.is_not_ok():
                 logger.error(f"Error loading friends for listen update. {friends.info()}")
             else:
-                notify_after_commit(duration_session, friends.result())
+                notify_after_commit(duration_session, friends.result(), kind="social_refresh")
             await SendToUser.send_to_user(
                 user_id=user_id,
                 message=MediaListenedMessage(publicId=media_public_id),

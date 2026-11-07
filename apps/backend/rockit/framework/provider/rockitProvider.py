@@ -2,6 +2,7 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.access.storedFiles import audio_identity_async
 from core.framework.audio.silence import request_bounds
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.localSong import LocalSong
@@ -28,6 +29,7 @@ from core.responses.uploadResponse import UploadResponse
 from logger import getLogger
 from result import Result, ResultCode
 from rockit.access.artistCatalogAccess import ArtistCatalogAccess
+from rockit.access.db.ormModels.song import RockitSongRow
 from rockit.access.db.ormModels.video import RockitVideoRow
 from rockit.access.rockitAccess import RockitAccess
 from rockit.framework.rockit import Rockit
@@ -54,6 +56,12 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
             code=ResultCode.OK,
             message="OK",
             result=[song for song in result.result() if song.downloaded],
+        )
+
+    async def get_audio_identity_async(self, session: AsyncSession, media_id: int) -> Result[str]:
+        """Expose only the hash of the local object's recorded revision."""
+        return await audio_identity_async(
+            session=session, table=RockitSongRow.__table__, media_id=media_id
         )
 
     async def get_audio_bounds_async(

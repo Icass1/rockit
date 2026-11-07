@@ -48,6 +48,10 @@ class BaseMediaProvider(BaseProvider):
         """Local playback capability, including when remote integration is disabled."""
         return Result(code=ResultCode.OK, message="OK", result=[])
 
+    async def get_audio_identity_async(self, session: AsyncSession, media_id: int) -> Result[str]:
+        """Optional stable local recording revision for user corrections."""
+        return Result(code=ResultCode.NOT_IMPLEMENTED, message="Audio revision unavailable")
+
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
     ) -> Result[AudioBoundsResponse]:
@@ -255,7 +259,10 @@ class BaseMediaProvider(BaseProvider):
         """SELECT fragment for search_index.
 
         Columns: internal_id, public_id, name, subtitle, media_type_key,
-        provider_name, image_url.
+        provider_name, image_id.
+
+        image_id must be an internal integer image ID or a typed NULL integer,
+        never an external URL. UNION resolves types before media filters apply.
 
         The subtitle column carries the item's related context (e.g. artist /
         channel / album names for songs, albums and videos; NULL otherwise). It

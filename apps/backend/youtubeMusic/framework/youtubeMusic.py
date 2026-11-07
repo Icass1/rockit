@@ -60,6 +60,25 @@ class YoutubeMusic:
     provider_name: str
 
     @staticmethod
+    async def get_audio_url_async(session: AsyncSession, public_id: str) -> Result[str]:
+        """Resolve a legacy audio reference using the same S3 URL as song responses."""
+        found = await YoutubeMusicAccess.get_track_by_public_id_async(
+            session=session, public_id=public_id
+        )
+        if found.is_not_ok():
+            logger.error(f"Cannot resolve stored track audio: {found.info()}")
+            return Result(code=found.code(), message=found.message())
+        track = found.result()
+        if track.storage_object is None:
+            logger.warning("Requested audio has no downloaded object: %s", public_id)
+            return Result(code=ResultCode.NOT_FOUND, message="Track audio not downloaded")
+        url = Storage.get_public_url(track.storage_object)
+        if not url:
+            logger.error("Cannot create stored track audio URL: %s", public_id)
+            return Result(code=ResultCode.GENERAL_ERROR, message="Track audio unavailable")
+        return Result(code=ResultCode.OK, message="OK", result=url)
+
+    @staticmethod
     async def get_provider_id() -> Result[int]:
         a_result: Result[int] = YoutubeMusic.provider.get_id()
         if a_result.is_not_ok():
@@ -185,6 +204,18 @@ class YoutubeMusic:
             logger.error(f"Error creating image: {a_result_img.info()}")
             return Result(code=a_result_img.code(), message=a_result_img.message())
         image_id = a_result_img.result().id
+
+        # Album/artist pages may provide a map containing only the album artist.
+        # Resolve all additional track credits together instead of silently losing them.
+        missing = list(dict.fromkeys(name for name in raw.artists if name not in artist_map))
+        if missing:
+            additional = await YoutubeMusicAccess.get_or_create_track_artists_async(
+                session=session, names=missing, provider_id=provider_id, image_id=image_id
+            )
+            if additional.is_not_ok():
+                logger.error(f"Could not preserve track collaborators. {additional.info()}")
+                return Result(code=additional.code(), message=additional.message())
+            artist_map = {**artist_map, **additional.result()}
 
         return await YoutubeMusicAccess.get_or_create_track_with_image_id_async(
             session=session,
@@ -1719,6 +1750,24 @@ class YoutubeMusic:
         if a_result_artists_map.is_ok():
             artists_map = a_result_artists_map.result()
 
+        images_by_id = {
+            image.id: image
+            for image in [
+                *(track.image for track in db_tracks),
+                *(
+                    artist.image
+                    for track_artists in artists_map.values()
+                    for artist in track_artists
+                ),
+            ]
+        }
+        image_urls_result = await Image.get_internal_image_urls_async(
+            images=list(images_by_id.values())
+        )
+        if image_urls_result.is_not_ok():
+            return Result[list[BaseSongWithAlbumResponse]].from_result(image_urls_result)
+        image_urls = image_urls_result.result()
+
         track_by_public_id: dict[str, BaseSongWithAlbumResponse] = {}
         for db_track in db_tracks:
             artists_list: list[BaseArtistResponse] = []
@@ -1726,17 +1775,6 @@ class YoutubeMusic:
             for artist in track_artists:
                 core_artist = artist.core_artist
                 if core_artist:
-                    a_result_artist_image_url: Result[
-                        str
-                    ] = await Image.get_internal_image_url_async(image=artist.image)
-                    if a_result_artist_image_url.is_not_ok():
-                        logger.error(
-                            f"Error getting artist image URL. {a_result_artist_image_url.info()}"
-                        )
-                        return Result[list[BaseSongWithAlbumResponse]].from_result(
-                            a_result_artist_image_url
-                        )
-
                     artists_list.append(
                         BaseArtistResponse(
                             provider=YoutubeMusic.provider_name,
@@ -1744,19 +1782,12 @@ class YoutubeMusic:
                             url=f"/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                             name=artist.name,
-                            imageUrl=a_result_artist_image_url.result(),
+                            imageUrl=image_urls[artist.image.id],
                             dominantColor=artist.image.dominant_color,
                         )
                     )
 
-            a_result_track_image_url: Result[str] = await Image.get_internal_image_url_async(
-                image=db_track.image
-            )
-            if a_result_track_image_url.is_not_ok():
-                logger.error(f"Error getting track image URL. {a_result_track_image_url.info()}")
-                return Result[list[BaseSongWithAlbumResponse]].from_result(a_result_track_image_url)
-
-            image_url = a_result_track_image_url.result()
+            image_url = image_urls[db_track.image.id]
             dominant_color = db_track.image.dominant_color
 
             is_downloaded = db_track.storage_object is not None

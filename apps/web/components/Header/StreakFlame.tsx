@@ -5,9 +5,9 @@ import styles from "@/components/Header/StreakFlame.module.css";
 export default function StreakFlame({ days }: { days: number }): JSX.Element {
     const id = useId();
     const heat = Math.min(Math.max((days - 1) / 29, 0), 1);
-    const crown = `hsl(${52 - heat * 8} ${60 + heat * 35}% ${62 + heat * 18}%)`;
-    const body = `hsl(${48 - heat * 20} ${65 + heat * 30}% ${53 + heat * 7}%)`;
-    const base = `hsl(${42 - heat * 26} ${60 + heat * 35}% ${43 + heat * 9}%)`;
+    const crown = `color-mix(in hsl, var(--theme-flame-crown-cold), var(--theme-flame-crown-hot) ${heat * 100}%)`;
+    const body = `color-mix(in hsl, var(--theme-flame-body-cold), var(--theme-flame-body-hot) ${heat * 100}%)`;
+    const base = `color-mix(in hsl, var(--theme-flame-base-cold), var(--theme-flame-base-hot) ${heat * 100}%)`;
 
     return (
         <svg
@@ -20,7 +20,7 @@ export default function StreakFlame({ days }: { days: number }): JSX.Element {
             style={
                 {
                     "--streak-glow-radius": `${heat * 4}px`,
-                    "--streak-glow-color": `rgb(255 160 48 / ${heat * 0.45})`,
+                    "--streak-glow-color": `color-mix(in srgb, var(--theme-flame-glow) ${heat * 45}%, transparent)`,
                 } as CSSProperties
             }
         >
@@ -31,8 +31,14 @@ export default function StreakFlame({ days }: { days: number }): JSX.Element {
                     <stop offset="100%" stopColor={base} />
                 </linearGradient>
                 <linearGradient id={`${id}-core`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#fffbea" />
-                    <stop offset="100%" stopColor="#ffe29a" />
+                    <stop
+                        offset="0%"
+                        stopColor="var(--theme-flame-core-start)"
+                    />
+                    <stop
+                        offset="100%"
+                        stopColor="var(--theme-flame-core-end)"
+                    />
                 </linearGradient>
             </defs>
             <path

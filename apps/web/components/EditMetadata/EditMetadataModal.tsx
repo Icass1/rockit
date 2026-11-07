@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useState, type JSX } from "react";
 import Image from "next/image";
-import type { BaseDynamicLyricsItem } from "@/dto";
-import { useStore } from "@nanostores/react";
 import {
     getMediaArtistsString,
     getMediaSubtitle,
@@ -14,7 +12,8 @@ import {
 import { Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { LyricsCorrectionEditor } from "@/components/Lyrics/LyricsCorrectionEditor";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface EditMetadataModalProps {
     media: TMediaWithSearch;
@@ -26,28 +25,6 @@ interface FieldDef {
     label: string;
     value: string;
     type: "text" | "textarea";
-}
-
-interface LyricsLine {
-    timestamp_s: number | null;
-    text: string;
-}
-
-function formatTimestamp(seconds: number | null): string {
-    if (seconds === null) return "";
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function parseTimestamp(str: string): number | null {
-    const parts = str.split(":");
-    if (parts.length === 2) {
-        const m = parseInt(parts[0], 10);
-        const s = parseInt(parts[1], 10);
-        if (!isNaN(m) && !isNaN(s)) return m * 60 + s;
-    }
-    return null;
 }
 
 function getOtherFields(media: TMediaWithSearch): FieldDef[] {
@@ -136,12 +113,10 @@ export default function EditMetadataModal({
     media,
     onClose,
 }: EditMetadataModalProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [fields, setFields] = useState<FieldDef[]>(() =>
         getOtherFields(media)
     );
-    const [lyricsLines, setLyricsLines] = useState<LyricsLine[]>([]);
-    const [lyricsLoading, setLyricsLoading] = useState(false);
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -150,87 +125,10 @@ export default function EditMetadataModal({
     const isSong = media.type === "song";
     const mediaPublicId = isSearchResult(media) ? null : media.publicId;
 
-    useEffect(() => {
-        if (!isSong || !mediaPublicId) return;
-
-        const fetchLyrics = async (): Promise<void> => {
-            setLyricsLoading(true);
-            try {
-                const [dynamicResult, staticResult] = await Promise.all([
-                    Http.getDynamicLyricsAsync(mediaPublicId),
-                    Http.getLyricsAsync(mediaPublicId),
-                ]);
-
-                if (
-                    dynamicResult.isOk() &&
-                    dynamicResult.result.lines.length > 0
-                ) {
-                    const offset = dynamicResult.result.offset || 0;
-                    setLyricsLines(
-                        dynamicResult.result.lines.map(
-                            (line: BaseDynamicLyricsItem) => ({
-                                timestamp_s: line.timestamp_s - offset,
-                                text: line.text,
-                            })
-                        )
-                    );
-                } else if (
-                    staticResult.isOk() &&
-                    staticResult.result.lines.length > 0
-                ) {
-                    setLyricsLines(
-                        staticResult.result.lines.map((line: string) => ({
-                            timestamp_s: null,
-                            text: line,
-                        }))
-                    );
-                }
-            } catch {
-                // lyrics fetch failed, leave empty
-            }
-            setLyricsLoading(false);
-        };
-
-        fetchLyrics();
-    }, [isSong, mediaPublicId]);
-
     const handleFieldChange = (key: string, value: string): void => {
         setFields((prev) =>
             prev.map((f) => (f.key === key ? { ...f, value } : f))
         );
-    };
-
-    const handleLyricsTextChange = (index: number, text: string): void => {
-        setLyricsLines((prev) =>
-            prev.map((line, i) => (i === index ? { ...line, text } : line))
-        );
-    };
-
-    const handleLyricsTimestampChange = (index: number, raw: string): void => {
-        setLyricsLines((prev) =>
-            prev.map((line, i) =>
-                i === index
-                    ? { ...line, timestamp_s: parseTimestamp(raw) }
-                    : line
-            )
-        );
-    };
-
-    const addLyricsLine = (): void => {
-        setLyricsLines((prev) => [
-            ...prev,
-            {
-                timestamp_s:
-                    prev.length > 0
-                        ? (prev[prev.length - 1].timestamp_s ?? 0) + 30
-                        : 0,
-                text: "",
-            },
-        ]);
-    };
-
-    const removeLyricsLine = (index: number): void => {
-        setLyricsLines((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (): Promise<void> => {
@@ -242,17 +140,6 @@ export default function EditMetadataModal({
             if (f.value.trim()) {
                 changes[f.key] = f.value.trim();
             }
-        }
-
-        if (lyricsLines.length > 0) {
-            changes.lyrics = JSON.stringify(
-                lyricsLines.map((line) => ({
-                    text: line.text,
-                    ...(line.timestamp_s !== null
-                        ? { timestamp_s: line.timestamp_s }
-                        : {}),
-                }))
-            );
         }
 
         if (!mediaPublicId) return;
@@ -283,26 +170,26 @@ export default function EditMetadataModal({
 
     return createPortal(
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            className="bg-backdrop/80 fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e): void => {
                 if (e.target === e.currentTarget) handleClose();
             }}
         >
-            <div className="flex max-h-[90vh] w-full flex-col rounded-2xl bg-neutral-900 p-5 md:max-h-[85vh] md:max-w-lg md:p-6">
+            <div className="bg-secondary flex max-h-[90vh] w-full flex-col rounded-2xl p-5 md:max-h-[85vh] md:max-w-lg md:p-6">
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-bold text-white">
+                        <h2 className="text-foreground-strong text-xl font-bold">
                             {$vocabulary.EDIT_METADATA_TITLE}
                         </h2>
-                        <p className="mt-0.5 text-xs text-neutral-400">
+                        <p className="text-muted-foreground mt-0.5 text-xs">
                             {$vocabulary.EDIT_METADATA_DESCRIPTION}
                         </p>
                     </div>
                     <button
                         onClick={handleClose}
                         disabled={submitting}
-                        className="rounded-full p-2 text-neutral-400 transition hover:bg-neutral-800 hover:text-white disabled:opacity-50"
+                        className="text-muted-foreground hover:bg-muted hover:text-foreground-strong rounded-full p-2 transition disabled:opacity-50"
                         aria-label="Close"
                     >
                         <X className="h-5 w-5" />
@@ -310,7 +197,7 @@ export default function EditMetadataModal({
                 </div>
 
                 {/* Media info */}
-                <div className="mb-4 flex items-center gap-3 rounded-xl bg-neutral-800/50 p-3">
+                <div className="bg-muted/50 mb-4 flex items-center gap-3 rounded-xl p-3">
                     {media.imageUrl && (
                         <Image
                             src={media.imageUrl}
@@ -322,10 +209,10 @@ export default function EditMetadataModal({
                         />
                     )}
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">
+                        <p className="text-foreground-strong truncate text-sm font-semibold">
                             {media.name}
                         </p>
-                        <p className="truncate text-xs text-neutral-400">
+                        <p className="text-muted-foreground truncate text-xs">
                             {getMediaSubtitle(media)}
                         </p>
                     </div>
@@ -334,9 +221,9 @@ export default function EditMetadataModal({
                 {submitted ? (
                     /* Success */
                     <div className="flex flex-1 flex-col items-center justify-center py-12">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
+                        <div className="bg-success/10 mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                             <svg
-                                className="h-8 w-8 text-emerald-400"
+                                className="text-success-foreground h-8 w-8"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -349,15 +236,15 @@ export default function EditMetadataModal({
                                 />
                             </svg>
                         </div>
-                        <p className="text-lg font-semibold text-white">
+                        <p className="text-foreground-strong text-lg font-semibold">
                             {$vocabulary.EDIT_METADATA_SUCCESS}
                         </p>
-                        <p className="mt-1 text-sm text-neutral-400">
+                        <p className="text-muted-foreground mt-1 text-sm">
                             An admin will review your changes.
                         </p>
                         <button
                             onClick={onClose}
-                            className="mt-6 rounded-lg bg-pink-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-pink-500"
+                            className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground mt-6 rounded-lg px-6 py-2 text-sm font-semibold transition"
                         >
                             Close
                         </button>
@@ -367,7 +254,7 @@ export default function EditMetadataModal({
                     <div className="flex-1 space-y-3 overflow-y-auto">
                         {fields.map((field) => (
                             <div key={field.key}>
-                                <label className="mb-1 block text-xs font-medium tracking-wider text-neutral-400 uppercase">
+                                <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
                                     {field.label}
                                 </label>
                                 {field.type === "textarea" ? (
@@ -379,7 +266,7 @@ export default function EditMetadataModal({
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border border-neutral-700 bg-neutral-800 p-3 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                                        className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary w-full rounded-lg border p-3 text-sm transition outline-none focus:ring-1"
                                         rows={4}
                                     />
                                 ) : (
@@ -392,98 +279,22 @@ export default function EditMetadataModal({
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2.5 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                                        className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary w-full rounded-lg border px-3 py-2.5 text-sm transition outline-none focus:ring-1"
                                     />
                                 )}
                             </div>
                         ))}
 
-                        {/* Lyrics table */}
-                        {isSong && (
-                            <div>
-                                <label className="mb-1 block text-xs font-medium tracking-wider text-neutral-400 uppercase">
-                                    Lyrics
-                                </label>
-                                {lyricsLoading ? (
-                                    <div className="flex items-center justify-center py-6">
-                                        <Loader2 className="h-5 w-5 animate-spin text-neutral-500" />
-                                    </div>
-                                ) : (
-                                    <div className="max-h-40 overflow-y-auto rounded-lg border border-neutral-700 bg-neutral-800/50 text-white">
-                                        {/* Header */}
-                                        <div className="flex items-center border-b border-neutral-700 px-2 py-1.5 text-xs font-medium tracking-wider text-neutral-500 uppercase">
-                                            <span className="w-16 shrink-0 px-1">
-                                                Time
-                                            </span>
-                                            <span className="flex-1 px-1">
-                                                Text
-                                            </span>
-                                            <span className="w-8 shrink-0" />
-                                        </div>
-
-                                        {/* Rows */}
-                                        {lyricsLines.length === 0 && (
-                                            <p className="px-3 py-4 text-center text-xs text-neutral-500">
-                                                No lyrics found. Add some below.
-                                            </p>
-                                        )}
-                                        {lyricsLines.map((line, i) => (
-                                            <div
-                                                key={i}
-                                                className="flex items-center gap-1 border-b border-neutral-700/50 px-2 py-1 last:border-b-0"
-                                            >
-                                                <input
-                                                    type="text"
-                                                    value={formatTimestamp(
-                                                        line.timestamp_s
-                                                    )}
-                                                    onChange={(e): void =>
-                                                        handleLyricsTimestampChange(
-                                                            i,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="m:ss"
-                                                    className="w-16 shrink-0 rounded bg-neutral-800 px-1.5 py-1 text-center text-xs text-neutral-300 outline-none focus:bg-neutral-700"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={line.text}
-                                                    onChange={(e): void =>
-                                                        handleLyricsTextChange(
-                                                            i,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Lyrics text"
-                                                    className="flex-1 rounded bg-neutral-800 px-2 py-1 text-sm text-white outline-none focus:bg-neutral-700"
-                                                />
-                                                <button
-                                                    onClick={(): void =>
-                                                        removeLyricsLine(i)
-                                                    }
-                                                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-neutral-500 hover:bg-red-500/20 hover:text-red-400"
-                                                >
-                                                    ×
-                                                </button>
-                                            </div>
-                                        ))}
-
-                                        {/* Add line button */}
-                                        <button
-                                            onClick={addLyricsLine}
-                                            className="flex w-full items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-700/50 hover:text-white"
-                                        >
-                                            + Add line
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                        {isSong && mediaPublicId && (
+                            <LyricsCorrectionEditor
+                                key={mediaPublicId}
+                                mediaPublicId={mediaPublicId}
+                            />
                         )}
 
                         {/* Comment */}
                         <div>
-                            <label className="mb-1 block text-xs font-medium tracking-wider text-neutral-400 uppercase">
+                            <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
                                 {$vocabulary.EDIT_METADATA_COMMENT}
                             </label>
                             <textarea
@@ -494,7 +305,7 @@ export default function EditMetadataModal({
                                 placeholder={
                                     $vocabulary.EDIT_METADATA_COMMENT_PLACEHOLDER
                                 }
-                                className="w-full rounded-lg border border-neutral-700 bg-neutral-800 p-3 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                                className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary w-full rounded-lg border p-3 text-sm transition outline-none focus:ring-1"
                                 rows={2}
                             />
                         </div>
@@ -502,7 +313,11 @@ export default function EditMetadataModal({
                 )}
 
                 {/* Error */}
-                {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+                {error && (
+                    <p className="text-destructive-soft mt-3 text-sm">
+                        {error}
+                    </p>
+                )}
 
                 {/* Footer */}
                 {!submitted && (
@@ -510,14 +325,14 @@ export default function EditMetadataModal({
                         <button
                             onClick={handleClose}
                             disabled={submitting}
-                            className="rounded-md border border-neutral-600 px-3 py-2 text-sm whitespace-nowrap text-neutral-300 transition hover:border-neutral-400 hover:text-white disabled:opacity-50"
+                            className="border-border-strong text-foreground hover:border-border-strong hover:text-foreground-strong rounded-md border px-3 py-2 text-sm whitespace-nowrap transition disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={submitting}
-                            className="flex items-center gap-1.5 rounded-md bg-pink-600 px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {submitting ? (
                                 <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { X } from "lucide-react";
@@ -8,27 +8,35 @@ import {
     notificationVocabularyText,
     replaceNotificationGaps,
 } from "@/lib/notifications";
-import { rockIt } from "@/lib/rockit/rockIt";
-import HeaderPopover from "@/components/Header/HeaderPopover";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
+import Popover from "@/components/ui/Popover";
 
 export default function NotificationMenu({
     onClose,
 }: {
     onClose: () => void;
 }): JSX.Element {
-    const manager = rockIt.notificationManager;
+    const { notificationManager: manager } = useRuntimeServices();
     const notifications = useStore(manager.notificationsAtom);
     const unread = useStore(manager.unreadCountAtom);
     const total = useStore(manager.totalCountAtom);
     const error = useStore(manager.errorAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     const [unreadOnly, setUnreadOnly] = useState(false);
     const router = useRouter();
+    useEffect(() => {
+        manager.setPage(0, unreadOnly);
+    }, [manager, unreadOnly]);
     return (
-        <HeaderPopover
+        <Popover
             id="notification-center"
             label={vocabulary.NOTIFICATIONS_TITLE}
+            onClose={onClose}
             className="w-[min(25rem,calc(100vw-2rem))]"
         >
             <div className="flex items-center gap-2 p-4">
@@ -49,30 +57,31 @@ export default function NotificationMenu({
                     checked={unreadOnly}
                     onChange={(event) => {
                         setUnreadOnly(event.target.checked);
-                        manager.setPage(0, event.target.checked);
                     }}
                 />
                 {vocabulary.NOTIFICATIONS_UNREAD}
             </label>
             {error && (
-                <p role="alert" className="px-4 text-sm text-red-400">
+                <p role="alert" className="text-destructive-soft px-4 text-sm">
                     {vocabulary.NOTIFICATIONS_LOAD_FAILED}
                 </p>
             )}
             <ul className="max-h-[60dvh] overflow-y-auto">
                 {!notifications.length && (
-                    <li className="p-4 text-neutral-400">
+                    <li className="text-muted-foreground p-4">
                         {vocabulary.NOTIFICATIONS_EMPTY}
                     </li>
                 )}
                 {notifications.map((item) => (
                     <li
                         key={item.publicId}
-                        className="border-t border-white/10 p-4"
+                        className="border-foreground-strong/10 border-t p-4"
                     >
                         <p
                             className={
-                                item.readAt ? "text-neutral-400" : "font-medium"
+                                item.readAt
+                                    ? "text-muted-foreground"
+                                    : "font-medium"
                             }
                         >
                             {replaceNotificationGaps(
@@ -84,7 +93,7 @@ export default function NotificationMenu({
                             )}
                         </p>
                         <time
-                            className="text-xs text-neutral-500"
+                            className="text-subtle-foreground text-xs"
                             dateTime={item.dateAdded}
                         >
                             {new Date(item.dateAdded).toLocaleString(
@@ -121,7 +130,7 @@ export default function NotificationMenu({
                     </li>
                 ))}
             </ul>
-            <div className="flex justify-between border-t border-white/10 p-4 text-sm">
+            <div className="border-foreground-strong/10 flex justify-between border-t p-4 text-sm">
                 <button
                     disabled={!manager.offset}
                     onClick={() =>
@@ -139,6 +148,6 @@ export default function NotificationMenu({
                     {vocabulary.NOTIFICATIONS_NEXT}
                 </button>
             </div>
-        </HeaderPopover>
+        </Popover>
     );
 }

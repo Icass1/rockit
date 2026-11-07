@@ -4,9 +4,14 @@
 import { z } from "zod";
 
 export const UserSettingsResponseSchema = z.object({
+    showListeningHeatmap: z.boolean().default(true),
+    theme: z
+        .union([z.literal("dark"), z.literal("light"), z.literal("system")])
+        .default("dark"),
     username: z.string(),
     lang: z.string(),
     crossfade: z.number(),
+    volume: z.number().default(1),
     queueType: z.enum(["RANDOM", "SORTED"]),
     repeatMode: z.enum(["OFF", "ONE", "ALL"]),
 });

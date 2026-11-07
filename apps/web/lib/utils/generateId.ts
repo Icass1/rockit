@@ -1,4 +1,4 @@
-export function generateId(length: number) {
+export function generateId(length: number): string {
     const chars =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(
             ""

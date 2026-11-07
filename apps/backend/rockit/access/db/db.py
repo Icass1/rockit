@@ -1,3 +1,4 @@
+from rockit.access import collectionCatalog as collectionCatalog
 from rockit.access import downloadStorage as downloadStorage
 from rockit.access.db.base import RockitBase
 from rockit.access.db.ormModels.album import RockitAlbumRow as RockitAlbumRow

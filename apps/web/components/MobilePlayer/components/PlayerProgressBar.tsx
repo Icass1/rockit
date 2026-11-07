@@ -6,8 +6,9 @@ import { useStore } from "@nanostores/react";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
+import ListeningHeatmap from "@/components/ListeningHeatmap/ListeningHeatmap";
 import { formatTime } from "@/components/MobilePlayer/utils/format";
-import Slider from "@/components/Slider/Slider";
+import Slider from "@/components/ui/Slider/Slider";
 
 interface PlayerProgressBarProps {
     onSeek: (seconds: number) => void;
@@ -16,7 +17,11 @@ interface PlayerProgressBarProps {
 export default function PlayerProgressBar({
     onSeek,
 }: PlayerProgressBarProps): JSX.Element {
+    const showListeningHeatmap = useStore(
+        rockIt.userManager.showListeningHeatmapAtom
+    );
     const { currentTime, duration } = usePlayerTime();
+    const media = useStore(rockIt.queueManager.currentMediaAtom);
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
     );
@@ -28,10 +33,17 @@ export default function PlayerProgressBar({
 
     return (
         <div className="w-full px-1">
+            {showListeningHeatmap && (
+                <ListeningHeatmap
+                    publicId={media?.publicId}
+                    duration={duration}
+                    currentTime={displayTime}
+                />
+            )}
             <div className="relative flex h-8 items-center">
                 <Slider
                     id="default-slider"
-                    className="h-1.75 w-full rounded-full bg-white/10"
+                    className="bg-foreground-strong/10 h-1.75 w-full rounded-full"
                     value={displayTime}
                     min={0}
                     max={max}
@@ -52,17 +64,18 @@ export default function PlayerProgressBar({
                             style={{
                                 left: `${(bm.timestamp / duration) * 100}%`,
                                 backgroundColor:
-                                    BOOKMARK_MODE_COLORS[bm.mode] ?? "#ffffff",
+                                    BOOKMARK_MODE_COLORS[bm.mode] ??
+                                    "var(--theme-foreground-strong)",
                             }}
                         />
                     ))}
             </div>
 
             <div className="-mt-2 flex justify-between px-1">
-                <span className="text-xs font-medium text-white/70">
+                <span className="text-foreground-strong/70 text-xs font-medium">
                     {formatTime(displayTime)}
                 </span>
-                <span className="text-xs font-medium text-white/70">
+                <span className="text-foreground-strong/70 text-xs font-medium">
                     {formatTime(duration)}
                 </span>
             </div>

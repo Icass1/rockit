@@ -26,11 +26,13 @@ export default function BookmarkButton(): JSX.Element {
             <button
                 aria-label="Bookmark"
                 onClick={(): void => rockIt.bookmarkManager.togglePopup()}
-                className="flex items-center justify-center transition-colors hover:text-white"
+                className="hover:text-foreground-strong flex items-center justify-center transition-colors"
             >
                 <Bookmark
                     className={`h-4.5 w-4.5 transition-all ${
-                        bookmarkAtCurrentTime ? "" : "fill-none text-gray-400"
+                        bookmarkAtCurrentTime
+                            ? ""
+                            : "text-muted-foreground fill-none"
                     }`}
                     style={
                         bookmarkAtCurrentTime

@@ -28,6 +28,7 @@ from core.responses.basePlaylistWithMediasResponse import (
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.baseStationResponse import BaseStationResponse
 from core.responses.baseVideoResponse import BaseVideoResponse
+from core.responses.listeningHeatmapResponse import ListeningHeatmapResponse
 from core.responses.mediaResponse import MediaResponse
 from core.responses.okResponse import OkResponse
 from core.responses.searchProviderResponse import (
@@ -453,3 +454,27 @@ async def get_artist_page_by_name(
         logger.error(f"Artist page failed: {result.info()}")
         raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return result.result()
+
+
+@router.get("/{public_id}/listening-heatmap")
+async def get_listening_heatmap(
+    request: Request,
+    response: Response,
+    public_id: str,
+    _: None = Depends(dependency=AuthMiddleware.auth_dependency),
+) -> ListeningHeatmapResponse:
+    """Return personal replay counts along a song or video's timeline."""
+    response.headers["Cache-Control"] = "private, no-store"
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Error getting listening history user. {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    heatmap = await Media.get_listening_heatmap_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        public_id=public_id,
+    )
+    if heatmap.is_not_ok():
+        logger.error(f"Error getting listening heatmap. {heatmap.info()}")
+        raise HTTPException(status_code=heatmap.get_http_code(), detail=heatmap.message())
+    return heatmap.result()

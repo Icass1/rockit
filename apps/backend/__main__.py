@@ -124,6 +124,10 @@ async def import_vocabulary(persist: bool = True) -> None:
     types_content.append("")
     types_path.write_text("\n".join(types_content))
 
+    from core.utils.vocabularyFallbackGenerator import generate_vocabulary_fallback
+
+    generate_vocabulary_fallback(vocabulary=vocabulary_data["en"])
+
     # Include common actions and level names used by the Friends surface.
     workbook.close()
     logger.info(f"Found {len(all_keys)} vocabulary keys")

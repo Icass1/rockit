@@ -1,13 +1,14 @@
 from logging import Logger
 
 from sqlalchemy import Result as DBResult
-from sqlalchemy import Select, delete, update
+from sqlalchemy import Select, delete, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from core.access.db.ormModels.user import UserRow
 from core.access.db.ormModels.user_queue import UserQueueRow
+from core.enums.queueTypeEnum import QueueTypeEnum
 from core.framework.models.queue import QueueItem
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
@@ -18,27 +19,58 @@ logger: Logger = getLogger(__name__)
 
 class UserQueueAccess:
     @staticmethod
-    async def get_all_user_queues(
-        session: AsyncSession, user_id: int
-    ) -> Result[list[UserQueueRow]]:
-        """Get all queue items for a user regardless of queue type."""
+    async def get_user_queue_page_async(
+        session: AsyncSession,
+        user_id: int,
+        queue_type: QueueTypeEnum,
+        current_queue_id: int | None,
+        offset: int | None,
+        limit: int,
+    ) -> Result[tuple[list[UserQueueRow], int, int]]:
+        """Load one ordered page of queue items and the current queue size."""
         try:
+            order_column = (
+                UserQueueRow.random_index
+                if queue_type == QueueTypeEnum.RANDOM
+                else UserQueueRow.sorted_index
+            )
+            count_stmt = select(func.count()).where(UserQueueRow.user_id == user_id)
+            total = int(await session.scalar(count_stmt) or 0)
+
+            page_offset = offset
+            if page_offset is None:
+                page_offset = 0
+                if current_queue_id is not None:
+                    current_position_stmt = select(order_column).where(
+                        UserQueueRow.user_id == user_id,
+                        UserQueueRow.queue_id == current_queue_id,
+                    )
+                    current_position = await session.scalar(current_position_stmt)
+                    if current_position is not None:
+                        page_offset = max(0, int(current_position) - limit // 4)
+
             stmt: Select[tuple[UserQueueRow]] = (
                 select(UserQueueRow)
                 .options(selectinload(UserQueueRow.media))
                 .where(UserQueueRow.user_id == user_id)
-                .order_by(UserQueueRow.id)
+                .order_by(order_column)
+                .offset(page_offset)
+                .limit(limit)
             )
             result: DBResult[tuple[UserQueueRow]] = await session.execute(statement=stmt)
             queue_items: list[UserQueueRow] = list(result.scalars().all())
 
-            return Result(code=ResultCode.OK, message="OK", result=queue_items)
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=(queue_items, total, page_offset),
+            )
 
         except Exception as e:
-            logger.error(f"Error in get_all_user_queues: {e}", exc_info=True)
+            logger.error(f"Error in get_user_queue_page_async: {e}", exc_info=True)
             return Result(
                 code=ResultCode.GENERAL_ERROR,
-                message=f"Failed to get user queues: {e}",
+                message=f"Failed to get user queue page: {e}",
             )
 
     @staticmethod

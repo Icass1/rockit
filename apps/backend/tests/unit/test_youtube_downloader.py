@@ -106,10 +106,25 @@ async def test_download_wrappers_preserve_error_codes(
         )
     else:
         item.track_spotify_id = 1
+        item.download_url = None
         track = SimpleNamespace(
             name="Track",
             download_url="https://youtube.com/watch?v=test",
             spotify_id="track",
+            album=SimpleNamespace(name="Album"),
+            duration_ms=180000,
+            isrc="",
+        )
+        monkeypatch.setattr(
+            module.YoutubeSearch,
+            "find_video_urls_async",
+            AsyncMock(
+                return_value=Result(
+                    code=ResultCode.OK,
+                    message="OK",
+                    result=["https://music.youtube.com/watch?v=abcdefghijk"],
+                )
+            ),
         )
         monkeypatch.setattr(
             module.TrackAccess,

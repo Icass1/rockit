@@ -5,6 +5,7 @@ import { useStore } from "@nanostores/react";
 import type { PiPLyricsState } from "@/models/types/pip";
 import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
 
 export function PiPLyrics({
     data: lyrics,
@@ -22,13 +23,16 @@ export function PiPLyrics({
         if ($currentTime === null || $currentTime === undefined) return -1;
 
         for (let i = syncedLines.length - 1; i >= 0; i--) {
-            if ($currentTime >= syncedLines[i].timestamp_s) {
+            if (
+                $currentTime >=
+                lyricPlaybackTime(syncedLines[i].timestamp_s, lyrics?.offset)
+            ) {
                 return i;
             }
         }
 
         return -1;
-    }, [syncedLines, $currentTime]);
+    }, [syncedLines, $currentTime, lyrics?.offset]);
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -58,7 +62,9 @@ export function PiPLyrics({
     const goToLine = (index: number): void => {
         const ts = syncedLines[index]?.timestamp_s;
         if (ts !== undefined) {
-            rockIt.mediaPlayerManager.setCurrentTime(ts);
+            rockIt.mediaPlayerManager.setCurrentTime(
+                lyricSeekTime(ts, lyrics?.offset)
+            );
         }
     };
 
@@ -113,7 +119,7 @@ export function PiPLyrics({
     if (syncedLines.length === 0) {
         return (
             <div className="pip-lyrics-overlay" data-testid="pip-lyrics-empty">
-                <p className="text-xs text-neutral-400">
+                <p className="text-muted-foreground text-xs">
                     {text(
                         "PIP_NO_LYRICS",
                         "No synced lyrics",

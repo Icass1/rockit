@@ -1,3 +1,4 @@
+from spotifyScrapper.access import collectionCatalog as collectionCatalog
 from spotifyScrapper.access import downloadStorage as downloadStorage
 from spotifyScrapper.access.db.base import SpotifyScrapperBase
 from spotifyScrapper.access.db.ormEnums.copyrightTypeEnum import (

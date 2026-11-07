@@ -5,6 +5,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.enumAccess import EnumAccess
+from core.access.storedFiles import audio_identity_async
 from core.framework.audio.silence import request_bounds
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.localSong import LocalSong
@@ -27,6 +28,7 @@ from logger import getLogger
 from result import Result, ResultCode
 from spotify.access.artistCatalogAccess import ArtistCatalogAccess
 from spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
+from spotify.access.db.ormModels.track import TrackRow
 from spotify.access.spotifyAccess import SpotifyAccess
 from spotify.access.trackAccess import TrackAccess
 from spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
@@ -95,6 +97,12 @@ class SpotifyProvider(BaseMediaProvider):
             return Result(code=converted.code(), message=converted.message())
         songs: list[BaseSongWithAlbumResponse] = [song for song in converted.result()]
         return Result(code=ResultCode.OK, message="OK", result=songs)
+
+    async def get_audio_identity_async(self, session: AsyncSession, media_id: int) -> Result[str]:
+        """Expose only the hash of the local object's recorded revision."""
+        return await audio_identity_async(
+            session=session, table=TrackRow.__table__, media_id=media_id
+        )
 
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int

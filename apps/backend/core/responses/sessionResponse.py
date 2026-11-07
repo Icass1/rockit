@@ -2,15 +2,20 @@ from pydantic import BaseModel, field_serializer
 
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.enums.repeatModeEnum import RepeatModeEnum
+from core.models.themePreference import ThemePreference
 
 
 class SessionResponse(BaseModel):
+    showListeningHeatmap: bool = True
+    theme: ThemePreference = "dark"
     username: str
     image: str
     admin: bool
     queueType: QueueTypeEnum
     repeatMode: RepeatModeEnum
     currentTimeMs: int | None
+    volume: float = 1
+    autoAddToLibrary: bool = False
 
     @field_serializer("queueType")
     def serialize_queue_type(self, queue_type: QueueTypeEnum) -> str:

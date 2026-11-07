@@ -4,6 +4,7 @@ import asyncio
 import os
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
+from urllib.parse import quote
 
 import boto3
 from botocore.config import Config
@@ -54,7 +55,7 @@ def get_s3_client(public: bool = False) -> S3Client:
             region_name=settings.S3_REGION or None,
             config=Config(
                 signature_version="s3v4",
-                # AWS presigning must use the bucket's regional endpoint.
+                # AWS operations must use the bucket's regional endpoint.
                 # Custom S3-compatible endpoints retain automatic addressing.
                 s3={"addressing_style": "virtual" if endpoint_url is None else "auto"},
             ),
@@ -155,23 +156,21 @@ class Storage:
 
         if storage_object is None:
             return None
-        endpoint: str | None = settings.S3_PUBLIC_ENDPOINT_URL
-        if endpoint:
-            try:
-                client: S3Client = get_s3_client(public=True)
-                url: str = client.generate_presigned_url(
-                    ClientMethod="get_object",
-                    Params={"Bucket": storage_object.bucket, "Key": storage_object.key},
-                    ExpiresIn=0,
-                )
-                return url.split("?", maxsplit=1)[0]
-            except Exception as e:
-                logger.error(
-                    f"Error building public object URL for {storage_object.key}: {e}",
-                    exc_info=True,
-                )
-                return None
-        return Storage.get_object_url(storage_object)
+        try:
+            key = quote(string=storage_object.key, safe="/")
+            endpoint = _get_endpoint_url(public=True)
+            if endpoint:
+                bucket = quote(string=storage_object.bucket, safe="")
+                return f"{endpoint.rstrip('/')}/{bucket}/{key}"
+            region = settings.S3_REGION or "us-east-1"
+            host = "s3.amazonaws.com" if region == "us-east-1" else f"s3.{region}.amazonaws.com"
+            return f"https://{storage_object.bucket}.{host}/{key}"
+        except Exception as e:
+            logger.error(
+                f"Error building public object URL for {storage_object.key}: {e}",
+                exc_info=True,
+            )
+            return None
 
     @staticmethod
     async def get_all_objects_async(
@@ -183,24 +182,9 @@ class Storage:
 
     @staticmethod
     def get_object_url(storage_object: StorageObjectRow) -> str | None:
-        """Return a short-lived URL that can be used to download a stored object."""
+        """Return the public URL that can be used to download a stored object."""
 
-        try:
-            client: S3Client = get_s3_client(public=True)
-            return client.generate_presigned_url(
-                ClientMethod="get_object",
-                Params={
-                    "Bucket": storage_object.bucket,
-                    "Key": storage_object.key,
-                },
-                ExpiresIn=settings.S3_PRESIGNED_URL_EXPIRES,
-            )
-        except Exception as e:
-            logger.error(
-                f"Error generating object URL for {storage_object.key}: {e}",
-                exc_info=True,
-            )
-            return None
+        return Storage.get_public_url(storage_object=storage_object)
 
     @staticmethod
     async def ensure_bucket_async() -> None:
@@ -359,36 +343,26 @@ class Storage:
         )
 
     @staticmethod
-    async def get_presigned_url_async(
+    async def get_public_url_async(
         storage_object: StorageObjectRow | None,
     ) -> Result[str]:
-        """Return a short-lived presigned URL for a private object."""
+        """Return the public object URL wrapped in a Result."""
 
         if storage_object is None:
+            logger.error("Cannot build public URL: storage object not found")
             return Result[str](
                 code=ResultCode.NOT_FOUND,
                 message="Storage object not found",
             )
 
-        def _generate() -> str:
-            client = get_s3_client(public=True)
-            return client.generate_presigned_url(
-                ClientMethod="get_object",
-                Params={
-                    "Bucket": storage_object.bucket,
-                    "Key": storage_object.key,
-                },
-                ExpiresIn=settings.S3_PRESIGNED_URL_EXPIRES,
-            )
-
-        try:
-            url: str = await asyncio.to_thread(_generate)
-            return Result[str](code=ResultCode.OK, message="OK", result=url)
-        except Exception as e:
+        url = Storage.get_public_url(storage_object=storage_object)
+        if url is None:
+            logger.error(f"Error building public object URL for {storage_object.key}")
             return Result[str](
                 code=ResultCode.GENERAL_ERROR,
-                message=f"Error generating presigned URL {e}",
+                message="Error building public object URL",
             )
+        return Result[str](code=ResultCode.OK, message="OK", result=url)
 
     @staticmethod
     def generate_key(folder: str, filename: str, public_id: str | None = None) -> str:
@@ -396,4 +370,6 @@ class Storage:
 
         object_public_id: str = public_id or create_id(32)
         _name, ext = os.path.splitext(filename)
-        return f"{folder.rstrip('/')}/{object_public_id}{ext.lower()}"
+        key = f"{folder.rstrip('/')}/{object_public_id}{ext.lower()}"
+        prefix = settings.S3_PREFIX.strip("/")
+        return f"{prefix}/{key}" if prefix else key

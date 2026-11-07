@@ -2,8 +2,8 @@
 
 import type { JSX } from "react";
 import { Pencil } from "lucide-react";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 export default function EditMetadataAction({
     vocabulary,

@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -277,18 +278,39 @@ class Image:
 
     @staticmethod
     async def get_internal_image_url_async(image: ImageRow) -> Result[str]:
-        """Return a short-lived presigned URL of an image."""
+        """Return the public URL of an image."""
 
         storage_object = image.__dict__.get("storage_object", None)
         if storage_object is None:
+            logger.error(f"Storage object not found for image {image.id}")
             return Result[str](code=ResultCode.NOT_FOUND, message="Storage object not found")
-        return await Storage.get_presigned_url_async(storage_object)
+        return await Storage.get_public_url_async(storage_object=storage_object)
+
+    @staticmethod
+    async def get_internal_image_urls_async(
+        images: list[ImageRow],
+    ) -> Result[dict[int, str]]:
+        """Resolve public URLs concurrently for a batch of images."""
+        unique_images = {image.id: image for image in images}
+        urls: dict[int, str] = {}
+        image_items = list(unique_images.items())
+        for start in range(0, len(image_items), 64):
+            batch = image_items[start : start + 64]
+            image_results = await asyncio.gather(
+                *(Image.get_internal_image_url_async(image=image) for _, image in batch)
+            )
+            for (image_id, _), result in zip(batch, image_results):
+                if result.is_not_ok():
+                    logger.error(f"Error getting URL for image {image_id}. {result.info()}")
+                    return Result(code=result.code(), message=result.message())
+                urls[image_id] = result.result()
+        return Result(code=ResultCode.OK, message="OK", result=urls)
 
     @staticmethod
     async def get_internal_image_url_by_public_id_async(
         session: AsyncSession, public_id: str | None
     ) -> str | None:
-        """Resolve an image public ID to its short-lived S3 URL."""
+        """Resolve an image public ID to its public S3 URL."""
 
         if not public_id:
             return None

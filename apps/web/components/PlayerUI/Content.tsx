@@ -11,12 +11,13 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import PlayerUILyrics from "@/components/PlayerUI/Lyrics";
 import PlayerUIMain from "@/components/PlayerUI/Main";
 import PlayerUIQueue from "@/components/PlayerUI/Queue";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function PlayerUIContent(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
 
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const divRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +99,7 @@ export default function PlayerUIContent(): JSX.Element {
         const queueEl = divRef.current?.querySelector(
             "[data-queue-scroll]"
         ) as HTMLDivElement | null;
-        if (queueEl) queueEl.scrollTop = index * 64;
+        if (queueEl) queueEl.scrollTop = index * 66;
     }, [$isPlayerUIVisible]);
 
     if (!$currentMedia)
@@ -114,7 +115,7 @@ export default function PlayerUIContent(): JSX.Element {
     // pt-30 / pb-6 = the header/footer padding (24) plus half of it (12),
     // so the player content never visually collides with either bar.
     const defaultStyles =
-        "relative grid h-full w-full gap-4 bg-black text-white pt-30 pb-6";
+        "relative grid h-full w-full gap-4 bg-backdrop text-foreground-strong pt-30 pb-6";
 
     const isLandscape = aspectRatio > 1.5;
     const isPortrait = aspectRatio < 1 / 1.5;
@@ -215,7 +216,7 @@ export default function PlayerUIContent(): JSX.Element {
                         {["QUEUE", "LYRICS"].map((tab): JSX.Element => (
                             <button
                                 key={tab}
-                                className={`text-lg font-semibold transition hover:text-white ${selectedTab === tab ? "border-b-2 border-white text-white" : "text-gray-400"}`}
+                                className={`hover:text-foreground-strong text-lg font-semibold transition ${selectedTab === tab ? "border-foreground-strong text-foreground-strong border-b-2" : "text-muted-foreground"}`}
                                 onClick={(): void =>
                                     setSelectedTab(tab as "LYRICS" | "QUEUE")
                                 }
@@ -258,7 +259,7 @@ function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
                     <button
                         type="button"
                         onClick={(): void => setLyricsOpen((p) => !p)}
-                        className="ignore-click-player-ui absolute top-1/2 left-2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-white/80 transition-colors hover:text-white"
+                        className="ignore-click-player-ui text-foreground-strong/80 hover:text-foreground-strong absolute top-1/2 left-2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors"
                         title={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
                         aria-label={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
                         aria-expanded={lyricsOpen}

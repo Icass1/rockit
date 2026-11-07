@@ -7,6 +7,7 @@ import {
     CurrentTimeMessageSchema,
     EWebSocketMessage,
     FriendsPresenceChangedMessageSchema,
+    ListenTogetherSyncMessageSchema,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
     MediaExpandedMessageRequest,
@@ -22,8 +23,6 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, type ReadonlyAtom } from "@/lib/store";
 
 export class WebSocketManager {
-    static #instance: WebSocketManager;
-
     private _onlineUsers = createAtom<number | undefined>();
 
     get onlineUsersAtom(): ReadonlyAtom<number | undefined> {
@@ -31,10 +30,13 @@ export class WebSocketManager {
     }
 
     private webSocket?: WebSocket;
-    private _init = false;
+    private active = false;
+    private reconnectTimer?: ReturnType<typeof setTimeout>;
+    private retryCount = 0;
+    private connectionWaiters = new Set<() => void>();
     private _latestPlaybackId = "";
     private _outgoingPlayback?: CurrentMediaMessageRequest;
-    private initializing = false;
+    private _supersededPlaybackIds = new Set<string>();
     private _connectionGeneration = 0;
     private _messageHandlers: Map<
         EWebSocketMessage,
@@ -51,8 +53,13 @@ export class WebSocketManager {
                 this._onlineUsers.set(data.count);
             } else if (data.type === EWebSocketMessage.FriendsPresenceChanged) {
                 data = FriendsPresenceChangedMessageSchema.parse(data);
+            } else if (data.type === EWebSocketMessage.ListenTogetherSync) {
+                data = ListenTogetherSyncMessageSchema.parse(data);
             } else if (data.type === EWebSocketMessage.CurrentMedia) {
                 data = CurrentMediaMessageSchema.parse(data);
+                // An earlier local selection may be acknowledged after another skip.
+                // Drop it before either the queue or the player sees it.
+                if (this._supersededPlaybackIds.has(data.playbackId)) return;
                 if (this._outgoingPlayback?.playbackId !== data.playbackId) {
                     this._outgoingPlayback = undefined;
                 }
@@ -75,16 +82,21 @@ export class WebSocketManager {
         }
     };
 
-    constructor() {
-        if (typeof window === "undefined") return;
-        // console.log("WebSocketManager.#instance", WebSocketManager.#instance);
-        if (WebSocketManager.#instance) {
-            return WebSocketManager.#instance;
-        }
+    constructor(
+        private readonly isAuthenticated: () => boolean = () =>
+            rockIt.userManager.loggedInAtom.get()
+    ) {}
 
-        WebSocketManager.#instance = this;
+    /** Only the mounted application lifecycle may enable connections. */
+    start(): void {
+        if (this.active) return;
+        this.active = true;
+        void this.init();
+    }
 
-        return WebSocketManager.#instance;
+    stop(): void {
+        this.active = false;
+        this.disconnect();
     }
 
     onMessage<K extends EWebSocketMessage>(
@@ -109,98 +121,106 @@ export class WebSocketManager {
     }
 
     async init(): Promise<void> {
-        if (this._init || !rockIt.userManager.loggedInAtom.get()) return;
-
-        // console.debug("WebSocketManager.init", this.webSocket);
-
-        await this.attemptReconnect();
+        if (
+            !this.active ||
+            !this.isAuthenticated() ||
+            this.webSocket ||
+            this.reconnectTimer !== undefined
+        )
+            return;
+        this.connect();
     }
 
     async reconnectAsync(): Promise<void> {
-        this._connectionGeneration++;
-        this._onlineUsers.set(undefined);
-        const previousSocket = this.webSocket;
-        this.webSocket = undefined;
-        this._init = false;
-        this.initializing = false;
-        this._latestPlaybackId = "";
-        this._outgoingPlayback = undefined;
-        previousSocket?.close();
-        if (!rockIt.userManager.loggedInAtom.get()) return;
+        this.disconnect();
         await this.init();
     }
 
     disconnect(): void {
         this._connectionGeneration++;
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = undefined;
+        this.retryCount = 0;
         this._onlineUsers.set(undefined);
         const previousSocket = this.webSocket;
         this.webSocket = undefined;
-        this._init = false;
-        this.initializing = false;
         this._latestPlaybackId = "";
         this._outgoingPlayback = undefined;
-        previousSocket?.close();
+        this._supersededPlaybackIds.clear();
+        if (previousSocket) {
+            previousSocket.onopen = null;
+            previousSocket.onmessage = null;
+            previousSocket.onclose = null;
+            previousSocket.onerror = null;
+            previousSocket.close();
+        }
+        this.releaseConnectionWaiters();
     }
 
-    private async attemptReconnect(): Promise<void> {
-        const maxRetries = 5;
-        let retries = 0;
-        // console.debug("WebSocketManager.attemptReconnect", this.initializing);
-        if (this.initializing) return;
-        if (!rockIt.userManager.loggedInAtom.get()) return;
-        this.initializing = true;
+    private connect(): void {
         const generation = this._connectionGeneration;
+        try {
+            const socket = new WebSocket(`${BACKEND_URL}/ws`);
+            this.webSocket = socket;
+            const isCurrent = (): boolean =>
+                this.active &&
+                this.isAuthenticated() &&
+                generation === this._connectionGeneration &&
+                socket === this.webSocket;
 
-        while (retries < maxRetries) {
-            await new Promise((resolve): NodeJS.Timeout =>
-                setTimeout(resolve, Math.max(2000 * retries, 2000))
-            );
-            if (generation !== this._connectionGeneration) return;
-            if (!rockIt.userManager.loggedInAtom.get()) {
-                this.initializing = false;
-                return;
-            }
-            if (this.webSocket?.readyState === WebSocket.OPEN) break;
-
-            try {
-                this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
-
-                this.webSocket.onopen = (): void => {
-                    if (generation !== this._connectionGeneration) return;
-                    this.initializing = false;
-                    this._init = true;
-                    if (this._outgoingPlayback) {
-                        this.sendCurrentMedia(this._outgoingPlayback);
-                    } else {
-                        this.requestPlaybackState();
-                    }
-                };
-
-                this.webSocket.onmessage = (event): void => {
-                    if (generation !== this._connectionGeneration) return;
-                    this._onMessageHandler(event);
-                };
-
-                this.webSocket.onclose = (): void => {
-                    if (generation !== this._connectionGeneration) return;
-                    this._onlineUsers.set(undefined);
-                    this.initializing = false;
-                    this._init = false;
-                    this.attemptReconnect();
-                };
-
-                break;
-            } catch {
-                retries++;
-            }
+            socket.onopen = (): void => {
+                if (!isCurrent()) return;
+                this.retryCount = 0;
+                if (this._outgoingPlayback) {
+                    // Replace the pending object so its suspended send cannot
+                    // duplicate this replay when connection waiters resume.
+                    this.sendCurrentMedia(this._outgoingPlayback);
+                } else {
+                    this.requestPlaybackState();
+                }
+                this.releaseConnectionWaiters();
+            };
+            socket.onmessage = (event): void => {
+                if (isCurrent()) this._onMessageHandler(event);
+            };
+            socket.onclose = (): void => {
+                if (!isCurrent()) return;
+                this.webSocket = undefined;
+                this._onlineUsers.set(undefined);
+                this.scheduleReconnect();
+            };
+        } catch {
+            this.scheduleReconnect();
         }
     }
 
-    get isConnected(): boolean {
-        return this.webSocket?.readyState === WebSocket.OPEN;
+    private scheduleReconnect(): void {
+        if (!this.active || !this.isAuthenticated()) return;
+        const generation = this._connectionGeneration;
+        const delay = Math.min(2000 * ++this.retryCount, 10000);
+        this.reconnectTimer = setTimeout(() => {
+            this.reconnectTimer = undefined;
+            if (generation === this._connectionGeneration) void this.init();
+        }, delay);
     }
 
-    private _isOpen(): boolean {
+    private releaseConnectionWaiters(): void {
+        for (const finish of this.connectionWaiters) finish();
+    }
+
+    private waitForConnection(): Promise<void> {
+        return new Promise((resolve) => {
+            const finish = (): void => {
+                clearTimeout(timer);
+                this.connectionWaiters.delete(finish);
+                resolve();
+            };
+            const timer = setTimeout(finish, 10000);
+            this.connectionWaiters.add(finish);
+        });
+    }
+
+    get isConnected(): boolean {
         return this.webSocket?.readyState === WebSocket.OPEN;
     }
 
@@ -209,15 +229,27 @@ export class WebSocketManager {
     }
 
     async send(message: object): Promise<void> {
-        if (!rockIt.userManager.loggedInAtom.get()) return;
-        if (this.webSocket?.readyState !== WebSocket.OPEN) {
+        if (!this.active || !this.isAuthenticated()) return;
+        const generation = this._connectionGeneration;
+        if (!this.isConnected) {
             await this.init();
-            const deadline = Date.now() + 10000;
-            while (!this._isOpen() && Date.now() < deadline) {
-                await new Promise<void>((resolve) => setTimeout(resolve, 100));
-            }
+            if (generation !== this._connectionGeneration || !this.active)
+                return;
+            if (!this.isConnected) await this.waitForConnection();
         }
-        if (this.webSocket?.readyState !== WebSocket.OPEN) return;
+        if (
+            generation !== this._connectionGeneration ||
+            !this.active ||
+            !this.isAuthenticated() ||
+            !this.isConnected
+        )
+            return;
+        // Opening sockets replay the latest selection before releasing waiters.
+        if (
+            (message as { type?: string }).type === "current_media" &&
+            message !== this._outgoingPlayback
+        )
+            return;
         const playbackId = (message as Partial<CurrentTimeMessageRequest>)
             .playbackId;
         if (playbackId && playbackId !== this._latestPlaybackId) return;
@@ -236,12 +268,16 @@ export class WebSocketManager {
     }
 
     sendCurrentMedia(data: CurrentMediaMessageRequest): void {
+        if (
+            this._outgoingPlayback &&
+            this._outgoingPlayback.playbackId !== data.playbackId
+        ) {
+            this._supersededPlaybackIds.add(this._outgoingPlayback.playbackId);
+        }
         this._latestPlaybackId = data.playbackId;
-        this._outgoingPlayback = { ...data };
-        this.send({
-            type: "current_media",
-            ...data,
-        });
+        const outgoing = { ...data, type: "current_media" as const };
+        this._outgoingPlayback = outgoing;
+        void this.send(outgoing);
     }
 
     sendCurrentQueue(data: CurrentQueueMessageRequest): void {

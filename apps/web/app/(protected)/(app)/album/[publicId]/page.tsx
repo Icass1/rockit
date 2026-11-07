@@ -1,24 +1,9 @@
-import { cache, JSX } from "react";
+import { JSX } from "react";
 import { notFound } from "next/navigation";
-import {
-    BaseAlbumWithSongsResponse,
-    BaseSongWithoutAlbumResponse,
-    EMediaType,
-} from "@rockit/shared";
-import { getAlbumAsync } from "@/lib/services/mediaService";
+import { BaseSongWithoutAlbumResponse, EMediaType } from "@rockit/shared";
+import { getAlbum } from "@/lib/server/resources";
 import SongSeededRecommendations from "@/components/Recommendations/SongSeededRecommendations";
 import RenderListClient from "@/components/RenderList/RenderListClient";
-
-const getAlbum = cache(
-    async (
-        publicId: string
-    ): Promise<BaseAlbumWithSongsResponse | undefined> => {
-        const album = await getAlbumAsync(publicId).catch(
-            (): undefined => undefined
-        );
-        return album;
-    }
-);
 
 export async function generateMetadata({
     params,

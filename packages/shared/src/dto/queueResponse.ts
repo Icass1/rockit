@@ -8,6 +8,8 @@ export const QueueResponseSchema = z.object({
     currentQueueMediaId: z.number().nullable(),
     queue: z.array(z.lazy(() => QueueResponseItemSchema)),
     queueType: z.enum(["RANDOM", "SORTED"]),
+    offset: z.number().default(0),
+    total: z.number().default(0),
 });
 
 export type QueueResponse = z.infer<typeof QueueResponseSchema>;

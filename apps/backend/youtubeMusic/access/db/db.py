@@ -1,3 +1,4 @@
+from youtubeMusic.access import collectionCatalog as collectionCatalog
 from youtubeMusic.access import downloadStorage as downloadStorage
 from youtubeMusic.access.db.base import YoutubeMusicBase
 from youtubeMusic.access.db.ormModels.album import AlbumRow as AlbumRow

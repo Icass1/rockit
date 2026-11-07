@@ -17,7 +17,50 @@ class Migration:
     statements: tuple[str, ...]
 
 
-MIGRATIONS: tuple[Migration, ...] = ()
+MIGRATIONS: tuple[Migration, ...] = (
+    Migration(
+        version=1,
+        name="remove_notification_source_key",
+        statements=(
+            "ALTER TABLE IF EXISTS core.notification "
+            "DROP CONSTRAINT IF EXISTS notification_user_source_uq",
+            "ALTER TABLE IF EXISTS core.notification DROP COLUMN IF EXISTS source_key",
+        ),
+    ),
+    Migration(
+        version=2,
+        name="add_user_listening_heatmap_preference",
+        statements=(
+            'ALTER TABLE core."user" ADD COLUMN IF NOT EXISTS '
+            "show_listening_heatmap BOOLEAN NOT NULL DEFAULT TRUE",
+        ),
+    ),
+    Migration(
+        version=3,
+        name="add_user_theme_preference",
+        statements=(
+            'ALTER TABLE core."user" ADD COLUMN IF NOT EXISTS '
+            "theme VARCHAR(16) NOT NULL DEFAULT 'dark'",
+            'ALTER TABLE core."user" DROP CONSTRAINT IF EXISTS user_theme_check',
+            'ALTER TABLE core."user" ADD CONSTRAINT user_theme_check '
+            "CHECK (theme IN ('dark', 'light', 'system'))",
+        ),
+    ),
+    Migration(
+        version=4,
+        name="index_recommendation_candidates",
+        statements=(
+            "CREATE INDEX IF NOT EXISTS ix_recommendation_listened_media_user_date "
+            "ON core.user_media_listened (media_id, user_id, date_added)",
+            "CREATE INDEX IF NOT EXISTS ix_recommendation_liked_user_date "
+            "ON core.user_liked_media (user_id, date_added) INCLUDE (media_id)",
+            "CREATE INDEX IF NOT EXISTS ix_recommendation_playlist_media_playlist "
+            "ON default_schema.playlist_media (media_id, playlist_id)",
+            "CREATE INDEX IF NOT EXISTS ix_recommendation_playlist_playlist_media "
+            "ON default_schema.playlist_media (playlist_id, media_id)",
+        ),
+    ),
+)
 
 
 def validate_migrations() -> None:

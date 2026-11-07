@@ -13,6 +13,23 @@ def _create_youtube_dl(opts: dict[str, Any]) -> YoutubeDL:
     return YoutubeDL(cast(Any, opts))
 
 
+def _artist_names(info: Mapping[str, Any]) -> list[str]:
+    """Prefer individual credits over yt-dlp's joined display artist string."""
+    raw = info.get("artists")
+    names: list[str] = []
+    if isinstance(raw, list):
+        for value in cast(list[object], raw):
+            name: object = (
+                cast(dict[str, object], value).get("name") if isinstance(value, dict) else value
+            )
+            if isinstance(name, str) and name.strip() and name.strip() not in names:
+                names.append(name.strip())
+    if names:
+        return names
+    artist = info.get("artist")
+    return [artist.strip()] if isinstance(artist, str) and artist.strip() else []
+
+
 logger = getLogger(__name__)
 
 
@@ -454,14 +471,7 @@ class YoutubeMusicApi:
 
             thumbnail = str(info_dict.get("thumbnail", ""))
 
-            artists: list[str] = []
-            artist_val = info_dict.get("artist")
-            if artist_val is not None:
-                artists = [str(artist_val)]
-            else:
-                artists_val = info_dict.get("artists")
-                if artists_val is not None:
-                    artists = [str(a) for a in artists_val]
+            artists = _artist_names(info=info_dict)
 
             album = str(info_dict.get("album", ""))
             album_youtube_id = info_dict.get("album_id")
@@ -853,14 +863,7 @@ class YoutubeMusicApi:
                     if thumb_url is not None:
                         thumbnail_track = thumb_url
 
-                artists: list[str] = []
-                artist_val = entry_dict.get("artist")
-                if artist_val is not None:
-                    artists = [str(artist_val)]
-                else:
-                    artists_val = entry_dict.get("artists")
-                    if artists_val is not None:
-                        artists = [str(a) for a in artists_val]
+                artists = _artist_names(info=entry_dict)
 
                 album = str(entry_dict.get("album", ""))
 

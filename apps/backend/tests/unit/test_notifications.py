@@ -111,17 +111,16 @@ def test_delivery_filters_personal_subscribers_by_recipient() -> None:
     session.commit.assert_not_called()
 
 
-def test_retried_downloads_keep_the_same_recipient_and_source_key() -> None:
+def test_retried_downloads_keep_the_same_recipient() -> None:
     session = cast(AsyncSession, MagicMock(spec=AsyncSession))
     with patch.object(
         Notification, "emit_async", new_callable=AsyncMock, return_value=Result[int].ok(1)
     ) as emit:
         for _ in range(2):
             result = asyncio.run(
-                Notification.download_async(session, 7, "download-id", 2, True, "Track")
+                Notification.download_async(session=session, user_id=7, success=True, title="Track")
             )
             assert result.is_ok()
     assert emit.await_args_list[0] == emit.await_args_list[1]
     assert emit.await_args is not None
     assert emit.await_args.kwargs["recipient_user_id"] == 7
-    assert emit.await_args.kwargs["source_key"] == "download:download-id:DOWNLOAD_COMPLETED:2"

@@ -1,14 +1,13 @@
 "use client";
 
 import { JSX, useEffect, useState } from "react";
-import { useStore } from "@nanostores/react";
 import { CloudOff, Wifi } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { networkStatus } from "@/lib/stores/networkStatus";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadAppButton(): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const $network = useStore(networkStatus);
+    const $vocabulary = useVocabulary();
+    const $network = useNetworkStatus();
     const [swReady, setSwReady] = useState(false);
 
     useEffect(() => {
@@ -19,11 +18,11 @@ export default function DownloadAppButton(): JSX.Element {
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 rounded-xl bg-neutral-800 px-4 py-2.5 text-sm font-semibold text-white">
+            <div className="bg-muted text-foreground-strong flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold">
                 {$network === "online" ? (
-                    <Wifi className="h-4 w-4 text-green-400" />
+                    <Wifi className="text-success-foreground h-4 w-4" />
                 ) : (
-                    <CloudOff className="h-4 w-4 text-neutral-400" />
+                    <CloudOff className="text-muted-foreground h-4 w-4" />
                 )}
                 <span>
                     {swReady

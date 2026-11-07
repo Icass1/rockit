@@ -1,13 +1,13 @@
-import "@/styles/animations.css";
-import "@/styles/base.css";
-import "@/styles/components.css";
+import { getRequestTheme } from "@/lib/server/theme";
+import { getRequestVocabulary } from "@/lib/server/vocabulary";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { VocabularyProvider } from "@/components/providers/VocabularyProvider";
 import "@/styles/globals.css";
-import "@/styles/tokens/colors.css";
 import { JSX } from "react";
 import type { Metadata, Viewport } from "next";
 import { SITE_URL } from "@/environment";
 import { SerwistProvider } from "@serwist/turbopack/react";
-import ToasterProvider from "@/components/Toaster/ToasterProvider";
+import ToasterProvider from "@/components/ui/ToasterProvider";
 
 const TITLE = "RockIt!";
 const DESCRIPTION = "The best music player in the world";
@@ -57,9 +57,13 @@ export const viewport: Viewport = {
     viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
-}: Readonly<{ children: React.ReactNode }>): JSX.Element {
+}: Readonly<{ children: React.ReactNode }>): Promise<JSX.Element> {
+    const [vocabulary, theme] = await Promise.all([
+        getRequestVocabulary(),
+        getRequestTheme(),
+    ]);
     const isDev = process.env.NODE_ENV === "development";
 
     const content = (
@@ -70,18 +74,22 @@ export default function RootLayout({
     );
 
     return (
-        <html lang="en" suppressHydrationWarning>
+        <html lang={vocabulary.currentLang} data-theme={theme}>
             <head>
                 <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
             </head>
-            <body className="antialiased" suppressHydrationWarning>
-                {isDev ? (
-                    content
-                ) : (
-                    <SerwistProvider swUrl="/serwist/sw.js">
-                        {content}
-                    </SerwistProvider>
-                )}
+            <body className="antialiased">
+                <VocabularyProvider initial={vocabulary}>
+                    <ThemeProvider initial={theme}>
+                        {isDev ? (
+                            content
+                        ) : (
+                            <SerwistProvider swUrl="/serwist/sw.js">
+                                {content}
+                            </SerwistProvider>
+                        )}
+                    </ThemeProvider>
+                </VocabularyProvider>
             </body>
         </html>
     );

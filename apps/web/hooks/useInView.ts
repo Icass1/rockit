@@ -7,6 +7,7 @@ export function useInView<T extends HTMLElement>(
 ): [RefObject<T | null>, boolean] {
     const ref = useRef<T>(null);
     const [inView, setInView] = useState(false);
+    const { threshold = 0.1, rootMargin = "60px", root = null } = options ?? {};
 
     useEffect((): (() => void) | void => {
         const node = ref.current;
@@ -19,12 +20,12 @@ export function useInView<T extends HTMLElement>(
                     observer.disconnect();
                 }
             },
-            { threshold: 0.1, rootMargin: "60px", ...options }
+            { threshold, rootMargin, root }
         );
 
         observer.observe(node);
         return () => observer.disconnect();
-    }, [inView]);
+    }, [inView, threshold, rootMargin, root]);
 
     return [ref, inView];
 }

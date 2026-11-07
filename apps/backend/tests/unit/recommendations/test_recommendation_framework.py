@@ -16,6 +16,7 @@ from core.framework.externalRecommendation.externalRecommendations import (
 from core.framework.models.media import MediaModel
 from core.framework.models.recommendation import (
     EExternalStatus,
+    ExternalSuggestion,
     LocalCandidate,
     SeedTrack,
 )
@@ -98,8 +99,10 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         async def recently_played(session: object, user_id: int, limit: int) -> Result[list[str]]:
             return ok_result(list(self.recent))
 
-        async def liked(session: object, user_id: int) -> Result[list[str]]:
-            return ok_result(list(self.liked))
+        async def liked(
+            session: object, user_id: int, limit: int | None = None
+        ) -> Result[list[str]]:
+            return ok_result(list(self.liked[:limit]))
 
         async def medias(
             session: object, public_ids: list[str], media_type_keys: list[int] | None
@@ -117,6 +120,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
             songs = [make_song(pid) for pid in public_ids]
             for song in songs:
                 song.downloaded = song.publicId not in self.missing_audio
+                song.imageUrl = f"https://covers.example/{song.publicId}.jpg"
             return songs
 
         async def candidates(session: object, **kwargs: object) -> Result[list[LocalCandidate]]:
@@ -214,6 +218,74 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         await self.for_you()
         self.assertEqual(self.candidate_calls, 1)
 
+    async def test_profile_uses_one_history_query_and_one_batched_id_lookup(self) -> None:
+        self.recent = ["seed-1", "rec-1"]
+        self.liked = ["liked-1"]
+        recent = mock.AsyncMock(return_value=ok_result(self.recent))
+        medias = mock.AsyncMock(
+            return_value=ok_result(
+                [
+                    MediaModel(public_id=pid, id=i, provider_id=1)
+                    for i, pid in enumerate([*self.recent, *self.liked], start=1)
+                ]
+            )
+        )
+        candidates = mock.AsyncMock(return_value=ok_result(self.candidates))
+        with (
+            mock.patch(f"{MODULE}.StatsAccess.get_recently_played_songs_async", recent),
+            mock.patch(f"{MODULE}.Media.get_medias_from_public_ids_async", medias),
+            mock.patch(f"{MODULE}.RecommendationAccess.get_local_candidates_async", candidates),
+        ):
+            result = await Recommendation.get_recommendations_for_user_async(
+                session=mock.MagicMock(), user_id=1, include_external=False
+            )
+        self.assertTrue(result.is_ok())
+        recent.assert_awaited_once()
+        medias.assert_awaited_once()
+        call = candidates.await_args
+        assert call is not None
+        self.assertEqual(call.kwargs["seed_media_ids"], [1, 2, 3])
+        self.assertEqual(call.kwargs["exclude_media_ids"], [1, 2])
+
+    async def test_cached_local_request_skips_profile_but_refreshes_exclusions(self) -> None:
+        await Recommendation.get_recommendations_for_user_async(
+            session=mock.MagicMock(), user_id=1, include_external=False
+        )
+        self.recent = ["rec-1"]
+        with (
+            mock.patch(f"{MODULE}.Media.get_medias_from_public_ids_async") as medias,
+            mock.patch(
+                f"{MODULE}.UserLikedMediaAccess.get_user_liked_media_public_ids_async"
+            ) as liked,
+            mock.patch.object(Recommendation, "_resolve_seed_track_async") as seed,
+        ):
+            result = await Recommendation.get_recommendations_for_user_async(
+                session=mock.MagicMock(), user_id=1, include_external=False
+            )
+        self.assertTrue(result.is_ok())
+        self.assertNotIn("rec-1", [s.publicId for s in result.result().songs])
+        self.assertEqual(self.candidate_calls, 1)
+        medias.assert_not_called()
+        liked.assert_not_called()
+        seed.assert_not_called()
+
+    async def test_only_five_most_recent_songs_are_excluded(self) -> None:
+        self.use_providers()
+        self.recent = [f"recent-{i}" for i in range(5)] + ["popular-1"]
+        result = await self.for_you()
+        self.assertIn("popular-1", [s.publicId for s in result.songs])
+
+    async def test_cached_discovery_without_history_still_uses_liked_seed(self) -> None:
+        self.use_providers(FakeProvider("primary", ok(("New Artist", "New Song"))))
+        self.recent = []
+        self.liked = ["liked-1"]
+        await self.for_you()
+        with mock.patch.object(
+            Recommendation, "_resolve_seed_track_async", mock.AsyncMock(return_value=None)
+        ) as seed:
+            await self.for_you()
+        seed.assert_awaited_once_with(session=mock.ANY, public_id="liked-1")
+
     async def test_external_failures_keep_local_results(self) -> None:
         local_only = ["rec-1", "rec-2", "popular-1"]
         for name, provider in {
@@ -288,6 +360,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         result = await self.for_you()
         self.assertEqual(result.discover[0].publicId, None)
         self.assertFalse(result.discover[0].downloaded)
+        self.assertEqual(result.discover[0].imageUrl, "https://covers.example/metadata-only.jpg")
 
     async def test_discovery_can_reuse_a_downloaded_alternative(self) -> None:
         self.use_providers(FakeProvider("external", ok(("Artist", "Song"))))
@@ -299,6 +372,50 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
             result = await self.for_you()
         self.assertEqual(result.discover[0].publicId, "playable-version")
         self.assertTrue(result.discover[0].downloaded)
+        self.assertEqual(result.discover[0].imageUrl, "https://covers.example/playable-version.jpg")
+
+    def test_discovery_preserves_external_artwork_and_prefers_resolved_artwork(self) -> None:
+        suggestion = ExternalSuggestion(
+            artist_name="Artist", track_name="Song", image_url="https://covers.example/external.jpg"
+        )
+        external = Recommendation.build_discover_item(
+            suggestion=suggestion, provider_name="External", public_id=None
+        )
+        self.assertEqual(external.imageUrl, suggestion.image_url)
+        local = Recommendation.build_discover_item(
+            suggestion=suggestion,
+            provider_name="External",
+            public_id="known",
+            image_url="https://covers.example/local.jpg",
+        )
+        self.assertEqual(local.imageUrl, "https://covers.example/local.jpg")
+
+    async def test_artwork_delegates_to_configured_capability_only(self) -> None:
+        provider = FakeProvider("external", ok())
+        self.use_providers(provider)
+        with mock.patch.object(
+            provider,
+            "get_artwork_async",
+            mock.AsyncMock(return_value=ok_result("https://covers.example/album.jpg")),
+        ) as lookup:
+            result = await Recommendation.get_artwork_async(
+                provider_name="External", artist="Artist", track="Song"
+            )
+            self.assertTrue(result.is_ok())
+            self.assertEqual(result.result(), "https://covers.example/album.jpg")
+            lookup.assert_awaited_once_with(artist_name="Artist", track_name="Song")
+            unsupported = await Recommendation.get_artwork_async(
+                provider_name="Unknown", artist="Artist", track="Song"
+            )
+            self.assertTrue(unsupported.is_ok())
+            self.assertEqual(unsupported.result(), "")
+            provider._configured = False  # pyright: ignore[reportPrivateUsage]
+            disabled = await Recommendation.get_artwork_async(
+                provider_name="External", artist="Artist", track="Song"
+            )
+            self.assertTrue(disabled.is_ok())
+            self.assertEqual(disabled.result(), "")
+            lookup.assert_awaited_once()
 
     async def test_response_contract(self) -> None:
         self.use_providers(FakeProvider("primary", ok(("New Artist", "New Song"))))
@@ -332,13 +449,17 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
     async def test_local_only_request_does_not_wait_for_external_provider(self) -> None:
         provider = FakeProvider("slow")
         self.use_providers(provider)
-        with mock.patch.object(Recommendation.external, "get_suggestions_async") as external:
+        with (
+            mock.patch.object(Recommendation.external, "get_suggestions_async") as external,
+            mock.patch.object(Recommendation, "_resolve_seed_track_async") as seed,
+        ):
             result = await Recommendation.get_recommendations_for_user_async(
                 session=mock.MagicMock(), user_id=1, include_external=False
             )
             self.assertTrue(result.is_ok())
             self.assertGreater(len(result.result().songs), 0)
             external.assert_not_called()
+            seed.assert_not_called()
 
 
 if __name__ == "__main__":

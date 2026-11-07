@@ -2,7 +2,6 @@
 
 import { JSX, useRef, useState } from "react";
 import { BuildResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import {
     BarChart3,
     Download,
@@ -19,10 +18,10 @@ import {
 } from "lucide-react";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import AdminMediaSearch from "@/components/Admin/AdminMediaSearch";
 import AdminRequests from "@/components/Admin/AdminRequests";
 import AdminStats from "@/components/Admin/AdminStats";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface AdminClientProps {
     builds: BuildResponse[];
@@ -31,7 +30,7 @@ interface AdminClientProps {
 export default function AdminClient({
     builds: initialBuilds,
 }: AdminClientProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [builds, setBuilds] = useState<BuildResponse[]>(initialBuilds);
     const [activeTab, setActiveTab] = useState<EAdminClientTab>(
         EAdminClientTab.BUILDS
@@ -221,8 +220,8 @@ export default function AdminClient({
     ];
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-neutral-950">
-            <div className="border-b border-neutral-800 bg-neutral-900/50">
+        <div className="bg-background min-h-[calc(100vh-4rem)]">
+            <div className="border-border-subtle bg-secondary/50 border-b">
                 <div className="mx-auto max-w-6xl px-4">
                     <div className="flex items-center gap-1 overflow-x-auto py-2">
                         {tabs.map((tab): JSX.Element => (
@@ -231,8 +230,8 @@ export default function AdminClient({
                                 onClick={(): void => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
                                     activeTab === tab.id
-                                        ? "bg-(--color-rockit-pink) text-white"
-                                        : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground-strong"
                                 }`}
                             >
                                 <tab.icon className="h-4 w-4" />
@@ -248,10 +247,10 @@ export default function AdminClient({
                     <div>
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-white">
+                                <h1 className="text-foreground-strong text-2xl font-bold">
                                     {$vocabulary.ADMIN_BUILDS_TITLE}
                                 </h1>
-                                <p className="mt-1 text-sm text-neutral-500">
+                                <p className="text-subtle-foreground mt-1 text-sm">
                                     {$vocabulary.ADMIN_BUILDS_SUBTITLE}
                                 </p>
                             </div>
@@ -259,7 +258,7 @@ export default function AdminClient({
                                 onClick={(): void =>
                                     setShowForm((v): boolean => !v)
                                 }
-                                className="flex items-center gap-2 rounded-lg bg-(--color-rockit-pink) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid) disabled:opacity-50"
+                                className="bg-primary text-primary-foreground hover:bg-brand-mid flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50"
                             >
                                 {showForm ? (
                                     <>
@@ -278,17 +277,17 @@ export default function AdminClient({
                         {showForm && (
                             <form
                                 onSubmit={handleSubmit}
-                                className="mb-8 rounded-xl border border-neutral-800 bg-neutral-900 p-6"
+                                className="border-border-subtle bg-secondary mb-8 rounded-xl border p-6"
                             >
-                                <h2 className="mb-5 text-lg font-semibold text-white">
+                                <h2 className="text-foreground-strong mb-5 text-lg font-semibold">
                                     {$vocabulary.ADMIN_UPLOAD_NEW_BUILD}
                                 </h2>
 
                                 <div className="grid gap-5 sm:grid-cols-2">
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium text-neutral-300">
+                                        <label className="text-foreground text-sm font-medium">
                                             {$vocabulary.ADMIN_VERSION}{" "}
-                                            <span className="text-neutral-500">
+                                            <span className="text-subtle-foreground">
                                                 ({$vocabulary.ADMIN_REQUIRED})
                                             </span>
                                         </label>
@@ -300,14 +299,14 @@ export default function AdminClient({
                                                 setVersion(e.target.value)
                                             }
                                             required
-                                            className="rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink)"
+                                            className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-1"
                                         />
                                     </div>
 
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium text-neutral-300">
+                                        <label className="text-foreground text-sm font-medium">
                                             {$vocabulary.ADMIN_APK_FILE}{" "}
-                                            <span className="text-neutral-500">
+                                            <span className="text-subtle-foreground">
                                                 ({$vocabulary.ADMIN_REQUIRED})
                                             </span>
                                         </label>
@@ -317,10 +316,10 @@ export default function AdminClient({
                                             accept=".apk"
                                             onChange={handleFileSelect}
                                             required
-                                            className="rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white file:mr-4 file:rounded file:border-0 file:bg-neutral-700 file:px-3 file:py-1 file:text-sm file:text-white"
+                                            className="border-border bg-muted text-foreground-strong file:bg-accent file:text-foreground-strong rounded-lg border px-4 py-2.5 text-sm file:mr-4 file:rounded file:border-0 file:px-3 file:py-1 file:text-sm"
                                         />
                                         {selectedFile && (
-                                            <p className="mt-1 text-xs text-emerald-400">
+                                            <p className="text-success-foreground mt-1 text-xs">
                                                 {$vocabulary.ADMIN_SELECTED}:{" "}
                                                 {selectedFile.name}
                                             </p>
@@ -328,9 +327,9 @@ export default function AdminClient({
                                     </div>
 
                                     <div className="flex flex-col gap-2 sm:col-span-2">
-                                        <label className="text-sm font-medium text-neutral-300">
+                                        <label className="text-foreground text-sm font-medium">
                                             {$vocabulary.ADMIN_DESCRIPTION}{" "}
-                                            <span className="text-neutral-500">
+                                            <span className="text-subtle-foreground">
                                                 ({$vocabulary.ADMIN_OPTIONAL})
                                             </span>
                                         </label>
@@ -343,18 +342,18 @@ export default function AdminClient({
                                                 setDescription(e.target.value)
                                             }
                                             rows={3}
-                                            className="resize-none rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink)"
+                                            className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary resize-none rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-1"
                                         />
                                     </div>
                                 </div>
 
                                 {error && (
-                                    <p className="mt-4 text-sm text-red-400">
+                                    <p className="text-destructive-soft mt-4 text-sm">
                                         {error}
                                     </p>
                                 )}
                                 {success && (
-                                    <p className="mt-4 text-sm text-emerald-400">
+                                    <p className="text-success-foreground mt-4 text-sm">
                                         {success}
                                     </p>
                                 )}
@@ -362,7 +361,7 @@ export default function AdminClient({
                                 {uploading && (
                                     <div className="mt-4">
                                         <div className="mb-1 flex justify-between text-sm">
-                                            <span className="text-neutral-400">
+                                            <span className="text-muted-foreground">
                                                 {uploadProgress}% (
                                                 {currentChunk + 1}/
                                                 {Math.ceil(
@@ -372,9 +371,9 @@ export default function AdminClient({
                                                 chunks)
                                             </span>
                                         </div>
-                                        <div className="h-2 w-full rounded-full bg-neutral-800">
+                                        <div className="bg-muted h-2 w-full rounded-full">
                                             <div
-                                                className="h-2 rounded-full bg-(--color-rockit-pink) transition-all duration-300"
+                                                className="bg-primary h-2 rounded-full transition-all duration-300"
                                                 style={{
                                                     width: `${uploadProgress}%`,
                                                 }}
@@ -386,7 +385,7 @@ export default function AdminClient({
                                 <button
                                     type="submit"
                                     disabled={uploading}
-                                    className="mt-5 flex items-center gap-2 rounded-lg bg-(--color-rockit-pink) px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid) disabled:opacity-50"
+                                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-5 flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold transition disabled:opacity-50"
                                 >
                                     {uploading ? (
                                         <>
@@ -404,12 +403,12 @@ export default function AdminClient({
                         )}
 
                         {builds.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                                <Package className="mb-4 h-12 w-12 text-neutral-600" />
-                                <p className="text-neutral-500">
+                            <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                                <Package className="text-disabled-foreground mb-4 h-12 w-12" />
+                                <p className="text-subtle-foreground">
                                     {$vocabulary.ADMIN_NO_BUILDS}
                                 </p>
-                                <p className="mt-1 text-sm text-neutral-600">
+                                <p className="text-disabled-foreground mt-1 text-sm">
                                     {$vocabulary.ADMIN_UPLOAD_FIRST}
                                 </p>
                             </div>
@@ -418,20 +417,20 @@ export default function AdminClient({
                                 {builds.map((build, i): JSX.Element => (
                                     <div
                                         key={build.publicId}
-                                        className="group relative rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition hover:border-neutral-700"
+                                        className="group border-border-subtle bg-secondary hover:border-border relative rounded-xl border p-5 transition"
                                     >
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex flex-1 items-center gap-4">
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-(--color-rockit-pink)/10">
-                                                    <Smartphone className="h-6 w-6 text-(--color-rockit-pink)" />
+                                                <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
+                                                    <Smartphone className="text-primary h-6 w-6" />
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-3">
-                                                        <span className="rounded-full bg-(--color-rockit-pink)/15 px-3 py-0.5 text-sm font-bold text-(--color-rockit-pink)">
+                                                        <span className="bg-primary/15 text-primary rounded-full px-3 py-0.5 text-sm font-bold">
                                                             v{build.version}
                                                         </span>
                                                         {i === 0 && (
-                                                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                                                            <span className="bg-success/10 text-success-foreground rounded-full px-2 py-0.5 text-xs font-medium">
                                                                 {
                                                                     $vocabulary.ADMIN_LATEST
                                                                 }
@@ -439,11 +438,11 @@ export default function AdminClient({
                                                         )}
                                                     </div>
                                                     {build.description && (
-                                                        <p className="mt-2 line-clamp-2 max-w-xl text-sm text-neutral-400">
+                                                        <p className="text-muted-foreground mt-2 line-clamp-2 max-w-xl text-sm">
                                                             {build.description}
                                                         </p>
                                                     )}
-                                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-600">
+                                                    <div className="text-disabled-foreground mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                                                         <span className="font-mono">
                                                             {build.apkFilename}
                                                         </span>
@@ -457,13 +456,13 @@ export default function AdminClient({
                                             </div>
 
                                             <div className="flex items-center gap-4">
-                                                <div className="flex items-center gap-1.5 text-sm text-neutral-400">
+                                                <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
                                                     <Download className="h-4 w-4" />
                                                     <span>
                                                         {build.downloads}
                                                     </span>
                                                 </div>
-                                                <button className="rounded-lg p-2 text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-neutral-800 hover:text-red-400">
+                                                <button className="text-subtle-foreground hover:bg-muted hover:text-destructive-soft rounded-lg p-2 opacity-0 transition group-hover:opacity-100">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </div>
@@ -482,10 +481,10 @@ export default function AdminClient({
                 {activeTab === EAdminClientTab.STATS && (
                     <div>
                         <div className="mb-6">
-                            <h1 className="text-2xl font-bold text-white">
+                            <h1 className="text-foreground-strong text-2xl font-bold">
                                 {$vocabulary.ADMIN_REQUEST_LOG_STATS}
                             </h1>
-                            <p className="mt-1 text-sm text-neutral-500">
+                            <p className="text-subtle-foreground mt-1 text-sm">
                                 {$vocabulary.ADMIN_REQUEST_DESCRIPTION}
                             </p>
                         </div>
@@ -496,16 +495,16 @@ export default function AdminClient({
                 {activeTab === EAdminClientTab.SETTINGS && (
                     <div>
                         <div className="mb-6">
-                            <h1 className="text-2xl font-bold text-white">
+                            <h1 className="text-foreground-strong text-2xl font-bold">
                                 {$vocabulary.ADMIN_SETTINGS_TITLE}
                             </h1>
-                            <p className="mt-1 text-sm text-neutral-500">
+                            <p className="text-subtle-foreground mt-1 text-sm">
                                 {$vocabulary.ADMIN_SETTINGS_SUBTITLE}
                             </p>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                            <Settings className="mb-4 h-12 w-12 text-neutral-600" />
-                            <p className="text-neutral-500">
+                        <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                            <Settings className="text-disabled-foreground mb-4 h-12 w-12" />
+                            <p className="text-subtle-foreground">
                                 {$vocabulary.ADMIN_SETTINGS_COMING_SOON}
                             </p>
                         </div>

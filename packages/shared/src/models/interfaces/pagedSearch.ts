@@ -1,5 +1,6 @@
-export interface PagedSearchResult<T> {
+export interface PagedSearchResult<T, Metadata = undefined> {
     items: T[];
+    metadata?: Metadata;
     total: number;
     nextOffset: number;
     hasMore: boolean;
@@ -13,7 +14,10 @@ export interface PagedSearchRequest {
     enabled: boolean;
 }
 
-export interface PagedSearchState<T> extends PagedSearchResult<T> {
+export interface PagedSearchState<
+    T,
+    Metadata = undefined,
+> extends PagedSearchResult<T, Metadata> {
     loading: boolean;
     error: boolean;
     loadMore(): void;

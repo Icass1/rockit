@@ -60,3 +60,8 @@ installation, Android services or lock-screen behavior. Record each separately.
   receives resume events through an adapter hook, with browser visibility and
   native AppState implementations. Web/mobile TypeScript passed; 63 directed
   transition/Media Session regressions passed without changing audio policies.
+- Browser services: moved the existing audio/transition engine, Media Session,
+  authenticated browser HTTP and IndexedDB/offline helpers into
+  `@rockit/platform-browser`. Desktop compatibility imports forward to that
+  implementation. Browser services import no Next or desktop components; shared
+  domain package no longer declares Next. Web/native/package typechecks pass.

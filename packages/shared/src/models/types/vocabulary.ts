@@ -944,4 +944,13 @@ export interface Vocabulary {
     SETTINGS_THEME_SYSTEM: string;
     SETTINGS_THEME_SAVING: string;
     SETTINGS_THEME_SAVED: string;
+    SEARCH_CLEAR: string;
+    AUDIO_AUTOPLAY_BLUETOOTH: string;
+    AUDIO_AUTOPLAY_HEADSET: string;
+    AUDIO_TRANSITIONS: string;
+    MOBILE_DATE_FROM: string;
+    MOBILE_DATE_TO: string;
+    MOBILE_STORAGE_DOWNLOADS: string;
+    MOBILE_STORAGE_LOAD_ERROR: string;
+    MOBILE_LOG_OUT_CONFIRM: string;
 }

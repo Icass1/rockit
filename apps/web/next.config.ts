@@ -2,6 +2,10 @@ import { execFileSync } from "node:child_process";
 import path from "path";
 import type { NextConfig } from "next";
 import { withSerwist } from "@serwist/turbopack";
+import { resolveClientTarget } from "./config/clientTarget.mjs";
+
+const client = resolveClientTarget(process.env.ROCKIT_WEB_TARGET);
+const shellEntry = path.resolve(__dirname, "components/Layout", client.shell);
 
 const isDev = process.env.NODE_ENV === "development";
 const workspaceRoot = path.join(__dirname, "../..");
@@ -23,6 +27,8 @@ const s3PublicPattern = s3PublicEndpoint
     : null;
 
 const nextConfig: NextConfig = {
+    distDir: client.distDir,
+    productionBrowserSourceMaps: process.env.ROCKIT_ANALYZE_CLIENT === "1",
     env: {
         NEXT_PUBLIC_APP_VERSION: execFileSync(
             process.execPath,
@@ -71,6 +77,7 @@ const nextConfig: NextConfig = {
 
         config.resolve.alias = {
             ...config.resolve.alias,
+            "@/components/Layout/ClientShell$": shellEntry,
             "@/lib": path.resolve(__dirname, "./lib"),
             "@/dto": path.resolve(__dirname, "../../packages/shared/src/dto"),
             "@/environment": path.resolve(
@@ -90,6 +97,9 @@ const nextConfig: NextConfig = {
     },
     turbopack: {
         root: workspaceRoot,
+        resolveAlias: {
+            "@/components/Layout/ClientShell": `./components/Layout/${client.shell}`,
+        },
     },
     images: {
         // Only disable image optimization in dev

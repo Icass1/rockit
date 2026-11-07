@@ -1,0 +1,17 @@
+# Opt-in second web deployment. Provision PostgreSQL/backend/S3 independently.
+# docker compose --env-file .env.mobile -f compose.mobile.yaml up -d --build
+services:
+    mobile-web:
+        build:
+            context: .
+            dockerfile: apps/web/Dockerfile
+            args:
+                ROCKIT_WEB_TARGET: mobile
+                NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:?Configure the public API URL}
+                NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL: ${NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL:?Configure public S3 URL}
+                NEXT_PUBLIC_SITE_URL: ${ROCKIT_MOBILE_ORIGIN:?Configure the dedicated mobile origin}
+        env_file:
+            - .env.mobile
+        restart: unless-stopped
+        ports:
+            - "${ROCKIT_MOBILE_PORT:-3100}:3000"

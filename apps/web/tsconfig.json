@@ -25,6 +25,9 @@
       }
     ],
     "paths": {
+      "@/config/*": [
+        "./config/*"
+      ],
       "@/auth/*": [
         "../../packages/shared/src/auth/*"
       ],
@@ -92,7 +95,11 @@
     "../../packages/shared/src/**/*.ts",
     "../../packages/shared/src/**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next-mobile/types/**/*.ts",
+    ".next-desktop/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    ".next-mobile/dev/types/**/*.ts",
+    ".next-desktop/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

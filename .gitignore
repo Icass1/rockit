@@ -137,3 +137,13 @@ pyright.txt
 
 apps/backend/images/
 apps/backend/media/
+
+# Independent web-client build outputs
+.next-mobile/
+.next-desktop/
+# Generated Android PWA wrapper and signing material
+apps/android-pwa/.generated/
+*.jks
+*.keystore
+
+!/.env.mobile.example

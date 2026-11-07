@@ -27,7 +27,13 @@
         "check:frontend": "bash scripts/check-frontend.sh",
         "check": "bash scripts/check-all.sh",
         "build:web": "pnpm --filter @app/web build",
-        "build:shared": "pnpm --filter @rockit/shared build"
+        "build:shared": "pnpm --filter @rockit/shared build",
+        "dev:web:mobile": "node scripts/web-client.mjs mobile dev -p 3100",
+        "dev:web:desktop": "node scripts/web-client.mjs desktop dev -p 3000",
+        "build:web:mobile": "node scripts/web-client.mjs mobile build",
+        "build:web:desktop": "node scripts/web-client.mjs desktop build",
+        "start:web:mobile": "node scripts/web-client.mjs mobile start -p 3100",
+        "start:web:desktop": "node scripts/web-client.mjs desktop start -p 3000"
     },
     "devDependencies": {
         "@ianvs/prettier-plugin-sort-imports": "^4.7.1",

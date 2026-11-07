@@ -3,13 +3,16 @@ import {
     loadSessionOffline,
     saveSessionOffline,
 } from "@rockit/platform-browser/offline/db";
-import { BaseHttp, HttpResult, SessionResponseSchema } from "@rockit/shared";
+import {
+    BaseHttp,
+    HttpResult,
+    isOfflineMetadataPath,
+    OFFLINE_METADATA_POLICY,
+    SessionResponseSchema,
+} from "@rockit/shared";
 
 const CACHE_PREFIX = "rockit-mobile-api:";
-export const BROWSER_METADATA_POLICY = {
-    maxPages: 100,
-    maxAgeMs: 7 * 24 * 60 * 60 * 1000,
-} as const;
+export { OFFLINE_METADATA_POLICY as BROWSER_METADATA_POLICY } from "@rockit/shared";
 
 /** One middleware instance belongs to one application HTTP adapter. */
 export function createOfflineMetadataCache() {
@@ -87,12 +90,7 @@ export function createOfflineMetadataCache() {
             return result;
         }
         try {
-            if (
-                typeof caches === "undefined" ||
-                !/^\/(?:user\/(?:library|queue|settings)|media\/(?:album|playlist|collection)|lyrics|stats\/home|vocabulary)(?:\/|$)/.test(
-                    path
-                )
-            )
+            if (typeof caches === "undefined" || !isOfflineMetadataPath(path))
                 return result;
             const session = await loadSessionOffline().catch(() => null);
             if (!session || stamp !== generation) return result;
@@ -120,7 +118,7 @@ export function createOfflineMetadataCache() {
                                 Math.max(
                                     0,
                                     keys.length -
-                                        BROWSER_METADATA_POLICY.maxPages
+                                        OFFLINE_METADATA_POLICY.maxPages
                                 )
                             )
                             .map((request) => cache.delete(request))
@@ -132,7 +130,7 @@ export function createOfflineMetadataCache() {
                     cached &&
                     Date.now() -
                         Number(cached.headers.get("x-rockit-saved-at")) <=
-                        BROWSER_METADATA_POLICY.maxAgeMs &&
+                        OFFLINE_METADATA_POLICY.maxAgeMs &&
                     stamp === generation
                 ) {
                     try {

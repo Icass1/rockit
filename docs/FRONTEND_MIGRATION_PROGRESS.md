@@ -6,7 +6,9 @@ Target: [desktop and universal mobile architecture](FRONTEND_PLATFORM_ARCHITECTU
 
 ## Delivery rules
 
-- Commit working increments by responsibility; keep this checklist current.
+- Commit and push working increments by responsibility; keep this checklist current.
+- Current user preference: finish implementation before running the consolidated
+  frontend verification and fixing CI. Do not rerun tests for each minor edit.
 - Keep desktop Next, mobile Expo web/PWA and native Android separate at entry points.
 - Share portable policies, headless controllers, UI primitives, vocabulary contracts
   and semantic design tokens. Platform APIs belong in injected application adapters.
@@ -103,3 +105,9 @@ installation, Android services or lock-screen behavior. Record each separately.
 - Loading: Expo web uses production route chunks. A measured export reduced the
   uncompressed entry from about 5.5 MB to about 1.1 MB; this is bundle evidence,
   not a production latency claim. Current Next and Expo production builds pass.
+
+- Verification scheduling: following the user's latest instruction, checks and CI
+  fixes are deferred to the final consolidated gate. The latest CI checkpoint
+  passed backend quality but exposed missing shared-source path mappings in the
+  UI package; its compiler configuration is being corrected. Subsequent artwork,
+  native cache and feature work has not yet been revalidated.

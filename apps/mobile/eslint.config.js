@@ -9,7 +9,10 @@ module.exports = defineConfig([
         ignores: ["dist/*"],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(__dirname, "./tsconfig.json"),
+                project: [
+                    path.resolve(__dirname, "./tsconfig.json"),
+                    path.resolve(__dirname, "./tsconfig.web.json"),
+                ],
                 tsconfigRootDir: __dirname,
             },
         },
@@ -37,12 +40,35 @@ module.exports = defineConfig([
             "import/resolver": [
                 {
                     typescript: {
-                        project: path.resolve(__dirname, "./tsconfig.json"),
+                        extensions: [
+                            ".native.ts",
+                            ".native.tsx",
+                            ".web.ts",
+                            ".web.tsx",
+                            ".ts",
+                            ".tsx",
+                            ".js",
+                            ".json",
+                        ],
+                        project: [
+                            path.resolve(__dirname, "./tsconfig.json"),
+                            path.resolve(__dirname, "./tsconfig.web.json"),
+                        ],
                     },
                 },
                 {
                     node: {
-                        extensions: [".js", ".jsx", ".ts", ".tsx", ".mjs"],
+                        extensions: [
+                            ".native.ts",
+                            ".native.tsx",
+                            ".web.ts",
+                            ".web.tsx",
+                            ".js",
+                            ".jsx",
+                            ".ts",
+                            ".tsx",
+                            ".mjs",
+                        ],
                     },
                 },
             ],

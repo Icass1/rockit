@@ -1,4 +1,4 @@
-import { clearSessionOffline } from "@rockit/platform-browser/offline/db";
+import { Http } from "@/lib/http";
 
 // Browser sessions are HttpOnly cookies; never extract or recreate them in JS.
 export async function saveSessionCookieValue(
@@ -6,5 +6,5 @@ export async function saveSessionCookieValue(
 ): Promise<void> {}
 export async function saveSessionCookie(_response: Response): Promise<void> {}
 export async function clearSessionCookie(): Promise<void> {
-    await clearSessionOffline();
+    await Http.discardOfflineSession();
 }

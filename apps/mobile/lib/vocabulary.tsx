@@ -8,9 +8,8 @@ import {
     type ReactNode,
 } from "react";
 import { vocabularyText, type Vocabulary } from "@rockit/shared";
-import { NativeModules, Platform } from "react-native";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { vocabularyManager } from "@/lib/managers/vocabularyManager";
 import { toasterManager } from "@/lib/toasterManager";
 
 function createVocabularyProxy(data: Record<string, string>): Vocabulary {
@@ -18,20 +17,7 @@ function createVocabularyProxy(data: Record<string, string>): Vocabulary {
 }
 
 function getSystemLocale(): string {
-    try {
-        if (Platform.OS === "ios") {
-            const settings = NativeModules.SettingsManager?.settings;
-            const locale =
-                settings?.AppleLocale ?? settings?.AppleLanguages?.[0];
-            if (locale) return locale.substring(0, 2);
-        } else {
-            const locale = NativeModules.I18nManager?.localeIdentifier;
-            if (locale) return locale.substring(0, 2);
-        }
-    } catch {
-        // ignore
-    }
-    return "en";
+    return Intl.DateTimeFormat().resolvedOptions().locale.split(/[-_]/)[0];
 }
 
 interface VocabularyContextType {
@@ -51,15 +37,18 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
     const [lang, setLang] = useState("en");
     const [isLoading, setIsLoading] = useState(true);
     const systemLocaleRef = useRef(getSystemLocale());
+    const generation = useRef(0);
 
     const refreshVocabulary = useCallback(async () => {
+        const stamp = ++generation.current;
         setIsLoading(true);
         const response = await Http.getUserVocabulary();
+        if (stamp !== generation.current) return;
 
         if (response.isOk()) {
             const res = response.result;
             setVocabulary(createVocabularyProxy(res.vocabulary));
-            rockIt.vocabularyManager.setVocabulary(res.vocabulary);
+            vocabularyManager.setVocabulary(res.vocabulary);
             setLang(res.currentLang);
             setIsLoading(false);
             return;
@@ -69,10 +58,11 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
             systemLocaleRef.current
         );
 
+        if (stamp !== generation.current) return;
         if (fallback.isOk()) {
             const res = fallback.result;
             setVocabulary(createVocabularyProxy(res.vocabulary));
-            rockIt.vocabularyManager.setVocabulary(res.vocabulary);
+            vocabularyManager.setVocabulary(res.vocabulary);
             setLang(res.currentLang);
         } else {
             console.error(
@@ -99,7 +89,10 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
     );
 
     useEffect(() => {
-        refreshVocabulary();
+        void refreshVocabulary();
+        return () => {
+            generation.current++;
+        };
     }, [refreshVocabulary]);
 
     return (

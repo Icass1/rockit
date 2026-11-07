@@ -40,6 +40,7 @@ function lockScreenMetadata(media: TPlayableMedia): LockScreenMetadata {
  */
 export class LockScreenManager {
     private _initialized = false;
+    private readonly subscriptions: (() => void)[] = [];
 
     init(): void {
         if (this._initialized) return;
@@ -91,27 +92,29 @@ export class LockScreenManager {
         });
 
         // Current media → lock-screen metadata + Android Auto now-playing
-        queue.currentMediaAtom.subscribe((): void => {
-            const media = queue.currentMedia;
-            if (media) {
-                AudioIntegrationService.setLockScreenActive(
-                    true,
-                    lockScreenMetadata(media),
-                    { showSeekForward: true, showSeekBackward: true }
-                );
-                NativeMediaBridge.updateNowPlaying(
-                    media.name,
-                    getMediaArtists(media)
-                        .map((artist) => artist.name)
-                        .join(", "),
-                    getMediaSubtitle(media),
-                    media.imageUrl,
-                    toDurationMs(getMediaDuration(media))
-                );
-            } else {
-                AudioIntegrationService.setLockScreenActive(false);
-            }
-        });
+        this.subscriptions.push(
+            queue.currentMediaAtom.subscribe((): void => {
+                const media = queue.currentMedia;
+                if (media) {
+                    AudioIntegrationService.setLockScreenActive(
+                        true,
+                        lockScreenMetadata(media),
+                        { showSeekForward: true, showSeekBackward: true }
+                    );
+                    NativeMediaBridge.updateNowPlaying(
+                        media.name,
+                        getMediaArtists(media)
+                            .map((artist) => artist.name)
+                            .join(", "),
+                        getMediaSubtitle(media),
+                        media.imageUrl,
+                        toDurationMs(getMediaDuration(media))
+                    );
+                } else {
+                    AudioIntegrationService.setLockScreenActive(false);
+                }
+            })
+        );
 
         // Playback state (playing + position) → OS controls
         const pushPlaybackState = (): void => {
@@ -123,7 +126,9 @@ export class LockScreenManager {
                 Math.round(time * 1000)
             );
         };
-        player.playingAtom.subscribe(pushPlaybackState);
+        this.subscriptions.push(
+            player.playingAtom.subscribe(pushPlaybackState)
+        );
 
         // currentTimeAtom ticks ~4x/sec (see mediaPlayerManager's
         // updateInterval); pushing every tick rebuilds the Android
@@ -132,29 +137,41 @@ export class LockScreenManager {
         // plenty and cuts down on background binder/notification load.
         const POSITION_PUSH_INTERVAL_MS = 1000;
         let lastPositionPushAt = 0;
-        player.currentTimeAtom.subscribe(() => {
-            const now = Date.now();
-            if (now - lastPositionPushAt < POSITION_PUSH_INTERVAL_MS) return;
-            lastPositionPushAt = now;
-            pushPlaybackState();
-        });
+        this.subscriptions.push(
+            player.currentTimeAtom.subscribe(() => {
+                const now = Date.now();
+                if (now - lastPositionPushAt < POSITION_PUSH_INTERVAL_MS)
+                    return;
+                lastPositionPushAt = now;
+                pushPlaybackState();
+            })
+        );
 
         // Queue → Android Auto browsable queue
-        queue.queueAtom.subscribe((): void => {
-            const autoQueue: AutoQueueItem[] = queue.queue.map((item) => ({
-                mediaId: item.media.publicId,
-                title: item.media.name,
-                artist: getMediaArtists(item.media)
-                    .map((artist) => artist.name)
-                    .join(", "),
-                album: getMediaSubtitle(item.media),
-                artworkUrl: item.media.imageUrl,
-                duration: toDurationMs(getMediaDuration(item.media)),
-            }));
-            const currentIndex = queue.queue.findIndex(
-                (item) => item.queueMediaId === queue.currentQueueMediaId
-            );
-            NativeMediaBridge.updateQueue(autoQueue, currentIndex);
-        });
+        this.subscriptions.push(
+            queue.queueAtom.subscribe((): void => {
+                const autoQueue: AutoQueueItem[] = queue.queue.map((item) => ({
+                    mediaId: item.media.publicId,
+                    title: item.media.name,
+                    artist: getMediaArtists(item.media)
+                        .map((artist) => artist.name)
+                        .join(", "),
+                    album: getMediaSubtitle(item.media),
+                    artworkUrl: item.media.imageUrl,
+                    duration: toDurationMs(getMediaDuration(item.media)),
+                }));
+                const currentIndex = queue.queue.findIndex(
+                    (item) => item.queueMediaId === queue.currentQueueMediaId
+                );
+                NativeMediaBridge.updateQueue(autoQueue, currentIndex);
+            })
+        );
+    }
+
+    destroy(): void {
+        this.subscriptions.splice(0).forEach((unsubscribe) => unsubscribe());
+        void AudioIntegrationService.setLockScreenActive(false);
+        NativeMediaBridge.dispose();
+        this._initialized = false;
     }
 }

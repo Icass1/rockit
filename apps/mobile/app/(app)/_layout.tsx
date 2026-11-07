@@ -1,13 +1,7 @@
-import { useEffect, type ReactNode } from "react";
-import { COLORS } from "@/constants/theme";
+import { useEffect, useState, type ReactNode } from "react";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { BookOpen, Download, Home, Search, Settings } from "@rockit/ui/icons";
 import { Tabs, useRouter, useSegments } from "expo-router";
-import {
-    BookOpen,
-    Download,
-    Home,
-    Search,
-    Settings,
-} from "lucide-react-native";
 import {
     Pressable,
     StyleSheet,
@@ -23,6 +17,7 @@ import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { ContextMenuProvider } from "@/lib/ContextMenuContext";
 import { ModalProvider } from "@/lib/ModalContext";
 import { PlayerProvider, usePlayer } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { getSession } from "@/lib/session";
 import { SheetProvider } from "@/lib/SheetContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
@@ -31,6 +26,8 @@ import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
 
 function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const router = useRouter();
     const segments = useSegments();
 
@@ -56,7 +53,7 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                backgroundColor: COLORS.bgCard,
+                backgroundColor: theme.legacy.bgCard,
                 zIndex: 1000,
             }}
         >
@@ -78,7 +75,9 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
                         >
                             <tab.icon
                                 color={
-                                    isFocused ? COLORS.accent : COLORS.gray400
+                                    isFocused
+                                        ? theme.legacy.accent
+                                        : theme.legacy.gray400
                                 }
                                 size={22}
                             />
@@ -90,42 +89,55 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
     );
 }
 
-const styles = StyleSheet.create({
-    tabBar: {
-        flexDirection: "row",
-        width: "100%",
-        backgroundColor: COLORS.bgCard,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: COLORS.gray800,
-        height: 50,
-    },
-    tabItem: {
-        flex: 1,
-        height: 50,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        tabBar: {
+            flexDirection: "row",
+            width: "100%",
+            backgroundColor: theme.legacy.bgCard,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: theme.legacy.gray800,
+            height: 50,
+        },
+        tabItem: {
+            flex: 1,
+            height: 50,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+    });
 
 function AppLayoutContent() {
     const router = useRouter();
     const { bottom: safeBottom } = useSafeAreaInsets();
     const { vocabulary } = useVocabulary();
+    const [ready, setReady] = useState(false);
 
     useEffect(() => {
-        getSession().then((session) => {
-            if (!session) {
-                console.log("No session found, redirecting to login.");
-                router.replace("/(auth)/login");
-            }
-        });
+        let cancelled = false;
+        void getSession()
+            .then(async (session) => {
+                if (cancelled) return;
+                if (!session) {
+                    rockIt.stop();
+                    router.replace("/(auth)/login");
+                } else {
+                    await rockIt.init(session);
+                    if (!cancelled) setReady(true);
+                }
+            })
+            .catch((error) =>
+                console.error("Session initialization failed", error)
+            );
+        return () => {
+            cancelled = true;
+        };
     }, [router]);
 
-    return (
-        <PlayerProvider>
-            <AppLayoutInner safeBottom={safeBottom} vocabulary={vocabulary} />
-        </PlayerProvider>
-    );
+    if (!ready)
+        return <View accessibilityRole="progressbar" style={{ flex: 1 }} />;
+
+    return <AppLayoutInner safeBottom={safeBottom} vocabulary={vocabulary} />;
 }
 
 // Inner component that runs inside PlayerProvider so usePlayer works correctly
@@ -145,7 +157,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.HOME,
                         tabBarIcon: ({ color, size }) => (
-                            <Home color={color} size={size} />
+                            <Home color={String(color)} size={size} />
                         ),
                     }}
                 />
@@ -154,7 +166,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.LIBRARY,
                         tabBarIcon: ({ color, size }) => (
-                            <BookOpen color={color} size={size} />
+                            <BookOpen color={String(color)} size={size} />
                         ),
                     }}
                 />
@@ -163,7 +175,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.SEARCH,
                         tabBarIcon: ({ color, size }) => (
-                            <Search color={color} size={size} />
+                            <Search color={String(color)} size={size} />
                         ),
                     }}
                 />
@@ -172,7 +184,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.DOWNLOADS,
                         tabBarIcon: ({ color, size }) => (
-                            <Download color={color} size={size} />
+                            <Download color={String(color)} size={size} />
                         ),
                     }}
                 />
@@ -181,7 +193,7 @@ function AppLayoutInner({
                     options={{
                         title: vocabulary.SETTINGS,
                         tabBarIcon: ({ color, size }) => (
-                            <Settings color={color} size={size} />
+                            <Settings color={String(color)} size={size} />
                         ),
                     }}
                 />
@@ -225,21 +237,23 @@ function VersionCheckWrapper({ children }: { children: ReactNode }) {
 
 export default function AppLayout() {
     return (
-        <GestureHandlerRootView
-            style={{ flex: 1 }}
-            onLayout={({ nativeEvent }: LayoutChangeEvent) =>
-                logSheetDebug("appHost.layout", { ...nativeEvent.layout })
-            }
-        >
-            <SheetProvider>
-                <ContextMenuProvider>
-                    <ModalProvider>
-                        <VersionCheckWrapper>
-                            <AppLayoutContent />
-                        </VersionCheckWrapper>
-                    </ModalProvider>
-                </ContextMenuProvider>
-            </SheetProvider>
-        </GestureHandlerRootView>
+        <PlayerProvider>
+            <GestureHandlerRootView
+                style={{ flex: 1 }}
+                onLayout={({ nativeEvent }: LayoutChangeEvent) =>
+                    logSheetDebug("appHost.layout", { ...nativeEvent.layout })
+                }
+            >
+                <SheetProvider>
+                    <ContextMenuProvider>
+                        <ModalProvider>
+                            <VersionCheckWrapper>
+                                <AppLayoutContent />
+                            </VersionCheckWrapper>
+                        </ModalProvider>
+                    </ContextMenuProvider>
+                </SheetProvider>
+            </GestureHandlerRootView>
+        </PlayerProvider>
     );
 }

@@ -4,6 +4,7 @@ import {
     CollectionPager,
     EEvent,
     EventManager,
+    type CollectionPageState,
     type IMediaAddedToPlaylistEvent,
     type IMediaRemovedFromPlaylistEvent,
 } from "@rockit/shared";
@@ -14,12 +15,21 @@ import CollectionControls from "@/components/RenderList/CollectionControls";
 import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import RenderList from "@/components/RenderList/RenderList";
 
-export default function CollectionScreen({ publicId }: { publicId: string }) {
+export default function CollectionScreen({
+    publicId,
+    initial,
+}: {
+    publicId: string;
+    initial?: Partial<CollectionPageState>;
+}) {
     const theme = useDesignTheme();
-    const pager = useMemo(() => new CollectionPager(publicId), [publicId]);
+    const pager = useMemo(
+        () => new CollectionPager(publicId, initial),
+        [publicId, initial]
+    );
     const state = useStore(pager.state);
     useEffect(() => {
-        void pager.load();
+        if (!pager.state.get().collection) void pager.load();
         const events = EventManager.getInstance();
         const refresh = (
             event: IMediaAddedToPlaylistEvent | IMediaRemovedFromPlaylistEvent

@@ -93,3 +93,6 @@ export { StationManager } from "@/managers/stationManager";
 export { FriendManager } from "@/managers/friendManager";
 export { ListenTogetherManager } from "@/managers/listenTogetherManager";
 export type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listeningQueueSnapshot";
+
+export type { FeaturedCollectionKey } from "@/models/interfaces/featuredCollection";
+export {loadFeaturedCollection, featuredCollectionSeed, getRockitListName} from "@/managers/featuredCollections";

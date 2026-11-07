@@ -46,3 +46,24 @@ it("falls back once for broken artwork and recovers when a different song is dis
         uri: "https://fixture.invalid/next.png",
     });
 });
+it("exposes selected and disabled actions through the native accessibility tree", async () => {
+    const { ActionButton } = require("@rockit/ui");
+    const press = jest.fn();
+    await render(
+        <DesignThemeProvider mode="light">
+            <ActionButton
+                label="Fixture action"
+                onPress={press}
+                selected
+                disabled
+            />
+        </DesignThemeProvider>
+    );
+    const button = screen.getByRole("button", { name: "Fixture action" });
+    expect(button.props.accessibilityState).toEqual({
+        disabled: true,
+        selected: true,
+    });
+    await fireEvent.press(button);
+    expect(press).not.toHaveBeenCalled();
+});

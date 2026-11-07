@@ -120,3 +120,18 @@ it("exposes an error and allows an explicit retry without an endless empty page"
     expect(result.current.error).toBe(false);
     expect(result.current.hasMore).toBe(false);
 });
+it("does not issue hidden optional requests and hides the previous resource immediately when its key changes", async () => {
+    const loader = vi.fn().mockResolvedValue("first");
+    const { result, rerender } = renderHook(
+        ({ key, enabled }) => useAsyncResource(loader, key, enabled),
+        { initialProps: { key: "first", enabled: false } }
+    );
+    expect(loader).not.toHaveBeenCalled();
+    expect(result.current.loading).toBe(false);
+    rerender({ key: "first", enabled: true });
+    await waitFor(() => expect(result.current.data).toBe("first"));
+    loader.mockImplementation(() => new Promise(() => {}));
+    rerender({ key: "second", enabled: true });
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.loading).toBe(true);
+});

@@ -10,43 +10,19 @@
         "skipLibCheck": true,
         "baseUrl": "../..",
         "paths": {
-            "@/*": [
-                "packages/shared/src/*"
-            ],
-            "@rockit/shared": [
-                "packages/shared/src/index.ts"
-            ],
-            "@rockit/theme": [
-                "packages/theme/src/index.ts"
-            ],
-            "@rockit/ui": [
-                "packages/ui/src/index.ts"
-            ],
-            "@rockit/ui/*": [
-                "packages/ui/src/*.ts"
-            ],
-            "@mobile/*": [
-                "apps/mobile/*"
-            ],
-            "@rockit/ui/runtime": [
-                "packages/ui/src/runtime.web.ts"
-            ],
-            "@rockit/ui/theme": [
-                "packages/ui/src/theme.tsx"
-            ],
-            "@rockit/ui/icons": [
-                "packages/ui/src/icons.web.ts"
-            ]
+            "@/*": ["packages/shared/src/*"],
+            "@rockit/shared": ["packages/shared/src/index.ts"],
+            "@rockit/theme": ["packages/theme/src/index.ts"],
+            "@rockit/ui": ["packages/ui/src/index.ts"],
+            "@rockit/ui/*": ["packages/ui/src/*.ts"],
+            "@mobile/*": ["apps/mobile/*"],
+            "@rockit/ui/runtime": ["packages/ui/src/runtime.web.ts"],
+            "@rockit/ui/theme": ["packages/ui/src/theme.tsx"],
+            "@rockit/ui/icons": ["packages/ui/src/icons.web.ts"],
+            "@/platform/socket": ["apps/mobile/platform/socket.web.ts"]
         },
-        "types": [
-            "node",
-            "vitest/globals"
-        ],
+        "types": ["node", "vitest/globals"],
         "allowImportingTsExtensions": true
     },
-    "include": [
-        "unit/**/*",
-        "components/**/*",
-        "fixtures/**/*"
-    ]
+    "include": ["unit/**/*", "components/**/*", "fixtures/**/*", "browser/**/*"]
 }

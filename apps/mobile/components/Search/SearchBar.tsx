@@ -1,6 +1,12 @@
-import { COLORS } from "@/constants/theme";
-import { Search, X } from "lucide-react-native";
+import {
+    IconButton,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
+import { Search, X } from "@rockit/ui/icons";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface SearchBarProps {
     value: string;
@@ -15,16 +21,23 @@ export default function SearchBar({
     onChangeText,
     isSearching,
     onClear,
-    placeholder = "Search music or videos...",
+    placeholder,
 }: SearchBarProps) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
+    const { vocabulary } = useVocabulary();
     return (
         <View style={styles.container}>
             <View style={styles.inputContainer}>
-                <Search size={18} color={COLORS.gray600} style={styles.icon} />
+                <Search
+                    size={18}
+                    color={theme.legacy.gray600}
+                    style={styles.icon}
+                />
                 <TextInput
                     style={styles.input}
-                    placeholder={placeholder}
-                    placeholderTextColor={COLORS.gray400}
+                    placeholder={placeholder ?? vocabulary.SEARCH}
+                    placeholderTextColor={theme.legacy.gray400}
                     value={value}
                     onChangeText={onChangeText}
                     returnKeyType="search"
@@ -32,17 +45,17 @@ export default function SearchBar({
                     autoCorrect={false}
                 />
                 {value.length > 0 && !isSearching && (
-                    <X
-                        size={18}
-                        color={COLORS.gray600}
-                        style={styles.clearIcon}
+                    <IconButton
+                        label={vocabulary.SEARCH_CLEAR}
                         onPress={onClear}
-                    />
+                    >
+                        <X size={18} color={theme.legacy.gray600} />
+                    </IconButton>
                 )}
                 {isSearching && (
                     <ActivityIndicator
                         size="small"
-                        color={COLORS.accent}
+                        color={theme.legacy.accent}
                         style={styles.loader}
                     />
                 )}
@@ -51,31 +64,32 @@ export default function SearchBar({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-    },
-    inputContainer: {
-        backgroundColor: "#202020",
-        borderRadius: 999,
-        flexDirection: "row",
-        alignItems: "center",
-        height: 44,
-        paddingHorizontal: 16,
-    },
-    icon: {
-        marginRight: 10,
-    },
-    input: {
-        flex: 1,
-        color: COLORS.white,
-        fontSize: 16,
-    },
-    clearIcon: {
-        marginLeft: 10,
-    },
-    loader: {
-        marginLeft: 10,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.sm,
+        },
+        inputContainer: {
+            backgroundColor: theme.colors["muted"],
+            borderRadius: theme.radius.full,
+            flexDirection: "row",
+            alignItems: "center",
+            height: 44,
+            paddingHorizontal: theme.spacing.lg,
+        },
+        icon: {
+            marginRight: 10,
+        },
+        input: {
+            flex: 1,
+            color: theme.legacy.white,
+            fontSize: theme.typography.label,
+        },
+        clearIcon: {
+            marginLeft: 10,
+        },
+        loader: {
+            marginLeft: 10,
+        },
+    });

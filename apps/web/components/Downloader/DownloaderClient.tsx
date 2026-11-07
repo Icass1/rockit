@@ -12,6 +12,7 @@ import DownloadInputBar from "@/components/Downloader/DownloadInputBar";
 import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
 import DownloadSkeleton from "@/components/Downloader/DownloadSkeleton";
 import DownloadStats from "@/components/Downloader/DownloadStats";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloaderClient(): JSX.Element {
     const groups = useStore(rockIt.downloaderManager.groupsAtom);
@@ -21,7 +22,7 @@ export default function DownloaderClient(): JSX.Element {
     const refreshing = useStore(rockIt.downloaderManager.refreshingAtom);
     const error = useStore(rockIt.downloaderManager.errorAtom);
     const hasMore = useStore(rockIt.downloaderManager.hasMoreAtom);
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [search, setSearch] = useState(view.query);
     useEffect(() => {
         void rockIt.downloaderManager.init();
@@ -64,11 +65,13 @@ export default function DownloaderClient(): JSX.Element {
     };
     if (loading) return <DownloadSkeleton />;
     const buttonClass =
-        "rounded-lg bg-neutral-800 px-3 py-2 text-sm text-neutral-200 disabled:opacity-40";
+        "rounded-lg bg-muted px-3 py-2 text-sm text-foreground disabled:opacity-40";
     return (
         <div className="w-full space-y-6 px-4 py-8 sm:px-6 lg:px-10">
             <header className="space-y-4">
-                <h1 className="text-2xl font-bold text-white">{v.DOWNLOADS}</h1>
+                <h1 className="text-foreground-strong text-2xl font-bold">
+                    {v.DOWNLOADS}
+                </h1>
                 <DownloadInputBar onSubmit={startDownload} />
                 <DownloadLibrarySetting />
             </header>
@@ -81,7 +84,7 @@ export default function DownloaderClient(): JSX.Element {
                     placeholder={v.DOWNLOADER_SEARCH}
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    className="min-w-0 flex-1 rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-white"
+                    className="border-border bg-secondary text-foreground-strong min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm"
                 />
                 <select
                     aria-label={v.DOWNLOADS}
@@ -91,7 +94,7 @@ export default function DownloaderClient(): JSX.Element {
                             kind: event.target.value as DownloadKind,
                         })
                     }
-                    className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-white"
+                    className="border-border bg-secondary text-foreground-strong rounded-lg border px-3 py-2 text-sm"
                 >
                     <option value="all">{v.ALL}</option>
                     <option value="album">{v.ALBUMS}</option>
@@ -102,7 +105,7 @@ export default function DownloaderClient(): JSX.Element {
                         role="status"
                         aria-label={v.DOWNLOADING}
                         size={18}
-                        className="animate-spin text-neutral-400"
+                        className="text-muted-foreground animate-spin"
                     />
                 )}
             </div>
@@ -116,7 +119,7 @@ export default function DownloaderClient(): JSX.Element {
             {error && (
                 <div
                     role="alert"
-                    className="flex items-center gap-3 text-red-400"
+                    className="text-destructive-soft flex items-center gap-3"
                 >
                     <span>{v.ERROR_GETTING_DOWNLOADS}</span>
                     <button
@@ -135,13 +138,13 @@ export default function DownloaderClient(): JSX.Element {
                 ))}
             </div>
             {!groups.length && !refreshing && !error && (
-                <p className="py-12 text-center text-neutral-400">
+                <p className="text-muted-foreground py-12 text-center">
                     {v.NO_RESULTS}
                 </p>
             )}
             <nav
                 aria-label={v.DOWNLOADS}
-                className="flex items-center justify-center gap-4 text-sm text-neutral-400"
+                className="text-muted-foreground flex items-center justify-center gap-4 text-sm"
             >
                 <button
                     className={buttonClass}

@@ -8,6 +8,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.timedFastAPI import TimedFastAPI
 from config import settings
 from core.access.db import db_context
 from core.framework import providers
@@ -70,7 +71,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info(f"Closed {closed_sockets} WebSocket connection(s) on shutdown.")
 
 
-app = FastAPI(
+app = TimedFastAPI(
     title="RockIt!",
     summary="The best music player in the world.",
     version="0.0.1",

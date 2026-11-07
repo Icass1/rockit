@@ -18,21 +18,22 @@ import {
 } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuOption from "@/components/ContextMenu/Option";
-import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
-import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
-import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
-import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import ContextMenuContent from "@/components/ui/ContextMenu/Content";
+import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
+import ContextMenuSplitter from "@/components/ui/ContextMenu/Splitter";
+import SubContextMenuContent from "@/components/ui/ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ui/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ui/ContextMenu/SubContextMenu/Trigger";
+import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
 
 function DownloadCoverCard({
     item,
 }: {
     item: DownloadItemResponse;
 }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [menuCover, setMenuCover] = useState<string | undefined>();
     const [menuTitle, setMenuTitle] = useState<string | undefined>();
     const [menuSubtitle, setMenuSubtitle] = useState<string | undefined>();
@@ -47,7 +48,11 @@ function DownloadCoverCard({
     const isRetrying = item.status === "RETRYING";
     const progress = Math.max(0, Math.min(100, item.progress ?? 0));
 
-    const ringColor = isFailed ? "#c72e2e" : isRetrying ? "#fbbf24" : "#ee1086";
+    const ringColor = isFailed
+        ? "var(--theme-destructive)"
+        : isRetrying
+          ? "var(--theme-warning)"
+          : "var(--theme-primary)";
     const circumference = 2 * Math.PI * 18;
     const dashOffset = circumference - (progress / 100) * circumference;
 
@@ -103,7 +108,7 @@ function DownloadCoverCard({
                     aria-busy={!!pending}
                     onClick={isCompleted && !pending ? handlePlay : undefined}
                 >
-                    <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-800">
+                    <div className="bg-muted relative aspect-square overflow-hidden rounded-lg">
                         {item.imageUrl ? (
                             <Image
                                 src={item.imageUrl}
@@ -113,7 +118,7 @@ function DownloadCoverCard({
                                 className="object-cover"
                             />
                         ) : (
-                            <div className="flex h-full w-full items-center justify-center text-neutral-600">
+                            <div className="text-disabled-foreground flex h-full w-full items-center justify-center">
                                 <Music size={28} />
                             </div>
                         )}
@@ -121,7 +126,7 @@ function DownloadCoverCard({
                         {pending && (
                             <div
                                 role="status"
-                                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/70 text-white"
+                                className="bg-backdrop/70 text-foreground-strong absolute inset-0 z-10 flex flex-col items-center justify-center gap-2"
                             >
                                 <LoaderCircle
                                     size={24}
@@ -135,7 +140,7 @@ function DownloadCoverCard({
                             </div>
                         )}
                         {isRetrying && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                            <div className="bg-backdrop/50 absolute inset-0 flex items-center justify-center">
                                 <div className="flex flex-col items-center gap-1">
                                     <RotateCw
                                         size={20}
@@ -149,7 +154,7 @@ function DownloadCoverCard({
                             </div>
                         )}
                         {!isCompleted && !isRetrying && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                            <div className="bg-backdrop/50 absolute inset-0 flex items-center justify-center">
                                 <svg
                                     width="44"
                                     height="44"
@@ -161,8 +166,8 @@ function DownloadCoverCard({
                                         cy="22"
                                         r="18"
                                         fill="none"
-                                        stroke="#737373"
                                         strokeWidth="4"
+                                        className="stroke-subtle-foreground"
                                     />
                                     <circle
                                         cx="22"
@@ -182,10 +187,10 @@ function DownloadCoverCard({
                                             $vocabulary.DOWNLOADER_RETRY_ARIA
                                         }
                                         disabled={retryingManual}
-                                        className={`absolute flex h-9 w-9 items-center justify-center rounded-full text-white backdrop-blur-sm transition-colors ${
+                                        className={`text-foreground-strong absolute flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
                                             retryingManual
-                                                ? "cursor-not-allowed bg-neutral-600"
-                                                : "bg-black/70 hover:bg-black/90"
+                                                ? "bg-hover cursor-not-allowed"
+                                                : "bg-backdrop/70 hover:bg-backdrop/90"
                                         }`}
                                         onClick={(e): void => {
                                             e.stopPropagation();
@@ -208,14 +213,14 @@ function DownloadCoverCard({
 
                         {isCompleted && (
                             <>
-                                <div className="absolute top-1.5 right-1.5 rounded-full bg-(--color-success) p-1 text-white">
+                                <div className="bg-success text-primary-foreground absolute top-1.5 right-1.5 rounded-full p-1">
                                     <Check size={12} />
                                 </div>
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
-                                    <div className="rounded-full bg-white/20 p-3 backdrop-blur-sm">
+                                <div className="bg-backdrop/0 group-hover:bg-backdrop/40 absolute inset-0 flex items-center justify-center opacity-0 transition-all group-hover:opacity-100">
+                                    <div className="bg-foreground-strong/20 rounded-full p-3 backdrop-blur-sm">
                                         <Play
                                             size={24}
-                                            className="fill-white text-white"
+                                            className="fill-foreground-strong text-foreground-strong"
                                         />
                                     </div>
                                 </div>
@@ -224,16 +229,16 @@ function DownloadCoverCard({
                     </div>
 
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-white">
+                        <p className="text-foreground-strong truncate text-sm font-medium">
                             {item.name}
                         </p>
-                        <p className="truncate text-xs text-neutral-400">
+                        <p className="text-muted-foreground truncate text-xs">
                             {item.subtitle ?? "—"}
                         </p>
                         {!isCompleted && (
                             <p
                                 role="status"
-                                className="text-xs text-neutral-400"
+                                className="text-muted-foreground text-xs"
                             >
                                 {isFailed
                                     ? $vocabulary.ERROR

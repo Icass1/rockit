@@ -18,11 +18,12 @@ import {
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import NavigationPins from "@/components/Navigation/NavigationPins";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function Navigation(): JSX.Element {
     const [open, setOpen] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const activePage = usePathname();
     const $admin = useStore(rockIt.userManager.admin);
 
@@ -109,7 +110,7 @@ export default function Navigation(): JSX.Element {
                 if ((event.target as Element).closest("a")) setOpen(true);
             }}
             className={
-                "mx-auto h-full max-h-full min-h-0 overflow-hidden bg-black/50 pt-4 pb-4 transition-[width] duration-200 select-none motion-reduce:transition-none" +
+                "bg-background/80 mx-auto h-full max-h-full min-h-0 overflow-hidden pt-4 pb-4 transition-[width] duration-200 select-none motion-reduce:transition-none" +
                 (open ? " w-56" : " w-12")
             }
             onMouseEnter={handleMouseEnter}
@@ -121,7 +122,7 @@ export default function Navigation(): JSX.Element {
                     type="button"
                     aria-label={$vocabulary.NAV_TOGGLE}
                     aria-expanded={open}
-                    className="mx-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-all focus-visible:outline-2 focus-visible:outline-white"
+                    className="focus-visible:outline-foreground-strong mx-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-all focus-visible:outline-2"
                     onClick={(): void => {
                         setOpen((value): boolean => !value);
                     }}
@@ -138,16 +139,16 @@ export default function Navigation(): JSX.Element {
                             href={page.href}
                             title={page.title}
                             aria-hidden={hidden || undefined}
-                            className={`relative mr-2 ml-2 flex h-8 shrink-0 items-center gap-2 rounded-md transition-all focus-visible:outline-2 focus-visible:outline-white ${
+                            className={`focus-visible:outline-foreground-strong relative mr-2 ml-2 flex h-8 shrink-0 items-center gap-2 rounded-md transition-all focus-visible:outline-2 ${
                                 activePage === page.href
-                                    ? "bg-white text-black"
-                                    : "text-white md:hover:bg-(--color-hover-bg)"
+                                    ? "bg-foreground-strong text-background"
+                                    : "text-foreground-strong md:hover:bg-hover"
                             } ${page.disabled === true ? "pointer-events-none opacity-50" : ""} ${hidden ? "hidden" : ""}`}
                         >
                             <div className="relative flex h-8 w-8 items-center justify-center">
                                 {page.name === "Downloads" &&
                                     $downloads.length > 0 && (
-                                        <label className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-400 text-center text-xs">
+                                        <label className="bg-destructive absolute top-0 right-0 h-4 w-4 rounded-full text-center text-xs">
                                             {$downloads.length}
                                         </label>
                                     )}

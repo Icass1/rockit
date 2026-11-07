@@ -1,15 +1,49 @@
 import { type SharedMediaItem } from "@/dto";
-import { EWebSocketMessage, isQueueable } from "@rockit/shared";
+import {
+    EWebSocketMessage,
+    isQueueable,
+    type WebSocketMessageHandler,
+} from "@rockit/shared";
+import type { SharingServices } from "@/models/interfaces/sharingServices";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class SharingManager {
+    private _active = false;
+    private _unsubscribeSession?: () => void;
+    private _username?: string;
+    private _generation = 0;
+    private _inboxRevision = 0;
+    private _sentRevision = 0;
+    private _composeRevision = 0;
+
+    constructor(private readonly dependencies?: SharingServices) {}
+
+    private get services(): SharingServices {
+        return this.dependencies ?? rockIt;
+    }
+
+    private isCurrent(generation: number): boolean {
+        return (
+            this._active && !!this._username && generation === this._generation
+        );
+    }
+
+    private actionError(): void {
+        this.services.notificationManager.notifyError(
+            this.services.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+        );
+    }
+
     private _composeMediaAtom = createAtom<string | null>(null);
     compose(publicId: string): void {
+        if (!this.isCurrent(this._generation)) return;
+        this._composeRevision++;
         this._composeMediaAtom.set(publicId);
     }
     closeComposer(): void {
+        this._composeRevision++;
         this._composeMediaAtom.set(null);
     }
     get composeMediaAtom(): ReadonlyAtom<string | null> {
@@ -20,95 +54,129 @@ export class SharingManager {
     private _sentAtom = createArrayAtom<SharedMediaItem>([]);
     private _loadingAtom = createAtom<boolean>(false);
 
-    private _initialized = false;
-    init(): void {
-        if (this._initialized || typeof window === "undefined") return;
-        this._initialized = true;
-        rockIt.webSocketManager.onMessage(
+    private _errorAtom = createAtom<string | null>(null);
+
+    start(): void {
+        if (this._active || typeof window === "undefined") return;
+        this._active = true;
+        this.services.webSocketManager.onMessage(
             EWebSocketMessage.SocialChanged,
-            () => {
-                void this.fetchInbox();
-                void this.fetchSent();
-            }
+            this._handleSocial
         );
-        rockIt.userManager.loggedInAtom.subscribe((loggedIn) => {
-            if (loggedIn) {
-                void this.fetchInbox();
-                void this.fetchSent();
-            } else {
-                this._inboxAtom.set([]);
-                this._sentAtom.set([]);
-                this.closeComposer();
-            }
-        });
+        this._unsubscribeSession =
+            this.services.userManager.sessionAtom.subscribe((session) => {
+                if (session?.username === this._username) return;
+                this.reset(session?.username);
+                if (this._username) {
+                    void this.fetchInbox();
+                    void this.fetchSent();
+                }
+            });
     }
 
+    stop(): void {
+        if (!this._active) return;
+        this._active = false;
+        this._unsubscribeSession?.();
+        this._unsubscribeSession = undefined;
+        this.services.webSocketManager.offMessage(
+            EWebSocketMessage.SocialChanged,
+            this._handleSocial
+        );
+        this.reset();
+    }
+
+    private reset(username?: string): void {
+        this._username = username;
+        this._generation++;
+        this.closeComposer();
+        this._inboxAtom.set([]);
+        this._sentAtom.set([]);
+        this._loadingAtom.set(false);
+        this._errorAtom.set(null);
+    }
+
+    private _handleSocial: WebSocketMessageHandler<EWebSocketMessage.SocialChanged> =
+        () => {
+            if (!this.isCurrent(this._generation)) return;
+            void this.fetchInbox();
+            void this.fetchSent();
+        };
+
     async queueSharedMedia(publicId: string): Promise<void> {
-        const result = await rockIt.mediaManager.getMedia(publicId);
-        if (!result.isOk()) {
-            console.error(result.detail);
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
-            );
-            return;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        try {
+            const result = await this.services.mediaManager.getMedia(publicId);
+            if (!this.isCurrent(generation)) return;
+            if (!result.isOk()) throw new Error(String(result.detail));
+            const media = result.result.media;
+            if (isQueueable(media))
+                this.services.queueManager.addMediaToEnd(media);
+        } catch {
+            if (this.isCurrent(generation)) this.actionError();
         }
-        const media = result.result.media;
-        if (isQueueable(media)) rockIt.queueManager.addMediaToEnd(media);
     }
 
     async playSharedMedia(publicId: string): Promise<void> {
-        const result = await rockIt.mediaManager.getMedia(publicId);
-        if (!result.isOk()) {
-            console.error(result.detail);
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
-            );
-            return;
-        }
-        const media = result.result.media;
-        if (isQueueable(media)) {
-            rockIt.queueManager.setMedia([media], "");
-            rockIt.queueManager.moveToMedia(publicId);
-            rockIt.mediaPlayerManager.play();
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        try {
+            const result = await this.services.mediaManager.getMedia(publicId);
+            if (!this.isCurrent(generation)) return;
+            if (!result.isOk()) throw new Error(String(result.detail));
+            const media = result.result.media;
+            if (isQueueable(media)) {
+                this.services.queueManager.setMedia([media], "");
+                this.services.queueManager.moveToMedia(publicId);
+                this.services.mediaPlayerManager.play();
+            }
+        } catch {
+            if (this.isCurrent(generation)) this.actionError();
         }
     }
 
     async fetchInbox(): Promise<void> {
-        const requestingUser = rockIt.userManager.usernameAtom.get();
-        if (!rockIt.userManager.loggedInAtom.get()) return;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        const revision = ++this._inboxRevision;
         this._loadingAtom.set(true);
+        this._errorAtom.set(null);
         try {
-            const res = await Http.getShareInbox();
-            if (
-                !rockIt.userManager.loggedInAtom.get() ||
-                requestingUser !== rockIt.userManager.usernameAtom.get()
-            )
+            const result = await Http.getShareInbox();
+            if (!this.isCurrent(generation) || revision !== this._inboxRevision)
                 return;
-            if (res.isOk()) {
-                this._inboxAtom.set(res.result.items);
-            }
+            if (!result.isOk()) throw new Error(String(result.detail));
+            this._inboxAtom.set(result.result.items);
         } catch {
-            // silent
+            if (this.isCurrent(generation) && revision === this._inboxRevision)
+                this._errorAtom.set(
+                    this.services.vocabularyManager.vocabulary
+                        .FRIENDS_LOAD_ERROR
+                );
         } finally {
-            this._loadingAtom.set(false);
+            if (this.isCurrent(generation) && revision === this._inboxRevision)
+                this._loadingAtom.set(false);
         }
     }
 
     async fetchSent(): Promise<void> {
-        const requestingUser = rockIt.userManager.usernameAtom.get();
-        if (!rockIt.userManager.loggedInAtom.get()) return;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        const revision = ++this._sentRevision;
+        this._errorAtom.set(null);
         try {
-            const res = await Http.getShareSent();
-            if (
-                !rockIt.userManager.loggedInAtom.get() ||
-                requestingUser !== rockIt.userManager.usernameAtom.get()
-            )
+            const result = await Http.getShareSent();
+            if (!this.isCurrent(generation) || revision !== this._sentRevision)
                 return;
-            if (res.isOk()) {
-                this._sentAtom.set(res.result.items);
-            }
+            if (!result.isOk()) throw new Error(String(result.detail));
+            this._sentAtom.set(result.result.items);
         } catch {
-            // silent
+            if (this.isCurrent(generation) && revision === this._sentRevision)
+                this._errorAtom.set(
+                    this.services.vocabularyManager.vocabulary
+                        .FRIENDS_LOAD_ERROR
+                );
         }
     }
 
@@ -117,46 +185,68 @@ export class SharingManager {
         mediaPublicId: string,
         message?: string
     ): Promise<boolean> {
+        const generation = this._generation;
+        const composer = this._composeRevision;
+        if (!this.isCurrent(generation)) return false;
         try {
             const res = await Http.shareMedia({
                 recipientPublicId,
                 mediaPublicId,
                 message: message ?? null,
             });
+            if (!this.isCurrent(generation)) return false;
             if (!res.isOk()) throw new Error(String(res.detail));
             await this.fetchSent();
-            rockIt.notificationManager.notifySuccess(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_MEDIA_SHARED
+            if (
+                !this.isCurrent(generation) ||
+                composer !== this._composeRevision
+            )
+                return false;
+            this.services.notificationManager.notifySuccess(
+                this.services.vocabularyManager.vocabulary.FRIENDS_MEDIA_SHARED
             );
             return true;
-        } catch (e) {
-            console.error(e);
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+        } catch {
+            if (
+                !this.isCurrent(generation) ||
+                composer !== this._composeRevision
+            )
+                return false;
+            this.services.notificationManager.notifyError(
+                this.services.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
             );
             return false;
         }
     }
 
     async deleteShare(publicId: string): Promise<void> {
-        const result = await Http.deleteShare(publicId);
-        if (!result.isOk()) {
-            console.error(result.detail);
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
-            );
-            return;
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
+        try {
+            const result = await Http.deleteShare(publicId);
+            if (!this.isCurrent(generation)) return;
+            if (!result.isOk()) throw new Error(String(result.detail));
+            await Promise.all([this.fetchInbox(), this.fetchSent()]);
+        } catch {
+            if (this.isCurrent(generation)) this.actionError();
         }
-        await Promise.all([this.fetchInbox(), this.fetchSent()]);
     }
 
     async markAsSeen(sharePublicId: string): Promise<void> {
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return;
         try {
-            await Http.markShareSeen(sharePublicId);
+            const result = await Http.markShareSeen(sharePublicId);
+            if (!this.isCurrent(generation)) return;
+            if (!result.isOk()) throw new Error(String(result.detail));
             await this.fetchInbox();
         } catch {
-            // silent
+            if (this.isCurrent(generation)) this.actionError();
         }
+    }
+
+    get errorAtom(): ReadonlyAtom<string | null> {
+        return this._errorAtom.getReadonlyAtom();
     }
 
     get inboxAtom(): ReadonlyAtom<SharedMediaItem[]> {

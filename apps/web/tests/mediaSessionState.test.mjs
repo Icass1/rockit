@@ -7,7 +7,7 @@ import { build } from "esbuild";
 const { outputFiles } = await build({
     stdin: {
         contents:
-            "export {MediaSessionManager} from './lib/managers/mediaSessionManager';",
+            "export {MediaSessionManager} from './lib/managers/mediaSessionManager'; export {PlaybackLifecycle} from './lib/runtime/playbackLifecycle';",
         resolveDir: new URL("../", import.meta.url).pathname,
     },
     bundle: true,
@@ -15,20 +15,6 @@ const { outputFiles } = await build({
     format: "iife",
     globalName: "sessionModule",
     tsconfig: new URL("../tsconfig.json", import.meta.url).pathname,
-    plugins: [
-        {
-            name: "isolated-rockit",
-            setup(b) {
-                b.onResolve({ filter: /^@\/lib\/rockit\/rockIt$/ }, () => ({
-                    path: "fixture",
-                    namespace: "mock",
-                }));
-                b.onLoad({ filter: /.*/, namespace: "mock" }, () => ({
-                    contents: "export const rockIt = globalThis.rockitFixture;",
-                }));
-            },
-        },
-    ],
 });
 
 function atom(initial) {
@@ -36,10 +22,17 @@ function atom(initial) {
     const listeners = new Set();
     return {
         get: () => value,
+        get listenerCount() {
+            return listeners.size;
+        },
         set(next) {
             if (next === value) return;
             value = next;
             for (const fn of listeners) fn(value);
+        },
+        listen(fn) {
+            listeners.add(fn);
+            return () => listeners.delete(fn);
         },
         subscribe(fn) {
             listeners.add(fn);
@@ -64,6 +57,9 @@ function setup({
     supported = true,
     noMedia = false,
     writable = true,
+    initialize = true,
+    sessionSnapshot = { username: "fixture" },
+    resumeKeepalive,
 } = {}) {
     const currentMedia = atom(noMedia ? undefined : song("first"));
     const playingAtom = atom(playing);
@@ -93,22 +89,49 @@ function setup({
         setPositionState() {},
         setActionHandler: (action, handler) => handlers.set(action, handler),
     };
-    const documentHandlers = new Set();
+    const documentListeners = new Map([
+        ["visibilitychange", new Set()],
+        ["pointerup", new Set()],
+        ["keydown", new Set()],
+    ]);
+    const documentHandlers = documentListeners.get("visibilitychange");
     const document = {
         hidden: true,
-        addEventListener: (_name, handler) => documentHandlers.add(handler),
-        removeEventListener: (_name, handler) =>
-            documentHandlers.delete(handler),
+        addEventListener: (name, handler) =>
+            documentListeners.get(name).add(handler),
+        removeEventListener: (name, handler) =>
+            documentListeners.get(name).delete(handler),
     };
+    const activation = {
+        settings: 0,
+        syncStarts: 0,
+        syncStops: 0,
+        transitions: 0,
+        keepalives: 0,
+        closed: 0,
+    };
+    const sessionAtom = atom(sessionSnapshot);
     const player = {
         playingAtom,
+        volumeAtom: atom(1),
         currentTimeAtom,
         currentTime: 0,
         play: () => transport.play++,
         pause: () => transport.pause++,
         setCurrentTime: () => transport.seek++,
+        init() {
+            activation.syncStarts++;
+        },
+        stopSynchronization() {
+            activation.syncStops++;
+        },
+        startBrowserLifecycle() {},
+        stopBrowserLifecycle() {},
+        initializeTransitionSettings: () => activation.settings++,
+        activateTransitionsOnGesture: () => activation.transitions++,
     };
-    const rockitFixture = {
+    const services = {
+        userManager: { sessionAtom },
         mediaPlayerManager: player,
         queueManager: {
             currentMediaAtom: currentMedia,
@@ -121,6 +144,8 @@ function setup({
     };
     const context = vm.createContext({
         process: { env: {} },
+        setTimeout,
+        clearTimeout,
         window: {},
         document,
         navigator: supported
@@ -131,14 +156,53 @@ function setup({
                 Object.assign(this, value);
             }
         },
-        rockitFixture,
+        AudioContext: class {
+            state = "suspended";
+            constructor() {
+                activation.keepalives++;
+            }
+            createOscillator() {
+                return {
+                    frequency: {},
+                    connect() {},
+                    start() {},
+                    stop() {},
+                    disconnect() {},
+                };
+            }
+            createGain() {
+                return { gain: {}, connect() {}, disconnect() {} };
+            }
+            addEventListener() {}
+            resume() {
+                return resumeKeepalive ? resumeKeepalive() : Promise.resolve();
+            }
+            close() {
+                activation.closed++;
+                return Promise.resolve();
+            }
+        },
+        Audio: class {
+            play() {
+                return Promise.resolve();
+            }
+            pause() {}
+            removeAttribute() {}
+            load() {}
+        },
         console,
     });
     vm.runInContext(outputFiles[0].text, context);
-    const manager = new context.sessionModule.MediaSessionManager();
-    manager.init();
+    const manager = new context.sessionModule.MediaSessionManager(services);
+    const lifecycle = new context.sessionModule.PlaybackLifecycle(services);
+    if (initialize) manager.init();
     return {
         manager,
+        lifecycle,
+        services,
+        activation,
+        sessionAtom,
+        documentListeners,
         session,
         currentMedia,
         playingAtom,
@@ -262,4 +326,150 @@ test("a read-only native playback state does not break metadata or audio control
     e.handlers.get("pause")();
     assert.equal(e.transport.pause, 1);
     e.manager.destroy();
+});
+
+test("media session initialization is idempotent and restartable", () => {
+    const e = setup();
+    e.manager.init();
+    assert.equal(e.currentMedia.listenerCount, 1);
+    assert.equal(e.playingAtom.listenerCount, 1);
+    assert.equal(e.currentTimeAtom.listenerCount, 1);
+    assert.equal(e.documentHandlers.size, 1);
+    e.manager.destroy();
+    e.manager.destroy();
+    assert.equal(e.session.metadata, null);
+    assert.equal(e.session.playbackState, "none");
+    assert.equal(e.currentMedia.listenerCount, 0);
+    assert.equal(e.handlers.get("play"), null);
+    e.manager.init();
+    assert.equal(e.currentMedia.listenerCount, 1);
+    assert.equal(e.session.metadata.title, "first");
+    e.handlers.get("play")();
+    assert.equal(e.transport.play, 1);
+    e.manager.destroy();
+});
+
+test("native handlers use their injected queue and player", () => {
+    const first = setup();
+    const second = setup();
+    first.handlers.get("nexttrack")();
+    first.handlers.get("seekto")({ seekTime: 15 });
+    second.handlers.get("previoustrack")();
+    assert.equal(first.transport.next, 1);
+    assert.equal(first.transport.seek, 1);
+    assert.equal(second.transport.next, 0);
+    assert.equal(second.transport.seek, 0);
+    assert.equal(second.transport.previous, 1);
+    assert.equal(first.transport.previous, 0);
+    first.manager.destroy();
+    second.manager.destroy();
+});
+
+test("constructing playback lifecycle installs no listeners or native handlers", () => {
+    const e = setup({ initialize: false });
+    assert.equal(e.sessionAtom.listenerCount, 0);
+    assert.equal(e.currentMedia.listenerCount, 0);
+    assert.equal(e.handlers.size, 0);
+    for (const listeners of e.documentListeners.values())
+        assert.equal(listeners.size, 0);
+    assert.equal(e.activation.settings, 0);
+    assert.equal(e.activation.keepalives, 0);
+});
+
+test("lifecycle waits for a session and balances Strict Mode setup cleanup setup", () => {
+    const e = setup({ initialize: false, sessionSnapshot: undefined });
+    e.sessionAtom.set(undefined);
+    e.lifecycle.start();
+    e.lifecycle.start();
+    assert.equal(e.sessionAtom.listenerCount, 2);
+    assert.equal(e.currentMedia.listenerCount, 0);
+    e.sessionAtom.set({ username: "fixture" });
+    assert.equal(e.currentMedia.listenerCount, 1);
+    assert.equal(e.documentListeners.get("pointerup").size, 1);
+    e.lifecycle.stop();
+    e.lifecycle.stop();
+    assert.equal(e.sessionAtom.listenerCount, 0);
+    assert.equal(e.currentMedia.listenerCount, 0);
+    for (const listeners of e.documentListeners.values())
+        assert.equal(listeners.size, 0);
+    e.lifecycle.start();
+    assert.equal(e.sessionAtom.listenerCount, 2);
+    assert.equal(e.currentMedia.listenerCount, 1);
+    assert.equal(e.session.metadata.title, "first");
+    assertTransportUntouched(e);
+    e.lifecycle.stop();
+});
+
+test("session refresh retains subscriptions and only the first gesture activates audio", () => {
+    const e = setup({ initialize: false });
+    e.lifecycle.start();
+    e.sessionAtom.set({ username: "fixture", volume: 0.5 });
+    assert.equal(e.activation.settings, 1);
+    assert.equal(e.currentMedia.listenerCount, 1);
+    assert.equal(e.activation.keepalives, 0);
+    for (const handler of e.documentListeners.get("pointerup")) handler();
+    assert.equal(e.activation.transitions, 1);
+    assert.equal(e.activation.keepalives, 1);
+    assert.equal(e.documentListeners.get("pointerup").size, 0);
+    assert.equal(e.documentListeners.get("keydown").size, 0);
+    assertTransportUntouched(e);
+    e.lifecycle.stop();
+    assert.equal(e.activation.closed, 1);
+});
+
+test("logout immediately removes native controls and gestures and pauses playback", () => {
+    const e = setup({ initialize: false });
+    e.lifecycle.start();
+    e.sessionAtom.set(null);
+    assert.equal(e.transport.pause, 1);
+    assert.equal(e.session.metadata, null);
+    assert.equal(e.session.playbackState, "none");
+    assert.equal(e.currentMedia.listenerCount, 0);
+    assert.equal(e.handlers.get("play"), null);
+    for (const listeners of e.documentListeners.values())
+        assert.equal(listeners.size, 0);
+    e.lifecycle.stop();
+    assert.equal(e.sessionAtom.listenerCount, 0);
+});
+
+test("late keepalive recovery cannot restart audio after cleanup or tear down a replacement", async () => {
+    let rejectResume;
+    const e = setup({
+        initialize: false,
+        resumeKeepalive: () =>
+            new Promise((_, reject) => {
+                rejectResume = reject;
+            }),
+    });
+    e.lifecycle.start();
+    for (const handler of e.documentListeners.get("pointerup")) handler();
+    e.document.hidden = false;
+    for (const handler of e.documentHandlers) handler();
+    e.lifecycle.stop();
+    e.lifecycle.start();
+    for (const handler of e.documentListeners.get("keydown")) handler();
+    assert.equal(e.activation.keepalives, 2);
+    rejectResume(new Error("Old audio context closed"));
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(e.activation.keepalives, 2);
+    assert.equal(e.activation.closed, 1);
+    e.lifecycle.stop();
+    assert.equal(e.activation.closed, 2);
+});
+
+test("playback synchronization retains metadata updates and replaces ownership on account changes", () => {
+    const e = setup({ initialize: false });
+    e.lifecycle.start();
+    assert.equal(e.activation.syncStarts, 1);
+    e.sessionAtom.set({ username: "fixture", volume: 0.5 });
+    assert.equal(e.activation.syncStarts, 1);
+    assert.equal(e.activation.syncStops, 0);
+    e.sessionAtom.set({ username: "replacement" });
+    assert.equal(e.activation.syncStarts, 2);
+    assert.equal(e.activation.syncStops, 1);
+    assert.equal(e.transport.pause, 1);
+    e.sessionAtom.set(null);
+    assert.equal(e.activation.syncStops, 2);
+    e.lifecycle.stop();
+    assert.equal(e.activation.syncStops, 2);
 });

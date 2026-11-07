@@ -161,16 +161,8 @@ const runtimeCaching = [
             sameOrigin &&
             (request.headers.get("RSC") === "1" ||
                 request.destination === "document"),
-        handler: new StaleWhileRevalidate({
-            cacheName: "rockit-pages",
-            plugins: [
-                new ExpirationPlugin({
-                    maxEntries: 100,
-                    maxAgeSeconds: 24 * 60 * 60,
-                    purgeOnQuotaError: true,
-                }),
-            ],
-        }),
+        // Authenticated HTML/RSC must never be replayed across accounts/router trees.
+        handler: new NetworkOnly(),
     },
     ...defaultCache,
 ];
@@ -191,6 +183,11 @@ const serwist = new Serwist({
             },
         ],
     },
+});
+
+// Remove personalized documents cached by previous worker versions.
+self.addEventListener("activate", (event) => {
+    event.waitUntil(caches.delete("rockit-pages"));
 });
 
 serwist.addEventListeners();

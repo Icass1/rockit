@@ -4,7 +4,6 @@ import type { JSX } from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation, isStation } from "@rockit/shared";
 import type { BaseStationResponse } from "@rockit/shared";
 import { Ellipsis, Pause, PauseIcon, Play, PlayIcon } from "lucide-react";
@@ -13,19 +12,21 @@ import {
     getMediaArtists,
     TPlayableMedia,
 } from "@/models/types/media";
+import { useCurrentMedia, usePlaybackStore } from "@/hooks/usePlaybackStore";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
-import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function FooterLeftForMedia({
     currentMedia,
 }: {
     currentMedia: TPlayableMedia;
 }): JSX.Element {
-    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $queue = useStore(rockIt.queueManager.queueAtom);
+    const { mediaPlayerManager, playerUIManager } = usePlaybackServices();
+    const $playing = usePlaybackStore(mediaPlayerManager.playingAtom, false);
     const [offlineCover, setOfflineCover] = useState<{
         publicId: string;
         url: string;
@@ -50,12 +51,6 @@ function FooterLeftForMedia({
             ? offlineCover.url
             : currentMedia.imageUrl;
 
-    if (!$queue) {
-        return (
-            <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 opacity-0 md:w-1/3" />
-        );
-    }
-
     const album = getMediaAlbum(currentMedia);
 
     return (
@@ -64,7 +59,7 @@ function FooterLeftForMedia({
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
                 onClick={(): void =>
-                    rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia()
+                    mediaPlayerManager.togglePlayPauseOrSetMedia()
                 }
             >
                 <Image
@@ -76,9 +71,9 @@ function FooterLeftForMedia({
                 />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
                     {$playing ? (
-                        <Pause className="h-6 w-6 fill-current text-white md:h-8 md:w-8" />
+                        <Pause className="text-foreground-strong h-6 w-6 fill-current md:h-8 md:w-8" />
                     ) : (
-                        <Play className="h-6 w-6 fill-current text-white md:h-8 md:w-8" />
+                        <Play className="text-foreground-strong h-6 w-6 fill-current md:h-8 md:w-8" />
                     )}
                 </div>
             </div>
@@ -96,10 +91,10 @@ function FooterLeftForMedia({
                                 location={EMediaContextLocation.QUEUE}
                                 openOnLeftClick={true}
                             >
-                                <Ellipsis className="h-6 w-5 shrink-0 text-gray-400 opacity-0 transition group-hover/left:opacity-100 md:hover:scale-105 md:hover:text-white" />
+                                <Ellipsis className="h-6 w-5 shrink-0 text-muted-foreground opacity-0 transition group-hover/left:opacity-100 md:hover:scale-105 md:hover:text-foreground-strong" />
                             </MediaContextMenu> */}
                         </span>
-                        <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
+                        <div className="text-muted-foreground flex w-full flex-row gap-x-1 text-sm">
                             <div className="truncate">
                                 <Artists
                                     artists={
@@ -116,7 +111,7 @@ function FooterLeftForMedia({
                                         href={album.url}
                                         prefetch={false}
                                         onClick={(): void =>
-                                            rockIt.playerUIManager.hide()
+                                            playerUIManager.hide()
                                         }
                                         className="hidden truncate md:inline-block md:hover:underline"
                                     >
@@ -138,17 +133,16 @@ function FooterLeftForStation({
 }: {
     currentStation: BaseStationResponse;
 }): JSX.Element {
-    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const { mediaPlayerManager } = usePlaybackServices();
+    const $playing = usePlaybackStore(mediaPlayerManager.playingAtom, false);
+    const vocabulary = useVocabulary();
     const [failedCover, setFailedCover] = useState<string | null>(null);
 
     return (
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
             <button
                 aria-label={$playing ? vocabulary.PAUSE : vocabulary.PLAY}
-                onClick={(): void =>
-                    rockIt.mediaPlayerManager.togglePlayPause()
-                }
+                onClick={(): void => mediaPlayerManager.togglePlayPause()}
                 className="group relative h-11 w-11 shrink-0 cursor-pointer overflow-hidden rounded-md md:h-16 md:w-16"
             >
                 <Image
@@ -167,11 +161,11 @@ function FooterLeftForStation({
                     alt={currentStation.name}
                     className="absolute inset-0 h-full w-full object-cover"
                 />
-                <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <span className="bg-backdrop/30 absolute inset-0 flex items-center justify-center">
                     {$playing ? (
-                        <PauseIcon className="h-5 w-5 text-white" />
+                        <PauseIcon className="text-foreground-strong h-5 w-5" />
                     ) : (
-                        <PlayIcon className="h-5 w-5 text-white" />
+                        <PlayIcon className="text-foreground-strong h-5 w-5" />
                     )}
                 </span>
             </button>
@@ -180,7 +174,7 @@ function FooterLeftForStation({
                 <span className="line-clamp-1 truncate font-semibold">
                     {currentStation.name}
                 </span>
-                <span className="text-sm text-gray-400">
+                <span className="text-muted-foreground text-sm">
                     {currentStation.country}
                 </span>
             </div>
@@ -192,7 +186,7 @@ function FooterLeftForStation({
             >
                 <button
                     aria-label={currentStation.name}
-                    className="flex h-11 w-11 cursor-pointer items-center justify-center text-gray-400 hover:text-white"
+                    className="text-muted-foreground hover:text-foreground-strong flex h-11 w-11 cursor-pointer items-center justify-center"
                 >
                     <Ellipsis className="h-5 w-5" />
                 </button>
@@ -202,8 +196,8 @@ function FooterLeftForStation({
 }
 
 export default function FooterLeft(): JSX.Element {
-    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $currentMedia = useCurrentMedia();
+    const $vocabulary = useVocabulary();
 
     if ($currentMedia) {
         if (isStation($currentMedia)) {
@@ -213,7 +207,7 @@ export default function FooterLeft(): JSX.Element {
     }
 
     return (
-        <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 md:w-1/3">
+        <div className="text-muted-foreground flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm md:w-1/3">
             {$vocabulary.NO_MEDIA_PLAYING}
         </div>
     );

@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.db.ormModels.friend.listenTogether import (
     ListenTogetherSessionRow,
 )
+from core.access.db.ormModels.image import ImageRow
 from core.access.friend.friendAccess import FriendAccess
 from core.access.friend.listenTogetherAccess import ListenTogetherAccess
 from core.access.mediaAccess import MediaAccess
@@ -11,11 +12,26 @@ from core.enums.friend.listenTogetherStatusEnum import (
 )
 from core.framework.friend.friend import Friend
 from core.framework.friend.notifications import notify_after_commit
+from core.framework.media.image import Image
 from core.framework.media.media import Media
+from core.responses.friend.listenTogetherResponse import (
+    ListenTogetherListResponse,
+    ListenTogetherSessionResponse,
+)
 from logger import getLogger
 from result import Result, ResultCode
 
 logger = getLogger(__name__)
+
+
+async def _get_session_image_url_async(image: ImageRow | None) -> str | None:
+    if image is None:
+        return None
+    result = await Image.get_internal_image_url_async(image=image)
+    if result.is_not_ok():
+        logger.warning("Unable to resolve session image URL: %s", result.info())
+        return None
+    return result.result()
 
 
 class ListenTogether:
@@ -198,4 +214,56 @@ class ListenTogether:
     ) -> Result[list[ListenTogetherSessionRow]]:
         return await ListenTogetherAccess.get_active_sessions_for_user_async(
             session=session, user_id=user_id
+        )
+
+    @staticmethod
+    async def build_sessions_response_async(
+        session: AsyncSession, user_id: int, rows: list[ListenTogetherSessionRow]
+    ) -> Result[ListenTogetherListResponse]:
+        """Resolve the same participant-visible state for HTTP and WebSocket delivery."""
+
+        sessions: list[ListenTogetherSessionResponse] = []
+        for s in rows:
+            host = s.host
+            guest = s.guest
+            current_media = s.current_media
+            resolved = None
+            if current_media:
+                a_resolved = await Media.get_media_async(
+                    session=session, public_id=current_media.public_id, user_id=user_id
+                )
+                if a_resolved.is_ok():
+                    resolved = a_resolved.result()
+                else:
+                    logger.error(f"Error resolving session media. {a_resolved.info()}")
+            sessions.append(
+                ListenTogetherSessionResponse(
+                    publicId=s.public_id,
+                    hostPublicId=host.public_id,
+                    hostUsername=host.username,
+                    hostImageUrl=await _get_session_image_url_async(host.image),
+                    guestPublicId=guest.public_id,
+                    guestUsername=guest.username,
+                    guestImageUrl=await _get_session_image_url_async(guest.image),
+                    currentMediaPublicId=current_media.public_id if current_media else None,
+                    currentMediaName=resolved.media.name if resolved else None,
+                    currentMediaImageUrl=resolved.media.imageUrl if resolved else None,
+                    currentMedia=resolved,
+                    updatedAt=s.date_updated,
+                    currentTimeMs=s.current_time_ms,
+                    isPlaying=s.is_playing,
+                    status=(
+                        "active"
+                        if s.status.name == "ACTIVE"
+                        else "invited"
+                        if s.status.name == "INVITED"
+                        else "ended"
+                    ),
+                )
+            )
+
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=ListenTogetherListResponse(sessions=sessions),
         )

@@ -2,16 +2,15 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
-import { useStore } from "@nanostores/react";
 import { CalendarDays, Disc3, Heart, History } from "lucide-react";
 import type { RockitListKey } from "@/models/types/navigationPins";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getRockitListName } from "@/lib/utils/navigationPins";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /** Rockit's dynamic personal lists: right-click, long press or Shift+F10 to anchor. */
 export default function RockitFeaturedLists(): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const keys: RockitListKey[] = [
         "liked",
         "most-listened",
@@ -52,14 +51,14 @@ export default function RockitFeaturedLists(): JSX.Element {
                     >
                         <Link
                             href={`/playlist/${key}`}
-                            className="block w-40 flex-none rounded-lg transition duration-75 select-none [-webkit-touch-callout:none] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white md:hover:scale-105"
+                            className="focus-visible:outline-foreground-strong block w-40 flex-none rounded-lg transition duration-75 select-none [-webkit-touch-callout:none] focus-visible:outline-2 focus-visible:outline-offset-4 md:hover:scale-105"
                         >
                             <div
                                 className="relative aspect-square w-full rounded-lg bg-cover"
                                 style={{ backgroundImage: `url(${image})` }}
                             >
                                 {key === "year-recap" ? (
-                                    <span className="absolute inset-0 flex items-center justify-center text-3xl font-black tracking-tight text-white">
+                                    <span className="text-on-media absolute inset-0 flex items-center justify-center text-3xl font-black tracking-tight">
                                         {year}
                                     </span>
                                 ) : (
@@ -69,7 +68,7 @@ export default function RockitFeaturedLists(): JSX.Element {
                                             aria-hidden
                                             fill={
                                                 key === "liked"
-                                                    ? "white"
+                                                    ? "var(--theme-on-media)"
                                                     : "none"
                                             }
                                         />
@@ -79,7 +78,7 @@ export default function RockitFeaturedLists(): JSX.Element {
                             <p className="mt-2 block truncate text-center font-semibold">
                                 {name}
                             </p>
-                            <p className="block truncate text-center text-sm text-gray-400">
+                            <p className="text-muted-foreground block truncate text-center text-sm">
                                 {vocabulary.BY} Rock It!
                             </p>
                         </Link>

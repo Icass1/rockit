@@ -2,10 +2,10 @@ import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import type { Vocabulary } from "@rockit/shared";
 import { LoaderCircle, Pin, PinOff, RefreshCw } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { isPinnableMedia } from "@/lib/utils/navigationPins";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 export default function PinNavigationAction({
     media,
@@ -27,9 +27,10 @@ export function NavigationPinMenuAction({
     publicId: string;
     vocabulary: Vocabulary;
 }): JSX.Element {
-    const pins = useStore(rockIt.navigationPinsManager.pinsAtom);
-    const status = useStore(rockIt.navigationPinsManager.statusAtom);
-    const pending = useStore(rockIt.navigationPinsManager.pendingAtom);
+    const { navigationPinsManager } = useRuntimeServices();
+    const pins = useStore(navigationPinsManager.pinsAtom);
+    const status = useStore(navigationPinsManager.statusAtom);
+    const pending = useStore(navigationPinsManager.pendingAtom);
     const pinned = pins.some((pin) => pin.publicId === publicId);
     const waiting =
         status === "loading" || status === "idle" || pending.includes(publicId);
@@ -45,9 +46,9 @@ export function NavigationPinMenuAction({
         <ContextMenuOption
             disable={waiting}
             onClick={() => {
-                if (retry) void rockIt.navigationPinsManager.refreshAsync();
+                if (retry) void navigationPinsManager.refreshAsync();
                 else
-                    void rockIt.navigationPinsManager.setPinnedAsync(
+                    void navigationPinsManager.setPinnedAsync(
                         publicId,
                         !pinned
                     );

@@ -55,7 +55,7 @@ export function ListMedia({
                 location={EMediaContextLocation.PLAYLIST}
                 listPublicId={listPublicId}
             >
-                <div className="flex h-fit w-full items-center gap-2 rounded-[0.6rem] bg-neutral-900 p-1.5 text-left">
+                <div className="bg-secondary flex h-fit w-full items-center gap-2 rounded-[0.6rem] p-1.5 text-left">
                     <Image
                         src={$media.imageUrl}
                         alt={$media.name}
@@ -74,7 +74,7 @@ export function ListMedia({
                             }
                             className="flex w-fit min-w-0 flex-1 flex-col select-none [-webkit-touch-callout:none] hover:underline"
                         >
-                            <p className="w-fit truncate font-medium text-white">
+                            <p className="text-foreground-strong w-fit truncate font-medium">
                                 {$media.name}
                             </p>
                         </Link>
@@ -94,12 +94,12 @@ export function ListMedia({
                         {expanded ? (
                             <ChevronDown
                                 size={16}
-                                className="mr-1 text-neutral-400"
+                                className="text-muted-foreground mr-1"
                             />
                         ) : (
                             <ChevronRight
                                 size={16}
-                                className="mr-1 text-neutral-400"
+                                className="text-muted-foreground mr-1"
                             />
                         )}
                     </button>

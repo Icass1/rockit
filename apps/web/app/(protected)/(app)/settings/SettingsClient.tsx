@@ -54,18 +54,18 @@ export default function SettingsClient({
 
     return (
         <div className="mx-auto max-w-2xl p-6">
-            <h1 className="mb-8 text-3xl font-bold text-white">
+            <h1 className="text-foreground-strong mb-8 text-3xl font-bold">
                 {$vocabulary.USER_SETTINGS}
             </h1>
 
-            <section className="mb-8 rounded-lg bg-neutral-800 p-6">
-                <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-white">
+            <section className="bg-muted mb-8 rounded-lg p-6">
+                <h2 className="text-foreground-strong mb-4 flex items-center gap-2 text-xl font-semibold">
                     <Globe className="h-5 w-5" />
                     {$vocabulary.LANGUAGE}
                 </h2>
 
                 {loading ? (
-                    <p className="text-neutral-400">Loading...</p>
+                    <p className="text-muted-foreground">Loading...</p>
                 ) : (
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {languages.map((lang): JSX.Element => (
@@ -76,8 +76,8 @@ export default function SettingsClient({
                                 }
                                 className={`flex items-center justify-between rounded-md px-4 py-3 text-left transition ${
                                     $lang === lang.langCode
-                                        ? "bg-(--color-rockit-pink) text-white"
-                                        : "bg-neutral-700 text-neutral-200 hover:bg-neutral-600"
+                                        ? "bg-primary text-foreground-strong"
+                                        : "bg-accent text-foreground hover:bg-hover"
                                 }`}
                             >
                                 <span>{lang.language}</span>
@@ -90,13 +90,13 @@ export default function SettingsClient({
                 )}
             </section>
 
-            <section className="mb-8 rounded-lg bg-neutral-800 p-6">
-                <h2 className="mb-4 text-xl font-semibold text-white">
+            <section className="bg-muted mb-8 rounded-lg p-6">
+                <h2 className="text-foreground-strong mb-4 text-xl font-semibold">
                     {$username}
                 </h2>
-                <div className="space-y-2 text-neutral-400">
+                <div className="text-muted-foreground space-y-2">
                     <p>
-                        <span className="font-medium text-neutral-200">
+                        <span className="text-foreground font-medium">
                             {$username}
                         </span>
                     </p>

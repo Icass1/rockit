@@ -9,7 +9,6 @@ import {
 } from "react";
 import Link from "next/link";
 import type { ArtistMetadataIdentity, ArtistPageResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import {
     ChevronRight,
     Download,
@@ -35,6 +34,7 @@ import {
 import { playArtistSongs } from "@/lib/services/artistService";
 import ArtistSources from "@/components/Artist/ArtistSources";
 import ReleaseArtwork from "@/components/Artist/ReleaseArtwork";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function ArtistMetadataClient({
     name,
@@ -53,7 +53,7 @@ export default function ArtistMetadataClient({
     summary?: ReactNode;
     onImageChange: (image: string) => void;
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [candidates, setCandidates] = useState<ArtistMetadataIdentity[]>([]);
     const [selected, setSelected] = useState("");
     const [showRecordings, setShowRecordings] = useState(false);
@@ -375,7 +375,7 @@ function MetadataCatalog({
     id: string;
     entity: "artist-discography" | "artist-recordings";
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [catalog, setCatalog] = useState<ArtistCatalogState>();
     const [query, setQuery] = useState("");
     const [category, setCategory] = useState("");
@@ -652,7 +652,7 @@ function CatalogSources({
     type: "album" | "song";
     children: ReactNode;
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     const [open, setOpen] = useState(false);
     return (
         <div className="artist-release">

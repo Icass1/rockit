@@ -13,7 +13,7 @@ export default function Header(): JSX.Element {
     const isRadio = pathname?.startsWith("/radio");
 
     return (
-        <header className="relative z-50 grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center justify-between gap-4 px-4 py-4 text-white">
+        <header className="text-foreground-strong relative z-50 grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center justify-between gap-4 px-4 py-4">
             <HeaderBackdrop />
 
             <Link href="/" className="flex items-center select-none">
@@ -22,7 +22,7 @@ export default function Header(): JSX.Element {
                     height={614}
                     src="/logo-banner.png"
                     alt="RockIt"
-                    className="h-14 w-auto"
+                    className="brand-image h-14 w-auto"
                     priority
                 />
             </Link>

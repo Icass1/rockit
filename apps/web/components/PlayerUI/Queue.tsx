@@ -190,7 +190,7 @@ export default function PlayerUIQueue({
                             onDragEnd={handleDragLeave}
                             className={`shrink-0 border-t-2 select-none [-webkit-touch-callout:none] ${
                                 dragOverIndex === index
-                                    ? "border-(--color-rockit-pink)"
+                                    ? "border-primary"
                                     : "border-transparent"
                             }`}
                         >

@@ -58,13 +58,13 @@ function SelectableRow({
         >
             {children}
             {selectable && (
-                <div className="pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded bg-black/60">
+                <div className="bg-backdrop/60 pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded">
                     {"publicId" in media &&
                     media.publicId !== null &&
                     isSelected(media.publicId) ? (
-                        <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
+                        <SquareCheck className="text-primary h-5 w-5" />
                     ) : (
-                        <SquareDashed className="h-5 w-5 text-white/80" />
+                        <SquareDashed className="text-foreground-strong/80 h-5 w-5" />
                     )}
                 </div>
             )}
@@ -149,7 +149,7 @@ export function AlbumRow({
             location={EMediaContextLocation.LIBRARY}
         >
             <SelectableRow media={album}>
-                <div className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors select-none hover:bg-neutral-800">
+                <div className="hover:bg-muted flex items-center gap-3 rounded-md px-2 py-2 transition-colors select-none">
                     <Link prefetch={false} href={album.url}>
                         <SquareCover
                             src={
@@ -165,16 +165,16 @@ export function AlbumRow({
                             href={album.url}
                             className="flex items-center gap-1.5"
                         >
-                            <p className="truncate font-medium text-white">
+                            <p className="text-foreground-strong truncate font-medium">
                                 {album.name}
                             </p>
                             {album.undownloadedCount === 0 && (
-                                <CircleCheck className="h-5 w-5 shrink-0 text-(--color-rockit-pink)" />
+                                <CircleCheck className="text-primary h-5 w-5 shrink-0" />
                             )}
                         </Link>
                         <Artists
                             artists={album.artists}
-                            className="justify-start text-sm text-neutral-400"
+                            className="text-muted-foreground justify-start text-sm"
                         />
                     </div>
                 </div>
@@ -197,7 +197,7 @@ export function PlaylistRow({
                 <Link
                     prefetch={false}
                     href={playlist.url}
-                    className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors select-none [-webkit-touch-callout:none] hover:bg-neutral-800"
+                    className="hover:bg-muted flex items-center gap-3 rounded-md px-2 py-2 transition-colors select-none [-webkit-touch-callout:none]"
                 >
                     <SquareCover
                         src={
@@ -207,10 +207,10 @@ export function PlaylistRow({
                         alt={playlist.name}
                     />
                     <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-white">
+                        <p className="text-foreground-strong truncate font-medium">
                             {playlist.name}
                         </p>
-                        <p className="truncate text-sm text-neutral-400">
+                        <p className="text-muted-foreground truncate text-sm">
                             {playlist.owner.name}
                         </p>
                     </div>
@@ -240,7 +240,7 @@ export function VideoRow({
         >
             <SelectableRow media={$video}>
                 <div
-                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
+                    className="hover:bg-muted flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors"
                     onClick={handlePlay}
                 >
                     <VideoCover
@@ -250,12 +250,12 @@ export function VideoRow({
                         alt={$video.name}
                     />
                     <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-white">
+                        <p className="text-foreground-strong truncate font-medium">
                             {$video.name}
                         </p>
                         <Artists
                             artists={$video.artists ?? []}
-                            className="justify-start text-sm text-neutral-400"
+                            className="text-muted-foreground justify-start text-sm"
                         />
                     </div>
                 </div>
@@ -285,7 +285,7 @@ export function SongRow({
         <MediaContextMenu media={$song} location={location}>
             <SelectableRow media={$song}>
                 <div
-                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-(--color-rockit-pink)"
+                    className="hover:bg-muted focus-visible:outline-primary flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 focus-visible:outline-2"
                     role="button"
                     data-library-drag-handle="true"
                     tabIndex={0}
@@ -308,7 +308,7 @@ export function SongRow({
                     />
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                            <p className="truncate font-medium text-white">
+                            <p className="text-foreground-strong truncate font-medium">
                                 {$song.name}
                             </p>
                             <OfflineIndicator
@@ -318,11 +318,11 @@ export function SongRow({
                         </div>
                         <Artists
                             artists={$song.artists ?? []}
-                            className="justify-start text-sm text-neutral-400"
+                            className="text-muted-foreground justify-start text-sm"
                         />
                         {albumName && (
                             <p
-                                className="truncate text-sm text-neutral-400"
+                                className="text-muted-foreground truncate text-sm"
                                 title={albumName}
                             >
                                 {albumName}
@@ -355,7 +355,7 @@ export function StationRow({
         >
             <SelectableRow media={$station}>
                 <div
-                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
+                    className="hover:bg-muted flex cursor-pointer items-center gap-3 rounded-md px-2 py-2"
                     onClick={handlePlay}
                 >
                     <SquareCover
@@ -364,10 +364,10 @@ export function StationRow({
                         fallback="/radio-placeholder.png"
                     />
                     <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-white">
+                        <p className="text-foreground-strong truncate font-medium">
                             {$station.name}
                         </p>
-                        <p className="truncate text-sm text-neutral-400">
+                        <p className="text-muted-foreground truncate text-sm">
                             Radio Station
                         </p>
                     </div>
@@ -383,7 +383,7 @@ export function StationRow({
 
 function ArtistGroupHeader({ name }: { name: string }): JSX.Element {
     return (
-        <h3 className="mt-6 mb-1 px-1 text-xs font-semibold tracking-widest text-neutral-400 uppercase">
+        <h3 className="text-muted-foreground mt-6 mb-1 px-1 text-xs font-semibold tracking-widest uppercase">
             <Link href={artistPageUrl(name)}>{name}</Link>
         </h3>
     );

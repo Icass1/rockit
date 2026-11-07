@@ -1,17 +1,7 @@
-import { cache, JSX } from "react";
+import { JSX } from "react";
 import { notFound } from "next/navigation";
-import { ArtistPageResponse } from "@rockit/shared";
-import { getArtistPageAsync } from "@/lib/services/artistService";
+import { getArtist } from "@/lib/server/resources";
 import ArtistClient from "@/components/Artist/ArtistClient";
-
-const getArtist = cache(
-    async (publicId: string): Promise<ArtistPageResponse | undefined> => {
-        const artist = await getArtistPageAsync(publicId).catch(
-            (): undefined => undefined
-        );
-        return artist;
-    }
-);
 
 export async function generateMetadata({
     params,

@@ -529,22 +529,6 @@ export class BaseHttp {
         );
     }
 
-    static async getDownloadSettings() {
-        return this.apiGetAsync(
-            `/downloader/settings`,
-            dto.DownloadSettingsResponseSchema
-        );
-    }
-
-    static async updateDownloadSettings(payload: dto.DownloadSettingsResponse) {
-        return this.apiPostAsync(
-            `/downloader/settings`,
-            dto.DownloadSettingsResponseSchema,
-            dto.OkResponseSchema,
-            payload
-        );
-    }
-
     static async startDownload(payload: dto.StartDownloadRequest) {
         return this.apiPostAsync(
             `/downloader/start-downloads`,
@@ -1466,6 +1450,17 @@ export class BaseHttp {
         );
     }
 
+    static async updateDownloadSettings(
+        payload: dto.UpdateDownloadSettingsRequest
+    ) {
+        return this.apiPostAsync(
+            `/user/download-settings`,
+            dto.UpdateDownloadSettingsRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
     static async uploadProfileImage(file: Blob, filename: string) {
         return this.apiPostFileAsync(
             `/user/image`,
@@ -1631,6 +1626,15 @@ export class BaseHttp {
 
     static async getSession() {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
+    }
+
+    static async updateTheme(payload: dto.UpdateThemeRequest) {
+        return this.apiPostAsync(
+            `/user/theme`,
+            dto.UpdateThemeRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
     }
 
     static async updateVolume(payload: dto.UpdateVolumeRequest) {

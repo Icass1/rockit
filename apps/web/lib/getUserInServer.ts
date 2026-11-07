@@ -1,14 +1,16 @@
 import { type SessionResponse } from "@/dto";
-import { Http } from "@/lib/http";
+import "server-only";
+import { cache } from "react";
+import { ServerHttp } from "@/lib/api/server";
 
 export type GetUserResult = SessionResponse | "offline" | undefined;
 
-export async function getUserInServer(): Promise<GetUserResult> {
-    const session = await Http.getSession();
+export const getUserInServer = cache(async (): Promise<GetUserResult> => {
+    const session = await ServerHttp.getSession();
 
     if (session.isOk()) return session.result;
 
     if (session.code === 401) return undefined;
 
     return "offline";
-}
+});

@@ -92,7 +92,7 @@ export default function VinylRecord({
                     <path id="vinyl-text-arc" d="M 4 50 A 46 46 0 0 1 96 50" />
                 </defs>
                 <text
-                    fill="rgba(255,255,255,0.45)"
+                    className="fill-on-media/45"
                     fontSize="1.8"
                     fontWeight="bold"
                     fontFamily="sans-serif"

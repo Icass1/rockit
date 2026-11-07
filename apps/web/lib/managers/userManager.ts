@@ -1,4 +1,15 @@
-import { BaseUserManager, EQueueType, ERepeatMode } from "@rockit/shared";
+import type { SessionResponse, ThemePreference } from "@/dto";
+import {
+    BaseUserManager,
+    EQueueType,
+    ERepeatMode,
+    EWebSocketMessage,
+} from "@rockit/shared";
+import type {
+    UserPreferenceMutation,
+    UserSessionPatch,
+    UserSessionServices,
+} from "@/models/interfaces/userSessionServices";
 import { Http } from "@/lib/http";
 import {
     clearSessionOffline,
@@ -7,7 +18,6 @@ import {
 } from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, type ReadonlyAtom } from "@/lib/store";
-import { isIOS } from "@/lib/utils/isIOS";
 
 /**
  * Web user manager. Queue-type / repeat / profile state lives in the shared
@@ -15,152 +25,267 @@ import { isIOS } from "@/lib/utils/isIOS";
  * touch the web vocabulary and search managers.
  */
 export class UserManager extends BaseUserManager {
+    private _active = false;
+    private _generation = 0;
+    private _accountGeneration = 0;
+    private _scopeAtom = createAtom(0);
+    private _mutationRevisions = {
+        profile: 0,
+        download: 0,
+        heatmap: 0,
+        theme: 0,
+        language: 0,
+    };
+    private _sessionRequest = 0;
+    private _initialization?: Promise<void>;
+    private _cacheTask = Promise.resolve();
+    private _bootstrapSession?: SessionResponse;
+    private _session = createAtom<SessionResponse | null | undefined>();
+
+    constructor(private readonly dependencies?: UserSessionServices) {
+        super();
+    }
+
+    private get services(): UserSessionServices {
+        return (
+            this.dependencies ?? {
+                http: Http,
+                notificationManager: rockIt.notificationManager,
+                vocabularyManager: rockIt.vocabularyManager,
+                searchManager: rockIt.searchManager,
+                downloaderManager: rockIt.downloaderManager,
+                webSocketManager: rockIt.webSocketManager,
+                queueManager: rockIt.queueManager,
+                sessionCache: {
+                    load: loadSessionOffline,
+                    save: saveSessionOffline,
+                    clear: clearSessionOffline,
+                },
+            }
+        );
+    }
+
+    start(): Promise<void> {
+        if (typeof window === "undefined") return Promise.resolve();
+        if (!this._active) {
+            this._active = true;
+            this.services.webSocketManager.onMessage(
+                EWebSocketMessage.QueueType,
+                this._handleQueueType
+            );
+        }
+        return this.init();
+    }
+
+    stop(): void {
+        if (!this._active) return;
+        this._active = false;
+        this.services.webSocketManager.offMessage(
+            EWebSocketMessage.QueueType,
+            this._handleQueueType
+        );
+        this._generation++;
+        this._scopeAtom.set(this._generation);
+        this._sessionRequest++;
+        this._initialization = undefined;
+        this._init = false;
+        this._bootstrapSession = this._session.get() ?? undefined;
+    }
+
+    override init(): Promise<void> {
+        if (!this._initialization) {
+            this._init = true;
+            this._initialization = this.updateAsync();
+        }
+        return this._initialization;
+    }
+
+    protected override _handleQueueType = (data: {
+        queueType: "SORTED" | "RANDOM";
+    }): void => {
+        if (!this._active || !this._session.get()) return;
+        this._queueTypeAtom.set(
+            data.queueType === "RANDOM" ? EQueueType.RANDOM : EQueueType.SORTED
+        );
+        this.services.queueManager.updateQueue();
+    };
+
+    private cacheTask(
+        operation: () => Promise<void>,
+        generation = this._accountGeneration
+    ): Promise<void> {
+        this._cacheTask = this._cacheTask
+            .then(async () => {
+                if (generation === this._accountGeneration) await operation();
+            })
+            .catch(() => {});
+        return this._cacheTask;
+    }
+
+    get sessionAtom(): ReadonlyAtom<SessionResponse | null | undefined> {
+        return this._session.getReadonlyAtom();
+    }
+
+    seedSession(session: SessionResponse): void {
+        if (this._init || this._session.get() === session) return;
+        this._sessionRequest++;
+        this._bootstrapSession = session;
+        this.applySession(session);
+        this._sessionReady.set(true);
+    }
+
+    private applySession(session: SessionResponse): void {
+        if (this._session.get()?.username !== session.username) {
+            this._generation++;
+            this._scopeAtom.set(this._generation);
+            this._accountGeneration++;
+        }
+        this._queueTypeAtom.set(EQueueType[session.queueType]);
+        this._repeatModeAtom.set(ERepeatMode[session.repeatMode]);
+        this._image.set(session.image);
+        this._admin.set(session.admin);
+        this._username.set(session.username);
+        this._currentTimeMs.set(session.currentTimeMs);
+        this._loggedIn.set(true);
+        this._showListeningHeatmap.set(session.showListeningHeatmap);
+        this._session.set(session);
+        this._sessionReady.set(true);
+        void this.cacheTask(() => this.services.sessionCache.save(session));
+    }
+
     private _showListeningHeatmap = createAtom(true);
     private _sessionReady = createAtom(false);
-    private _volumeUser?: string;
-    private _volumeTimer?: ReturnType<typeof setTimeout>;
-    private _pendingVolume?: number;
-    private _savingVolume = false;
-    private _restoringVolume = false;
-
-    override async init(): Promise<void> {
-        if (this._init) return;
-        await super.init();
-        rockIt.mediaPlayerManager.volumeAtom.listen((volume) => {
-            if (isIOS() || this._restoringVolume || !this._loggedIn.get())
-                return;
-            this._pendingVolume = volume;
-            clearTimeout(this._volumeTimer);
-            this._volumeTimer = setTimeout(
-                () => void this.saveVolumeAsync(),
-                300
-            );
-        });
-    }
-
-    private restoreVolume(username: string, volume: number): void {
-        if (this._volumeUser === username) return;
-        clearTimeout(this._volumeTimer);
-        this._pendingVolume = undefined;
-        this._volumeUser = username;
-        this._restoringVolume = true;
-        try {
-            rockIt.mediaPlayerManager.volume =
-                isIOS() || !Number.isFinite(volume) ? 1 : volume;
-        } finally {
-            this._restoringVolume = false;
-        }
-    }
-
-    private async saveVolumeAsync(): Promise<void> {
-        if (this._savingVolume || isIOS()) return;
-        const username = this._volumeUser;
-        this._savingVolume = true;
-        try {
-            while (
-                this._pendingVolume !== undefined &&
-                this._loggedIn.get() &&
-                this._volumeUser === username
-            ) {
-                const volume = this._pendingVolume;
-                this._pendingVolume = undefined;
-                const result = await Http.updateVolume({ volume });
-                if (!result.isOk())
-                    console.error(
-                        "Cannot save volume preference",
-                        result.detail
-                    );
-            }
-        } catch (error) {
-            console.error("Cannot save volume preference", error);
-        } finally {
-            this._savingVolume = false;
-            if (this._pendingVolume !== undefined && this._loggedIn.get()) {
-                clearTimeout(this._volumeTimer);
-                this._volumeTimer = setTimeout(
-                    () => void this.saveVolumeAsync(),
-                    300
-                );
-            }
-        }
-    }
-
     get sessionReadyAtom(): ReadonlyAtom<boolean> {
         return this._sessionReady.getReadonlyAtom();
     }
 
-    async updateAsync(): Promise<void> {
+    override async updateAsync(): Promise<void> {
+        const generation = this._generation;
+        const request = ++this._sessionRequest;
+        const isCurrent = (): boolean =>
+            generation === this._generation && request === this._sessionRequest;
         try {
-            const res = await rockIt.http.getSession();
-
-            if (res.isOk()) {
-                this._queueTypeAtom.set(EQueueType[res.result.queueType]);
-                this._repeatModeAtom.set(ERepeatMode[res.result.repeatMode]);
-                this._image.set(res.result.image);
-                this._admin.set(res.result.admin);
-                this._username.set(res.result.username);
-                this._currentTimeMs.set(res.result.currentTimeMs);
-                rockIt.notificationManager.setUser(res.result.username);
-                this._loggedIn.set(true);
-                this._showListeningHeatmap.set(res.result.showListeningHeatmap);
-                this.restoreVolume(res.result.username, res.result.volume);
-                saveSessionOffline(res.result).catch(() => {});
-            } else if (res.code !== 401) {
-                const cached = await loadSessionOffline();
-                if (cached) {
-                    this._queueTypeAtom.set(EQueueType[cached.queueType]);
-                    this._repeatModeAtom.set(ERepeatMode[cached.repeatMode]);
-                    this._image.set(cached.image);
-                    this._admin.set(cached.admin);
-                    this._username.set(cached.username);
-                    this._currentTimeMs.set(cached.currentTimeMs);
-                    rockIt.notificationManager.setUser(cached.username);
-                    this._loggedIn.set(true);
-                    this._showListeningHeatmap.set(
-                        cached.showListeningHeatmap ?? true
-                    );
-                    this.restoreVolume(cached.username, cached.volume);
-                } else {
-                    this._loggedIn.set(false);
-                    rockIt.notificationManager.setUser();
-                    rockIt.webSocketManager.disconnect();
-                }
-            } else {
-                this._loggedIn.set(false);
-                rockIt.notificationManager.setUser();
-                rockIt.webSocketManager.disconnect();
-                clearSessionOffline().catch(() => {});
-                console.error(res.detail);
+            if (this._bootstrapSession) {
+                this._bootstrapSession = undefined;
+                return;
             }
+            const response = await this.services.http.getSession();
+            if (!isCurrent()) return;
+            if (response.isOk()) {
+                this.applySession(response.result);
+                return;
+            }
+            if (
+                response.code !== 401 &&
+                (await this.restoreCachedSession(isCurrent))
+            )
+                return;
+            if (!isCurrent()) return;
+            this.clearSession();
+            if (response.code === 401)
+                await this.cacheTask(() => this.services.sessionCache.clear());
+        } catch (error) {
+            if (!isCurrent()) return;
+            console.error("Cannot refresh session", error);
+            if (await this.restoreCachedSession(isCurrent)) return;
+            if (isCurrent()) this.clearSession();
         } finally {
-            this._sessionReady.set(true);
+            if (request === this._sessionRequest) this._sessionReady.set(true);
         }
     }
 
+    private async restoreCachedSession(
+        isCurrent: () => boolean
+    ): Promise<boolean> {
+        const cached = await this.services.sessionCache
+            .load()
+            .catch(() => undefined);
+        if (!isCurrent()) return false;
+        const username = this._session.get()?.username;
+        if (!cached || (username && cached.username !== username)) return false;
+        this.applySession(cached);
+        return true;
+    }
+
+    private clearSession(): void {
+        this._generation++;
+        this._scopeAtom.set(this._generation);
+        this._accountGeneration++;
+        this._bootstrapSession = undefined;
+        this._queueTypeAtom.set(EQueueType.SORTED);
+        this._repeatModeAtom.set(ERepeatMode.OFF);
+        this._image.set("");
+        this._admin.set(false);
+        this._username.set("");
+        this._currentTimeMs.set(null);
+        this._showListeningHeatmap.set(true);
+        this._loggedIn.set(false);
+        this._session.set(null);
+        this._sessionReady.set(true);
+        this.services.webSocketManager.disconnect();
+    }
+
+    get scopeAtom(): ReadonlyAtom<number> {
+        return this._scopeAtom.getReadonlyAtom();
+    }
+
+    private isCurrentMutation(
+        generation: number,
+        kind: UserPreferenceMutation,
+        revision: number
+    ): boolean {
+        return (
+            this._active &&
+            generation === this._generation &&
+            !!this._session.get() &&
+            revision === this._mutationRevisions[kind]
+        );
+    }
+
+    private patchSession(patch: UserSessionPatch): Promise<void> {
+        const current = this._session.get();
+        if (!current) return Promise.resolve();
+        const updated = { ...current, ...patch };
+        // A read begun before this successful mutation cannot restore old preferences.
+        this._sessionRequest++;
+        if (patch.image !== undefined) this._image.set(patch.image);
+        if (patch.showListeningHeatmap !== undefined)
+            this._showListeningHeatmap.set(patch.showListeningHeatmap);
+        this._session.set(updated);
+        return this.cacheTask(() => this.services.sessionCache.save(updated));
+    }
+
     async uploadProfileImageAsync(file: File): Promise<boolean> {
-        const username = this._username.get();
         if (
-            !this._loggedIn.get() ||
+            !this._session.get() ||
             !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
             file.size === 0 ||
             file.size > 5 * 1024 * 1024
         )
             return false;
+        const generation = this._generation;
+        const revision = ++this._mutationRevisions.profile;
+        const isCurrent = (): boolean =>
+            this.isCurrentMutation(generation, "profile", revision);
+        if (!isCurrent()) return false;
         try {
-            const upload = await Http.uploadProfileImage(file, file.name);
-            if (upload.isNotOk()) return false;
-            const session = await Http.getSession();
+            const upload = await this.services.http.uploadProfileImage(
+                file,
+                file.name
+            );
+            if (!isCurrent() || !upload.isOk()) return false;
+            const session = await this.services.http.getSession();
             if (
+                !isCurrent() ||
                 !session.isOk() ||
-                !this._loggedIn.get() ||
-                this._username.get() !== username
+                session.result.username !== this._session.get()?.username
             )
                 return false;
-            this._image.set(session.result.image);
-            void saveSessionOffline(session.result).catch(() => {});
-            return true;
+            await this.patchSession({ image: session.result.image });
+            return isCurrent();
         } catch (error) {
-            console.error("Cannot upload profile image", error);
+            if (isCurrent())
+                console.error("Cannot upload profile image", error);
             return false;
         }
     }
@@ -169,69 +294,113 @@ export class UserManager extends BaseUserManager {
         return this._showListeningHeatmap.getReadonlyAtom();
     }
 
+    async setDownloadAutoAddToLibraryAsync(enabled: boolean): Promise<boolean> {
+        return this.savePreference(
+            "download",
+            () =>
+                this.services.http.updateDownloadSettings({
+                    autoAddToLibrary: enabled,
+                }),
+            { autoAddToLibrary: enabled }
+        );
+    }
+
     async setListeningHeatmapAsync(enabled: boolean): Promise<boolean> {
+        return this.savePreference(
+            "heatmap",
+            () => this.services.http.updateListeningHeatmap({ enabled }),
+            { showListeningHeatmap: enabled }
+        );
+    }
+
+    async setThemeAsync(theme: ThemePreference): Promise<boolean> {
+        return this.savePreference(
+            "theme",
+            () => this.services.http.updateTheme({ theme }),
+            { theme }
+        );
+    }
+
+    private async savePreference(
+        kind: "download" | "heatmap" | "theme",
+        request: () => Promise<{ isOk(): boolean }>,
+        patch: UserSessionPatch
+    ): Promise<boolean> {
+        const generation = this._generation;
+        const revision = ++this._mutationRevisions[kind];
+        const isCurrent = (): boolean =>
+            this.isCurrentMutation(generation, kind, revision);
+        if (!isCurrent()) return false;
         try {
-            const result = await Http.updateListeningHeatmap({ enabled });
-            if (!result.isOk()) {
-                rockIt.notificationManager.notifyError(
-                    "Could not save listening history preference"
+            const result = await request();
+            if (!isCurrent()) return false;
+            if (!result.isOk()) throw new Error("Preference update rejected");
+            await this.patchSession(patch);
+            return isCurrent();
+        } catch {
+            if (isCurrent())
+                this.services.notificationManager.notifyError(
+                    this.services.vocabularyManager.vocabulary.ERROR
                 );
-                return false;
-            }
-            this._showListeningHeatmap.set(enabled);
-            const cached = await loadSessionOffline().catch(() => undefined);
-            if (cached && cached.username === this._username.get()) {
-                await saveSessionOffline({
-                    ...cached,
-                    showListeningHeatmap: enabled,
-                }).catch(() => {});
-            }
-            return true;
-        } catch (error) {
-            console.error("Cannot save listening history preference", error);
-            rockIt.notificationManager.notifyError(
-                "Could not save listening history preference"
-            );
             return false;
         }
     }
 
     async setLangAsync(langCode: string): Promise<boolean> {
-        const res = await Http.updateLang({ lang: langCode });
-
-        if (res.isOk()) {
-            rockIt.notificationManager.notifySuccess(
-                rockIt.vocabularyManager.vocabulary.LANGUAGE_CHANGED
+        const generation = this._generation;
+        const revision = ++this._mutationRevisions.language;
+        const isCurrent = (): boolean =>
+            this.isCurrentMutation(generation, "language", revision);
+        if (!isCurrent()) return false;
+        try {
+            const result = await this.services.http.updateLang({
+                lang: langCode,
+            });
+            if (!isCurrent()) return false;
+            if (!result.isOk()) throw new Error("Language update rejected");
+            const vocabulary =
+                await this.services.vocabularyManager.getVocabularyAsync(
+                    langCode
+                );
+            if (!isCurrent()) return false;
+            if (!vocabulary.isOk())
+                throw new Error("Vocabulary refresh rejected");
+            this.services.vocabularyManager.setVocabulary(vocabulary.result);
+            this.services.notificationManager.notifySuccess(
+                this.services.vocabularyManager.vocabulary.LANGUAGE_CHANGED
             );
-            await rockIt.vocabularyManager.init();
-        } else {
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.ERROR_CHANGING_LANGUAGE
-            );
-            console.error("Error changing language", res.message, res.detail);
+            window.dispatchEvent(new Event("rockit:language-changed"));
+            return true;
+        } catch {
+            if (isCurrent())
+                this.services.notificationManager.notifyError(
+                    this.services.vocabularyManager.vocabulary
+                        .ERROR_CHANGING_LANGUAGE
+                );
+            return false;
         }
-
-        return res.isOk();
     }
 
     async signOut(): Promise<void> {
-        const response = await Http.logoutUser();
-        if (response.isOk()) {
-            clearTimeout(this._volumeTimer);
-            this._pendingVolume = undefined;
-            this._volumeUser = undefined;
-            rockIt.searchManager.clearResults();
-            rockIt.downloaderManager.reset();
-            await clearSessionOffline().catch(() => {});
-            this._loggedIn.set(false);
-            rockIt.notificationManager.setUser();
-            rockIt.webSocketManager.disconnect();
-        } else {
-            console.error(
-                "Error logging out",
-                response.message,
-                response.detail
-            );
+        const generation = this._generation;
+        try {
+            const response = await this.services.http.logoutUser();
+            if (generation !== this._generation) return;
+            if (!response.isOk()) {
+                console.error(
+                    "Error logging out",
+                    response.message,
+                    response.detail
+                );
+                return;
+            }
+            this.clearSession();
+            this.services.searchManager.clearResults();
+            this.services.downloaderManager.reset();
+            await this.cacheTask(() => this.services.sessionCache.clear());
+        } catch (error) {
+            if (generation === this._generation)
+                console.error("Cannot log out", error);
         }
     }
 }

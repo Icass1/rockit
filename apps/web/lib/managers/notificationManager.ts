@@ -1,11 +1,16 @@
-import { createElement, ReactNode } from "react";
-import { EWebSocketMessage, type NotificationResponse } from "@rockit/shared";
+import { createElement, type PointerEvent, type ReactNode } from "react";
+import {
+    EWebSocketMessage,
+    type NotificationResponse,
+    type WebSocketMessageHandler,
+} from "@rockit/shared";
 import { toast } from "sonner";
 import { ENotificationType } from "@/models/enums/notificationType";
 import type {
     INotification,
     NotificationOptions,
 } from "@/models/interfaces/notification";
+import type { NotificationServices } from "@/models/interfaces/notificationServices";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
@@ -22,37 +27,69 @@ export class NotificationManager {
     private _unreadCount = createAtom(0);
     private _totalCount = createAtom(0);
     private _error = createAtom<string | null>(null);
-    private _dismissListenerRegistered = false;
-    private _pointerDownPosition: { x: number; y: number } | null = null;
+    private _active = false;
+    private _unsubscribeSession?: () => void;
     private _username?: string;
     private _generation = 0;
     private _revision = 0;
     private _offset = 0;
     private _unreadOnly = false;
-    init(): void {
-        if (typeof window === "undefined") return;
-        rockIt.webSocketManager.onMessage(
-            EWebSocketMessage.NotificationState,
-            (message) => {
-                this._unreadCount.set(message.unreadCount);
-                this._totalCount.set(message.totalCount);
-            }
-        );
+    constructor(private readonly dependencies?: NotificationServices) {}
+
+    private get services(): NotificationServices {
+        return this.dependencies ?? rockIt;
     }
 
-    setUser(username?: string): void {
-        if (username === this._username) return;
+    start(): void {
+        if (this._active || typeof window === "undefined") return;
+        this._active = true;
+        this.services.webSocketManager.onMessage(
+            EWebSocketMessage.NotificationState,
+            this._handleState
+        );
+        this._unsubscribeSession =
+            this.services.userManager.sessionAtom.subscribe((session) => {
+                if (session?.username === this._username) return;
+                this.reset(session?.username);
+            });
+    }
+
+    stop(): void {
+        if (!this._active) return;
+        this._active = false;
+        this._unsubscribeSession?.();
+        this._unsubscribeSession = undefined;
+        this.services.webSocketManager.offMessage(
+            EWebSocketMessage.NotificationState,
+            this._handleState
+        );
+        this.reset();
+    }
+
+    private _handleState: WebSocketMessageHandler<EWebSocketMessage.NotificationState> =
+        (message) => {
+            if (!this._active || !this._username) return;
+            this._unreadCount.set(message.unreadCount);
+            this._totalCount.set(message.totalCount);
+        };
+
+    private reset(username?: string): void {
         this._username = username;
         this._generation++;
         this._revision++;
         this._offset = 0;
+        this._unreadOnly = false;
         this._notificationsAtom.set([]);
         this._unreadCount.set(0);
         this._totalCount.set(0);
         this._error.set(null);
         toast.dismiss();
-        if (typeof window === "undefined") return;
-        if (!username) return;
+    }
+
+    private isCurrent(generation: number): boolean {
+        return (
+            this._active && !!this._username && generation === this._generation
+        );
     }
 
     setPage(offset: number, unreadOnly = false): void {
@@ -62,7 +99,7 @@ export class NotificationManager {
     }
 
     async refreshAsync(): Promise<void> {
-        if (!this._username || typeof window === "undefined") return;
+        if (!this._active || !this._username) return;
         const generation = this._generation;
         const revision = ++this._revision;
         try {
@@ -71,7 +108,7 @@ export class NotificationManager {
                 this._offset,
                 this._unreadOnly
             );
-            if (generation !== this._generation || revision !== this._revision)
+            if (!this.isCurrent(generation) || revision !== this._revision)
                 return;
             if (!result.isOk()) {
                 this._error.set(result.message);
@@ -86,39 +123,54 @@ export class NotificationManager {
                 await this.refreshAsync();
             }
         } catch {
-            if (generation === this._generation && revision === this._revision)
+            if (this.isCurrent(generation) && revision === this._revision)
                 this._error.set("NOTIFICATIONS_LOAD_FAILED");
         }
     }
 
     async markRead(id: string): Promise<boolean> {
+        if (!this._active || !this._username) return false;
         const generation = this._generation;
         this._revision++;
-        const result = await Http.markNotificationRead(id);
-        if (generation !== this._generation) return false;
-        if (!result.isOk()) {
-            this._error.set(result.message);
+        try {
+            const result = await Http.markNotificationRead(id);
+            if (!this.isCurrent(generation)) return false;
+            if (!result.isOk()) {
+                this._error.set(result.message);
+                return false;
+            }
+            await this.refreshAsync();
+            return this.isCurrent(generation);
+        } catch {
+            if (this.isCurrent(generation))
+                this._error.set("NOTIFICATIONS_LOAD_FAILED");
             return false;
         }
-        await this.refreshAsync();
-        return true;
     }
 
     async destinationAsync(
         notification: NotificationResponse
     ): Promise<string | null> {
+        if (!this._active || !this._username) return null;
         const generation = this._generation;
-        const result = await Http.getNotificationDestination(
-            notification.publicId
-        );
-        if (generation !== this._generation) return null;
-        if (!result.isOk()) {
-            this._error.set(result.message);
+        try {
+            const result = await Http.getNotificationDestination(
+                notification.publicId
+            );
+            if (!this.isCurrent(generation)) return null;
+            if (!result.isOk()) {
+                this._error.set(result.message);
+                return null;
+            }
+            const marked = await this.markRead(notification.publicId);
+            return marked && this.isCurrent(generation)
+                ? result.result.url
+                : null;
+        } catch {
+            if (this.isCurrent(generation))
+                this._error.set("NOTIFICATIONS_LOAD_FAILED");
             return null;
         }
-        return (await this.markRead(notification.publicId))
-            ? result.result.url
-            : null;
     }
 
     get notificationsAtom(): ReadonlyArrayAtom<INotification> {
@@ -165,18 +217,39 @@ export class NotificationManager {
         id?: string
     ): void {
         if (typeof window === "undefined") return;
-        this._ensureDismissListener();
         const notificationId =
             id ??
             (typeof globalThis.crypto?.randomUUID === "function"
                 ? globalThis.crypto.randomUUID()
                 : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
         const sonnerId = `rockit-notification-${notificationId}`;
+        // React owns these handlers with the toast, including outside the app shell.
+        let pointerDownPosition: { x: number; y: number } | undefined;
         const content: ReactNode = createElement(
             "div",
             {
                 "data-notification-dismiss": sonnerId,
                 className: "cursor-pointer",
+                onPointerDown: (event: PointerEvent<HTMLDivElement>): void => {
+                    pointerDownPosition = {
+                        x: event.clientX,
+                        y: event.clientY,
+                    };
+                },
+                onPointerCancel: (): void => {
+                    pointerDownPosition = undefined;
+                },
+                onPointerUp: (event: PointerEvent<HTMLDivElement>): void => {
+                    const start = pointerDownPosition;
+                    pointerDownPosition = undefined;
+                    if (
+                        start &&
+                        Math.abs(event.clientX - start.x) <=
+                            TAP_MAX_MOVEMENT_PX &&
+                        Math.abs(event.clientY - start.y) <= TAP_MAX_MOVEMENT_PX
+                    )
+                        toast.dismiss(sonnerId);
+                },
             },
             message
         );
@@ -195,59 +268,5 @@ export class NotificationManager {
                 toast(content, data);
                 break;
         }
-    }
-
-    private _ensureDismissListener(): void {
-        if (this._dismissListenerRegistered || typeof window === "undefined") {
-            return;
-        }
-        document.addEventListener(
-            "pointerdown",
-            (event: PointerEvent): void => {
-                this._pointerDownPosition =
-                    event.target instanceof Element &&
-                    event.target.closest("[data-notification-dismiss]")
-                        ? { x: event.clientX, y: event.clientY }
-                        : null;
-            },
-            true
-        );
-        document.addEventListener(
-            "pointerup",
-            (event: PointerEvent): void => {
-                const startPosition = this._pointerDownPosition;
-                this._pointerDownPosition = null;
-                if (!startPosition) return;
-                if (!(event.target instanceof Element)) return;
-                if (
-                    !event.target.closest("[data-notification-dismiss]") &&
-                    !document
-                        .elementFromPoint(event.clientX, event.clientY)
-                        ?.closest("[data-notification-dismiss]")
-                ) {
-                    return;
-                }
-                // Ignore drags/swipes/scrolls so only real taps dismiss.
-                const deltaX = Math.abs(event.clientX - startPosition.x);
-                const deltaY = Math.abs(event.clientY - startPosition.y);
-                if (
-                    deltaX > TAP_MAX_MOVEMENT_PX ||
-                    deltaY > TAP_MAX_MOVEMENT_PX
-                ) {
-                    return;
-                }
-                const element = event.target.closest(
-                    "[data-notification-dismiss]"
-                );
-                if (!element) return;
-                const sonnerId = element.getAttribute(
-                    "data-notification-dismiss"
-                );
-                if (!sonnerId) return;
-                toast.dismiss(sonnerId);
-            },
-            true
-        );
-        this._dismissListenerRegistered = true;
     }
 }

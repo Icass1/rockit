@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
     type BaseSongWithAlbumResponse,
@@ -9,10 +8,10 @@ import {
 import { LoaderCircle } from "lucide-react";
 import { EFilterMode } from "@/models/enums/filterMode";
 import { EViewMode } from "@/models/enums/viewMode";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { useLibrarySongSearch } from "@/components/Library/hooks/useLibrarySongSearch";
 import { SongCard } from "@/components/Library/LibraryCards";
 import { SongRow } from "@/components/Library/LibraryRows";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export function LibrarySongSearchResults({
     query,
@@ -27,7 +26,7 @@ export function LibrarySongSearchResults({
     directSongs: BaseSongWithAlbumResponse[];
     librarySongIds: string[];
 }): JSX.Element {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const search = useLibrarySongSearch(query, filterMode, true);
     const direct = useMemo(() => new Set(librarySongIds), [librarySongIds]);
     // An unavailable server is not an empty Library. Keep already known direct
@@ -45,7 +44,7 @@ export function LibrarySongSearchResults({
                 <h2 className="text-2xl font-bold md:text-3xl">
                     {vocabulary.SONGS}
                 </h2>
-                <p className="mt-1 text-sm text-neutral-400">
+                <p className="text-muted-foreground mt-1 text-sm">
                     {vocabulary.LIBRARY_SONG_SEARCH_HINT}
                 </p>
             </div>
@@ -85,7 +84,7 @@ export function LibrarySongSearchResults({
                 )}
             </div>
             <div
-                className="px-4 py-3 text-sm text-neutral-300"
+                className="text-foreground px-4 py-3 text-sm"
                 role="status"
                 aria-live="polite"
             >
@@ -112,7 +111,7 @@ export function LibrarySongSearchResults({
                     type="button"
                     disabled={search.loading}
                     onClick={search.error ? search.retry : search.loadMore}
-                    className="mx-4 min-h-11 rounded-full bg-neutral-800 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-rockit-pink) disabled:opacity-50"
+                    className="bg-muted text-foreground-strong hover:bg-accent focus-visible:outline-primary mx-4 min-h-11 rounded-full px-5 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
                 >
                     {search.error
                         ? vocabulary.RETRY

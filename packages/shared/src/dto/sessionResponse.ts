@@ -5,6 +5,9 @@ import { z } from "zod";
 
 export const SessionResponseSchema = z.object({
     showListeningHeatmap: z.boolean().default(true),
+    theme: z
+        .union([z.literal("dark"), z.literal("light"), z.literal("system")])
+        .default("dark"),
     username: z.string(),
     image: z.string(),
     admin: z.boolean(),
@@ -12,6 +15,7 @@ export const SessionResponseSchema = z.object({
     repeatMode: z.enum(["OFF", "ONE", "ALL"]),
     currentTimeMs: z.number().nullable(),
     volume: z.number().default(1),
+    autoAddToLibrary: z.boolean().default(false),
 });
 
 export type SessionResponse = z.infer<typeof SessionResponseSchema>;

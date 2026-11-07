@@ -1,15 +1,17 @@
 "use client";
 
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 export function usePiPText(): (
     key: string,
     english: string,
     spanish: string
 ) => string {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     return (key, english, spanish): string => {
         const translated = (vocabulary as unknown as Record<string, string>)[
             key

@@ -4,7 +4,7 @@ import { useEffect, useRef, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { CollectionPager } from "@rockit/shared";
 import { LoaderCircle } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function CollectionFooter({
     pager,
@@ -12,7 +12,7 @@ export default function CollectionFooter({
     pager: CollectionPager;
 }): JSX.Element {
     const state = useStore(pager.state);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const sentinel = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const target = sentinel.current;
@@ -30,7 +30,7 @@ export default function CollectionFooter({
             role="status"
             aria-live="polite"
             aria-busy={state.loading}
-            className="flex min-h-12 items-center justify-center gap-2 py-3 text-sm text-neutral-400"
+            className="text-muted-foreground flex min-h-12 items-center justify-center gap-2 py-3 text-sm"
         >
             {state.loading && (
                 <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />

@@ -3,10 +3,11 @@
 import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 
 export default function ListeningHistorySetting(): JSX.Element {
-    const enabled = useStore(rockIt.userManager.showListeningHeatmapAtom);
+    const { userManager } = useRuntimeServices();
+    const enabled = useStore(userManager.showListeningHeatmapAtom);
     const [saving, setSaving] = useState(false);
     const notifySaved = useSettingsFeedback();
 
@@ -19,7 +20,7 @@ export default function ListeningHistorySetting(): JSX.Element {
                 >
                     Show listening history in the player
                 </label>
-                <p className="mt-1 text-xs text-neutral-400">
+                <p className="text-muted-foreground mt-1 text-xs">
                     Display the listening heatmap and history popup above the
                     progress bar.
                 </p>
@@ -29,12 +30,12 @@ export default function ListeningHistorySetting(): JSX.Element {
                 type="checkbox"
                 checked={enabled}
                 disabled={saving}
-                className="h-4 w-4 shrink-0 accent-(--color-rockit-pink)"
+                className="accent-primary h-4 w-4 shrink-0"
                 onChange={async (event): Promise<void> => {
                     setSaving(true);
                     try {
                         if (
-                            await rockIt.userManager.setListeningHeatmapAsync(
+                            await userManager.setListeningHeatmapAsync(
                                 event.target.checked
                             )
                         )

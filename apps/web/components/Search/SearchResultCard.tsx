@@ -54,14 +54,14 @@ export default function SearchResultCard({
                 }
             >
                 {children}
-                <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-xs text-neutral-300">
+                <div className="text-foreground mt-2 flex flex-wrap items-center justify-center gap-2 text-xs">
                     {sources.map((source) => (
                         <div
                             key={source.providerUrl}
                             role="img"
                             title={source.provider}
                             aria-label={source.provider}
-                            className="max-w-full rounded-full bg-neutral-800 px-2 py-1"
+                            className="bg-muted max-w-full rounded-full px-2 py-1"
                         >
                             <ProviderTag name={source.provider} iconOnly />
                         </div>

@@ -79,7 +79,7 @@ export default function QueuePanel(): JSX.Element {
     if (!queue || queue.length === 0) {
         return (
             <div className="flex h-full items-center justify-center">
-                <p className="text-base text-(--color-muted)">
+                <p className="text-muted-foreground text-base">
                     Tu cola está vacía
                 </p>
             </div>
@@ -93,9 +93,9 @@ export default function QueuePanel(): JSX.Element {
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
         >
-            <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
-                <p className="text-lg font-bold text-white">Cola</p>
-                <p className="flex items-center gap-2 text-sm text-(--color-muted)">
+            <div className="border-foreground-strong/10 flex items-center justify-between border-b px-5 py-3">
+                <p className="text-foreground-strong text-lg font-bold">Cola</p>
+                <p className="text-muted-foreground flex items-center gap-2 text-sm">
                     <span>{rockIt.queueManager.queueTotalCount} canciones</span>
                     <DurationToggle durationMs={totalDuration} />
                 </p>

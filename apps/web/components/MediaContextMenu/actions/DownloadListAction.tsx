@@ -9,8 +9,8 @@ import {
 } from "@rockit/shared";
 import { Download } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 /**
  * Number of children still missing from the server, or undefined when the

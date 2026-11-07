@@ -12,14 +12,6 @@ import {
     type BaseSearchResultsItem,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import {
-    getActionsForMedia,
-    type ActionDef,
-} from "@/components/ContextMenu/mediaContextMenuActions";
-import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 import AddToPlaylistAction, {
@@ -61,7 +53,16 @@ import {
     AddSongToQueueTopAction,
     RemoveFromQueueAction,
 } from "@/components/MediaContextMenu/actions/SongQueueActions";
+import {
+    getActionsForMedia,
+    type ActionDef,
+} from "@/components/MediaContextMenu/mediaContextMenuActions";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import SearchSourcePicker from "@/components/Search/SearchSourcePicker";
+import ContextMenuContent from "@/components/ui/ContextMenu/Content";
+import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
+import ContextMenuSplitter from "@/components/ui/ContextMenu/Splitter";
+import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
 
 const actionComponents: Partial<
     Record<EMediaContextAction, React.ComponentType<ActionComponentProps>>
@@ -113,6 +114,7 @@ export default function MediaContextMenu({
     sources,
     triggerClassName,
     onOpenChange,
+    onPlay,
 }: {
     children: ReactNode;
     media: TMediaWithSearch;
@@ -122,8 +124,9 @@ export default function MediaContextMenu({
     sources?: readonly BaseSearchResultsItem[];
     triggerClassName?: string;
     onOpenChange?: (open: boolean) => void;
+    onPlay?: () => void | Promise<void>;
 }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const [loading, setLoading] = useState(false);
     const [showEditMetadata, setShowEditMetadata] = useState(false);
     const $playlists = useStore(rockIt.playlistManager.playlistsAtom);
@@ -162,6 +165,7 @@ export default function MediaContextMenu({
         loading,
         setLoading,
         listPublicId,
+        onPlay,
         handleAddToPlaylist,
         onEditMetadata: (): void => setShowEditMetadata(true),
     };

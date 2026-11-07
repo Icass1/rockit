@@ -2,10 +2,12 @@ from pydantic import BaseModel, field_serializer
 
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.enums.repeatModeEnum import RepeatModeEnum
+from core.models.themePreference import ThemePreference
 
 
 class UserSettingsResponse(BaseModel):
     showListeningHeatmap: bool = True
+    theme: ThemePreference = "dark"
     username: str
     lang: str
     crossfade: int

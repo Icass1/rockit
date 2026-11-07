@@ -19,12 +19,14 @@ export interface HttpFailure {
 export type HttpResultType<T> = HttpSuccess<T> | HttpFailure;
 
 export class HttpResult<T> {
+    public readonly ok: boolean;
     public readonly code: number;
     public readonly message: string;
     public readonly result?: T;
     public readonly detail?: FastApiError["detail"];
 
     constructor(data: HttpResultType<T>) {
+        this.ok = data.ok;
         this.code = data.code;
         this.message = data.message;
 
@@ -36,13 +38,13 @@ export class HttpResult<T> {
     }
 
     isOk(): this is HttpResult<T> & { result: T } {
-        return this.code >= 200 && this.code < 300;
+        return this.ok;
     }
 
     isNotOk(): this is HttpResult<T> & {
         result?: undefined;
         detail: FastApiError["detail"];
     } {
-        return this.code < 200 || this.code >= 300;
+        return !this.ok;
     }
 }

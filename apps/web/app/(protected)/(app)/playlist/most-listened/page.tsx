@@ -6,14 +6,12 @@ import {
     TMedia,
 } from "@rockit/shared";
 import { Disc3 } from "lucide-react";
-import { getFeaturedListAsync } from "@/lib/services/mediaService";
+import { getFeaturedListAsync } from "@/lib/server/resources";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
     async (): Promise<BasePlaylistWithMediasResponse | undefined> => {
-        return getFeaturedListAsync("most-listened").catch(
-            (): undefined => undefined
-        );
+        return getFeaturedListAsync("most-listened");
     }
 );
 

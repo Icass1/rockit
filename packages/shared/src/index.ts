@@ -89,3 +89,7 @@ export type {
 export { RecommendationArtworkManager } from "@/managers/recommendationArtworkManager";
 
 export { StationManager } from "@/managers/stationManager";
+
+export { FriendManager } from "@/managers/friendManager";
+export { ListenTogetherManager } from "@/managers/listenTogetherManager";
+export type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listeningQueueSnapshot";

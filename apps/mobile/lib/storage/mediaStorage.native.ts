@@ -19,6 +19,7 @@ class MediaStorageManager {
         try {
             this._baseDir.create({ idempotent: true });
 
+            if (coverUrl) await this.downloadImage(publicId, coverUrl);
             const songsDir = new Directory(this._baseDir, SONGS_DIR_NAME);
             const videosDir = new Directory(this._baseDir, VIDEOS_DIR_NAME);
             const imagesDir = new Directory(this._baseDir, IMAGES_DIR_NAME);
@@ -31,11 +32,16 @@ class MediaStorageManager {
 
             this._initialized = true;
         } catch (e) {
-            console.warn("MediaStorageManager.init failed:", e);
+            console.error("MediaStorageManager.init failed:", e);
         }
     }
 
-    async downloadSong(publicId: string, url: string): Promise<string | null> {
+    async downloadSong(
+        publicId: string,
+        url: string,
+        coverUrl?: string | null,
+        _name?: string
+    ): Promise<string | null> {
         await this.init();
 
         const songsDir = new Directory(this._baseDir, SONGS_DIR_NAME);
@@ -54,7 +60,7 @@ class MediaStorageManager {
             }
             return null;
         } catch (e) {
-            console.warn("MediaStorageManager.downloadSong failed:", e);
+            console.error("MediaStorageManager.downloadSong failed:", e);
             return null;
         }
     }
@@ -78,9 +84,16 @@ class MediaStorageManager {
             }
             return null;
         } catch (e) {
-            console.warn("MediaStorageManager.downloadVideo failed:", e);
+            console.error("MediaStorageManager.downloadVideo failed:", e);
             return null;
         }
+    }
+
+    async hasMedia(publicId: string): Promise<boolean> {
+        return (
+            !!(await this.getSongUri(publicId)) ||
+            !!(await this.getVideoUri(publicId))
+        );
     }
 
     async getSongUri(publicId: string): Promise<string | null> {
@@ -161,7 +174,7 @@ class MediaStorageManager {
             if (result.exists) return result.uri;
             return null;
         } catch (e) {
-            console.warn("MediaStorageManager.downloadImage failed:", e);
+            console.error("MediaStorageManager.downloadImage failed:", e);
             return null;
         }
     }

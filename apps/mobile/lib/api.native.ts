@@ -20,9 +20,9 @@ export async function getSessionCookie(): Promise<string | null> {
 }
 
 async function clearPrivateMetadata(): Promise<void> {
-    const scope = await getSessionCacheScope();
-    if (!scope) return;
     try {
+        const scope = await getSessionCacheScope();
+        if (!scope) return;
         const directory = new Directory(Paths.document, "metadata-v2", scope);
         if (directory.exists) directory.delete();
     } catch {

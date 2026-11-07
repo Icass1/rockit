@@ -8,6 +8,7 @@ import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 
 export interface OfflineSongRecord {
     publicId: string;
+    name?: string;
     audioBlob: Blob;
     coverBlob: Blob | null;
     downloadedAt: number;
@@ -78,27 +79,35 @@ function getDB(): Promise<IDBPDatabase<RockItOfflineDB>> {
     return dbPromise;
 }
 
+let resolveArtworkUrl = (url: string): string => url;
+
+/** Host-specific image optimization stays in the host adapter, outside storage. */
+export function configureOfflineArtwork(
+    resolver: (url: string) => string
+): void {
+    resolveArtworkUrl = resolver;
+}
+
 export async function saveSongOffline(
     publicId: string,
     audioUrl: string,
     coverUrl: string | null,
     parentAlbumIds: string[] = [],
-    parentPlaylistIds: string[] = []
+    parentPlaylistIds: string[] = [],
+    name?: string
 ): Promise<void> {
     const audioRes = await fetch(audioUrl);
     if (!audioRes.ok)
-        throw new Error(`Fallo al descargar audio de ${publicId}`);
+        throw new Error(`Offline audio download failed for ${publicId}`);
     const audioBlob = await audioRes.blob();
 
     let coverBlob: Blob | null = null;
     if (coverUrl) {
         try {
-            const proxyUrl = `/_next/image?url=${encodeURIComponent(coverUrl)}&w=384&q=75`;
-            const coverRes = await fetch(proxyUrl);
+            const coverRes = await fetch(resolveArtworkUrl(coverUrl));
             if (coverRes.ok) coverBlob = await coverRes.blob();
         } catch {
-            // La portada es "nice to have" -- si falla, seguimos sin ella,
-            // NO abortamos la descarga de la canción por esto.
+            // Missing optional artwork must not abort a valid audio download.
         }
     }
 
@@ -122,10 +131,13 @@ export async function saveSongOffline(
 
         await db.put("songs", {
             publicId,
+            name: name ?? existing?.name,
             audioBlob,
-            coverBlob,
+            coverBlob: coverBlob ?? existing?.coverBlob ?? null,
             downloadedAt: Date.now(),
-            sizeBytes: audioBlob.size + (coverBlob?.size ?? 0),
+            sizeBytes:
+                audioBlob.size +
+                ((coverBlob ?? existing?.coverBlob)?.size ?? 0),
             parentAlbumIds: mergedAlbumIds,
             parentPlaylistIds: mergedPlaylistIds,
         });
@@ -137,11 +149,31 @@ export async function saveSongOffline(
     }
 }
 
+export async function hasOfflineSong(publicId: string): Promise<boolean> {
+    return (await (await getDB()).count("songs", publicId)) > 0;
+}
+
 export async function getOfflineSong(
     publicId: string
 ): Promise<OfflineSongRecord | undefined> {
     const db = await getDB();
     return db.get("songs", publicId);
+}
+
+export async function saveOfflineSongCover(
+    publicId: string,
+    cover: Blob
+): Promise<void> {
+    const db = await getDB();
+    const transaction = db.transaction("songs", "readwrite");
+    const song = await transaction.store.get(publicId);
+    if (song)
+        await transaction.store.put({
+            ...song,
+            coverBlob: cover,
+            sizeBytes: song.audioBlob.size + cover.size,
+        });
+    await transaction.done;
 }
 
 export async function listOfflineSongRecords(): Promise<OfflineSongRecord[]> {

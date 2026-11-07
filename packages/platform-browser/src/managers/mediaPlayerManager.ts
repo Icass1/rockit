@@ -802,7 +802,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         kind: TMediaKind
     ): Promise<string | undefined> {
         if (kind === "audio" && isSong(media)) {
-            const offlineUrl = await resolveOfflineAudioUrl(media.publicId);
+            const offlineUrl = await resolveOfflineAudioUrl(
+                media.publicId
+            ).catch(() => null);
             if (offlineUrl) return offlineUrl;
 
             return getMediaAudioUrl(media);
@@ -1053,7 +1055,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
         let uri: string | undefined;
         if (isSong(next.media)) {
-            const offline = await resolveOfflineAudioUrl(next.media.publicId);
+            const offline = await resolveOfflineAudioUrl(
+                next.media.publicId
+            ).catch(() => null);
             if (offline) uri = offline;
         }
         if (!uri) uri = getMediaAudioUrl(next.media);

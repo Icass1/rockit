@@ -26,6 +26,8 @@ import {
     ListStart,
     Music,
     Pencil,
+    Pin,
+    PinOff,
     Play,
     PlusCircle,
     Radio,
@@ -276,10 +278,16 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                             if (isSong(media))
                                 localPath = await mediaStorage.downloadSong(
                                     media.publicId,
-                                    url
+                                    url,
+                                    media.imageUrl,
+                                    media.name
                                 );
 
                             if (localPath) {
+                                EventManager.getInstance().dispatchEvent(
+                                    EEvent.MediaDownloaded,
+                                    { publicId: media.publicId }
+                                );
                                 toasterManager.notifySuccess(
                                     vocabulary.MEDIA_ADDED_TO_LIBRARY
                                 );
@@ -335,6 +343,26 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                         } else {
                             toasterManager.notifyError(response.message);
                         }
+                    },
+                });
+            }
+
+            if (
+                !isSearchResult(media) &&
+                ["album", "playlist", "artist"].includes(media.type)
+            ) {
+                const pinned = rockIt.navigationPinsManager.pinsAtom
+                    .get()
+                    .some((pin) => pin.publicId === media.publicId);
+                options.push({
+                    label: pinned ? vocabulary.NAV_UNPIN : vocabulary.NAV_PIN,
+                    icon: pinned ? PinOff : Pin,
+                    onPress: () => {
+                        hide();
+                        void rockIt.navigationPinsManager.setPinnedAsync(
+                            media.publicId,
+                            !pinned
+                        );
                     },
                 });
             }
@@ -444,7 +472,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     media.publicId
                 );
             else handlePlay(media, getAllPlayableMedia(allMedia));
-        } else if (isList(media)) {
+        } else if (isList(media) || media.type === "artist") {
             router.push(media.url);
         }
     }, [

@@ -24,3 +24,5 @@ export class VocabularyManager {
         return this._vocabularyAtom.getReadonlyAtom();
     }
 }
+
+export const vocabularyManager = new VocabularyManager();

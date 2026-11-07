@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import { useStore } from "@nanostores/react";
 import {
     EQueueType,
@@ -6,7 +7,6 @@ import {
     isVideo,
     type TQueueMedia,
 } from "@rockit/shared";
-import type { VideoPlayer } from "expo-video";
 import {
     DEFAULT_CROSSFADE,
     type CrossfadeSettings,
@@ -32,7 +32,6 @@ interface PlayerContextType {
     repeatMode: ERepeatMode;
     crossfadeSettings: CrossfadeSettings;
     updateCrossfadeSettings: (s: Partial<CrossfadeSettings>) => void;
-    videoPlayer: VideoPlayer | null;
     videoOpacity: number;
     hasVideo: boolean;
     audioOnly: boolean;
@@ -63,41 +62,53 @@ interface PlayerContextType {
  * play it would fall through to the queue's skip-to-next logic and start a
  * different (previous) track, so we reject it up-front and warn the user.
  */
-function isPlayableSource(media: TQueueMedia): boolean {
+function isPlayableSource(
+    media: TQueueMedia,
+    services: typeof rockIt
+): boolean {
     if (isDownloadable(media) && media.downloaded !== true) {
-        rockIt.notificationManager.notifyWarn(
-            rockIt.vocabularyManager.vocabulary.MEDIA_NOT_DOWNLOADED
+        services.notificationManager.notifyWarn(
+            services.vocabularyManager.vocabulary.MEDIA_NOT_DOWNLOADED
         );
         return false;
     }
     return true;
 }
 
-/**
- * The player is now a set of nanostores-backed singleton managers (shared with
- * web). This provider is a pass-through kept for compatibility with the
- * existing layout tree; the hooks below read the singleton managers directly.
- */
-export function PlayerProvider({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+const PlayerServices = createContext<typeof rockIt | null>(null);
+
+export function PlayerProvider({
+    children,
+    services = rockIt,
+}: {
+    children: React.ReactNode;
+    services?: typeof rockIt;
+}) {
+    return <PlayerServices value={services}>{children}</PlayerServices>;
+}
+
+function usePlayerServices() {
+    const services = useContext(PlayerServices);
+    if (!services) throw new Error("PlayerProvider is required");
+    return services;
 }
 
 export function usePlayer(): PlayerContextType {
-    const currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const queueItems = useStore(rockIt.queueManager.queueAtom);
-    const sortedItems = useStore(rockIt.queueManager.sortedQueueAtom);
+    const services = usePlayerServices();
+    const currentMedia = useStore(services.queueManager.currentMediaAtom);
+    const queueItems = useStore(services.queueManager.queueAtom);
+    const sortedItems = useStore(services.queueManager.sortedQueueAtom);
     const currentQueueMediaId = useStore(
-        rockIt.queueManager.currentQueueMediaIdAtom
+        services.queueManager.currentQueueMediaIdAtom
     );
-    const isPlaying = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const isLoading = useStore(rockIt.mediaPlayerManager.loadingAtom);
-    const isPlayerVisible = useStore(rockIt.playerUIManager.visibleAtom);
-    const queueType = useStore(rockIt.userManager.queueTypeAtom);
-    const repeatMode = useStore(rockIt.userManager.repeatModeAtom);
-    const videoPlayer = useStore(rockIt.mediaPlayerManager.videoPlayerAtom);
-    const audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
+    const isPlaying = useStore(services.mediaPlayerManager.playingAtom);
+    const isLoading = useStore(services.mediaPlayerManager.loadingAtom);
+    const isPlayerVisible = useStore(services.playerUIManager.visibleAtom);
+    const queueType = useStore(services.userManager.queueTypeAtom);
+    const repeatMode = useStore(services.userManager.repeatModeAtom);
+    const audioOnly = useStore(services.mediaPlayerManager.audioOnlyAtom);
     const crossfadeSettings = useStore(
-        rockIt.mediaPlayerManager.crossfadeSettingsAtom
+        services.mediaPlayerManager.crossfadeSettingsAtom
     );
 
     const queue = queueItems.map((i) => i.media);
@@ -107,7 +118,7 @@ export function usePlayer(): PlayerContextType {
     );
     const hasVideo = currentMedia ? isVideo(currentMedia) && !audioOnly : false;
     const canToggleAudioOnly =
-        rockIt.mediaPlayerManager.canPlayAudioOnly(currentMedia);
+        services.mediaPlayerManager.canPlayAudioOnly(currentMedia);
 
     return {
         currentMedia,
@@ -121,76 +132,76 @@ export function usePlayer(): PlayerContextType {
         repeatMode,
         crossfadeSettings: crossfadeSettings ?? DEFAULT_CROSSFADE,
         updateCrossfadeSettings: (s) =>
-            rockIt.mediaPlayerManager.updateCrossfadeSettings(s),
-        videoPlayer,
+            services.mediaPlayerManager.updateCrossfadeSettings(s),
         videoOpacity: hasVideo ? 1 : 0,
         hasVideo,
         audioOnly,
         canToggleAudioOnly,
-        toggleAudioOnly: () => rockIt.mediaPlayerManager.toggleAudioOnly(),
+        toggleAudioOnly: () => services.mediaPlayerManager.toggleAudioOnly(),
 
         playMedia: async (media, newQueue) => {
-            if (!isPlayableSource(media)) return;
-            rockIt.queueManager.setMedia(newQueue, media.publicId);
+            if (!isPlayableSource(media, services)) return;
+            services.queueManager.setMedia(newQueue, media.publicId);
             const idx = newQueue.findIndex(
                 (m) => m.publicId === media.publicId
             );
-            rockIt.queueManager.setQueueMediaId(idx >= 0 ? idx : 0);
-            rockIt.mediaPlayerManager.play();
+            services.queueManager.setQueueMediaId(idx >= 0 ? idx : 0);
+            services.mediaPlayerManager.play();
         },
         playNext: async (media, newQueue) => {
-            if (!isPlayableSource(media)) return;
-            rockIt.queueManager.setMedia(newQueue, media.publicId);
+            if (!isPlayableSource(media, services)) return;
+            services.queueManager.setMedia(newQueue, media.publicId);
             const idx = newQueue.findIndex(
                 (m) => m.publicId === media.publicId
             );
-            rockIt.queueManager.setQueueMediaId(idx >= 0 ? idx : 0);
-            rockIt.mediaPlayerManager.play();
+            services.queueManager.setQueueMediaId(idx >= 0 ? idx : 0);
+            services.mediaPlayerManager.play();
         },
         pause: async () => {
-            rockIt.mediaPlayerManager.pause();
+            services.mediaPlayerManager.pause();
         },
         play: async () => {
-            rockIt.mediaPlayerManager.play();
+            services.mediaPlayerManager.play();
         },
         togglePlayPause: async () => {
-            rockIt.mediaPlayerManager.togglePlayPause();
+            services.mediaPlayerManager.togglePlayPause();
         },
         seekTo: async (seconds) => {
-            rockIt.mediaPlayerManager.setCurrentTime(seconds, true);
+            services.mediaPlayerManager.setCurrentTime(seconds, true);
         },
         skipForward: async () => {
-            rockIt.queueManager.skipForward();
+            services.queueManager.skipForward();
         },
         skipBack: async () => {
-            rockIt.queueManager.skipBack();
+            services.queueManager.skipBack();
         },
-        toggleRandomQueue: () => rockIt.userManager.toggleRandomQueue(),
-        cycleRepeat: () => rockIt.userManager.cycleRepeatMode(),
+        toggleRandomQueue: () => services.userManager.toggleRandomQueue(),
+        cycleRepeat: () => services.userManager.cycleRepeatMode(),
         removeFromQueue: (index) => {
-            const item = rockIt.queueManager.queue[index];
-            if (item) rockIt.queueManager.removeMediaFromQueue(item.media);
+            const item = services.queueManager.queue[index];
+            if (item) services.queueManager.removeMediaFromQueue(item.media);
         },
         reorderQueue: (fromIndex, toIndex) =>
-            rockIt.queueManager.reorderQueue(fromIndex, toIndex),
+            services.queueManager.reorderQueue(fromIndex, toIndex),
         addToQueueEnd: (media) => {
             const items = Array.isArray(media) ? media : [media];
-            items.forEach((m) => rockIt.queueManager.addMediaToEnd(m));
+            items.forEach((m) => services.queueManager.addMediaToEnd(m));
         },
         addToQueueNext: (media) => {
             const items = Array.isArray(media) ? media : [media];
             // Insert in reverse so the first item ends up immediately next.
             [...items]
                 .reverse()
-                .forEach((m) => rockIt.queueManager.addMediaNext(m));
+                .forEach((m) => services.queueManager.addMediaNext(m));
         },
-        showPlayer: () => rockIt.playerUIManager.show(),
-        hidePlayer: () => rockIt.playerUIManager.hide(),
+        showPlayer: () => services.playerUIManager.show(),
+        hidePlayer: () => services.playerUIManager.hide(),
     };
 }
 
 export function usePlayerTime(): PlayerTimeContextType {
-    const currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const duration = useStore(rockIt.mediaPlayerManager.durationAtom);
+    const services = usePlayerServices();
+    const currentTime = useStore(services.mediaPlayerManager.currentTimeAtom);
+    const duration = useStore(services.mediaPlayerManager.durationAtom);
     return { currentTime, duration };
 }

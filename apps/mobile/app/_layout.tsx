@@ -1,79 +1,54 @@
 import { useEffect } from "react";
-import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { hideSplash, initializePlatform } from "@/platform/bootstrap";
+import { useDesignTheme } from "@rockit/ui";
 import { Stack } from "expo-router";
-import * as ScreenOrientation from "expo-screen-orientation";
-import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { PlayerProvider } from "@/lib/PlayerContext";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { mediaStorage } from "@/lib/storage/mediaStorage";
-import { syncManager } from "@/lib/syncManager";
 import { VocabularyProvider } from "@/lib/vocabulary";
-import { webSocketManager } from "@/lib/webSocketManager";
+import { DesignProvider } from "@/components/providers/DesignProvider";
 import { Toaster } from "@/components/Toaster/Toaster";
-
-SplashScreen.preventAutoHideAsync();
-
-const RockItTheme = {
-    ...DarkTheme,
-    colors: {
-        ...DarkTheme.colors,
-        background: "#0b0b0b",
-        card: "#0b0b0b",
-    },
-};
 
 export default function RootLayout() {
     useEffect(() => {
-        if (Platform.OS !== "web") {
-            void ScreenOrientation.lockAsync(
-                ScreenOrientation.OrientationLock.PORTRAIT_UP
-            ).catch(() => {});
-        }
-        async function init() {
-            try {
-                await mediaStorage.init();
-                await syncManager.init();
-                await webSocketManager.init();
-                await rockIt.init();
-            } catch (e) {
-                console.error("Initialization error:", e);
-            } finally {
-                SplashScreen.hideAsync();
-            }
-        }
-        init();
+        void initializePlatform()
+            .catch((error) =>
+                console.error("Platform initialization failed", error)
+            )
+            .finally(() => hideSplash());
     }, []);
 
     return (
-        <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0b0b0b" }}>
-            <SafeAreaProvider>
-                <VocabularyProvider>
-                    <ThemeProvider value={RockItTheme}>
-                        <StatusBar style="light" />
-                        <PlayerProvider>
-                            <Toaster />
-                            <Stack
-                                screenOptions={{
-                                    headerShown: false,
-                                    contentStyle: {
-                                        backgroundColor: "#0b0b0b",
-                                    },
-                                }}
-                            >
-                                <Stack.Screen name="(app)" />
-                                <Stack.Screen name="(auth)" />
-                                <Stack.Screen name="stats" />
-                                <Stack.Screen name="logs" />
-                                <Stack.Screen name="storage" />
-                            </Stack>
-                        </PlayerProvider>
-                    </ThemeProvider>
-                </VocabularyProvider>
-            </SafeAreaProvider>
+        <SafeAreaProvider>
+            <VocabularyProvider>
+                <DesignProvider>
+                    <RootNavigator />
+                </DesignProvider>
+            </VocabularyProvider>
+        </SafeAreaProvider>
+    );
+}
+
+function RootNavigator() {
+    const theme = useDesignTheme();
+    return (
+        <GestureHandlerRootView
+            style={{ flex: 1, backgroundColor: theme.colors.background }}
+        >
+            <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
+            <Toaster />
+            <Stack
+                screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: theme.colors.background },
+                }}
+            >
+                <Stack.Screen name="(app)" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="stats" />
+                <Stack.Screen name="logs" />
+                <Stack.Screen name="storage" />
+            </Stack>
         </GestureHandlerRootView>
     );
 }

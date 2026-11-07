@@ -1,5 +1,6 @@
 import {
     BaseSongWithAlbumResponse,
+    buildRecommendationQueue,
     HomeStatsResponseSchema,
     MediaResponse,
     mixHomeRecommendations,
@@ -7,8 +8,9 @@ import {
 import { Http } from "@/lib/http";
 import useFetch from "@/lib/useFetch";
 
-const fetchLocalRecommendations = () =>
-    Http.getRecommendationsForYou(20, false);
+async function fetchRecommendations() {
+    return Http.getRecommendationsForYou(20, true);
+}
 
 export interface HomeData {
     songsByTimePlayed: BaseSongWithAlbumResponse[];
@@ -57,11 +59,21 @@ function transformStats(
 
 export function useHomeData() {
     const { data, loading, error } = useFetch(Http.getHomeStats);
-    const { data: localRecommendations } = useFetch(fetchLocalRecommendations);
-    const { data: externalRecommendations } = useFetch(
-        Http.getRecommendationsForYou
-    );
-    const recommendations = externalRecommendations ?? localRecommendations;
+    const { data: response } = useFetch(fetchRecommendations);
+    const selected = response
+        ? buildRecommendationQueue(response, new Set())
+        : [];
+    const recommendations = response
+        ? {
+              ...response,
+              songs: selected.flatMap((entry) =>
+                  entry.kind === "song" ? [entry.song] : []
+              ),
+              discover: selected.flatMap((entry) =>
+                  entry.kind === "discover" ? [entry.item] : []
+              ),
+          }
+        : undefined;
 
     if (!data || loading || error) {
         return {

@@ -26,9 +26,12 @@ export function useArtworkCandidate(
     useEffect(() => {
         if (!enabled || !needsLookup || !provider || !artist || !track) return;
         let cancelled = false;
-        void resolver.resolveAsync(provider, artist, track).then((url) => {
-            if (!cancelled && url) setResolved({ key, url });
-        });
+        void resolver
+            .resolveAsync(provider, artist, track)
+            .then((url) => {
+                if (!cancelled && url) setResolved({ key, url });
+            })
+            .catch(() => {});
         return () => {
             cancelled = true;
         };

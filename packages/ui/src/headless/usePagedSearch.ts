@@ -8,14 +8,17 @@ import type {
 } from "@rockit/shared";
 
 /** One bounded page at a time; obsolete queries and accounts cannot publish. */
-export function usePagedSearch<T extends { publicId: string }>(
+export function usePagedSearch<
+    T extends { publicId: string },
+    Metadata = undefined,
+>(
     input: PagedSearchRequest,
     fetchPage: (
         query: string,
         offset: number,
         sort: string
-    ) => Promise<PagedSearchResult<T>>
-): PagedSearchState<T> {
+    ) => Promise<PagedSearchResult<T, Metadata>>
+): PagedSearchState<T, Metadata> {
     const { scope, sort, revision, enabled } = input;
     const query = input.query.trim();
     const request = useMemo(
@@ -34,7 +37,7 @@ export function usePagedSearch<T extends { publicId: string }>(
     );
     const [snapshot, setSnapshot] = useState<{
         request: typeof request;
-        value: PagedSearchResult<T>;
+        value: PagedSearchResult<T, Metadata>;
     }>();
     const [completed, setCompleted] = useState<{
         batch: typeof batch;
@@ -91,6 +94,7 @@ export function usePagedSearch<T extends { publicId: string }>(
     }, [request, batch, active, offset, fetchPage]);
 
     return {
+        metadata: value?.metadata,
         items: value?.items ?? [],
         total: value?.total ?? 0,
         nextOffset: value?.nextOffset ?? 0,

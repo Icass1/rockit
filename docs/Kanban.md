@@ -9,38 +9,42 @@
 - workload: Easy
 - defaultExpanded: false
 
+### [CONTEXT MENU] Añadir redownload para albumes completos en youtube music
+
+- defaultExpanded: false
+    ```md
+    Actuyalmente solo se pueden redescvargar canciones individuales estaria genial porder redescarar albumer completos
+    ```
+
+### [PIP] Mejorar header de picture in pricture para ahcerlos como el de spotify
+
+- priority: medium
+- workload: Normal
+- defaultExpanded: true
+    ```md
+    En el formato vertical es muy sencillo es un boton rojo y 6 ountos para el grab y el modo horizontal reducido esta a la izquierda con el circulo rojoa ala izquierda. Aprovechar y revisar esos modos ultrareducidos y pequeños apra que se vean bien, los tamaños normales se ven perfectos pero lso que son ultrafinos o ultraestrechoc on ñla otra dimenson alargada no estan bien en rockit (Copiar el de spotify a nuestro estilo):
+    https://ca.v-cdn.net/6038735/uploads/images/170591iD8205BD23A7FD00F/Amayy_0-1710942636526.jpeg
+    ```
+
 ## In Progress
-
-## Idle
-
-## To Review
 
 ### [DOWNLOADS] Admitir colaboradores adicionales en el catálogo musical
 
 - tags: [backend, youtube, youtubeMusic, downloads, bug]
 - priority: high
 - workload: Easy
+- defaultExpanded: false
     ```md
     Corregido el rechazo de grabaciones cuyo catálogo acredita colaboradores ausentes en los metadatos de origen. Todos los artistas conocidos deben seguir presentes; coincidencia parcial, artistas ajenos, videoclips y versiones incompatibles siguen rechazados. Extracción y persistencia conservan todos los créditos de artista; enlaces por lotes e idempotentes también al recibir metadatos de canciones existentes. Regresión con los metadatos del log de Fever (Dua Lipa / Angèle), sin descargas ni cambios de almacenamiento. Pendiente de revisión del usuario. Ver docs/SONG_RECORDING_SELECTION.md.
+
+    Falta mostrar todos lso cpolaboradores en als cancioens de youtube music tanto men el album playlist como en el footer cuiando se reproduce la cancion
     ```
 
-### [RECOMMENDATIONS] Portadas fiables y prioridad de recomendaciones externas
+## Idle
 
-- tags: [frontend, backend, recommendations, artwork, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Las recomendaciones conservan las portadas de canciones resueltas por lotes y las imágenes válidas que aporte el provider. Placeholder local para imágenes ausentes o rotas. Last.fm filtra sus placeholders dentro de su provider; core conserva metadatos genéricos sin imports concretos. Las recomendaciones externas sustituyen las locales cuando hay resultados; Rockit queda como respaldo ante ausencia o fallo. Las portadas ausentes se buscan con track.getInfo al entrar en pantalla, con caché por canción, peticiones compartidas y máximo dos consultas simultáneas. No bloquea las recomendaciones ni cambia almacenamiento. Revisión dirigida en Chromium con respuestas controladas y regresiones para CI. Pendiente de revisión del usuario. Ver docs/PIP_RECOMMENDATION_SCROLL.md.
-    ```
+## To Review
 
-### [PIP] Mantener el giro del vinilo al minimizar el navegador
-
-- tags: [frontend, pip, animation, bug]
-- priority: medium
-- workload: Easy
-    ```md
-    El vinilo usa el reloj de animación y la cancelación de la ventana que contiene el disco, incluida la ventana PiP, conservando aceleración y parada suave. Comparación dirigida en Chromium con el reloj principal suspendido; regresiones para CI. No cambia reproducción ni transiciones de audio. Pendiente de revisión en Vivaldi minimizado. Ver docs/PIP_RECOMMENDATION_SCROLL.md.
-    ```
+## Done
 
 ### [PLAYER] Estabilizar el scroll de recomendaciones bajo la cola
 
@@ -49,17 +53,6 @@
 - workload: Normal
     ```md
     El virtualizador limita los índices al tamaño real de la cola para que el espacio no crezca al bajar a las recomendaciones. Se conserva la altura natural de recomendaciones y se respeta el scroll manual con puntero/teclado. Comparación dirigida con componentes reales en Chromium: mismas 80 recomendaciones y altura estable, sin solicitudes adicionales; regresiones para CI, sin suites locales. Pendiente de revisión del usuario. Ver docs/PIP_RECOMMENDATION_SCROLL.md.
-    ```
-
-### [NAVIGATION] Anclar álbumes, playlists y artistas
-
-- tags: [frontend, backend, navigation, pins, ui]
-- priority: medium
-- workload: Normal
-    ```md
-    Implementado en feat/navigation-pins: persistencia personal e idempotente con tablas propias creadas por el arranque existente; permisos actuales, resúmenes e imágenes por lotes, sin expandir colecciones. Menús y barra lateral con estados vacíos, teclado, scroll y movimiento reducido. Contratos generados y traducciones en/es/fr en Vocabulary.xlsx. Revisión dirigida en Chromium con 11 comprobaciones y HTTP simulado; regresiones para CI, sin suites locales. Ver docs/NAVIGATION_PINS.md. Revisado según feedback: acciones solo en context menu, nombres Anclados/Anclar/Desanclar, cinco listas dinámicas de Rockit soportadas y tres iniciales solo para usuarios nuevos, sin reponer las que se quitan. Menús con clic derecho, pulsación larga y Mayús+F10; cierre de Chromium corregido. Pendiente de revisión del usuario.
-
-    Anclados por usuario para álbumes, playlists y artistas; no canciones. Acción de anclar/desanclar en menú contextual. Navegación izquierda limpia cuando está vacía; si hay anclados, divisor horizontal recortado, icono Pin de Lucide y accesos con portadas cuadradas redondeadas o avatares circulares para artistas. Al pulsar se abre el elemento sin reproducirlo. Persistencia entre sesiones/dispositivos, permisos y carga ligera por lotes. Textos en Vocabulary.xlsx en todos los idiomas existentes.
     ```
 
 ### [LIBRARY] Buscar y reproducir canciones dentro de álbumes y playlists
@@ -74,7 +67,16 @@
     Resolverlo de forma ligera, evitando cargar todos los álbumes y sus pistas en el cliente o lanzar una petición por álbum en cada búsqueda. Conservar los resultados actuales de álbumes y listas y evitar duplicados de canciones.
     ```
 
-## Done
+### [NAVIGATION] Anclar álbumes, playlists y artistas
+
+- tags: [frontend, backend, navigation, pins, ui]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en feat/navigation-pins: persistencia personal e idempotente con tablas propias creadas por el arranque existente; permisos actuales, resúmenes e imágenes por lotes, sin expandir colecciones. Menús y barra lateral con estados vacíos, teclado, scroll y movimiento reducido. Contratos generados y traducciones en/es/fr en Vocabulary.xlsx. Revisión dirigida en Chromium con 11 comprobaciones y HTTP simulado; regresiones para CI, sin suites locales. Ver docs/NAVIGATION_PINS.md. Revisado según feedback: acciones solo en context menu, nombres Anclados/Anclar/Desanclar, cinco listas dinámicas de Rockit soportadas y tres iniciales solo para usuarios nuevos, sin reponer las que se quitan. Menús con clic derecho, pulsación larga y Mayús+F10; cierre de Chromium corregido. Pendiente de revisión del usuario.
+
+    Anclados por usuario para álbumes, playlists y artistas; no canciones. Acción de anclar/desanclar en menú contextual. Navegación izquierda limpia cuando está vacía; si hay anclados, divisor horizontal recortado, icono Pin de Lucide y accesos con portadas cuadradas redondeadas o avatares circulares para artistas. Al pulsar se abre el elemento sin reproducirlo. Persistencia entre sesiones/dispositivos, permisos y carga ligera por lotes. Textos en Vocabulary.xlsx en todos los idiomas existentes.
+    ```
 
 ### [LIBRARY] Investigar tiempo de carga
 
@@ -85,6 +87,24 @@
     - [x] Confirmar con Ignacio si la library tarda un segundo en cargar
     ```md
     Cerrada tras la confirmación de Ignacio: la Library carga correctamente. No se requiere investigar ni modificar; la demora observada pudo corresponder a la primera carga.
+    ```
+
+### [PIP] Mantener el giro del vinilo al minimizar el navegador
+
+- tags: [frontend, pip, animation, bug]
+- priority: medium
+- workload: Easy
+    ```md
+    El vinilo usa el reloj de animación y la cancelación de la ventana que contiene el disco, incluida la ventana PiP, conservando aceleración y parada suave. Comparación dirigida en Chromium con el reloj principal suspendido; regresiones para CI. No cambia reproducción ni transiciones de audio. Pendiente de revisión en Vivaldi minimizado. Ver docs/PIP_RECOMMENDATION_SCROLL.md.
+    ```
+
+### [RECOMMENDATIONS] Portadas fiables y prioridad de recomendaciones externas
+
+- tags: [frontend, backend, recommendations, artwork, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Las recomendaciones conservan las portadas de canciones resueltas por lotes y las imágenes válidas que aporte el provider. Placeholder local para imágenes ausentes o rotas. Last.fm filtra sus placeholders dentro de su provider; core conserva metadatos genéricos sin imports concretos. Las recomendaciones externas sustituyen las locales cuando hay resultados; Rockit queda como respaldo ante ausencia o fallo. Las portadas ausentes se buscan con track.getInfo al entrar en pantalla, con caché por canción, peticiones compartidas y máximo dos consultas simultáneas. No bloquea las recomendaciones ni cambia almacenamiento. Revisión dirigida en Chromium con respuestas controladas y regresiones para CI. Pendiente de revisión del usuario. Ver docs/PIP_RECOMMENDATION_SCROLL.md.
     ```
 
 ### [LIBRARY] Centrar botón library y arreglar random

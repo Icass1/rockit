@@ -1,5 +1,5 @@
 import type { RecommendationArtworkCacheEntry } from "@/models/interfaces/recommendationArtworkCache";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { Http } from "@/lib/api/browser";
 
 /** Visible covers only, with two requests at a time and shared in-flight results. */
 export class RecommendationArtworkManager {
@@ -37,7 +37,7 @@ export class RecommendationArtworkManager {
             await new Promise<void>((resolve) => this.waiting.push(resolve));
         else this.active++;
         try {
-            const response = await rockIt.http.getRecommendationArtwork(
+            const response = await Http.getRecommendationArtwork(
                 provider,
                 artist,
                 track

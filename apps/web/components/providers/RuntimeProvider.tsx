@@ -12,6 +12,7 @@ import type { SessionResponse } from "@/dto";
 import type { RuntimeServices } from "@/models/interfaces/runtimeServices";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { ConnectionLifecycle } from "@/lib/runtime/connectionLifecycle";
+import { RecommendationArtworkProvider } from "@/components/providers/RecommendationArtworkProvider";
 
 const RuntimeContext = createContext<RuntimeServices | undefined>(undefined);
 
@@ -37,7 +38,13 @@ export function RuntimeProvider({
         });
         return () => lifecycle.stop();
     }, [lifecycle]);
-    return <RuntimeContext value={services}>{children}</RuntimeContext>;
+    return (
+        <RuntimeContext value={services}>
+            <RecommendationArtworkProvider>
+                {children}
+            </RecommendationArtworkProvider>
+        </RuntimeContext>
+    );
 }
 
 export function useRuntimeServices(): RuntimeServices {

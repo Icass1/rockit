@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 import Image from "next/image";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useRecommendationArtwork } from "@/components/providers/RecommendationArtworkProvider";
 
 /** Resolve missing album artwork lazily; failures keep a bundled public asset. */
 export default function RecommendationArtwork({
@@ -22,6 +22,7 @@ export default function RecommendationArtwork({
     artist?: string;
     track?: string;
 }): JSX.Element {
+    const artwork = useRecommendationArtwork();
     const imageRef = useRef<HTMLImageElement>(null);
     const [visible, setVisible] = useState(false);
     const [failedImages, setFailedImages] = useState<string[]>([]);
@@ -57,19 +58,17 @@ export default function RecommendationArtwork({
     useEffect(() => {
         if (!visible || !needsLookup || !provider || !artist || !track) return;
         let active = true;
-        void rockIt.recommendationArtworkManager
-            .resolveAsync(provider, artist, track)
-            .then((url) => {
-                if (active && url)
-                    setResolvedImages((images) => ({
-                        ...images,
-                        [identity]: url,
-                    }));
-            });
+        void artwork.resolveAsync(provider, artist, track).then((url) => {
+            if (active && url)
+                setResolvedImages((images) => ({
+                    ...images,
+                    [identity]: url,
+                }));
+        });
         return (): void => {
             active = false;
         };
-    }, [visible, needsLookup, provider, artist, track, identity]);
+    }, [visible, needsLookup, provider, artist, track, identity, artwork]);
 
     return (
         <Image

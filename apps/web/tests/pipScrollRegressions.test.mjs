@@ -20,13 +20,13 @@ const { outputFiles } = await build({
         {
             name: "artwork-http-boundary",
             setup(builder) {
-                builder.onResolve(
-                    { filter: /^@\/lib\/rockit\/rockIt$/ },
-                    () => ({ path: "rockit", namespace: "fixture" })
-                );
+                builder.onResolve({ filter: /^@\/lib\/api\/browser$/ }, () => ({
+                    path: "rockit",
+                    namespace: "fixture",
+                }));
                 builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({
                     contents:
-                        "export const rockIt = new Proxy({}, {get: (_, key) => globalThis.artworkFixture[key]});",
+                        "export const Http = new Proxy({}, {get: (_, key) => globalThis.artworkFixture.http[key]});",
                     loader: "js",
                 }));
             },

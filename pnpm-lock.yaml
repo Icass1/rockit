@@ -67,6 +67,9 @@ importers:
       '@rockit/theme':
         specifier: workspace:*
         version: link:../../packages/theme
+      '@rockit/platform-browser':
+        specifier: workspace:*
+        version: link:../../packages/platform-browser
       '@rockit/shared':
         specifier: workspace:^
         version: link:../../packages/shared
@@ -209,6 +212,9 @@ importers:
       '@rockit/theme':
         specifier: workspace:*
         version: link:../../packages/theme
+      '@rockit/platform-browser':
+        specifier: workspace:*
+        version: link:../../packages/platform-browser
       '@rockit/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -323,9 +329,6 @@ importers:
       nanostores:
         specifier: ^0.11.3
         version: 0.11.4
-      next:
-        specifier: ^15.1.0
-        version: 15.5.13(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       zod:
         specifier: ^4.1.13
         version: 4.1.13
@@ -348,6 +351,26 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+
+  packages/platform-browser:
+    dependencies:
+      '@rockit/shared':
+        specifier: workspace:*
+        version: link:../shared
+      idb:
+        specifier: ^8.0.3
+        version: 8.0.3
+      nanostores:
+        specifier: ^0.11.3
+        version: 0.11.4
+      zod:
+        specifier: ^4.1.13
+        version: 4.1.13
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.19.15
+
 
   packages/theme: {}
 

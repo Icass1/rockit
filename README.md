@@ -199,6 +199,7 @@ The Compose stack includes a YouTube proof-of-origin token provider. Backend vol
 | [Contributing](CONTRIBUTING.md)                                                                                                            | Development conventions, checks, and pull requests |
 | [Project board](docs/Kanban.md)                                                                                                            | Work planned and awaiting review                   |
 | [Web architecture](docs/web-guide.md) · [Backend architecture](docs/backend-guide.md)                                                      | How the applications fit together                  |
+| [Desktop and universal mobile architecture](docs/FRONTEND_PLATFORM_ARCHITECTURE.md)                                                       | Proposed shared core, UI and platform boundaries    |
 | [Library search](docs/LIBRARY_SONG_SEARCH.md) · [Drag and drop](docs/LIBRARY_DRAG_DROP.md) · [Navigation anchors](docs/NAVIGATION_PINS.md) | Finding and organizing your collection             |
 | [Lyrics](docs/LYRICS_MATCHING.md) · [Recording selection](docs/SONG_RECORDING_SELECTION.md)                                                | Matching the right words and the right recording   |
 | [Recommendations](docs/RECOMMENDATIONS.md) · [Friends and listening sessions](docs/listen-together.md)                                     | Discovery and shared listening                     |

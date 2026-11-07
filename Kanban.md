@@ -2,6 +2,49 @@
 
 ## To Do
 
+### [PIP] Pulsar en la cover / vinilo se pausa con al misma animacion que en el playerui
+
+- tags: [frontend, pip, vynil]
+- priority: medium
+- workload: Easy
+- defaultExpanded: false
+
+## In Progress
+
+## Idle
+
+## To Review
+
+## Done
+
+### [LIBRARY] Centrar botón library y arreglar random
+
+- tags: [frontend, library, queue, bug, ui, kb-06]
+- priority: high
+- workload: Normal
+- defaultExpanded: false
+- steps:
+    - [x] Centrar verticalmente el botón de library
+    - [x] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
+    - [x] Random sigue siendo raro empeza muy abajo en la cola en vez de empezar en el principio, i que aparece ezclado pero random en la cola, deberis ser que la cola se ordene de una manera distinta cada vez que s ele de al play y empezar por la primera cancion
+    ```md
+    Revisión: Random resuelve toda la biblioteca, mezcla las pistas reproducibles y arranca en la primera posición visible de la cola; elimina la segunda selección aleatoria que saltaba a mitad de lista. Cada nueva reproducción reconstruye la mezcla. Reproducción ordenada progresiva conservada. Pendiente de revisión; sin tests locales.
+
+    Centrado reforzado con grid y sin padding ni baseline de texto. Verificado en Chromium: iconos play y pause con desplazamiento vertical de 0 px dentro del círculo. Random implementado: se resuelven álbumes y playlists antes de seleccionar la primera canción aleatoria, para que no salga siempre del grupo de canciones sueltas. La reproducción ordenada conserva el arranque progresivo. Las acciones sobre otra cola cancelan la carga pendiente. Pendiente de revisión integrada; sin tests locales.
+
+    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
+    ```
+
+### [UX] Guardar Volumen en BBDD
+
+- tags: [frontend, ux, volume]
+- priority: low
+- workload: Normal
+- defaultExpanded: false
+    ```md
+    Para frontend web Guardar el volumen del usuario en nuestra base de datos por cada usuario. Cuando el usuario ajuste el volumen, se guardará en la base de datos. Y luego, cuando el usuario salga de la página y vuelva a entrar, se cargará desde la base de datos. Hay una excepción: cuando el usuario cargue la web del móvil, es decir, la PWA de iOS, el volumen siempre será el 100%. Da igual lo que haya en la base de datos; no se guardará ni se cargará de ahí. Solo con esa excepción.
+    ```
+
 ### [LYRICS] Mejorar detección y asignación de lyrics
 
 - tags: [frontend, backend, lyrics, matching]
@@ -20,8 +63,6 @@
     Al pinchar y arrastrar canciones en la library hacia las listas, mostrar un "+" y permitir añadirlas.
     ```
 
-## In Progress
-
 ### [DOWNLOADS] Descargar solo música y no videoclips
 
 - tags: [backend, downloads, spotdl, ytdlp]
@@ -32,31 +73,6 @@
     Hacer que yt-dlp descargue solo música que no sean videoclips. Ajustar la búsqueda.
     ```
 
-### [UX] Guardar Volumen en BBDD
-
-- tags: [frontend, ux, volume]
-- priority: low
-- workload: Normal
-- defaultExpanded: false
-    ```md
-    Para frontend web Guardar el volumen del usuario en nuestra base de datos por cada usuario. Cuando el usuario ajuste el volumen, se guardará en la base de datos. Y luego, cuando el usuario salga de la página y vuelva a entrar, se cargará desde la base de datos. Hay una excepción: cuando el usuario cargue la web del móvil, es decir, la PWA de iOS, el volumen siempre será el 100%. Da igual lo que haya en la base de datos; no se guardará ni se cargará de ahí. Solo con esa excepción.
-    ```
-
-## Idle
-
-### [LIBRARY] Investigar tiempo de carga
-
-- tags: [frontend, library, performance, kb-07]
-- priority: medium
-- workload: Easy
-- steps:
-    - [ ] Confirmar con Ignacio si la library tarda un segundo en cargar
-    ```md
-    Aparcada por indicación de Ignacio. No investigar ni modificar por ahora.
-    ```
-
-## To Review
-
 ### [HEADER] Intensidad gradual de la llama de racha
 
 - tags: [frontend, header, streak, ui]
@@ -65,6 +81,22 @@
     ```md
     SVG de llama con gradiente continuo de amarillo tenue a naranja, centro más luminoso y halo creciente entre 1 y 30 días. A partir de 30 días se mantiene la intensidad máxima y el contador sigue mostrando los días reales. Tamaño fijo de 28 px, sin animaciones continuas y con alternativa para contraste alto/colores forzados. Vocabulary existente. Solo interfaz web; sin cambios de backend, almacenamiento ni S3.
     Capturas de revisión en escritorio y móvil con 1, 3, 7, 14, 21, 30 y 60 días. Sin suites locales. Pendiente de revisión del usuario.
+    ```
+
+### [HOME] Añadir context menu a las canciones del home
+
+- tags: [frontend, home, songs, context-menu, ui, kb-20]
+- priority: medium
+- workload: Normal
+- defaultExpanded: false
+- steps:
+    - [x] Flata las del carrousel y las de froyou player discover recently played hiddeg gems y asi solo estan las de quick selections hechas
+    ```md
+    Revisión: menú contextual añadido al carrusel y a todas las tarjetas Bento (Para ti, recientes, joyas ocultas y demás listas del Home). Descubrimientos mantienen acciones con URL resuelta y ofrecen búsqueda/descarga bajo demanda cuando todavía no hay URL. Clic derecho o pulsación larga; el carrusel pausa el avance automático mientras su menú está abierto y conserva la distribución móvil/desktop. Alt de portadas desde vocabulary. Pendiente de revisión visual; sin tests locales.
+
+    Implementado en canciones recientes; las selecciones rápidas ya lo tenían. Pendiente de revisión visual en web/PWA.
+
+    Añadir un context menu a las canciones del home.
     ```
 
 ### [PLAYER] Tiempos reales de la barra de reproducción
@@ -93,6 +125,16 @@
     Pendiente de revisión del usuario. Sin suites locales; comprobación visual en Chromium y regresión para CI.
     ```
 
+### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
+
+- tags: [frontend, transitions, player, audio, kb-13]
+- priority: medium
+- workload: Hard
+    ```md
+    KB-13 / PR144: análisis acotado y cacheado de silencios en los extremos, con margen para entradas suaves. Archivos y reloj de lyrics originales. Integrado con las transiciones web y resolución de archivos en cada provider.
+    Evidencias y límites: docs/audio-silence-analysis.md. Revisar las grabaciones antes de mover a Done. Validación pendiente en iPhone/PWA real y carga de producción.
+    ```
+
 ### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
 
 - tags: [frontend, player, ios, transitions, bug, kb-32]
@@ -102,63 +144,6 @@
     Implementado: los eventos pause/playing se contrastan con el estado actual del elemento, para ignorar eventos retrasados durante el cambio de pistas. La resolución de play() reconcilia el icono solo para el elemento y playbackId activos, manteniendo las comprobaciones de propiedad de reproducción. Pendiente de validación en iPhone con transiciones; sin tests locales.
 
     Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
-    ```
-
-### [PWA] Mejorar UI de radios en PWA iOS
-
-- tags: [frontend, pwa, ios, ui, kb-29]
-- priority: medium
-- workload: Normal
-    ```md
-    Implementado en el buscador de emisoras: texto de 16 px para evitar zoom de foco en iPhone, apariencia consistente, foco visible y botón de borrar propio sin duplicado nativo de Safari. Teclado de búsqueda sin autocorrección ni mayúsculas automáticas. Pendiente de revisión en PWA iPhone, sin tests locales.
-
-    Mejorar el aspecto de los inputs radio en la PWA de iOS.
-    ```
-
-## Done
-
-### [LIBRARY] Centrar botón library y arreglar random
-
-- tags: [frontend, library, queue, bug, ui, kb-06]
-- priority: high
-- workload: Normal
-- defaultExpanded: false
-- steps:
-    - [x] Centrar verticalmente el botón de library
-    - [x] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
-    - [x] Random sigue siendo raro empeza muy abajo en la cola en vez de empezar en el principio, i que aparece ezclado pero random en la cola, deberis ser que la cola se ordene de una manera distinta cada vez que s ele de al play y empezar por la primera cancion
-    ```md
-    Revisión: Random resuelve toda la biblioteca, mezcla las pistas reproducibles y arranca en la primera posición visible de la cola; elimina la segunda selección aleatoria que saltaba a mitad de lista. Cada nueva reproducción reconstruye la mezcla. Reproducción ordenada progresiva conservada. Pendiente de revisión; sin tests locales.
-
-    Centrado reforzado con grid y sin padding ni baseline de texto. Verificado en Chromium: iconos play y pause con desplazamiento vertical de 0 px dentro del círculo. Random implementado: se resuelven álbumes y playlists antes de seleccionar la primera canción aleatoria, para que no salga siempre del grupo de canciones sueltas. La reproducción ordenada conserva el arranque progresivo. Las acciones sobre otra cola cancelan la carga pendiente. Pendiente de revisión integrada; sin tests locales.
-
-    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
-    ```
-
-### [HOME] Añadir context menu a las canciones del home
-
-- tags: [frontend, home, songs, context-menu, ui, kb-20]
-- priority: medium
-- workload: Normal
-- defaultExpanded: false
-- steps:
-    - [x] Flata las del carrousel y las de froyou player discover recently played hiddeg gems y asi solo estan las de quick selections hechas
-    ```md
-    Revisión: menú contextual añadido al carrusel y a todas las tarjetas Bento (Para ti, recientes, joyas ocultas y demás listas del Home). Descubrimientos mantienen acciones con URL resuelta y ofrecen búsqueda/descarga bajo demanda cuando todavía no hay URL. Clic derecho o pulsación larga; el carrusel pausa el avance automático mientras su menú está abierto y conserva la distribución móvil/desktop. Alt de portadas desde vocabulary. Pendiente de revisión visual; sin tests locales.
-
-    Implementado en canciones recientes; las selecciones rápidas ya lo tenían. Pendiente de revisión visual en web/PWA.
-
-    Añadir un context menu a las canciones del home.
-    ```
-
-### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
-
-- tags: [frontend, transitions, player, audio, kb-13]
-- priority: medium
-- workload: Hard
-    ```md
-    KB-13 / PR144: análisis acotado y cacheado de silencios en los extremos, con margen para entradas suaves. Archivos y reloj de lyrics originales. Integrado con las transiciones web y resolución de archivos en cada provider.
-    Evidencias y límites: docs/audio-silence-analysis.md. Revisar las grabaciones antes de mover a Done. Validación pendiente en iPhone/PWA real y carga de producción.
     ```
 
 ### [SOCIAL] Emblemas Rockit y comparación entre amigos
@@ -183,6 +168,17 @@
     Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
 
     Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
+    ```
+
+### [PWA] Mejorar UI de radios en PWA iOS
+
+- tags: [frontend, pwa, ios, ui, kb-29]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en el buscador de emisoras: texto de 16 px para evitar zoom de foco en iPhone, apariencia consistente, foco visible y botón de borrar propio sin duplicado nativo de Safari. Teclado de búsqueda sin autocorrección ni mayúsculas automáticas. Pendiente de revisión en PWA iPhone, sin tests locales.
+
+    Mejorar el aspecto de los inputs radio en la PWA de iOS.
     ```
 
 ### [FRIENDS] Vocabulary desde el Excel

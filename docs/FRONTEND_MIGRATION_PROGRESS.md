@@ -21,17 +21,17 @@ Target: [desktop and universal mobile architecture](FRONTEND_PLATFORM_ARCHITECTU
 
 ## Stages
 
-| Stage | State | Deliverable / acceptance |
-| --- | --- | --- |
-| 0. Baseline and plan | Complete | Current branch/guidelines reviewed, feature/adapter inventory, reproducible commands. |
-| 1. Shared design system | In progress | Single token source for web CSS and native values; colors, spacing, radii and typography; no component palettes. |
-| 2. Portable application boundaries | In progress | Lifecycle/config/session/storage contracts, browser/native adapters, shared policy outside UI, import-boundary checks. |
-| 3. Shared presentation | In progress | Universal primitives/headless bindings actually consumed by desktop and mobile; vocabulary from Excel, accessibility names. |
-| 4. Universal mobile runtime | In progress | Expo web/PWA boot with browser session, playback and offline adapters; native Android retains native services. |
-| 5. Feature migration and parity | Pending | Home, Library/search, collections, player/queue/lyrics, downloader, settings and existing ancillary routes work on both mobile targets. |
-| 6. Desktop separation | Pending | Desktop entry excludes mobile shell/integrations; independent build/deployment configuration and documented origin migration. |
-| 7. Frontend test system | In progress | Contract-validating fake backend, unit/component tests, browser interaction tests and native component coverage; deterministic assets and timings. |
-| 8. Release verification | Pending | Types/lint, production builds/export, focused tests and CI; precise remaining physical-device/SDK gates, no invented compatibility claims. |
+| Stage                              | State                                                 | Deliverable / acceptance                                                                                                                           |
+| ---------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0. Baseline and plan               | Complete                                              | Current branch/guidelines reviewed, feature/adapter inventory, reproducible commands.                                                              |
+| 1. Shared design system            | Complete                                              | Single token source for web CSS and native values; colors, spacing, radii and typography; no component palettes.                                   |
+| 2. Portable application boundaries | Complete                                              | Lifecycle/config/session/storage contracts, browser/native adapters, shared policy outside UI, import-boundary checks.                             |
+| 3. Shared presentation             | Complete                                              | Universal primitives/headless bindings actually consumed by desktop and mobile; vocabulary from Excel, accessibility names.                        |
+| 4. Universal mobile runtime        | Complete                                              | Expo web/PWA boot with browser session, playback and offline adapters; native Android retains native services.                                     |
+| 5. Feature migration and parity    | Implemented; device review pending                    | Home, Library/search, collections, player/queue/lyrics, downloader, settings and existing ancillary routes work on both mobile targets.            |
+| 6. Desktop separation              | Complete                                              | Desktop entry excludes mobile shell/integrations; independent build/deployment configuration and documented origin migration.                      |
+| 7. Frontend test system            | Complete                                              | Contract-validating fake backend, unit/component tests, browser interaction tests and native component coverage; deterministic assets and timings. |
+| 8. Release verification            | Software gates passed; installed-device gates pending | Types/lint, production builds/export, focused tests and CI; precise remaining physical-device/SDK gates, no invented compatibility claims.         |
 
 ## Verification strategy
 
@@ -46,7 +46,43 @@ WebKit automation represents a browser engine, not an installed iPhone PWA or iO
 background policy. Native component tests and Metro exports do not establish APK
 installation, Android services or lock-screen behavior. Record each separately.
 
-## Work log
+## Current verification and release status
+
+Implementation is ready for review in PR #189. This is not a production cutover.
+Next production build and Expo web export pass; the mobile web source-map graph
+contains no desktop application or native first-party implementation sources.
+Workspace types, both application linters, theme generation and portable boundaries
+pass. All required GitHub jobs at the final functional commit `44ec20a7` are green:
+backend, TypeScript, frontend and the strict aggregate quality check.
+
+The final GitHub fast gate passed 294 tests in approximately 30.9 seconds: 25 Vitest,
+8 native Jest and 261 desktop tests, including boundary and fixture type checks.
+The earlier consolidated local gate took 44.2 seconds before the last two cases;
+a previous GitHub run took 19.4 seconds. Runner/cache load affects these timings.
+Two additional workbook-tooling tests passed in 0.159 seconds locally. Timings include
+no production builds and should not be represented as application latency.
+
+Seven production Chromium browser flows pass: desktop SSR/session/deep search,
+PWA WEB-cookie login, playlist-only one-song playback, bounded pagination and saved
+theme/logout, failed search/retry, offline shell/private metadata reload, and mobile
+context-menu sharing. Browser acceptance found and corrected bottom navigation
+covering pagination, missing web accessibility states and three incomplete fixture
+routes. The mock now acknowledges current-media ownership over WebSocket.
+
+Local WebKit installation was denied by environment network policy. No Android SDK
+or physical iPhone/Android acceptance was available. The optional manual acceptance
+workflow contains production browser and installed APK/emulator checks; it has not
+been dispatched. Screen lock, real background playback, interruptions, audio offline
+restart and storage pressure still require installed-device acceptance before rollout.
+The migration task stays in To Review until the user validates it.
+
+Commands, fixture contracts, timing evidence and platform limits:
+[frontend verification](FRONTEND_TESTING.md). Production origins, credentials,
+backend persistence and existing S3 objects are unchanged. Follow
+[deployment](FRONTEND_DEPLOYMENT.md) to coordinate mobile origin activation with
+the desktop shell change.
+
+## Work log (incremental evidence)
 
 - Planning: confirmed PR #189 remains open and the checkout is clean. Refreshed
   `develop`; no newer commits exist at the starting revision. Read root/web/mobile
@@ -127,3 +163,24 @@ installation, Android services or lock-screen behavior. Record each separately.
   overlay. Desktop no longer mounts its old hidden mobile shell. The rollout guide
   documents authentication origins, installed-PWA storage isolation and required
   device acceptance; no production routing or storage was changed.
+
+- Fast-test constraint: the PR gate contains deterministic unit/component/HTTP
+  contract checks only. Production frontend builds, browser-engine acceptance and
+  installed Android/emulator checks live in the separate, manually dispatched
+  `frontend-platform-acceptance.yml` workflow. Do not make those builds/emulator
+  startups mandatory on every PR. Test execution timings must be measured and
+  reported separately from dependency installation and compilation.
+- Notification parity: extracted the existing notification inbox from the DOM
+  toast renderer. Desktop and mobile share account/reset/read/destination policy;
+  mobile exposes a translated, bounded notification sheet. Existing desktop toast
+  behavior remains in its adapter. Final acceptance has not run yet.
+
+- Final integration: serialized native session writes reject obsolete Set-Cookie
+  responses; portable notifications retain desktop toast rendering and add a mobile
+  inbox. Mobile sharing now opens from the context menu and uses the same scoped
+  sharing policy as desktop, with a virtualized recipient list and workbook text.
+- Final browser corrections: reserve scene height for navigation/miniplayer, expose
+  selected/disabled states in both renderer accessibility trees, and derive the
+  header fade from the active background. Pagination, theme/logout and sharing
+  passed against production Expo output. Final required CI status is recorded on
+  the PR; installed-device rollout gates remain open.

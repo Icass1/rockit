@@ -28,15 +28,6 @@
 
 ## In Progress
 
-### [MOBILE] Migrar a una aplicación móvil universal con núcleo compartido
-
-- tags: [frontend, mobile, pwa, android, architecture]
-- priority: high
-- workload: Hard
-    ```md
-    Propuesta: escritorio Next separado; Expo con React Native en Android y React Native Web para la PWA iOS. Núcleo existente en packages/shared, tokens/UI reutilizables y adaptadores de plataforma para audio, sesión, offline, notificaciones y háptica. Migrar la UI móvil actual conservando diseño, vocabulary y comportamiento; probar primero Library, reproducción individual y descarga offline en ambos destinos. No confundir una TWA con integraciones nativas ni dar por portable el código que usa filesystem/SecureStore. Migración pendiente, sin cambios de producción. Ver docs/FRONTEND_PLATFORM_ARCHITECTURE.md.
-    ```
-
 ### [DOWNLOADS] Admitir colaboradores adicionales en el catálogo musical
 
 - tags: [backend, youtube, youtubeMusic, downloads, bug]
@@ -52,6 +43,15 @@
 ## Idle
 
 ## To Review
+
+### [MOBILE] Migrar a una aplicación móvil universal con núcleo compartido
+
+- tags: [frontend, mobile, pwa, android, architecture]
+- priority: high
+- workload: Hard
+    ```md
+    Escritorio Next separado; Expo con React Native en Android y React Native Web para la PWA iOS. Núcleo en packages/shared, tokens/UI reutilizables y adaptadores para audio, sesión, offline y notificaciones. Implementación lista para revisión en PR189: entradas separadas Next/Expo, adaptadores web/nativos, UI y tokens compartidos, vocabulary desde Excel, búsqueda profunda, reproducción y caché por cuenta. Pruebas rápidas en segundos y siete flujos Chromium verificados; aceptación física iPhone/APK y activación del nuevo origen pendientes. Sin cambios de producción. Ver docs/FRONTEND_PLATFORM_ARCHITECTURE.md.
+    ```
 
 ### [ARCHITECTURE] Diseñar separación de escritorio y móvil universal
 

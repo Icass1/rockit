@@ -880,19 +880,24 @@ and physical PiP/Vivaldi verification remain open.
 
 ## Universal frontend migration — PR #189
 
-Shared user-session ownership preserves request-local SSR seeds and browser
-preferences; session/volume/Media Session regressions pass (45). Browser playback
-and volume lifecycles now live behind portable service contracts in
-`@rockit/platform-browser`; desktop wrappers retain compatibility. The independent
-mobile shell and production runtime acceptance remain in progress.
+Desktop no longer imports or mounts the former mobile presentation shell. Next
+retains its SSR/session boundaries and desktop integrations. Browser audio,
+transitions, Media Session, HTTP and offline storage live in the common browser
+adapter; Expo selects browser or native adapters without importing the desktop app.
+Portable social/radio/notification policies, universal media controls and semantic
+styles/vocabulary are shared by the two application shells.
 
+Workspace types and web/mobile lint pass, Next production build and Expo web export
+pass, and source-map checks show no desktop/native first-party sources in mobile
+web. The final fast frontend gate passed 294 tests in approximately 30.9 seconds in
+GitHub Actions, including boundary and fixture types. Seven production Chromium
+flows also pass. All required jobs are green at the final functional commit
+`44ec20a7`; documentation-only commits retain the same implementation.
 
-## Universal frontend migration (PR #189)
-
-Desktop chrome no longer imports or mounts the former mobile shell. Browser audio,
-Media Session, offline storage and portable social/radio policies are shared via
-platform adapters; universal artwork/identity presenters are registered for SSR.
-The independent mobile PWA export/deployment and rollout gates are described in
-`docs/FRONTEND_DEPLOYMENT.md`. Consolidated verification is pending after feature
-integration, following the user's requested test schedule. No installed-device
-acceptance or production cutover is claimed.
+The [migration progress](../FRONTEND_MIGRATION_PROGRESS.md),
+[test guide](../FRONTEND_TESTING.md) and [deployment guide](../FRONTEND_DEPLOYMENT.md)
+record the final scope and remaining installed iPhone/Android gates. Heavy browser/
+APK acceptance is manually dispatched, not required on every PR. No physical-device
+acceptance or production routing change is claimed. The current user instruction
+is consolidated checks after coherent work, superseding the historical per-step
+suite preference recorded above.

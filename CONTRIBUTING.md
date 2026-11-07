@@ -63,6 +63,14 @@ Verify affected flows on Android and iOS when available. Playback changes should
 
 For shared TypeScript changes, run `pnpm typecheck` to check the frontend workspace.
 
+### Fast frontend tests
+
+Run `pnpm test:frontend` for deterministic portable, browser/native component and
+HTTP contract checks. The ordinary PR gate runs in seconds and excludes production
+builds and emulators. Use the separate manual platform acceptance workflow for
+those checks. See [frontend verification](docs/FRONTEND_TESTING.md) for targeted
+commands, fixture contracts, timings and device acceptance limits.
+
 ### Backend
 
 From `apps/backend`:

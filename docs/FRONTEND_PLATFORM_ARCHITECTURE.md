@@ -1,6 +1,6 @@
 # Frontend architecture: desktop web and universal mobile
 
-Status: **recommended design; migration not implemented**. Reviewed on 2026-11-07
+Status: **implemented in PR #189; installed-device acceptance and rollout pending**. Reviewed on 2026-11-08
 against `develop` at `62958ed7bec53bf4843c8ac7b70946b28c36e0f1` and the publisher
 documentation listed below. This document supersedes the Android TWA recommendation
 in the earlier [PR #188 pilot](https://github.com/Icass1/rockit/pull/188). That pilot
@@ -26,9 +26,10 @@ experience as the behavioral and visual reference, rather than shipping the olde
 native interface as the finished replacement.
 
 Do not replace the maintained PWA or the Android package until an end-to-end
-mobile slice and real-device playback/offline acceptance pass. This is a
-recommendation with explicit gates, not a claim that the existing Expo web target
-already provides feature parity.
+mobile slice and real-device playback/offline acceptance pass. Implementation and verification are tracked in
+[the progress record](FRONTEND_MIGRATION_PROGRESS.md); production activation remains
+subject to these gates. Browser/component checks do not establish full installed-device
+parity.
 
 ## Requirements that determine this choice
 
@@ -45,7 +46,11 @@ already provides feature parity.
 - Preserve reliable playback, queue progression, lyrics timing and accessibility.
   Fewer source files is not a useful outcome if playback becomes less reliable.
 
-## What the repository already provides
+## Baseline evidence before implementation
+
+The following observations and source inventory describe the reviewed develop
+baseline. The migration replaces its hidden mobile shell and guarded platform APIs;
+see the progress record for the resulting implementation.
 
 | Evidence in the reviewed commit                                                                                                                                                                                                                             | Implication                                                                                                                                                                      |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -55,8 +60,8 @@ already provides feature parity.
 | The web [`usePlayer`](../apps/web/components/MobilePlayer/hooks/usePlayer.ts) presents the existing managers through the mobile player interface                                                                                                            | There is already a useful separation between state/actions and presentation. It is not proof that the DOM and native components are interchangeable.                             |
 | [`PlaybackProvider`](../apps/web/components/providers/PlaybackProvider.tsx) owns a playback lifecycle; [`rockitRef`](../packages/shared/src/rockit/rockitRef.ts) retains the compatibility registry                                                         | Continue toward scoped service injection, preserving existing owners. Do not add a second queue or another global player during migration.                                       |
 | Web [`db.ts`](../apps/web/lib/offline/db.ts) stores song/cover Blobs in IndexedDB                                                                                                                                                                           | This browser implementation can be extracted behind an offline-media interface and reused by desktop and the mobile PWA.                                                         |
-| Native [`mediaStorage`](../apps/mobile/lib/storage/mediaStorage.ts) uses `Paths.document`; [`MediaCacheManager`](../apps/mobile/lib/audio/MediaCacheManager.ts) uses `Paths.cache`                                                                          | User downloads and disposable playback cache already have distinct locations. Moving Android entirely to web would change that retention model.                                  |
-| Native [`api.ts`](../apps/mobile/lib/api.ts) and [`http.ts`](../apps/mobile/lib/http.ts) use SecureStore, file-backed metadata and native cookie handling                                                                                                   | They cannot simply become the PWA's HTTP/session implementation. Browser cookies and storage need their own adapter.                                                             |
+| Native [`mediaStorage`](../apps/mobile/lib/storage/mediaStorage.native.ts) uses `Paths.document`; [`MediaCacheManager`](../apps/mobile/lib/audio/MediaCacheManager.native.ts) uses `Paths.cache`                                                            | User downloads and disposable playback cache already have distinct locations. Moving Android entirely to web would change that retention model.                                  |
+| Native [`api.ts`](../apps/mobile/lib/api.native.ts) and [`http.ts`](../apps/mobile/lib/http.native.ts) use SecureStore, file-backed metadata and native cookie handling                                                                                     | They cannot simply become the PWA's HTTP/session implementation. Browser cookies and storage need their own adapter.                                                             |
 | Mobile [`_layout.tsx`](../apps/mobile/app/_layout.tsx) initializes native media storage even on the web path                                                                                                                                                | Enabling `expo start --web` alone is insufficient. Platform composition must separate native imports, initialization and browser services.                                       |
 | Shared player synchronization contains guarded `document.visibilitychange` handling; shared configuration includes Next/Expo environment names and `packages/shared/package.json` declares Next                                                             | Existing shared code is a starting point, not yet a strictly framework-independent core. Lifecycle/configuration must move behind injected ports before enforcing that boundary. |
 | The native [`lockScreenManager`](../apps/mobile/lib/managers/lockScreenManager.ts), [`AudioIntegration`](../apps/mobile/lib/audio/AudioIntegration.ts) and [`NativeMediaBridge`](../apps/mobile/lib/audio/NativeMediaBridge.ts) contain Android integration | Preserve and audit those integrations. They do not become available inside an iOS PWA.                                                                                           |

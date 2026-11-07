@@ -64,6 +64,9 @@ importers:
       '@rockit/config':
         specifier: workspace:^
         version: link:../../packages/config
+      '@rockit/theme':
+        specifier: workspace:*
+        version: link:../../packages/theme
       '@rockit/shared':
         specifier: workspace:^
         version: link:../../packages/shared
@@ -203,6 +206,9 @@ importers:
       '@nanostores/react':
         specifier: ^0.8.4
         version: 0.8.4(nanostores@0.11.4)(react@19.2.3)
+      '@rockit/theme':
+        specifier: workspace:*
+        version: link:../../packages/theme
       '@rockit/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -342,6 +348,8 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+
+  packages/theme: {}
 
 packages:
 

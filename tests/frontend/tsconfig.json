@@ -1,0 +1,52 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "jsx": "react-jsx",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "baseUrl": "../..",
+        "paths": {
+            "@/*": [
+                "packages/shared/src/*"
+            ],
+            "@rockit/shared": [
+                "packages/shared/src/index.ts"
+            ],
+            "@rockit/theme": [
+                "packages/theme/src/index.ts"
+            ],
+            "@rockit/ui": [
+                "packages/ui/src/index.ts"
+            ],
+            "@rockit/ui/*": [
+                "packages/ui/src/*.ts"
+            ],
+            "@mobile/*": [
+                "apps/mobile/*"
+            ],
+            "@rockit/ui/runtime": [
+                "packages/ui/src/runtime.web.ts"
+            ],
+            "@rockit/ui/theme": [
+                "packages/ui/src/theme.tsx"
+            ],
+            "@rockit/ui/icons": [
+                "packages/ui/src/icons.web.ts"
+            ]
+        },
+        "types": [
+            "node",
+            "vitest/globals"
+        ],
+        "allowImportingTsExtensions": true
+    },
+    "include": [
+        "unit/**/*",
+        "components/**/*",
+        "fixtures/**/*"
+    ]
+}

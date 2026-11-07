@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import {
     CollectionPager,
@@ -8,6 +7,7 @@ import {
     type IMediaAddedToPlaylistEvent,
     type IMediaRemovedFromPlaylistEvent,
 } from "@rockit/shared";
+import { useDesignTheme, type DesignTheme } from "@rockit/ui";
 import { View } from "react-native";
 import RecommendationsList from "@/components/Recommendations/RecommendationsList";
 import CollectionControls from "@/components/RenderList/CollectionControls";
@@ -15,6 +15,7 @@ import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function CollectionScreen({ publicId }: { publicId: string }) {
+    const theme = useDesignTheme();
     const pager = useMemo(() => new CollectionPager(publicId), [publicId]);
     const state = useStore(pager.state);
     useEffect(() => {
@@ -39,7 +40,7 @@ export default function CollectionScreen({ publicId }: { publicId: string }) {
     const collection = state.collection;
     if (!collection)
         return (
-            <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
+            <View style={{ flex: 1, backgroundColor: theme.legacy.bg }}>
                 <CollectionControls pager={pager} />
                 <CollectionFooter pager={pager} />
             </View>

@@ -1,11 +1,11 @@
 import { memo, type ReactNode } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
-import { COLORS } from "@/constants/theme";
 import type {
     BaseArtistResponse,
     CollectionPager,
     TMedia,
 } from "@rockit/shared";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -46,6 +46,8 @@ export default memo(function RenderList({
     total,
     footer,
 }: RenderListProps) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
     const artistNames = artists.map((a) => a.name).join(", ");
 
@@ -61,7 +63,7 @@ export default memo(function RenderList({
                     <>
                         <View style={styles.header}>
                             <LinearGradient
-                                colors={[COLORS.bgCard, "transparent"]}
+                                colors={[theme.legacy.bgCard, "transparent"]}
                                 style={styles.gradient}
                             />
                             <View style={styles.imageContainer}>
@@ -95,7 +97,9 @@ export default memo(function RenderList({
                                 )}
                                 <Text style={styles.mediaCount}>
                                     {total ?? media.length}{" "}
-                                    {media.length === 1 ? "song" : "songs"}
+                                    {media.length === 1
+                                        ? vocabulary.SONG
+                                        : vocabulary.SONGS}
                                 </Text>
                             </View>
                         </View>
@@ -112,7 +116,7 @@ export default memo(function RenderList({
                                     alignItems: "center",
                                 }}
                             >
-                                <Text style={{ color: COLORS.accent }}>
+                                <Text style={{ color: theme.legacy.accent }}>
                                     {vocabulary.PLAY}
                                 </Text>
                             </Pressable>
@@ -124,69 +128,70 @@ export default memo(function RenderList({
     );
 });
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.bg,
-    },
-    listContent: {
-        paddingBottom: 120,
-    },
-    header: {
-        alignItems: "center",
-        paddingTop: 80,
-        paddingBottom: 24,
-        paddingHorizontal: 20,
-    },
-    gradient: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 200,
-    },
-    imageContainer: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 16,
-        elevation: 8,
-    },
-    coverImage: {
-        width: 220,
-        height: 220,
-        borderRadius: 12,
-        backgroundColor: COLORS.bgCard,
-    },
-    titleContainer: {
-        alignItems: "center",
-        marginTop: 20,
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 22,
-        fontWeight: "700",
-        textAlign: "center",
-    },
-    artistText: {
-        color: COLORS.gray400,
-        fontSize: 14,
-        marginTop: 4,
-    },
-    extraSubtitle: {
-        color: COLORS.gray400,
-        fontSize: 13,
-        marginTop: 2,
-    },
-    mediaCount: {
-        color: COLORS.gray400,
-        fontSize: 12,
-        marginTop: 8,
-    },
-    mediaContainer: {
-        flexDirection: "column",
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-        gap: 12,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.legacy.bg,
+        },
+        listContent: {
+            paddingBottom: 120,
+        },
+        header: {
+            alignItems: "center",
+            paddingTop: 80,
+            paddingBottom: theme.spacing.xl,
+            paddingHorizontal: 20,
+        },
+        gradient: {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 200,
+        },
+        imageContainer: {
+            shadowColor: theme.colors["backdrop"],
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.4,
+            shadowRadius: 16,
+            elevation: 8,
+        },
+        coverImage: {
+            width: 220,
+            height: 220,
+            borderRadius: theme.radius.lg,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        titleContainer: {
+            alignItems: "center",
+            marginTop: 20,
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: 22,
+            fontWeight: "700",
+            textAlign: "center",
+        },
+        artistText: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.body,
+            marginTop: theme.spacing.xs,
+        },
+        extraSubtitle: {
+            color: theme.legacy.gray400,
+            fontSize: 13,
+            marginTop: 2,
+        },
+        mediaCount: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.caption,
+            marginTop: theme.spacing.sm,
+        },
+        mediaContainer: {
+            flexDirection: "column",
+            paddingVertical: 10,
+            paddingHorizontal: 10,
+            gap: theme.spacing.md,
+        },
+    });

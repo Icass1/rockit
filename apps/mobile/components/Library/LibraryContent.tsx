@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react";
-import { COLORS } from "@/constants/theme";
 import {
     isSearchResult,
     type BaseAlbumWithoutSongsResponse,
@@ -8,6 +7,7 @@ import {
     type BaseVideoResponse,
     type TMedia,
 } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { SectionList, StyleSheet, Text, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -42,6 +42,7 @@ export default function LibraryContent({
     activeType,
     viewMode,
 }: LibraryContentProps) {
+    const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
 
     const sections: Section[] = useMemo(() => {
@@ -99,7 +100,7 @@ export default function LibraryContent({
                 <SectionTitle>{section.title}</SectionTitle>
             </View>
         ),
-        []
+        [styles]
     );
 
     const renderItem = useCallback(
@@ -120,7 +121,7 @@ export default function LibraryContent({
             }
             return <MediaRow media={item[0]} />;
         },
-        []
+        [styles]
     );
 
     const keyExtractor = useCallback(
@@ -189,27 +190,28 @@ export default function LibraryContent({
     );
 }
 
-const styles = StyleSheet.create({
-    listContent: {
-        paddingHorizontal: 16,
-    },
-    sectionHeader: {
-        marginBottom: 8,
-    },
-    gridItemWrapper: {
-        flex: 1,
-        padding: 4,
-    },
-    gridRow: {
-        flexDirection: "row",
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    emptyText: {
-        color: COLORS.gray400,
-        fontSize: 16,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        listContent: {
+            paddingHorizontal: theme.spacing.lg,
+        },
+        sectionHeader: {
+            marginBottom: theme.spacing.sm,
+        },
+        gridItemWrapper: {
+            flex: 1,
+            padding: theme.spacing.xs,
+        },
+        gridRow: {
+            flexDirection: "row",
+        },
+        emptyContainer: {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        emptyText: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.label,
+        },
+    });

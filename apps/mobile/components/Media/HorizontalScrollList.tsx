@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ScrollView, StyleSheet, View } from "react-native";
 import SectionTitle from "@/components/layout/SectionTitle";
 
@@ -13,6 +14,7 @@ export default function HorizontalScrollList({
     children,
     contentPaddingHorizontal = 16,
 }: HorizontalScrollListProps) {
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.container}>
             <SectionTitle>{title}</SectionTitle>
@@ -30,12 +32,13 @@ export default function HorizontalScrollList({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        marginTop: 16,
-    },
-    scrollContent: {
-        gap: 12,
-        paddingBottom: 8,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            marginTop: theme.spacing.lg,
+        },
+        scrollContent: {
+            gap: theme.spacing.md,
+            paddingBottom: theme.spacing.sm,
+        },
+    });

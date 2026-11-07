@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react";
 import { TMedia } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { FlatList, StyleSheet, View } from "react-native";
 import MediaCard from "@/components/Media/MediaCard";
 
@@ -12,13 +13,14 @@ const GridItem = memo(function GridItem({ media }: { media: TMedia }) {
 });
 
 export default function LibraryGrid({ items }: LibraryGridProps) {
+    const styles = useThemedStyles(createStyles);
     const renderItem = useCallback(
         ({ item }: { item: TMedia }) => (
             <View style={styles.itemWrapper}>
                 <GridItem media={item} />
             </View>
         ),
-        []
+        [styles]
     );
 
     const keyExtractor = useCallback(
@@ -44,17 +46,18 @@ export default function LibraryGrid({ items }: LibraryGridProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        paddingHorizontal: 16,
-        paddingBottom: 100,
-    },
-    row: {
-        gap: 4,
-    },
-    itemWrapper: {
-        flex: 1,
-        maxWidth: "50%",
-        padding: 4,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            paddingHorizontal: theme.spacing.lg,
+            paddingBottom: 100,
+        },
+        row: {
+            gap: theme.spacing.xs,
+        },
+        itemWrapper: {
+            flex: 1,
+            maxWidth: "50%",
+            padding: theme.spacing.xs,
+        },
+    });

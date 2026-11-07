@@ -1,12 +1,11 @@
 import { memo, ReactNode } from "react";
-import { COLORS } from "@/constants/theme";
 import {
     BaseSearchResultsItem,
     getMediaSubtitle,
     isSearchResult,
     TMedia,
 } from "@rockit/shared";
-import { MediaIdentity } from "@rockit/ui";
+import { MediaIdentity, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, View } from "react-native";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
@@ -16,6 +15,7 @@ interface MediaRowProps {
 }
 
 function MediaRow({ media, rightElement }: MediaRowProps) {
+    const styles = useThemedStyles(createStyles);
     return (
         <MediaPressableWrapper
             media={media}
@@ -36,39 +36,40 @@ function MediaRow({ media, rightElement }: MediaRowProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 6,
-        paddingHorizontal: 16,
-        gap: 12,
-    },
-    image: {
-        backgroundColor: COLORS.bgCard,
-        width: 48,
-        height: 48,
-    },
-    info: {
-        flex: 1,
-        minWidth: 0,
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 14,
-        fontWeight: "500",
-    },
-    subtitle: {
-        color: COLORS.gray400,
-        fontSize: 12,
-        marginTop: 2,
-    },
-    rightElement: {
-        marginLeft: 8,
-    },
-    pressed: {
-        opacity: 0.7,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 6,
+            paddingHorizontal: theme.spacing.lg,
+            gap: theme.spacing.md,
+        },
+        image: {
+            backgroundColor: theme.legacy.bgCard,
+            width: 48,
+            height: 48,
+        },
+        info: {
+            flex: 1,
+            minWidth: 0,
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.body,
+            fontWeight: "500",
+        },
+        subtitle: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.caption,
+            marginTop: 2,
+        },
+        rightElement: {
+            marginLeft: theme.spacing.sm,
+        },
+        pressed: {
+            opacity: 0.7,
+        },
+    });
 
 export default memo(MediaRow);

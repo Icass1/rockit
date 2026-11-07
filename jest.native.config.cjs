@@ -9,6 +9,7 @@ module.exports = {
         ...preset.moduleNameMapper,
         "^@mobile/(.*)$": "<rootDir>/apps/mobile/$1",
         "^@/lib/api$": "<rootDir>/apps/mobile/lib/api.native.ts",
+        "^@/(.*)$": "<rootDir>/packages/shared/src/$1",
         "^@rockit/ui/runtime$": "<rootDir>/packages/ui/src/runtime.native.ts",
         "^@rockit/ui$": "<rootDir>/packages/ui/src/index.ts",
         "^@rockit/ui/(.*)$": "<rootDir>/packages/ui/src/$1",
@@ -23,7 +24,11 @@ module.exports = {
                       "babel-jest",
                       {
                           presets: [
-                              require.resolve("@react-native/babel-preset"),
+                              require.resolve("@react-native/babel-preset", {
+                                  paths: [
+                                      require.resolve("react-native/package.json"),
+                                  ],
+                              }),
                           ],
                           babelrc: false,
                           configFile: false,

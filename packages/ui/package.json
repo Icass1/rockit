@@ -12,6 +12,11 @@
             "browser": "./src/runtime.web.ts",
             "react-native": "./src/runtime.native.ts",
             "default": "./src/runtime.web.ts"
+        },
+        "./icons": {
+            "browser": "./src/icons.web.ts",
+            "react-native": "./src/icons.native.ts",
+            "default": "./src/icons.web.ts"
         }
     },
     "scripts": {
@@ -19,7 +24,10 @@
     },
     "dependencies": {
         "@rockit/theme": "workspace:*",
-        "react-native-web": "~0.21.0"
+        "react-native-web": "~0.21.0",
+        "lucide-react": "^0.487.0",
+        "lucide-react-native": "^1.8.0",
+        "@rockit/shared": "workspace:*"
     },
     "peerDependencies": {
         "react": "19.2.3",

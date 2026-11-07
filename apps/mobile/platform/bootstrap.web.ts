@@ -17,7 +17,23 @@ export async function initializePlatform(): Promise<void> {
     }
     await syncManager.init();
     if ("serviceWorker" in navigator && process.env.NODE_ENV === "production")
-        void navigator.serviceWorker.register("/sw.js").catch(() => {});
+        void navigator.serviceWorker
+            .register("/sw.js")
+            .then(async () => {
+                const registration = await navigator.serviceWorker.ready;
+                const worker = registration.active;
+                if (!worker) return;
+                const urls = performance
+                    .getEntriesByType("resource")
+                    .map((entry) => entry.name)
+                    .filter(
+                        (url) =>
+                            new URL(url).origin === location.origin &&
+                            new URL(url).pathname.startsWith("/_expo/static/")
+                    );
+                worker.postMessage({ type: "CACHE_STATIC_ASSETS", urls });
+            })
+            .catch(() => {});
     void navigator.storage?.persist?.().catch(() => false);
 }
 

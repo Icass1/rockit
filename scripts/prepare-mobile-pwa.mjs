@@ -3,7 +3,9 @@ import { cp, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "../apps/mobile");
-const output = path.join(root, "dist");
+const output = process.argv[2]
+    ? path.resolve(process.argv[2])
+    : path.join(root, "dist");
 const tokens = JSON.parse(
     await readFile(
         path.resolve(root, "../../packages/theme/src/tokens.json"),
@@ -58,7 +60,11 @@ const shell = [
     ).filter((value) => value.startsWith("/")),
 ];
 const files = (await readdir(output, { recursive: true }))
-    .filter((file) => /\.(?:js|css|html)$/.test(file))
+    .filter(
+        (file) =>
+            file !== "sw.js" &&
+            (/\.(?:js|css|html|webmanifest)$/.test(file) || file === "icon.png")
+    )
     .sort();
 const hash = createHash("sha256");
 for (const file of files) hash.update(await readFile(path.join(output, file)));
@@ -69,7 +75,15 @@ await writeFile(
 const CACHE = ${JSON.stringify(cache)};
 const SHELL = ${JSON.stringify(shell)};
 self.addEventListener("install", event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL))));
-self.addEventListener("activate", event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("rockit-mobile-shell-") && key !== CACHE).map(key => caches.delete(key))))));
+self.addEventListener("activate", event => {
+    event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("rockit-mobile-shell-") && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+// Prime only public chunks the current page has already loaded before activation.
+self.addEventListener("message", event => {
+    if (event.data?.type !== "CACHE_STATIC_ASSETS" || !Array.isArray(event.data.urls)) return;
+    const urls = event.data.urls.slice(0, 100).map(value => new URL(value, self.location.origin)).filter(url => url.origin === self.location.origin && url.pathname.startsWith("/_expo/static/"));
+    event.waitUntil(caches.open(CACHE).then(cache => Promise.allSettled(urls.map(url => cache.add(url.href)))).then(() => event.ports[0]?.postMessage({ready:true})));
+});
 self.addEventListener("fetch", event => {
     const request = event.request;
     const url = new URL(request.url);

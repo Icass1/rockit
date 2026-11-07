@@ -49,3 +49,9 @@ installation, Android services or lock-screen behavior. Record each separately.
 - Planning: confirmed PR #189 remains open and the checkout is clean. Refreshed
   `develop`; no newer commits exist at the starting revision. Read root/web/mobile
   instructions and backend guidance for vocabulary work.
+- Design tokens: introduced `@rockit/theme` as the common source for the existing
+  dark/light palette and spacing/radius/type/motion scales. Web CSS is generated;
+  native compatibility names consume the same values. Theme preference parsing is
+  shared. Existing semantic-theme regressions (3), theme typecheck and generated
+  artifact check pass. Component literals and live native theme propagation are
+  tracked in the next presentation increment.

@@ -88,11 +88,12 @@ jobs:
                       ROCKIT_BUILD_REVISION=${{ github.sha }}
                       ROCKIT_VERSION=${{ steps.version.outputs.value }}
 
-            - name: Build and publish Next.js image
+            - name: Build and publish Next.js server image
               uses: docker/build-push-action@v6
               with:
                   context: .
                   file: ./apps/web/Dockerfile
+                  target: runner
                   push: true
                   tags: |
                       ghcr.io/${{ steps.image.outputs.repository }}/frontend:${{ steps.image.outputs.tag }}

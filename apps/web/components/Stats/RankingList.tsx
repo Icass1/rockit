@@ -14,7 +14,11 @@ interface RankingListProps {
     formatValue?: (value: number) => string;
 }
 
-const RANK_COLORS = ["text-amber-300", "text-stone-300", "text-orange-400"];
+const RANK_COLORS = [
+    "text-warning-foreground",
+    "text-foreground",
+    "text-warning",
+];
 
 export default function RankingList({
     items,
@@ -47,13 +51,15 @@ export default function RankingList({
     if (sorted.length === 0) {
         return (
             <div className="flex items-center justify-center py-12">
-                <p className="text-sm text-neutral-600">No data available</p>
+                <p className="text-disabled-foreground text-sm">
+                    No data available
+                </p>
             </div>
         );
     }
 
     return (
-        <div className="max-w-full divide-y divide-white/4 overflow-hidden md:overflow-visible">
+        <div className="divide-foreground-strong/4 max-w-full divide-y overflow-hidden md:overflow-visible">
             {displayItems.map((item, index) => (
                 <RankingRow
                     key={item.publicId}
@@ -71,7 +77,7 @@ export default function RankingList({
                     <button
                         type="button"
                         onClick={handleShowLess}
-                        className="flex cursor-pointer items-center gap-1.5 py-3 text-sm font-medium text-neutral-500 transition-colors hover:text-white"
+                        className="text-subtle-foreground hover:text-foreground-strong flex cursor-pointer items-center gap-1.5 py-3 text-sm font-medium transition-colors"
                     >
                         <ChevronUp className="h-4 w-4" />
                         Show less
@@ -81,7 +87,7 @@ export default function RankingList({
                     <button
                         type="button"
                         onClick={handleShowMore}
-                        className="flex cursor-pointer items-center gap-1.5 py-3 text-sm font-medium text-neutral-500 transition-colors hover:text-white"
+                        className="text-subtle-foreground hover:text-foreground-strong flex cursor-pointer items-center gap-1.5 py-3 text-sm font-medium transition-colors"
                     >
                         <ChevronDown className="h-4 w-4" />
                         Show more
@@ -116,7 +122,7 @@ function RankingRow({
         <div className="flex items-center gap-3 py-1 md:gap-4 md:py-1.5">
             <span
                 className={`w-6 shrink-0 text-center text-sm leading-none font-bold tabular-nums md:w-8 md:text-base ${
-                    isTop3 ? RANK_COLORS[index] : "text-neutral-600"
+                    isTop3 ? RANK_COLORS[index] : "text-disabled-foreground"
                 }`}
             >
                 {index + 1}
@@ -133,31 +139,31 @@ function RankingRow({
                             aria-hidden
                         />
                     ) : (
-                        <div className="h-full w-full bg-neutral-800" />
+                        <div className="bg-muted h-full w-full" />
                     )}
                 </div>
             )}
 
             <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-white md:text-base">
+                <p className="text-foreground-strong truncate text-sm font-medium md:text-base">
                     {item.name}
                 </p>
                 {item.subtitle && (
-                    <p className="mt-0.5 truncate text-xs text-neutral-500 md:text-sm">
+                    <p className="text-subtle-foreground mt-0.5 truncate text-xs md:text-sm">
                         {item.subtitle}
                     </p>
                 )}
             </div>
 
             <div className="flex shrink-0 items-center gap-2 md:gap-3">
-                <div className="hidden h-1 w-16 overflow-hidden rounded-full bg-neutral-800 md:block lg:w-24">
+                <div className="bg-muted hidden h-1 w-16 overflow-hidden rounded-full md:block lg:w-24">
                     <div
-                        className="h-full rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light) transition-all duration-700 ease-out"
+                        className="from-primary to-brand-light h-full rounded-full bg-linear-to-r transition-all duration-700 ease-out"
                         style={{ width: `${progressPercent}%` }}
                     />
                 </div>
 
-                <span className="text-right text-sm font-medium text-neutral-400 tabular-nums md:w-5 md:text-base">
+                <span className="text-muted-foreground text-right text-sm font-medium tabular-nums md:w-5 md:text-base">
                     {formatValue ? formatValue(item.value) : item.value}
                     {valueLabel}
                 </span>
@@ -166,7 +172,7 @@ function RankingRow({
     );
 
     const className =
-        "group w-full text-left transition-all duration-200 hover:bg-white/2";
+        "group w-full text-left transition-all duration-200 hover:bg-foreground-strong/2";
 
     if (onPlay) {
         return (

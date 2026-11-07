@@ -2,52 +2,53 @@
 
 import type { JSX } from "react";
 import type { DownloadTotalsResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DownloadStats({
     totals,
 }: {
     totals: DownloadTotalsResponse;
 }): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = useVocabulary();
     return (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
                 {
                     label: v.DOWNLOADS,
                     value: totals.total,
-                    color: "text-white",
+                    color: "text-foreground-strong",
                 },
                 {
                     label: v.DOWNLOADING,
                     value: totals.active,
-                    color: "text-pink-400",
+                    color: "text-primary-soft",
                 },
                 {
                     label: v.COMPLETED,
                     value: totals.completed,
-                    color: "text-green-400",
+                    color: "text-success-foreground",
                 },
                 {
                     label: v.FAILED,
                     value: totals.failed,
-                    color: "text-red-400",
+                    color: "text-destructive-soft",
                 },
             ].map((stat) => (
                 <div
                     key={stat.label}
-                    className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4"
+                    className="border-border-subtle bg-secondary/50 rounded-lg border p-4"
                 >
                     <p className={`text-2xl font-bold ${stat.color}`}>
                         {stat.value}
                     </p>
-                    <p className="text-xs text-neutral-400">{stat.label}</p>
+                    <p className="text-muted-foreground text-xs">
+                        {stat.label}
+                    </p>
                 </div>
             ))}
             {totals.daily?.length > 0 && (
-                <div className="col-span-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 sm:col-span-4">
-                    <p className="mb-2 text-sm text-neutral-400">
+                <div className="border-border-subtle bg-secondary/50 col-span-2 rounded-lg border p-4 sm:col-span-4">
+                    <p className="text-muted-foreground mb-2 text-sm">
                         {v.DOWNLOADER_ACTIVITY}
                     </p>
                     <Sparkline data={totals.daily} />
@@ -74,8 +75,16 @@ function Sparkline({ data }: { data: number[] }): JSX.Element {
         >
             <defs>
                 <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ee1086" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#ee1086" stopOpacity="0" />
+                    <stop
+                        offset="0%"
+                        stopColor="var(--theme-primary)"
+                        stopOpacity="0.35"
+                    />
+                    <stop
+                        offset="100%"
+                        stopColor="var(--theme-primary)"
+                        stopOpacity="0"
+                    />
                 </linearGradient>
             </defs>
             <polygon
@@ -85,8 +94,8 @@ function Sparkline({ data }: { data: number[] }): JSX.Element {
             <polyline
                 points={points}
                 fill="none"
-                stroke="#ee1086"
                 strokeWidth="2"
+                className="stroke-primary"
             />
         </svg>
     );

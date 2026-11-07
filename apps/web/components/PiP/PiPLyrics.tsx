@@ -119,7 +119,7 @@ export function PiPLyrics({
     if (syncedLines.length === 0) {
         return (
             <div className="pip-lyrics-overlay" data-testid="pip-lyrics-empty">
-                <p className="text-xs text-neutral-400">
+                <p className="text-muted-foreground text-xs">
                     {text(
                         "PIP_NO_LYRICS",
                         "No synced lyrics",

@@ -3,13 +3,13 @@
 import { JSX } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function RecentlyPlayedSong({
     song,
@@ -21,7 +21,7 @@ export default function RecentlyPlayedSong({
     className?: string;
 }): JSX.Element {
     const $song = useMedia(song);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const handleClick = (): void => {
         // Set the queue with all songs
@@ -40,6 +40,7 @@ export default function RecentlyPlayedSong({
             <MediaContextMenu
                 media={$song}
                 location={EMediaContextLocation.HOME}
+                onPlay={handleClick}
             >
                 <div onClick={handleClick}>
                     <div className="relative">
@@ -55,13 +56,13 @@ export default function RecentlyPlayedSong({
                         />
                         <OfflineIndicator
                             publicId={$song.publicId}
-                            className="absolute top-1 right-1 h-5 w-5 drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]"
+                            className="drop-shadow-player-icon absolute top-1 right-1 h-5 w-5"
                         />
                     </div>
                     <span className="mt-2 block truncate text-center font-semibold hover:underline">
                         {$song.name}
                     </span>
-                    <span className="block truncate text-center text-sm text-gray-400">
+                    <span className="text-muted-foreground block truncate text-center text-sm">
                         {$song.artists[0]?.name ?? $vocabulary.UNKNOWN}
                     </span>
                 </div>

@@ -19,6 +19,7 @@ import {
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { LyricsProposalPreview } from "@/components/Lyrics/LyricsProposalPreview";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 type RequestStatus = "ALL" | "PENDING" | "ACCEPTED" | "REJECTED";
 
@@ -27,16 +28,20 @@ const STATUS_BADGES: Record<
     { bg: string; text: string; label: string }
 > = {
     pending: {
-        bg: "bg-amber-500/10",
-        text: "text-amber-400",
+        bg: "bg-warning/10",
+        text: "text-warning",
         label: "Pending",
     },
     accepted: {
-        bg: "bg-emerald-500/10",
-        text: "text-emerald-400",
+        bg: "bg-success/10",
+        text: "text-success-foreground",
         label: "Accepted",
     },
-    rejected: { bg: "bg-red-500/10", text: "text-red-400", label: "Rejected" },
+    rejected: {
+        bg: "bg-destructive/10",
+        text: "text-destructive-soft",
+        label: "Rejected",
+    },
 };
 
 const REQUEST_TYPE_ICONS: Record<string, string> = {
@@ -53,7 +58,7 @@ const REQUEST_TYPE_ICONS: Record<string, string> = {
 export default function AdminRequests(): JSX.Element {
     const [requests, setRequests] = useState<UserRequestResponse[]>([]);
     const [stats, setStats] = useState<AdminRequestStatsResponse | null>(null);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const isAdmin = useStore(rockIt.userManager.admin);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -137,26 +142,26 @@ export default function AdminRequests(): JSX.Element {
         {
             label: "Total",
             value: stats?.total ?? 0,
-            color: "text-neutral-300",
-            bg: "bg-neutral-800/50",
+            color: "text-foreground",
+            bg: "bg-muted/50",
         },
         {
             label: "Pending",
             value: stats?.pending ?? 0,
-            color: "text-amber-400",
-            bg: "bg-amber-500/5",
+            color: "text-warning",
+            bg: "bg-warning/5",
         },
         {
             label: "Accepted",
             value: stats?.accepted ?? 0,
-            color: "text-emerald-400",
-            bg: "bg-emerald-500/5",
+            color: "text-success-foreground",
+            bg: "bg-success/5",
         },
         {
             label: "Rejected",
             value: stats?.rejected ?? 0,
-            color: "text-red-400",
-            bg: "bg-red-500/5",
+            color: "text-destructive-soft",
+            bg: "bg-destructive/5",
         },
     ];
 
@@ -169,11 +174,13 @@ export default function AdminRequests(): JSX.Element {
 
     if (!isAdmin) {
         return (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                <p className="text-red-400">{$vocabulary.ADMIN_REQUIRED}</p>
+            <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                <p className="text-destructive-soft">
+                    {$vocabulary.ADMIN_REQUIRED}
+                </p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="mt-4 rounded-lg bg-(--color-rockit-pink) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid)"
+                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
                 >
                     Retry
                 </button>
@@ -184,18 +191,18 @@ export default function AdminRequests(): JSX.Element {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-neutral-500" />
+                <Loader2 className="text-subtle-foreground h-8 w-8 animate-spin" />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                <p className="text-red-400">{error}</p>
+            <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                <p className="text-destructive-soft">{error}</p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="mt-4 rounded-lg bg-(--color-rockit-pink) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid)"
+                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
                 >
                     Retry
                 </button>
@@ -206,10 +213,10 @@ export default function AdminRequests(): JSX.Element {
     return (
         <div>
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-white">
+                <h1 className="text-foreground-strong text-2xl font-bold">
                     {$vocabulary.ADMIN_REQUESTS_TITLE}
                 </h1>
-                <p className="mt-1 text-sm text-neutral-500">
+                <p className="text-subtle-foreground mt-1 text-sm">
                     Manage user suggestions for lyrics, metadata, and content
                     corrections
                 </p>
@@ -219,9 +226,9 @@ export default function AdminRequests(): JSX.Element {
                 {statCards.map((stat) => (
                     <div
                         key={stat.label}
-                        className={`rounded-xl border border-neutral-800 ${stat.bg} p-4`}
+                        className={`border-border-subtle rounded-xl border ${stat.bg} p-4`}
                     >
-                        <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
+                        <p className="text-subtle-foreground text-xs font-medium tracking-wider uppercase">
                             {stat.label}
                         </p>
                         <p className={`mt-1 text-2xl font-bold ${stat.color}`}>
@@ -232,15 +239,15 @@ export default function AdminRequests(): JSX.Element {
             </div>
 
             <div className="mb-6 flex items-center gap-2 overflow-x-auto">
-                <Filter className="h-4 w-4 text-neutral-500" />
+                <Filter className="text-subtle-foreground h-4 w-4" />
                 {filters.map((f) => (
                     <button
                         key={f.id}
                         onClick={() => setFilter(f.id)}
                         className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                             filter === f.id
-                                ? "bg-(--color-rockit-pink) text-white"
-                                : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground-strong"
                         }`}
                     >
                         {f.label}
@@ -249,9 +256,9 @@ export default function AdminRequests(): JSX.Element {
             </div>
 
             {filteredRequests.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                    <MessageSquare className="mb-4 h-12 w-12 text-neutral-600" />
-                    <p className="text-neutral-500">No requests found</p>
+                <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                    <MessageSquare className="text-disabled-foreground mb-4 h-12 w-12" />
+                    <p className="text-subtle-foreground">No requests found</p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -267,7 +274,7 @@ export default function AdminRequests(): JSX.Element {
                         return (
                             <div
                                 key={req.publicId}
-                                className="rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition hover:border-neutral-700"
+                                className="border-border-subtle bg-secondary hover:border-border rounded-xl border p-5 transition"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="min-w-0 flex-1">
@@ -275,7 +282,7 @@ export default function AdminRequests(): JSX.Element {
                                             <span className="text-lg">
                                                 {typeIcon}
                                             </span>
-                                            <span className="rounded-full bg-neutral-800 px-2.5 py-0.5 text-xs font-medium text-neutral-300 capitalize">
+                                            <span className="bg-muted text-foreground rounded-full px-2.5 py-0.5 text-xs font-medium capitalize">
                                                 {req.requestType}
                                             </span>
                                             <span
@@ -286,8 +293,8 @@ export default function AdminRequests(): JSX.Element {
                                         </div>
 
                                         <div className="mb-3 space-y-2">
-                                            <div className="rounded-lg bg-neutral-800/50 p-3">
-                                                <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
+                                            <div className="bg-muted/50 rounded-lg p-3">
+                                                <p className="text-subtle-foreground text-xs font-medium tracking-wider uppercase">
                                                     Proposed change
                                                 </p>
                                                 {req.requestType === "LYRICS" &&
@@ -301,36 +308,36 @@ export default function AdminRequests(): JSX.Element {
                                                         }
                                                     />
                                                 ) : (
-                                                    <p className="mt-1 text-sm text-white">
+                                                    <p className="text-foreground-strong mt-1 text-sm">
                                                         {req.proposedValue}
                                                     </p>
                                                 )}
                                             </div>
 
                                             {req.comment && (
-                                                <div className="rounded-lg bg-neutral-800/30 p-3">
-                                                    <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
+                                                <div className="bg-muted/30 rounded-lg p-3">
+                                                    <p className="text-subtle-foreground text-xs font-medium tracking-wider uppercase">
                                                         User comment
                                                     </p>
-                                                    <p className="mt-1 text-sm text-neutral-300">
+                                                    <p className="text-foreground mt-1 text-sm">
                                                         {req.comment}
                                                     </p>
                                                 </div>
                                             )}
 
                                             {req.reviewComment && (
-                                                <div className="rounded-lg bg-neutral-800/30 p-3">
-                                                    <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
+                                                <div className="bg-muted/30 rounded-lg p-3">
+                                                    <p className="text-subtle-foreground text-xs font-medium tracking-wider uppercase">
                                                         Review note
                                                     </p>
-                                                    <p className="mt-1 text-sm text-neutral-300">
+                                                    <p className="text-foreground mt-1 text-sm">
                                                         {req.reviewComment}
                                                     </p>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-600">
+                                        <div className="text-disabled-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                                             <span className="flex items-center gap-1">
                                                 <Search className="h-3 w-3" />
                                                 {req.userName || "Unknown user"}
@@ -365,7 +372,7 @@ export default function AdminRequests(): JSX.Element {
                                                 disabled={
                                                     reviewingId === req.publicId
                                                 }
-                                                className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-400 transition hover:bg-emerald-500/20 disabled:opacity-50"
+                                                className="bg-success/10 text-success-foreground hover:bg-success/20 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50"
                                             >
                                                 {reviewingId ===
                                                 req.publicId ? (
@@ -385,7 +392,7 @@ export default function AdminRequests(): JSX.Element {
                                                 disabled={
                                                     reviewingId === req.publicId
                                                 }
-                                                className="flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                                                className="bg-destructive/10 text-destructive-soft hover:bg-destructive/20 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50"
                                             >
                                                 {reviewingId ===
                                                 req.publicId ? (
@@ -401,9 +408,9 @@ export default function AdminRequests(): JSX.Element {
                                     {!isPending && (
                                         <div className="flex shrink-0 items-center">
                                             {req.status === "ACCEPTED" ? (
-                                                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                                                <CheckCircle2 className="text-success h-8 w-8" />
                                             ) : (
-                                                <XCircle className="h-8 w-8 text-red-500" />
+                                                <XCircle className="text-destructive h-8 w-8" />
                                             )}
                                         </div>
                                     )}

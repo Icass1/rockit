@@ -50,8 +50,8 @@ export default function HeaderBackdrop(): JSX.Element {
                                 "--header-layer-height": `${height}px`,
                                 "--header-layer-entry":
                                     top === null
-                                        ? "#000 0%"
-                                        : "transparent 0%, #000 10%",
+                                        ? "var(--theme-backdrop) 0%"
+                                        : "transparent 0%, var(--theme-backdrop) 10%",
                                 "--header-blur-start": local(start),
                                 "--header-blur-quarter": local(
                                     start + (end - start) * 0.25

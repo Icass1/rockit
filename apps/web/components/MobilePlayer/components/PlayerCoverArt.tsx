@@ -9,6 +9,10 @@ import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
 import VinylTransition from "@/components/PlayerUI/VinylTransition";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 interface PlayerCoverArtProps {
     uri: string | undefined;
@@ -36,8 +40,8 @@ export default function PlayerCoverArt({
     const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const reducedMotion = useReducedMotion();
     const vinylMode = useStore(rockIt.playerUIManager.vinylModeAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const lang = useStore(rockIt.vocabularyManager.langAtom);
+    const vocabulary = useVocabulary();
+    const lang = useLanguage();
     const canShowVinyl = media?.type === "song" && !!coverUri;
     const showVinyl = canShowVinyl && vinylMode;
     const labelKey = vinylMode ? "PLAYER_SHOW_COVER" : "PLAYER_SHOW_VINYL";
@@ -120,7 +124,7 @@ export default function PlayerCoverArt({
                         event.stopPropagation();
                         rockIt.playerUIManager.toggleVinylMode();
                     }}
-                    className="absolute right-2 bottom-2 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-black/65 text-white shadow-lg focus-visible:outline-2 focus-visible:outline-white"
+                    className="bg-backdrop/65 text-on-media focus-visible:outline-foreground-strong absolute right-2 bottom-2 z-20 flex h-11 w-11 items-center justify-center rounded-full shadow-lg focus-visible:outline-2"
                 >
                     {showVinyl ? (
                         <DiscAlbum aria-hidden className="h-6 w-6" />

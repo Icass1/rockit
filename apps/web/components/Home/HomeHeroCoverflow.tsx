@@ -13,14 +13,16 @@ import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import useMedia from "@/hooks/useMedia";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useCoverflow } from "@/components/Home/hooks/useCoverflow";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import { useHomeSubtitle } from "@/components/Home/hooks/useHomeSubtitle";
 import PlayButton from "@/components/Home/PlayButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
-// ─── Types ──────────────────────────────────────────────
+// Types
 
 export interface CoverflowCard {
     eyebrow: string;
@@ -36,7 +38,7 @@ interface HomeHeroCoverflowProps {
     onColorChange?: (hex: string) => void;
 }
 
-// ─── Helpers ────────────────────────────────────────────
+// Helpers
 
 function shortestDelta(i: number, c: number, n: number): number {
     let d = i - c;
@@ -60,7 +62,7 @@ function getConfig(width: number): {
     return { maxVisible, spacing, cardSize };
 }
 
-// ─── Card ───────────────────────────────────────────────
+// Card
 
 function CoverflowCardComponent({
     card,
@@ -76,9 +78,8 @@ function CoverflowCardComponent({
     const song = useMedia(card.song);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const isCenter = delta === 0;
-    const [imgLoaded, setImgLoaded] = useState(false);
     const isThisPlaying =
         isCenter && $currentMedia?.publicId === song.publicId && $playing;
 
@@ -91,6 +92,9 @@ function CoverflowCardComponent({
         <MediaContextMenu
             media={song}
             location={EMediaContextLocation.HOME}
+            onPlay={() =>
+                rockIt.queueManager.playRecommendedSongAsync(song, card.queue)
+            }
             triggerClassName="h-full w-full"
             onOpenChange={onMenuOpenChange}
         >
@@ -100,10 +104,9 @@ function CoverflowCardComponent({
                 alt=""
                 fill
                 sizes={`${Math.ceil(cardSize)}px`}
-                className={`object-cover transition-opacity duration-500 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+                className={`object-cover opacity-100 transition-opacity duration-500`}
                 draggable={false}
                 aria-hidden="true"
-                onLoad={(): void => setImgLoaded(true)}
             />
 
             {/* Dark gradient overlay — dark at bottom for text readability */}
@@ -111,7 +114,7 @@ function CoverflowCardComponent({
                 className="absolute inset-0 rounded-[18px]"
                 style={{
                     background:
-                        "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)",
+                        "linear-gradient(to top, color-mix(in srgb, var(--theme-backdrop) 70%, transparent) 0%, color-mix(in srgb, var(--theme-backdrop) 30%, transparent) 40%, transparent 70%)",
                 }}
                 aria-hidden="true"
             />
@@ -120,13 +123,13 @@ function CoverflowCardComponent({
             {isCenter && (
                 <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between px-4 pb-4">
                     <div className="min-w-0 flex-1">
-                        <span className="block text-[10px] font-semibold tracking-wider text-white/60 uppercase">
+                        <span className="text-on-media/60 block text-[10px] font-semibold tracking-wider uppercase">
                             {card.eyebrow}
                         </span>
-                        <span className="mt-0.5 block max-w-40 truncate text-sm font-bold text-white">
+                        <span className="text-on-media mt-0.5 block max-w-40 truncate text-sm font-bold">
                             {song.name}
                         </span>
-                        <span className="mt-0.5 block max-w-35 truncate text-xs text-white/55">
+                        <span className="text-on-media/55 mt-0.5 block max-w-35 truncate text-xs">
                             {song.artists[0]?.name}
                         </span>
                     </div>
@@ -156,12 +159,7 @@ function CoverflowCardComponent({
     );
 }
 
-// ─── Main Component ─────────────────────────────────────
-
-function getInitialReducedMotion(): boolean {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
+// Main Component
 
 export default function HomeHeroCoverflow({
     greetingName,
@@ -174,7 +172,7 @@ export default function HomeHeroCoverflow({
 
     const [menuOpen, setMenuOpen] = useState(false);
     const [stageWidth, setStageWidth] = useState(0);
-    const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
+    const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
     const stageRef = useRef<HTMLDivElement>(null);
 
     const { center, next, prev, goTo, startAuto, stopAuto } = useCoverflow({
@@ -192,19 +190,10 @@ export default function HomeHeroCoverflow({
         onColorChange?.(dominantColor);
     }, [dominantColor, onColorChange]);
 
-    // ── reduced-motion listener ──
-    useEffect(() => {
-        const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-        const handler = (e: MediaQueryListEvent): void =>
-            setReducedMotion(e.matches);
-        mq.addEventListener("change", handler);
-        return () => mq.removeEventListener("change", handler);
-    }, []);
-
-    // ── layout config ──
+    // reduced-motion listener
     const config = useMemo(() => getConfig(stageWidth), [stageWidth]);
 
-    // ── IntersectionObserver: pause auto-advance off-screen ──
+    // IntersectionObserver: pause auto-advance off-screen
     useEffect(() => {
         const sentinel = stageRef.current?.parentElement;
         if (!sentinel) return;
@@ -224,7 +213,7 @@ export default function HomeHeroCoverflow({
         return () => observer.disconnect();
     }, [startAuto, stopAuto]);
 
-    // ── ResizeObserver on stage container ──
+    // ResizeObserver on stage container
     useEffect(() => {
         const el = stageRef.current?.parentElement;
         if (!el) return;
@@ -236,7 +225,7 @@ export default function HomeHeroCoverflow({
         return () => ro.disconnect();
     }, []);
 
-    // ── Pointer drag (mouse + touch) ──
+    // Pointer drag (mouse + touch)
     const dragStartRef = useRef<number | null>(null);
     const dragMovedRef = useRef(false);
 
@@ -277,7 +266,7 @@ export default function HomeHeroCoverflow({
         [center, n, config.spacing, next, prev, goTo, menuOpen]
     );
 
-    // ── Keyboard ──
+    // Keyboard
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent): void => {
             if (e.target !== e.currentTarget || menuOpen) return;
@@ -298,16 +287,17 @@ export default function HomeHeroCoverflow({
         streak,
         minutesThisWeek,
     });
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     // Early return after all hooks
     if (cards.length === 0) return null;
 
-    // ── Card transform ──
+    // Card transform
     function getCardStyle(delta: number): React.CSSProperties {
         const ad = Math.abs(delta);
         const visible = ad <= config.maxVisible;
-        const x = delta * config.spacing;
+        const x =
+            Math.abs(delta) ** (1 / 1.5) * config.spacing * Math.sign(delta);
         const rot = Math.max(-38, Math.min(38, -delta * 34));
         const z = -ad * 90;
         const scale = ad === 0 ? 1 : Math.max(0.4, 1 - Math.min(ad, 3) * 0.2);
@@ -326,17 +316,17 @@ export default function HomeHeroCoverflow({
         };
     }
 
-    // ── Stage height responsive ──
+    // Stage height responsive
     const stageHeight = Math.round(config.cardSize * 1.25);
 
     return (
         <section className="cf-section relative">
             <div className="relative z-10 px-[6%] pt-7 pb-0">
-                <h1 className="text-[clamp(20px,3.4cqw,40px)] leading-tight font-extrabold text-white">
+                <h1 className="text-foreground text-[clamp(20px,3.4cqw,40px)] leading-tight font-bold">
                     {greetingName}
                 </h1>
                 {subtitle && (
-                    <p className="mt-1.5 text-[13px] text-white/50">
+                    <p className="text-foreground/50 mt-1.5 text-[13px]">
                         {subtitle}
                     </p>
                 )}

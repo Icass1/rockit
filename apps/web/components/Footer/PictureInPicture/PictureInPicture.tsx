@@ -96,13 +96,13 @@ export default function PictureInPicture(): JSX.Element | null {
         <>
             <button
                 onClick={togglePiP}
-                className="rounded-full p-2 text-gray-400 transition hover:text-white"
+                className="text-muted-foreground hover:text-foreground-strong rounded-full p-2 transition"
                 aria-label={pipWindow ? "Close miniplayer" : "Open miniplayer"}
                 title={pipWindow ? "Close miniplayer" : "Open miniplayer"}
             >
                 <PictureInPicture2
                     size={24}
-                    className={pipWindow ? "text-(--color-rockit-pink)" : ""}
+                    className={pipWindow ? "text-primary" : ""}
                 />
             </button>
 

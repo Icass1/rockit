@@ -1,4 +1,5 @@
 import type { NavigationPinResponse } from "@rockit/shared";
+import type { NavigationPinsServices } from "@/models/interfaces/navigationPinsServices";
 import type { NavigationPinsStatus } from "@/models/types/navigationPins";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -10,11 +11,18 @@ export class NavigationPinsManager {
     private status = createAtom<NavigationPinsStatus>("idle");
     private pending = createArrayAtom<string>([]);
     private initialized = false;
+    private unsubscribeSession?: () => void;
     private account = "";
     private epoch = 0;
     private request = 0;
     private tail: Promise<void> = Promise.resolve();
     private busy = new Set<string>();
+
+    constructor(private readonly dependencies?: NavigationPinsServices) {}
+
+    private get services(): NavigationPinsServices {
+        return this.dependencies ?? rockIt;
+    }
 
     get pinsAtom(): ReadonlyAtom<NavigationPinResponse[]> {
         return this.pins.getReadonlyAtom();
@@ -26,25 +34,41 @@ export class NavigationPinsManager {
         return this.pending.getReadonlyAtom();
     }
 
-    init(): void {
+    start(): void {
         if (this.initialized || typeof window === "undefined") return;
         this.initialized = true;
-        rockIt.userManager.usernameAtom.listen(this.syncAccount);
-        rockIt.userManager.loggedInAtom.listen(this.syncAccount);
+        this.unsubscribeSession =
+            this.services.userManager.sessionAtom.subscribe(this.syncAccount);
         window.addEventListener("focus", this.refreshOnWake);
         window.addEventListener("online", this.refreshOnWake);
-        document.addEventListener("visibilitychange", () => {
-            if (!document.hidden) this.refreshOnWake();
-        });
-        this.syncAccount();
+        document.addEventListener("visibilitychange", this.refreshOnVisible);
+    }
+
+    stop(): void {
+        this.initialized = false;
+        this.unsubscribeSession?.();
+        this.unsubscribeSession = undefined;
+        if (typeof window !== "undefined") {
+            window.removeEventListener("focus", this.refreshOnWake);
+            window.removeEventListener("online", this.refreshOnWake);
+            document.removeEventListener(
+                "visibilitychange",
+                this.refreshOnVisible
+            );
+        }
+        this.reset();
     }
 
     private syncAccount = (): void => {
-        const key = rockIt.userManager.loggedInAtom.get()
-            ? (rockIt.userManager.usernameAtom.get() ?? "")
-            : "";
-        if (key === this.account) return;
+        const key = this.services.userManager.sessionAtom.get()?.username ?? "";
+        if (!this.initialized || key === this.account) return;
+        this.reset();
         this.account = key;
+        if (key) void this.refreshAsync();
+    };
+
+    private reset(): void {
+        this.account = "";
         this.epoch++;
         this.request++;
         this.tail = Promise.resolve();
@@ -52,7 +76,10 @@ export class NavigationPinsManager {
         this.pins.set([]);
         this.pending.set([]);
         this.status.set("idle");
-        if (key) void this.refreshAsync();
+    }
+
+    private refreshOnVisible = (): void => {
+        if (!document.hidden) this.refreshOnWake();
     };
 
     private refreshOnWake = (): void => {
@@ -60,7 +87,12 @@ export class NavigationPinsManager {
     };
 
     async refreshAsync(): Promise<boolean> {
-        if (!this.account || this.busy.size || this.status.get() === "loading")
+        if (
+            !this.initialized ||
+            !this.account ||
+            this.busy.size ||
+            this.status.get() === "loading"
+        )
             return false;
         const epoch = this.epoch;
         const request = ++this.request;
@@ -83,7 +115,7 @@ export class NavigationPinsManager {
     }
 
     setPinnedAsync(publicId: string, pinned: boolean): Promise<boolean> {
-        if (!this.account || this.busy.has(publicId))
+        if (!this.initialized || !this.account || this.busy.has(publicId))
             return Promise.resolve(false);
         const epoch = this.epoch;
         this.request++; // An older GET must never overwrite this mutation.
@@ -98,25 +130,27 @@ export class NavigationPinsManager {
                 if (epoch !== this.epoch) return false;
                 if (!result.isOk()) {
                     this.status.set("error");
-                    rockIt.notificationManager.notifyError(
-                        rockIt.vocabularyManager.vocabulary
+                    this.services.notificationManager.notifyError(
+                        this.services.vocabularyManager.vocabulary
                             .NAV_PINS_UPDATE_ERROR
                     );
                     return false;
                 }
                 this.pins.set(result.result.pins);
                 this.status.set("ready");
-                rockIt.notificationManager.notifySuccess(
+                this.services.notificationManager.notifySuccess(
                     pinned
-                        ? rockIt.vocabularyManager.vocabulary.NAV_PIN_ADDED
-                        : rockIt.vocabularyManager.vocabulary.NAV_PIN_REMOVED
+                        ? this.services.vocabularyManager.vocabulary
+                              .NAV_PIN_ADDED
+                        : this.services.vocabularyManager.vocabulary
+                              .NAV_PIN_REMOVED
                 );
                 return true;
             } catch {
                 if (epoch === this.epoch) {
                     this.status.set("error");
-                    rockIt.notificationManager.notifyError(
-                        rockIt.vocabularyManager.vocabulary
+                    this.services.notificationManager.notifyError(
+                        this.services.vocabularyManager.vocabulary
                             .NAV_PINS_UPDATE_ERROR
                     );
                 }

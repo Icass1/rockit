@@ -5,8 +5,8 @@ import { isSearchResult } from "@rockit/shared";
 import { HardDriveDownload } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 export default function RedownloadAction({
     media,

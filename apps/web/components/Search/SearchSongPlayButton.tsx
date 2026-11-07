@@ -5,13 +5,14 @@ import { useStore } from "@nanostores/react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
 import { LoaderCircle, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function SearchSongPlayButton({
     song,
 }: {
     song: BaseSearchResultsItem;
 }): JSX.Element | null {
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function SearchSongPlayButton({
             title={label}
             aria-busy={loading}
             disabled={loading}
-            className="search-song-play absolute inset-0 grid place-items-center rounded-lg bg-black/50 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-wait"
+            className="search-song-play bg-backdrop/50 text-foreground-strong focus-visible:outline-foreground-strong absolute inset-0 grid place-items-center rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-wait"
             onClick={async (event): Promise<void> => {
                 event.stopPropagation();
                 if (loading) return;

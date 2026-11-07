@@ -3,9 +3,7 @@
 import { JSX, useEffect, useRef } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
-
-const TARGET_SPEED = 0.75;
-const ACCEL = TARGET_SPEED / 120; // 2s to full speed at 60fps
+import { startVinylRotation } from "@/lib/utils/vinylRotation";
 
 export default function VinylRecord({
     imageUrl,
@@ -20,49 +18,17 @@ export default function VinylRecord({
 }): JSX.Element {
     const artistText = artists.map((a) => a.name).join(", ");
     const discRef = useRef<HTMLDivElement>(null);
-    const rotationRef = useRef(0);
-    const speedRef = useRef(0);
     const isPlayingRef = useRef(isPlaying);
-    const rafIdRef = useRef<number>(0);
 
     // Keep ref in sync with prop outside of render
     useEffect(() => {
         isPlayingRef.current = isPlaying;
     }, [isPlaying]);
 
-    const startLoop = (): void => {
-        const tick = (): void => {
-            const playing = isPlayingRef.current;
-
-            if (playing) {
-                speedRef.current = Math.min(
-                    speedRef.current + ACCEL,
-                    TARGET_SPEED
-                );
-            } else {
-                // Smooth exponential decay for a more natural slowdown
-                speedRef.current *= 0.96;
-                if (speedRef.current < 0.001) speedRef.current = 0;
-            }
-
-            // Update rotation only when speed > 0
-            if (speedRef.current > 0) {
-                rotationRef.current =
-                    (rotationRef.current + speedRef.current) % 360;
-                if (discRef.current) {
-                    discRef.current.style.transform = `rotate(${rotationRef.current}deg)`;
-                }
-            }
-            // Continue the animation loop regardless of speed
-            rafIdRef.current = requestAnimationFrame(tick);
-        };
-        rafIdRef.current = requestAnimationFrame(tick);
-    };
-
-    // Start the animation loop once on mount.
     useEffect(() => {
-        startLoop();
-        return () => cancelAnimationFrame(rafIdRef.current);
+        const disc = discRef.current;
+        if (!disc) return;
+        return startVinylRotation(disc, () => isPlayingRef.current);
     }, []);
 
     return (
@@ -92,7 +58,7 @@ export default function VinylRecord({
                     <path id="vinyl-text-arc" d="M 4 50 A 46 46 0 0 1 96 50" />
                 </defs>
                 <text
-                    fill="rgba(255,255,255,0.45)"
+                    className="fill-on-media/45"
                     fontSize="1.8"
                     fontWeight="bold"
                     fontFamily="sans-serif"

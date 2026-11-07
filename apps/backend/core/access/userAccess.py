@@ -22,6 +22,7 @@ from core.access.db.ormModels.user_seeks import UserSeeksRow
 from core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
 from core.access.navigationPinAccess import NavigationPinAccess
 from core.framework.media.image import Image
+from core.models.themePreference import ThemePreference
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
 from core.utils.timeIt import time_it
@@ -462,6 +463,16 @@ class UserAccess:
         interval.time_ms_end = max(interval.time_ms_end, time_ms_end)
         await session.commit()
         return ResultCode(code=ResultCode.OK, message="OK")
+
+    @staticmethod
+    @safe_async
+    async def update_theme_async(
+        session: AsyncSession, user: UserRow, theme: ThemePreference
+    ) -> Result[bool]:
+        """Persist the authenticated user's interface theme."""
+        user.theme = theme
+        await session.flush()
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     @safe_async

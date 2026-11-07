@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { Headphones, Music2, Send, Users } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import FriendActivityFeed from "@/components/Friends/FriendActivityFeed";
 import FriendLeaderboard from "@/components/Friends/FriendLeaderboard";
 import FriendRequests from "@/components/Friends/FriendRequests";
@@ -11,29 +10,25 @@ import styles from "@/components/Friends/Friends.module.css";
 import FriendsList from "@/components/Friends/FriendsList";
 import ListenTogetherPanel from "@/components/Friends/ListenTogetherPanel";
 import SharedMediaInbox from "@/components/Friends/SharedMediaInbox";
+import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function FriendsClient(): JSX.Element {
-    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const friends = useStore(rockIt.friendManager.friendsAtom);
-    const activity = useStore(rockIt.friendManager.activityAtom);
-    const error = useStore(rockIt.friendManager.errorAtom);
-    const loading = useStore(rockIt.friendManager.loadingAtom);
-    const requests = useStore(rockIt.friendManager.incomingRequestsAtom);
-    const [ready, setReady] = useState(false);
+    const { friendManager } = useRuntimeServices();
+    const scope = useStore(friendManager.scopeAtom);
+    return <FriendsContent key={scope} />;
+}
+
+function FriendsContent(): JSX.Element {
+    const { friendManager, sharingManager } = useRuntimeServices();
+    const v = useVocabulary();
+    const friends = useStore(friendManager.friendsAtom);
+    const activity = useStore(friendManager.activityAtom);
+    const error = useStore(friendManager.errorAtom);
+    const loading = useStore(friendManager.loadingAtom);
+    const requests = useStore(friendManager.incomingRequestsAtom);
+    const loadingShares = useStore(sharingManager.loadingAtom);
     const onlineCount = friends.filter((friend) => friend.isOnline).length;
-    useEffect(() => {
-        void Promise.allSettled([
-            rockIt.sharingManager.fetchInbox(),
-            rockIt.sharingManager.fetchSent(),
-            rockIt.listenTogetherManager.fetchSessions(),
-        ]).finally(() => setReady(true));
-        const unsubscribe = rockIt.friendManager.friendsAtom.subscribe(
-            (value) => {
-                if (value.length > 0) setReady(true);
-            }
-        );
-        return unsubscribe;
-    }, []);
     return (
         <div className={styles.root}>
             <header className={styles.header}>
@@ -43,11 +38,11 @@ export default function FriendsClient(): JSX.Element {
                 </div>
                 <div>
                     <p
-                        className="mt-2 flex items-center gap-2 text-sm text-neutral-400"
+                        className="text-muted-foreground mt-2 flex items-center gap-2 text-sm"
                         role="status"
                     >
                         <span
-                            className="h-2 w-2 rounded-full bg-emerald-400"
+                            className="bg-success h-2 w-2 rounded-full"
                             aria-hidden
                         />
                         {onlineCount} {v.FRIENDS_ONLINE}
@@ -88,7 +83,7 @@ export default function FriendsClient(): JSX.Element {
                     <p>{error}</p>
                     <button
                         onClick={() => {
-                            void rockIt.friendManager.fetchFriends();
+                            void friendManager.fetchFriends();
                         }}
                     >
                         {v.SOCIAL_RETRY}
@@ -151,7 +146,7 @@ export default function FriendsClient(): JSX.Element {
                     >
                         {v.FRIENDS_RECENT_LISTENS}
                     </h2>
-                    {!ready && activity.length === 0 ? (
+                    {loadingShares && activity.length === 0 ? (
                         <div
                             className={styles.directorySkeleton}
                             aria-busy="true"

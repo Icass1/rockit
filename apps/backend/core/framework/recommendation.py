@@ -108,6 +108,18 @@ class Recommendation:
     external: ExternalRecommendations = external_recommendations
 
     @staticmethod
+    async def get_artwork_async(provider_name: str, artist: str, track: str) -> Result[str]:
+        """Delegate public artwork metadata to the configured capability owner."""
+        for provider in Recommendation.external.providers:
+            if provider.display_name == provider_name and provider.is_configured():
+                result = await provider.get_artwork_async(artist_name=artist, track_name=track)
+                if result.is_not_ok():
+                    logger.warning(f"Recommendation artwork unavailable. {result.info()}")
+                    return Result(code=result.code(), message=result.message())
+                return result
+        return Result(code=ResultCode.OK, message="No artwork provider", result="")
+
+    @staticmethod
     def to_song_list_response(result: RecommendationResult) -> SongListResponse:
         """Map a recommendation result to the public response model."""
 
@@ -231,11 +243,14 @@ class Recommendation:
         exclude_media_ids: list[int],
         exclude_public_ids: set[str],
         limit: int,
+        ranked_public_ids: list[str] | None = None,
     ) -> Result[list[BaseSongWithAlbumResponse]]:
         """Ranked local songs, served from the short-lived cache when
         possible. Songs are always re-resolved so download state is fresh."""
 
-        ranked: list[str] | None = _local_result_cache.get(cache_key) if cache_key else None
+        ranked = ranked_public_ids
+        if ranked is None and cache_key:
+            ranked = _local_result_cache.get(cache_key)
         if ranked is None:
             a_ranked = await Recommendation._rank_local_async(
                 session=session,
@@ -263,6 +278,7 @@ class Recommendation:
         suggestion: ExternalSuggestion,
         provider_name: str,
         public_id: str | None,
+        image_url: str | None = None,
     ) -> BaseSearchResultsItem:
         """External suggestion -> the search-result shape the UI already
         knows how to play (publicId set) or download (artist + track via
@@ -274,7 +290,7 @@ class Recommendation:
             type="song",
             name=suggestion.track_name,
             providerUrl="",
-            imageUrl="",
+            imageUrl=image_url or suggestion.image_url or "",
             artists=[ArtistSearchResultsItem(name=suggestion.artist_name, url="")],
             provider=provider_name,
             downloaded=public_id is not None,
@@ -331,6 +347,7 @@ class Recommendation:
             session=session, public_ids=candidate_ids
         )
         downloaded = {song.publicId for song in resolved if song.downloaded}
+        artwork = {song.publicId: song.imageUrl or song.album.imageUrl for song in resolved}
         in_library = {
             idx: next((pid for pid in ids if pid in downloaded), None)
             for idx, ids in matches.items()
@@ -348,11 +365,18 @@ class Recommendation:
                 if public_id in exclude_public_ids or public_id in seen_public_ids:
                     continue
                 seen_public_ids.add(public_id)
+            image_url = artwork.get(public_id) if public_id else None
+            if not image_url:
+                image_url = next(
+                    (artwork[pid] for pid in matches.get(idx + 1, []) if artwork.get(pid)),
+                    None,
+                )
             discover.append(
                 Recommendation.build_discover_item(
                     suggestion=suggestion,
                     provider_name=result.provider_name,
                     public_id=public_id,
+                    image_url=image_url,
                 )
             )
 
@@ -436,50 +460,54 @@ class Recommendation:
 
         limit = Recommendation.clamp_limit(limit)
 
+        cache_key = ("user", user_id, "", limit)
+        ranked_public_ids = _local_result_cache.get(cache_key)
         a_recent: Result[list[str]] = await StatsAccess.get_recently_played_songs_async(
             session=session, user_id=user_id, limit=PROFILE_SEED_LIMIT
         )
+        if a_recent.is_not_ok():
+            logger.warning(f"Could not load recent songs for user {user_id}. {a_recent.info()}")
         recent_ids: list[str] = a_recent.result() if a_recent.is_ok() else []
 
-        a_liked: Result[
-            list[str]
-        ] = await UserLikedMediaAccess.get_user_liked_media_public_ids_async(
-            session=session, user_id=user_id
-        )
-        liked_ids: list[str] = a_liked.result() if a_liked.is_ok() else []
+        liked_ids: list[str] = []
+        if ranked_public_ids is None or (include_external and not recent_ids):
+            a_liked = await UserLikedMediaAccess.get_user_liked_media_public_ids_async(
+                session=session, user_id=user_id, limit=PROFILE_SEED_LIMIT
+            )
+            if a_liked.is_not_ok():
+                logger.warning(f"Could not load liked songs for user {user_id}. {a_liked.info()}")
+            else:
+                liked_ids = a_liked.result()
 
-        seed_public_ids: list[str] = list(
-            dict.fromkeys(recent_ids + liked_ids[:PROFILE_SEED_LIMIT])
-        )
-
-        a_seed_ids = await Recommendation._get_media_ids_async(
-            session=session, public_ids=seed_public_ids
-        )
-        if a_seed_ids.is_not_ok():
-            logger.error(f"Error resolving seed songs for user {user_id}. {a_seed_ids.info()}")
-            return Result(code=a_seed_ids.code(), message=a_seed_ids.message())
-        seed_ids = a_seed_ids.result()
-
-        # Exclude the most recent listens while retaining older familiar
-        # music as fallback, especially on smaller self-hosted libraries.
-        a_all_played: Result[list[str]] = await StatsAccess.get_recently_played_songs_async(
-            session=session, user_id=user_id, limit=PROFILE_EXCLUDE_LIMIT
-        )
-        played_ids: list[str] = a_all_played.result() if a_all_played.is_ok() else []
-        exclude_public_ids: set[str] = set(played_ids)
-
-        a_exclude_ids = await Recommendation._get_media_ids_async(
-            session=session, public_ids=list(exclude_public_ids)
-        )
-        exclude_ids: list[int] = a_exclude_ids.result() if a_exclude_ids.is_ok() else seed_ids
+        exclude_public_ids = set(recent_ids[:PROFILE_EXCLUDE_LIMIT])
+        seed_ids: list[int] = []
+        exclude_ids: list[int] = []
+        if ranked_public_ids is None:
+            seed_public_ids = list(dict.fromkeys(recent_ids + liked_ids[:PROFILE_SEED_LIMIT]))
+            if seed_public_ids:
+                a_medias = await Media.get_medias_from_public_ids_async(
+                    session=session,
+                    public_ids=seed_public_ids,
+                    media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
+                )
+                if a_medias.is_not_ok():
+                    logger.error(
+                        f"Error resolving seed songs for user {user_id}. {a_medias.info()}"
+                    )
+                    return Result(code=a_medias.code(), message=a_medias.message())
+                seed_ids = [media.id for media in a_medias.result()]
+                exclude_ids = [
+                    media.id for media in a_medias.result() if media.public_id in exclude_public_ids
+                ]
 
         a_songs = await Recommendation._get_local_songs_async(
             session=session,
-            cache_key=("user", user_id, "", limit),
+            cache_key=cache_key,
             seed_media_ids=seed_ids,
             exclude_media_ids=exclude_ids,
             exclude_public_ids=exclude_public_ids,
             limit=limit,
+            ranked_public_ids=ranked_public_ids,
         )
         if a_songs.is_not_ok():
             logger.error(f"Error computing recommendations for user {user_id}. {a_songs.info()}")
@@ -491,7 +519,7 @@ class Recommendation:
             await Recommendation._resolve_seed_track_async(
                 session=session, public_id=top_seed_public_id
             )
-            if top_seed_public_id
+            if include_external and top_seed_public_id
             else None
         )
         discover, provider, status = await Recommendation._get_discover_async(

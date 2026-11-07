@@ -171,6 +171,36 @@ class WebSocketManager:
         except Exception:
             logger.exception("Cannot send social snapshot to user %s", user_id)
 
+    async def send_listen_together_snapshot_async(
+        self, user_id: int, websocket: WebSocket | None = None
+    ) -> None:
+        """Send session state on connection and after committed session changes."""
+        from core import db_context
+        from core.framework.friend.listenTogether import ListenTogether
+        from core.responses.friend.listenTogetherResponse import ListenTogetherSyncMessage
+
+        try:
+            async with db_context.session_scope_async() as session:
+                result = await ListenTogether.get_active_sessions_async(
+                    session=session, user_id=user_id
+                )
+                if result.is_not_ok():
+                    logger.error("Cannot load listening sessions: %s", result.info())
+                    return
+                snapshot = await ListenTogether.build_sessions_response_async(
+                    session=session, user_id=user_id, rows=result.result()
+                )
+                if snapshot.is_not_ok():
+                    logger.error("Cannot resolve listening sessions: %s", snapshot.info())
+                    return
+            message = ListenTogetherSyncMessage(sessions=snapshot.result().sessions)
+            if websocket is not None:
+                await self.send_to_socket_async(websocket=websocket, message=message)
+            else:
+                await self.send_to_user_async(user_id=user_id, message=message)
+        except Exception:
+            logger.exception("Cannot send listening session snapshot to user %s", user_id)
+
     async def send_notification_state_async(
         self, user_id: int, websocket: WebSocket | None = None
     ) -> None:

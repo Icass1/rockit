@@ -2,7 +2,6 @@
 
 import { JSX, useMemo } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
 import { toLocalHHMM } from "@rockit/shared";
 import {
     Bar,
@@ -13,16 +12,16 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface MinutesBarChartProps {
     data: StatsMinutesEntryResponse[];
     range?: string;
 }
 
-const PINK = "#ee1086";
-const PINK_LIGHT = "#fb6467";
-const NEUTRAL_700 = "#404040";
+const PRIMARY = "var(--theme-primary)";
+const BRAND_LIGHT = "var(--theme-brand-light)";
+const CHART_GRID = "var(--theme-border)";
 
 function CustomTooltip({
     active,
@@ -60,13 +59,13 @@ function CustomTooltip({
     }
 
     return (
-        <div className="rounded-xl border border-neutral-800/60 bg-neutral-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
-            <p className="text-xs whitespace-nowrap text-neutral-400">
+        <div className="border-border-subtle/60 bg-secondary/95 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-md">
+            <p className="text-muted-foreground text-xs whitespace-nowrap">
                 {label}
             </p>
-            <p className="mt-0.5 text-lg font-bold whitespace-nowrap text-white">
+            <p className="text-foreground-strong mt-0.5 text-lg font-bold whitespace-nowrap">
                 {payload[0].value.toFixed(1)}
-                <span className="ml-1 text-sm font-medium text-neutral-400">
+                <span className="text-muted-foreground ml-1 text-sm font-medium">
                     min
                 </span>
             </p>
@@ -78,7 +77,7 @@ export default function MinutesBarChart({
     data: _data,
     range = "30d",
 }: MinutesBarChartProps): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const data = useMemo(() => {
         return _data.map((entry) => {
@@ -99,7 +98,7 @@ export default function MinutesBarChart({
     if (data.length === 0) {
         return (
             <div className="flex h-70 items-center justify-center">
-                <p className="text-sm text-neutral-600">
+                <p className="text-disabled-foreground text-sm">
                     {$vocabulary.NO_DATA}
                 </p>
             </div>
@@ -122,26 +121,26 @@ export default function MinutesBarChart({
                     >
                         <stop
                             offset="0%"
-                            stopColor={PINK_LIGHT}
+                            stopColor={BRAND_LIGHT}
                             stopOpacity={1}
                         />
                         <stop
                             offset="100%"
-                            stopColor={PINK}
+                            stopColor={PRIMARY}
                             stopOpacity={0.85}
                         />
                     </linearGradient>
                 </defs>
                 <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke={NEUTRAL_700}
+                    stroke={CHART_GRID}
                     strokeOpacity={0.2}
                     vertical={false}
                 />
                 <XAxis
                     dataKey="label"
                     tick={{
-                        fill: "#ffffff",
+                        fill: "var(--theme-foreground-strong)",
                         fontSize: 12,
                         fontWeight: 500,
                     }}
@@ -152,7 +151,7 @@ export default function MinutesBarChart({
                 />
                 <YAxis
                     tick={{
-                        fill: "#ffffff",
+                        fill: "var(--theme-foreground-strong)",
                         fontSize: 12,
                     }}
                     axisLine={false}
@@ -161,7 +160,9 @@ export default function MinutesBarChart({
                 />
                 <Tooltip
                     content={<CustomTooltip range={range} />}
-                    cursor={{ fill: "rgba(255,255,255,0.03)" }}
+                    cursor={{
+                        fill: "color-mix(in srgb, var(--theme-foreground-strong) 3%, transparent)",
+                    }}
                 />
                 <Bar
                     dataKey="minutes"

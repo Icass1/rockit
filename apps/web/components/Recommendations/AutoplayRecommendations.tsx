@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, type JSX } from "react";
-import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { ERepeatMode, getMediaArtistsString } from "@rockit/shared";
 import { Download, ListPlus } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import RecommendationArtwork from "@/components/Recommendations/RecommendationArtwork";
 
 /** Shared by the desktop player and the compact PWA player. */
 export default function AutoplayRecommendations(): JSX.Element {
     const items = useStore(rockIt.queueManager.autoplayRecommendationsAtom);
     const current = useStore(rockIt.queueManager.currentMediaAtom);
     const repeat = useStore(rockIt.userManager.repeatModeAtom);
-    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const vocabulary = useVocabulary();
     const loading = useStore(rockIt.queueManager.autoplayLoadingAtom);
 
     useEffect(() => {
@@ -21,10 +22,10 @@ export default function AutoplayRecommendations(): JSX.Element {
 
     return (
         <section
-            className="mt-4 border-t border-white/10 pt-4"
+            className="border-foreground-strong/10 mt-4 shrink-0 border-t pt-4"
             aria-busy={loading}
         >
-            <h3 className="px-4 pb-3 text-sm font-semibold text-(--color-muted)">
+            <h3 className="text-muted-foreground px-4 pb-3 text-sm font-semibold">
                 {repeat === ERepeatMode.OFF
                     ? vocabulary.AUTOPLAY_ON
                     : vocabulary.RECOMMENDED_SONGS}
@@ -45,7 +46,7 @@ export default function AutoplayRecommendations(): JSX.Element {
                     </div>
                 ))}
             {!loading && items.length === 0 && (
-                <p className="px-4 py-2 text-sm text-(--color-muted)">
+                <p className="text-muted-foreground px-4 py-2 text-sm">
                     {vocabulary.NO_SIMILAR_SONGS_FOUND}
                 </p>
             )}
@@ -65,40 +66,40 @@ export default function AutoplayRecommendations(): JSX.Element {
                                 entry
                             );
                         }}
-                        className="flex min-h-16 w-full items-center gap-3 rounded px-4 py-2 text-left transition hover:bg-(--color-surface) focus-visible:outline-2 focus-visible:outline-(--color-rockit-pink)"
+                        className="focus-visible:outline-primary flex min-h-16 w-full items-center gap-3 rounded px-4 py-2 text-left transition hover:bg-(--color-surface) focus-visible:outline-2"
                         title={
                             ready
                                 ? vocabulary.PLAY_NEXT
                                 : vocabulary.CLICK_TO_DOWNLOAD
                         }
                     >
-                        <Image
-                            src={
-                                media.imageUrl ||
-                                rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        <RecommendationArtwork
+                            src={media.imageUrl}
+                            provider={
+                                entry.kind === "discover" ? media.provider : ""
                             }
-                            alt=""
-                            width={48}
-                            height={48}
+                            artist={media.artists[0]?.name}
+                            track={media.name}
+                            size={48}
                             className="h-12 w-12 shrink-0 rounded object-cover"
                         />
                         <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-semibold text-white">
+                            <span className="text-foreground-strong block truncate text-sm font-semibold">
                                 {media.name}
                             </span>
-                            <span className="block truncate text-xs text-(--color-muted)">
+                            <span className="text-muted-foreground block truncate text-xs">
                                 {getMediaArtistsString(media) ||
                                     vocabulary.UNKNOWN}
                             </span>
                         </span>
                         {ready ? (
                             <ListPlus
-                                className="h-4 w-4 shrink-0 text-(--color-rockit-pink)"
+                                className="text-primary h-4 w-4 shrink-0"
                                 aria-hidden="true"
                             />
                         ) : (
                             <Download
-                                className="h-4 w-4 shrink-0 text-(--color-muted)"
+                                className="text-muted-foreground h-4 w-4 shrink-0"
                                 aria-label={vocabulary.CLICK_TO_DOWNLOAD}
                             />
                         )}

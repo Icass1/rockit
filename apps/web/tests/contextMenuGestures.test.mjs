@@ -27,12 +27,12 @@ const modules = {
     react: `const f=globalThis.__menuFixture;export const useRef=value=>{const i=f.index++;return f.refs[i]??=( {current:value} );};export const useEffect=effect=>effect();`,
     "react/jsx-runtime":
         "export const jsx=(type,props)=>({type,props});export const jsxs=jsx;",
-    "@/components/ContextMenu/context":
+    "@/components/ui/ContextMenu/context":
         "export const useContextMenu=()=>globalThis.__menuFixture.context;",
 };
 const result = await build({
     absWorkingDir: fileURLToPath(new URL("..", import.meta.url)),
-    entryPoints: ["components/ContextMenu/Trigger.tsx"],
+    entryPoints: ["components/ui/ContextMenu/Trigger.tsx"],
     bundle: true,
     platform: "node",
     format: "esm",

@@ -8,6 +8,7 @@ import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import PlayButton from "@/components/Home/PlayButton";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface QuickAccessCardProps {
     eyebrow: string;
@@ -26,7 +27,7 @@ export default function QuickAccessCard({
 }: QuickAccessCardProps): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const isThisPlaying = $currentMedia?.publicId === song.publicId && $playing;
     const { hex } = parseDominantColor(song.dominantColor);
@@ -49,12 +50,12 @@ export default function QuickAccessCard({
             <div
                 className="absolute inset-0 transition-colors duration-700"
                 style={{
-                    background: `linear-gradient(135deg, ${hex}99 0%, #00000060 100%)`,
+                    background: `linear-gradient(135deg, color-mix(in srgb, ${hex} 60%, transparent) 0%, color-mix(in srgb, var(--theme-backdrop) 37.65%, transparent) 100%)`,
                 }}
                 aria-hidden="true"
             />
             <div
-                className="absolute inset-0 bg-zinc-900"
+                className="bg-secondary absolute inset-0"
                 style={{ zIndex: -1 }}
             />
 
@@ -69,13 +70,13 @@ export default function QuickAccessCard({
 
             <div className="relative z-10 flex w-full flex-col justify-between p-5">
                 <div>
-                    <span className="text-xs font-semibold tracking-wide text-white/70 uppercase">
+                    <span className="text-on-media/70 text-xs font-semibold tracking-wide uppercase">
                         {eyebrow}
                     </span>
-                    <h3 className="mt-2 line-clamp-2 text-2xl font-bold text-white">
+                    <h3 className="text-on-media mt-2 line-clamp-2 text-2xl font-bold">
                         {title}
                     </h3>
-                    <p className="mt-1 truncate text-sm text-white/70">
+                    <p className="text-on-media/70 mt-1 truncate text-sm">
                         {subtitle}
                     </p>
                 </div>

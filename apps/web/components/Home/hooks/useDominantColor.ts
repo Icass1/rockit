@@ -1,16 +1,10 @@
-interface DominantColor {
-    r: number;
-    g: number;
-    b: number;
-    hex: string;
-    isLoading: boolean;
-}
+import type { DominantColor } from "@/models/interfaces/artworkColor";
 
 const FALLBACK: Omit<DominantColor, "isLoading"> = {
-    r: 120,
-    g: 120,
-    b: 130,
-    hex: "#787882",
+    r: 0,
+    g: 0,
+    b: 0,
+    hex: "var(--theme-media-accent)",
 };
 
 function toHex(r: number, g: number, b: number): string {
@@ -21,7 +15,8 @@ function toHex(r: number, g: number, b: number): string {
 export function parseDominantColor(
     hex: string | null | undefined
 ): DominantColor {
-    if (!hex) return { ...FALLBACK, isLoading: false };
+    if (!hex || !/^#[0-9a-f]{6}$/i.test(hex))
+        return { ...FALLBACK, isLoading: false };
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);

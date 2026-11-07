@@ -8,6 +8,7 @@ from sqlalchemy.future import select
 
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.user_liked_media import UserLikedMediaRow
+from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -63,27 +64,22 @@ class UserLikedMediaAccess:
             )
 
     @staticmethod
+    @safe_async
     async def get_user_liked_media_public_ids_async(
-        session: AsyncSession, user_id: int
+        session: AsyncSession, user_id: int, limit: int | None = None
     ) -> Result[list[str]]:
-        try:
-            stmt: Select[tuple[str]] = (
-                select(CoreMediaRow.public_id)
-                .join(UserLikedMediaRow, UserLikedMediaRow.media_id == CoreMediaRow.id)
-                .where(UserLikedMediaRow.user_id == user_id)
-                .order_by(UserLikedMediaRow.date_added.desc())
-            )
-            result: DBResult[tuple[str]] = await session.execute(statement=stmt)
-            public_ids: list[str] = list(result.scalars().all())
-
-            return Result(code=ResultCode.OK, message="OK", result=public_ids)
-
-        except Exception as e:
-            logger.error(f"Error in get_user_liked_media_public_ids: {e}")
-            return Result(
-                code=ResultCode.GENERAL_ERROR,
-                message=f"Failed to get liked media: {e}",
-            )
+        """Read liked IDs, optionally limiting profile seed work in the database."""
+        stmt: Select[tuple[str]] = (
+            select(CoreMediaRow.public_id)
+            .join(UserLikedMediaRow, UserLikedMediaRow.media_id == CoreMediaRow.id)
+            .where(UserLikedMediaRow.user_id == user_id)
+            .order_by(UserLikedMediaRow.date_added.desc())
+        )
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        result: DBResult[tuple[str]] = await session.execute(statement=stmt)
+        public_ids: list[str] = list(result.scalars().all())
+        return Result(code=ResultCode.OK, message="OK", result=public_ids)
 
     @staticmethod
     async def is_media_liked(session: AsyncSession, user_id: int, media_id: int) -> Result[bool]:

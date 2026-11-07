@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
 
 const INPUT_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
 
@@ -13,6 +13,8 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 export default function KeyboardHandler(): null {
+    const { mediaPlayerManager, queueManager, userManager, playerUIManager } =
+        usePlaybackServices();
     useEffect((): (() => void) => {
         const handleKeyDown = (event: KeyboardEvent): void => {
             if (isEditableTarget(event.target)) return;
@@ -24,72 +26,70 @@ export default function KeyboardHandler(): null {
                 case "k":
                 case "K":
                     event.preventDefault();
-                    rockIt.mediaPlayerManager.togglePlayPause();
+                    mediaPlayerManager.togglePlayPause();
                     break;
 
                 case "ArrowLeft":
                 case "j":
                 case "J":
                     event.preventDefault();
-                    rockIt.queueManager.skipBack();
+                    queueManager.skipBack();
                     break;
 
                 case "ArrowRight":
                 case "l":
                 case "L":
                     event.preventDefault();
-                    rockIt.queueManager.skipForward();
+                    queueManager.skipForward();
                     break;
 
                 case "m":
                 case "M":
-                    rockIt.mediaPlayerManager.toggleMute();
+                    mediaPlayerManager.toggleMute();
                     break;
 
                 case "ArrowUp":
                     event.preventDefault();
-                    rockIt.mediaPlayerManager.volume = Math.min(
+                    mediaPlayerManager.volume = Math.min(
                         1,
-                        (Math.sqrt(rockIt.mediaPlayerManager.volume) + 0.05) **
-                            2
+                        (Math.sqrt(mediaPlayerManager.volume) + 0.05) ** 2
                     );
                     break;
 
                 case "ArrowDown":
                     event.preventDefault();
-                    rockIt.mediaPlayerManager.volume = Math.max(
+                    mediaPlayerManager.volume = Math.max(
                         0,
-                        (Math.sqrt(rockIt.mediaPlayerManager.volume) - 0.05) **
-                            2
+                        (Math.sqrt(mediaPlayerManager.volume) - 0.05) ** 2
                     );
                     break;
 
                 case "s":
                 case "S":
-                    rockIt.userManager.toggleRandomQueue();
+                    userManager.toggleRandomQueue();
                     break;
 
                 case "r":
                 case "R":
-                    rockIt.userManager.cycleRepeatMode();
+                    userManager.cycleRepeatMode();
                     break;
 
                 case ",":
                     event.preventDefault();
-                    rockIt.mediaPlayerManager.setCurrentTime(
-                        rockIt.mediaPlayerManager.currentTime - 5
+                    mediaPlayerManager.setCurrentTime(
+                        mediaPlayerManager.currentTime - 5
                     );
                     break;
 
                 case ".":
                     event.preventDefault();
-                    rockIt.mediaPlayerManager.setCurrentTime(
-                        rockIt.mediaPlayerManager.currentTime + 5
+                    mediaPlayerManager.setCurrentTime(
+                        mediaPlayerManager.currentTime + 5
                     );
                     break;
 
                 case "Escape":
-                    rockIt.playerUIManager.hide();
+                    playerUIManager.hide();
                     break;
             }
         };
@@ -97,7 +97,7 @@ export default function KeyboardHandler(): null {
         document.addEventListener("keydown", handleKeyDown);
         return (): void =>
             document.removeEventListener("keydown", handleKeyDown);
-    }, []);
+    }, [mediaPlayerManager, queueManager, userManager, playerUIManager]);
 
     return null;
 }

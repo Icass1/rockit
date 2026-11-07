@@ -21,7 +21,7 @@ export default function PlayerUI(): JSX.Element | null {
 
     return (
         <div
-            className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black/80 pb-24 pl-12 transition-all duration-300"
+            className="bg-backdrop/80 absolute inset-0 flex items-center justify-center overflow-hidden pb-24 pl-12 transition-all duration-300"
             style={{
                 top: $isPlayerUIVisible ? "0%" : "100%",
                 height: "calc(100%)",

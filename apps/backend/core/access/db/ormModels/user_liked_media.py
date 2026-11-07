@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, Integer, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.access.db.base import CoreBase
@@ -12,6 +12,12 @@ class UserLikedMediaRow(CoreBase, TableAutoincrementId, TableDateAdded):
     __tablename__ = "user_liked_media"
     __table_args__ = (
         UniqueConstraint("user_id", "media_id", name="uq_user_liked_media"),
+        Index(
+            "ix_recommendation_liked_user_date",
+            "user_id",
+            "date_added",
+            postgresql_include=["media_id"],
+        ),
         {"schema": "core", "extend_existing": True},
     )
 

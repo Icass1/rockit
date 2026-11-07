@@ -7,6 +7,7 @@ import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export default function PlayerUILyrics(): JSX.Element {
@@ -93,7 +94,7 @@ function smoothScrollTo(
 function DynamicLyrics(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
 
     const snapshot = useLyricsSnapshot(
         $currentMedia?.type === "song" ? $currentMedia.publicId : undefined
@@ -151,7 +152,9 @@ function DynamicLyrics(): JSX.Element {
     if (loading) {
         return (
             <div className="flex h-full w-full animate-pulse items-center justify-center">
-                <p className="text-lg text-neutral-400">Loading lyrics...</p>
+                <p className="text-muted-foreground text-lg">
+                    Loading lyrics...
+                </p>
             </div>
         );
     }
@@ -182,8 +185,8 @@ function DynamicLyrics(): JSX.Element {
                     key={index}
                     className={`cursor-pointer py-2 pr-8 pl-4 text-lg font-semibold text-balance transition-all duration-300 ${
                         currentIndex === index
-                            ? "origin-left scale-[1.25] text-white"
-                            : "text-neutral-400 hover:text-neutral-300"
+                            ? "text-foreground-strong origin-left scale-[1.25]"
+                            : "text-muted-foreground hover:text-foreground"
                     }`}
                     id={`dynamic-lyric-line-${index}`}
                 >
@@ -202,7 +205,9 @@ function DynamicLyrics(): JSX.Element {
                         />
                     )}
                 </div>
-                <p className="text-xs text-neutral-400">{lyrics?.publicId}</p>
+                <p className="text-muted-foreground text-xs">
+                    {lyrics?.publicId}
+                </p>
             </div>
         </div>
     );

@@ -33,6 +33,7 @@ from core.framework.models.queueTask import (
 )
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.websocket.sendToUser import SendToUser
+from core.models.themePreference import ThemePreference
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.libraryMediaAddedMessage import LibraryMediaAddedMessage
 from core.responses.libraryMediaRemovedMessage import LibraryMediaRemovedMessage
@@ -728,6 +729,25 @@ class User:
 
         return await UserAccess.update_user_lang_async(
             session=session, user_id=user_id, lang_id=a_result_lang.result().id
+        )
+
+    @staticmethod
+    async def update_theme_async(
+        session: AsyncSession, user: UserRow, theme: ThemePreference
+    ) -> Result[bool]:
+        """Update a user's theme through the access boundary."""
+        result = await UserAccess.update_theme_async(session=session, user=user, theme=theme)
+        if result.is_not_ok():
+            logger.error("Cannot update user theme: %s", result.info())
+        return result
+
+    @staticmethod
+    async def update_download_settings_async(
+        session: AsyncSession, user: UserRow, auto_add: bool
+    ) -> Result[bool]:
+        """Update the download preference through the access layer."""
+        return await UserAccess.update_download_settings_async(
+            session=session, user=user, auto_add=auto_add
         )
 
     @staticmethod

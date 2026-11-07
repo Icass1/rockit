@@ -29,20 +29,22 @@ export default function TopMediaChart({
     const max = ranked[0]?.value ?? 1;
 
     return (
-        <section className="rounded-3xl border border-white/7 bg-neutral-950/60 p-5 md:p-6">
+        <section className="border-foreground-strong/7 bg-background/60 rounded-3xl border p-5 md:p-6">
             <div className="mb-6 flex items-end justify-between gap-4">
                 <div>
-                    <p className="text-[10px] font-semibold tracking-[0.22em] text-(--color-rockit-pink) uppercase">
+                    <p className="text-primary text-[10px] font-semibold tracking-[0.22em] uppercase">
                         Top 10
                     </p>
-                    <h3 className="mt-1 text-xl font-bold text-white">
+                    <h3 className="text-foreground-strong mt-1 text-xl font-bold">
                         {title}
                     </h3>
                 </div>
-                <p className="text-xs text-neutral-600">by time listened</p>
+                <p className="text-disabled-foreground text-xs">
+                    by time listened
+                </p>
             </div>
             {ranked.length === 0 ? (
-                <div className="flex h-64 items-center justify-center text-sm text-neutral-600">
+                <div className="text-disabled-foreground flex h-64 items-center justify-center text-sm">
                     Nothing played in this period
                 </div>
             ) : (
@@ -51,15 +53,15 @@ export default function TopMediaChart({
                         const body = (
                             <>
                                 <div
-                                    className="absolute inset-y-0 left-0 rounded-xl bg-linear-to-r from-fuchsia-500/15 to-transparent transition-all duration-700"
+                                    className="from-primary/15 absolute inset-y-0 left-0 rounded-xl bg-linear-to-r to-transparent transition-all duration-700"
                                     style={{
                                         width: `${(item.value / max) * 100}%`,
                                     }}
                                 />
-                                <span className="relative w-5 text-center text-xs font-bold text-neutral-600 tabular-nums">
+                                <span className="text-disabled-foreground relative w-5 text-center text-xs font-bold tabular-nums">
                                     {index + 1}
                                 </span>
-                                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
+                                <div className="bg-muted relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
                                     {item.imageUrl && (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img
@@ -70,19 +72,19 @@ export default function TopMediaChart({
                                     )}
                                 </div>
                                 <div className="relative min-w-0 flex-1">
-                                    <p className="truncate text-sm font-semibold text-white">
+                                    <p className="text-foreground-strong truncate text-sm font-semibold">
                                         {item.name}
                                     </p>
-                                    <p className="truncate text-xs text-neutral-500">
+                                    <p className="text-subtle-foreground truncate text-xs">
                                         {item.subtitle ?? "Rockit"}
                                     </p>
                                 </div>
-                                <span className="relative text-xs font-semibold text-neutral-400 tabular-nums">
+                                <span className="text-muted-foreground relative text-xs font-semibold tabular-nums">
                                     {formatDuration(item.value)}
                                 </span>
                                 {onPlay && (
                                     <Play
-                                        className="relative text-neutral-600 group-hover:text-white"
+                                        className="text-disabled-foreground group-hover:text-foreground-strong relative"
                                         size={15}
                                         fill="currentColor"
                                     />
@@ -90,7 +92,7 @@ export default function TopMediaChart({
                             </>
                         );
                         const className =
-                            "group relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent bg-white/3 px-3 py-2 text-left transition-colors hover:border-white/10 hover:bg-white/6";
+                            "group relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent bg-foreground-strong/3 px-3 py-2 text-left transition-colors hover:border-foreground-strong/10 hover:bg-foreground-strong/6";
                         return onPlay ? (
                             <button
                                 key={item.publicId}

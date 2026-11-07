@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type JSX } from "react";
+import { useMemo, type JSX } from "react";
 import Image from "next/image";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
@@ -10,13 +10,12 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import PlayButton from "@/components/Home/PlayButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface BentoSectionProps {
     title: string;
     songs: BaseSongWithAlbumResponse[];
 }
-
-// ─── Single Bento Card ──────────────────────────────────
 
 function BentoCard({
     song: initialSong,
@@ -32,9 +31,8 @@ function BentoCard({
     const song = useMedia(initialSong);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $vocabulary = useVocabulary();
     const { hex } = parseDominantColor(song.dominantColor);
-    const [imgLoaded, setImgLoaded] = useState(false);
 
     const isThisPlaying = $currentMedia?.publicId === song.publicId && $playing;
 
@@ -47,6 +45,9 @@ function BentoCard({
         <MediaContextMenu
             media={song}
             location={EMediaContextLocation.HOME}
+            onPlay={() =>
+                rockIt.queueManager.playRecommendedSongAsync(song, queue)
+            }
             triggerClassName={positionClass}
         >
             <div
@@ -63,11 +64,10 @@ function BentoCard({
                             ? "(max-width: 768px) 90vw, 40vw"
                             : "(max-width: 768px) 60vw, 20vw"
                     }
-                    className={`object-cover transition-opacity duration-500 group-hover:opacity-40 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+                    className={`object-cover opacity-100 transition-opacity duration-500 group-hover:opacity-40`}
                     loading="lazy"
                     draggable={false}
                     aria-hidden="true"
-                    onLoad={(): void => setImgLoaded(true)}
                 />
 
                 {/* Gradient overlay for readability */}
@@ -75,7 +75,7 @@ function BentoCard({
                     className="absolute inset-0"
                     style={{
                         background:
-                            "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%)",
+                            "linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--theme-backdrop) 55%, transparent) 100%)",
                     }}
                     aria-hidden="true"
                 />
@@ -94,13 +94,13 @@ function BentoCard({
                 <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between p-3">
                     <div className="min-w-0 flex-1">
                         <span
-                            className={`block truncate font-bold text-white ${
+                            className={`text-on-media block truncate font-bold ${
                                 size === "lg" ? "text-[17px]" : "text-[13px]"
                             }`}
                         >
                             {song.name}
                         </span>
-                        <span className="mt-0.5 block truncate text-xs text-white/60">
+                        <span className="text-on-media/60 mt-0.5 block truncate text-xs">
                             {song.artists[0]?.name}
                         </span>
                     </div>
@@ -139,59 +139,10 @@ function BentoCard({
     );
 }
 
-// ─── Section Reveal (IntersectionObserver) ──────────────
-
-function useRevealOnce(
-    ref: React.RefObject<HTMLElement | null>,
-    reducedMotion: boolean
-): boolean {
-    const [revealed, setRevealed] = useState(reducedMotion);
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el || reducedMotion) return;
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setRevealed(true);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.15 }
-        );
-
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [ref, reducedMotion]);
-
-    return revealed;
-}
-
-function getInitialReducedMotion(): boolean {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-// ─── Main Component ─────────────────────────────────────
-
 export default function BentoSection({
     title,
     songs,
 }: BentoSectionProps): JSX.Element | null {
-    const sectionRef = useRef<HTMLElement>(null);
-    const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
-
-    useEffect(() => {
-        const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-        const handler = (e: MediaQueryListEvent): void =>
-            setReducedMotion(e.matches);
-        mq.addEventListener("change", handler);
-        return () => mq.removeEventListener("change", handler);
-    }, []);
-
-    const revealed = useRevealOnce(sectionRef, reducedMotion);
-
     // Ambient tint from the first (featured) song
     const { hex: tintHex } = parseDominantColor(songs[0]?.dominantColor);
 
@@ -200,17 +151,7 @@ export default function BentoSection({
     if (songs.length === 0) return null;
 
     return (
-        <section
-            ref={sectionRef}
-            className="bento-section relative overflow-hidden px-[6%] pt-8 pb-2 md:px-[4%] md:pt-10"
-            style={{
-                opacity: revealed ? 1 : 0,
-                transform: revealed ? "translateY(0)" : "translateY(16px)",
-                transition: reducedMotion
-                    ? "none"
-                    : "opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1)",
-            }}
-        >
+        <section className="bento-section relative overflow-hidden px-[6%] pt-8 pb-2 md:px-[4%] md:pt-10">
             {/* Ambient tint — subtle gradient wash, fades in to avoid hard edges between sections */}
             <div
                 className="pointer-events-none absolute inset-0 transition-opacity duration-1000"
@@ -221,9 +162,7 @@ export default function BentoSection({
                 aria-hidden="true"
             />
 
-            <h2 className="relative z-10 mb-3.5 text-[clamp(18px,2.2cqw,26px)] font-extrabold text-white">
-                {title}
-            </h2>
+            <h2 className="px-5 text-2xl font-bold md:text-3xl">{title}</h2>
 
             <div className="bento-grid relative z-10">
                 {/* Large featured card */}

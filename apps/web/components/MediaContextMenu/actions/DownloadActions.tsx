@@ -5,8 +5,8 @@ import { HardDriveDownload, Play, RefreshCw } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { downloadMediaAsZip } from "@/lib/services/downloadZip";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 export function DownloadAction({
     media,

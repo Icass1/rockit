@@ -136,23 +136,11 @@ export default function LikeButton({
                     width="24"
                     height="24"
                     viewBox="0 0 24 24"
-                    fill={isLiked ? "white" : "transparent"}
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    style={{
-                        color: isLiked ? "#202020" : "#A1A1AA",
-                        transition: "fill 0.2s ease, color 0.2s ease",
-                    }}
-                    onMouseEnter={(e): void => {
-                        e.currentTarget.style.color = "#FFFFFF";
-                    }}
-                    onMouseLeave={(e): void => {
-                        e.currentTarget.style.color = isLiked
-                            ? "#202020"
-                            : "#A1A1AA";
-                    }}
+                    className={`hover:text-foreground-strong transition-colors duration-200 ${isLiked ? "fill-on-media text-input" : "text-muted-foreground fill-transparent"}`}
                 >
                     <rect
                         x="6"

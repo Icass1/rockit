@@ -52,12 +52,14 @@ def _suggestion_from_dict(raw: dict[str, Any]) -> ExternalSuggestion | None:
     score: Any = raw.get("score", 0.0)
     mbid: Any = raw.get("recording_mbid")
     album: Any = raw.get("album_name")
+    image: Any = raw.get("image_url")
     return ExternalSuggestion(
         artist_name=artist,
         track_name=track,
         score=float(score) if isinstance(score, (int, float)) else 0.0,
         recording_mbid=mbid if isinstance(mbid, str) else None,
         album_name=album if isinstance(album, str) else None,
+        image_url=image if isinstance(image, str) else None,
     )
 
 

@@ -3,9 +3,7 @@
     <img src="apps/web/public/logo-banner.png" alt="RockIt!" width="640" />
   </a>
 
-# RockIt!
-
-**Your music. Your space.**
+# Your music. Your space. RockIt!
 
 **A self-hosted home for your music — built for listening, collecting, and sharing.**
 

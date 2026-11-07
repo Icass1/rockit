@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [DOWNLOADS] Admitir colaboradores adicionales en el catálogo musical
+
+- tags: [backend, youtube, youtubeMusic, downloads, bug]
+- priority: high
+- workload: Easy
+    ```md
+    Corregido el rechazo de grabaciones cuyo catálogo acredita colaboradores ausentes en los metadatos de origen. Todos los artistas conocidos deben seguir presentes; coincidencia parcial, artistas ajenos, videoclips y versiones incompatibles siguen rechazados. Regresión con los metadatos del log de Fever (Dua Lipa / Angèle), sin descargas ni cambios de almacenamiento. Pendiente de revisión del usuario. Ver docs/SONG_RECORDING_SELECTION.md.
+    ```
+
 ### [RECOMMENDATIONS] Portadas fiables y prioridad de recomendaciones externas
 
 - tags: [frontend, backend, recommendations, artwork, bug]

@@ -13,11 +13,11 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import RecommendationArtwork from "@/components/Recommendations/RecommendationArtwork";
 import ContextMenuContent from "@/components/ui/ContextMenu/Content";
 import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
-import RecommendationArtwork from "@/components/Recommendations/RecommendationArtwork";
 
 /** Queue identifier used when playing straight from a recommendation card
  * (BentoSection uses "bento" the same way). */

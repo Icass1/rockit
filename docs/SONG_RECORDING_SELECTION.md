@@ -71,3 +71,20 @@ artist/version/duration mismatches, requested live recordings, stored videoclip
 replacement, contaminated clip duration, ISRC fallback and catalogue outages.
 They use provider payload fixtures; they do not claim live YouTube downloads or
 validation against the user's Silo instance. No local test suites were run.
+
+## Incomplete source artist credits
+
+A production log for Fever requested Dua Lipa alone, while the matching catalogue
+art track k47GpDvnyBo correctly credited Dua Lipa and Angèle. Exact set equality
+rejected it despite the matching title and album. The artist gate now requires
+all known requested artists to be present in catalogue credits, allowing extra
+catalogue collaborators in either order. Mere overlap or missing known requested
+artists remains a rejection. Catalogue/audio classification, title, musical
+version and duration gates still apply to every candidate and stored URL.
+Additional credits are recorded as additional_catalogue_artists in diagnostics.
+
+A regression replays the supplied title, album, artists, duration and video IDs
+with controlled responses; it selects the art track and rejects unrelated artists,
+live versions and the OMV clip. This is log-based evidence, not a fresh live lookup.
+Metadata matching still cannot prove audio identity or detect an unlabelled alternate
+recording when source metadata lacks collaborators or timing information.

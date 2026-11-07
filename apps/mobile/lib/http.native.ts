@@ -1,13 +1,13 @@
+import { BACKEND_URL } from "@/environment";
+import { BaseHttp } from "@/http/baseHttp";
 import {
-    BACKEND_URL,
-    BaseHttp,
-    HttpResult,
     isOfflineMetadataPath,
     OFFLINE_METADATA_POLICY,
-    type IApiFetchOptions,
-} from "@rockit/shared";
+} from "@/utils/offlineMetadataPolicy";
 import { CryptoDigestAlgorithm, digestStringAsync } from "expo-crypto";
 import { Directory, File, Paths } from "expo-file-system";
+import type { IApiFetchOptions } from "@/models/types/api";
+import { HttpResult } from "@/models/types/httpTypes";
 import {
     clearSessionCookie,
     getSessionCacheScope,
@@ -21,6 +21,7 @@ export class Http extends BaseHttp {
         path: string,
         options: IApiFetchOptions = {}
     ): Promise<Response> {
+        const generation = sessionGeneration();
         const cookie = await getSessionCookie();
         const headers = new Headers(options.headers);
         headers.set("Content-Type", "application/json");
@@ -30,7 +31,8 @@ export class Http extends BaseHttp {
             headers,
             credentials: "include",
         });
-        await saveSessionCookie(response);
+        if (generation === sessionGeneration())
+            await saveSessionCookie(response, generation);
         return response;
     }
 }
@@ -42,7 +44,7 @@ Http.middlewares = [
         const scope = await getSessionCacheScope().catch(() => null);
         const response = await next();
         if (response.code === 401 && stamp === sessionGeneration()) {
-            await clearSessionCookie();
+            await clearSessionCookie(stamp);
             return response;
         }
         if (

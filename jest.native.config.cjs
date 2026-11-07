@@ -38,6 +38,6 @@ module.exports = {
         ])
     ),
     transformIgnorePatterns: [
-        "node_modules/(?!((jest-)?react-native|@react-native(-community)?|[.]pnpm|test-renderer)/)",
+        "node_modules/(?!((jest-)?react-native|@react-native(-community)?|[.]pnpm|test-renderer|nanostores)/)",
     ],
 };

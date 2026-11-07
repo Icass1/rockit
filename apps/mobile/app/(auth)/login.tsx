@@ -87,6 +87,8 @@ export default function LoginScreen() {
 
                     <TextInput
                         style={styles.input}
+                        testID="login-username"
+                        accessibilityLabel={vocabulary.USERNAME}
                         placeholder={vocabulary.USERNAME}
                         placeholderTextColor={theme.legacy.gray400}
                         value={username}
@@ -96,6 +98,8 @@ export default function LoginScreen() {
                     />
                     <TextInput
                         style={styles.input}
+                        testID="login-password"
+                        accessibilityLabel={vocabulary.PASSWORD}
                         placeholder={vocabulary.PASSWORD}
                         placeholderTextColor={theme.legacy.gray400}
                         value={password}
@@ -129,6 +133,9 @@ export default function LoginScreen() {
                             styles.button,
                             loading && styles.buttonDisabled,
                         ]}
+                        testID="login-submit"
+                        accessibilityRole="button"
+                        accessibilityLabel={vocabulary.LOG_IN}
                         onPress={handleLogin}
                         disabled={loading}
                     >

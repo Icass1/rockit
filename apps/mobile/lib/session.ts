@@ -14,5 +14,7 @@ export async function logout(): Promise<boolean> {
 
 export async function getSession(): Promise<SessionResponse | null> {
     const response = await Http.getSession();
-    return response.isOk() ? response.result : null;
+    if (response.isOk()) return response.result;
+    if (response.code === 401) return null;
+    throw new Error(response.message);
 }

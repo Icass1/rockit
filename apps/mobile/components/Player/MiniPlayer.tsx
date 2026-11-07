@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import { getMediaArtistsString } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Pause, Play, SkipForward } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pause, Play, SkipForward } from "lucide-react-native";
 import {
     ActivityIndicator,
     Animated,
@@ -15,10 +16,14 @@ import {
 import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
+import { useVocabulary } from "@/lib/vocabulary";
 
 export const MINI_PLAYER_HEIGHT = 56;
 
 export default function MiniPlayer() {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const {
         currentMedia,
         isPlaying,
@@ -89,6 +94,8 @@ export default function MiniPlayer() {
 
             <Pressable
                 style={styles.content}
+                accessibilityRole="button"
+                accessibilityLabel={currentMedia.name}
                 onPress={showPlayer}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
@@ -113,6 +120,10 @@ export default function MiniPlayer() {
 
                 {/* Play / Pause */}
                 <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                        isPlaying ? vocabulary.PAUSE : vocabulary.PLAY
+                    }
                     style={styles.controlButton}
                     onPress={(e) => {
                         e.stopPropagation();
@@ -121,16 +132,21 @@ export default function MiniPlayer() {
                     hitSlop={12}
                 >
                     {isLoading ? (
-                        <ActivityIndicator size="small" color={COLORS.white} />
+                        <ActivityIndicator
+                            size="small"
+                            color={theme.legacy.white}
+                        />
                     ) : isPlaying ? (
-                        <Pause size={22} color={COLORS.white} />
+                        <Pause size={22} color={theme.legacy.white} />
                     ) : (
-                        <Play size={22} color={COLORS.white} />
+                        <Play size={22} color={theme.legacy.white} />
                     )}
                 </Pressable>
 
                 {/* Skip forward */}
                 <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={vocabulary.NEXT_MEDIA}
                     style={styles.controlButton}
                     onPress={(e) => {
                         e.stopPropagation();
@@ -138,7 +154,7 @@ export default function MiniPlayer() {
                     }}
                     hitSlop={12}
                 >
-                    <SkipForward size={22} color={COLORS.white} />
+                    <SkipForward size={22} color={theme.legacy.white} />
                 </Pressable>
             </Pressable>
 
@@ -152,9 +168,9 @@ export default function MiniPlayer() {
                 >
                     <LinearGradient
                         colors={[
-                            COLORS.accent,
-                            COLORS.accentMid,
-                            COLORS.accentLight,
+                            theme.legacy.accent,
+                            theme.legacy.accentMid,
+                            theme.legacy.accentLight,
                         ]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
@@ -166,85 +182,86 @@ export default function MiniPlayer() {
     );
 }
 
-const styles = StyleSheet.create({
-    wrapper: {
-        height: MINI_PLAYER_HEIGHT,
-        width: "100%",
-        overflow: "hidden",
-        position: "relative",
-        backgroundColor: "rgba(0,0,0,0.7)",
-    },
-    blurFallback: {
-        backgroundColor: "rgba(0,0,0,0.7)",
-    },
-    accent: {
-        position: "absolute",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: 3,
-        backgroundColor: "transparent",
-    },
-    accentActive: {
-        backgroundColor: COLORS.accent,
-    },
-    content: {
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        paddingLeft: 0,
-        paddingRight: 12,
-        gap: 12,
-    },
-    thumbnailContainer: {
-        position: "relative",
-        width: MINI_PLAYER_HEIGHT,
-        aspectRatio: 1,
-        padding: 4,
-    },
-    thumbnail: {
-        flex: 1,
-        borderRadius: 4,
-        backgroundColor: COLORS.bgCard,
-    },
-    videoBadge: {
-        position: "absolute",
-        bottom: 2,
-        right: 2,
-        backgroundColor: "rgba(0,0,0,0.7)",
-        borderRadius: 4,
-        padding: 2,
-    },
-    info: {
-        flex: 1,
-        minWidth: 0,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: COLORS.white,
-        marginBottom: 2,
-    },
-    artist: {
-        fontSize: 14,
-        color: COLORS.gray400,
-    },
-    controlButton: {
-        width: 40,
-        height: 40,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    progressTrack: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 2,
-        backgroundColor: "rgba(255,255,255,0.1)",
-        overflow: "hidden",
-    },
-    progressFill: {
-        height: "100%",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        wrapper: {
+            height: MINI_PLAYER_HEIGHT,
+            width: "100%",
+            overflow: "hidden",
+            position: "relative",
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.7),
+        },
+        blurFallback: {
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.7),
+        },
+        accent: {
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 3,
+            backgroundColor: "transparent",
+        },
+        accentActive: {
+            backgroundColor: theme.legacy.accent,
+        },
+        content: {
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            paddingLeft: 0,
+            paddingRight: theme.spacing.md,
+            gap: theme.spacing.md,
+        },
+        thumbnailContainer: {
+            position: "relative",
+            width: MINI_PLAYER_HEIGHT,
+            aspectRatio: 1,
+            padding: theme.spacing.xs,
+        },
+        thumbnail: {
+            flex: 1,
+            borderRadius: theme.radius.sm,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        videoBadge: {
+            position: "absolute",
+            bottom: 2,
+            right: 2,
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.7),
+            borderRadius: theme.radius.sm,
+            padding: 2,
+        },
+        info: {
+            flex: 1,
+            minWidth: 0,
+        },
+        title: {
+            fontSize: theme.typography.label,
+            fontWeight: "600",
+            color: theme.legacy.white,
+            marginBottom: 2,
+        },
+        artist: {
+            fontSize: theme.typography.body,
+            color: theme.legacy.gray400,
+        },
+        controlButton: {
+            width: 40,
+            height: 40,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        progressTrack: {
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            backgroundColor: withAlpha(theme.colors["foreground-strong"], 0.1),
+            overflow: "hidden",
+        },
+        progressFill: {
+            height: "100%",
+        },
+    });

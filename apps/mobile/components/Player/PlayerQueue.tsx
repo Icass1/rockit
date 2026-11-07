@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import { EQueueType, ERepeatMode, type TQueueMedia } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/lib/vocabulary";
 import QueueItem from "@/components/Player/QueueItem";
 import { RecommendationRow } from "@/components/Recommendations/AutoplayDiscovery";
 
@@ -18,6 +20,7 @@ const ITEM_HEIGHT = 66;
  * Drag-to-reorder is a TODO once DraggableFlatList is re-integrated.
  */
 export default function PlayerQueue() {
+    const styles = useThemedStyles(createStyles);
     const {
         queue,
         currentMedia,
@@ -58,7 +61,9 @@ export default function PlayerQueue() {
     if (!queue || queue.length === 0) {
         return (
             <View style={styles.empty}>
-                <Text style={styles.emptyText}>Your queue is empty</Text>
+                <Text style={styles.emptyText}>
+                    {$vocabulary.MOBILE_QUEUE_EMPTY}
+                </Text>
             </View>
         );
     }
@@ -66,8 +71,10 @@ export default function PlayerQueue() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Queue</Text>
-                <Text style={styles.headerCount}>{queue.length} songs</Text>
+                <Text style={styles.headerTitle}>{$vocabulary.QUEUE}</Text>
+                <Text style={styles.headerCount}>
+                    {queue.length} {$vocabulary.SONGS}
+                </Text>
             </View>
 
             <FlatList
@@ -130,49 +137,53 @@ export default function PlayerQueue() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: "rgba(255,255,255,0.1)",
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-    },
-    headerCount: {
-        fontSize: 14,
-        color: COLORS.gray400,
-    },
-    list: {
-        paddingBottom: 40,
-    },
-    autoplayHeader: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.gray400,
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 8,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: "rgba(255,255,255,0.1)",
-        marginTop: 8,
-    },
-    empty: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    emptyText: {
-        fontSize: 16,
-        color: COLORS.gray400,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+        },
+        header: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 20,
+            paddingVertical: theme.spacing.md,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: withAlpha(
+                theme.colors["foreground-strong"],
+                0.1
+            ),
+        },
+        headerTitle: {
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            color: theme.legacy.white,
+        },
+        headerCount: {
+            fontSize: theme.typography.body,
+            color: theme.legacy.gray400,
+        },
+        list: {
+            paddingBottom: theme.spacing.page,
+        },
+        autoplayHeader: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.gray400,
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: theme.spacing.lg,
+            paddingBottom: theme.spacing.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: withAlpha(theme.colors["foreground-strong"], 0.1),
+            marginTop: theme.spacing.sm,
+        },
+        empty: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        emptyText: {
+            fontSize: theme.typography.label,
+            color: theme.legacy.gray400,
+        },
+    });

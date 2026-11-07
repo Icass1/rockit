@@ -1,11 +1,12 @@
-import { COLORS } from "@/constants/theme";
 import { TMedia } from "@rockit/shared";
-import { Bookmark, ChevronDown, MoreHorizontal } from "lucide-react-native";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Bookmark, ChevronDown, MoreHorizontal } from "@rockit/ui/icons";
 import { Pressable, StyleSheet, View } from "react-native";
 import {
     useContextMenu,
     type ContextMenuOption,
 } from "@/lib/ContextMenuContext";
+import { useVocabulary } from "@/lib/vocabulary";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 interface PlayerTopBarProps {
@@ -29,12 +30,15 @@ export default function PlayerTopBar({
     onBookmarkPress,
     media,
 }: PlayerTopBarProps) {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const { hide } = useContextMenu();
     const extraOptions: ContextMenuOption[] = [];
 
     if (onBookmarkPress && media) {
         extraOptions.push({
-            label: "Bookmarks",
+            label: vocabulary.BOOKMARKS,
             icon: Bookmark,
             onPress: () => {
                 hide();
@@ -46,7 +50,7 @@ export default function PlayerTopBar({
     return (
         <View style={styles.container}>
             <Pressable style={styles.button} onPress={onClose} hitSlop={12}>
-                <ChevronDown size={28} color={COLORS.white} />
+                <ChevronDown size={28} color={theme.legacy.white} />
             </Pressable>
 
             {media && (
@@ -56,27 +60,28 @@ export default function PlayerTopBar({
                     extraOptions={extraOptions}
                     menuOnly
                 >
-                    <MoreHorizontal size={22} color={COLORS.white} />
+                    <MoreHorizontal size={22} color={theme.legacy.white} />
                 </MediaPressableWrapper>
             )}
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        backgroundColor: "transparent",
-        zIndex: 5,
-    },
-    button: {
-        width: 44,
-        height: 44,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: 10,
+            backgroundColor: "transparent",
+            zIndex: 5,
+        },
+        button: {
+            width: 44,
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+    });

@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import { type LyricsCorrectionContextResponse } from "@/dto";
 import {
     getMediaArtists,
     lyricPlaybackTime,
     lyricSeekTime,
 } from "@/shared/index";
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Http } from "@/lib/http";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function PlayerLyrics() {
+    const styles = useThemedStyles(createStyles);
     const { currentMedia, seekTo } = usePlayer();
     const { currentTime } = usePlayerTime();
     const { vocabulary } = useVocabulary();
@@ -91,7 +93,7 @@ export default function PlayerLyrics() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Lyrics</Text>
+                <Text style={styles.headerTitle}>{vocabulary.LYRICS}</Text>
                 {currentMedia && (
                     <Text style={styles.headerSubtitle} numberOfLines={1}>
                         {currentMedia.name}
@@ -104,13 +106,17 @@ export default function PlayerLyrics() {
 
             {loading && (
                 <View style={styles.centerContent}>
-                    <Text style={styles.stateText}>Loading lyrics...</Text>
+                    <Text style={styles.stateText}>
+                        {vocabulary.LYRICS_LOADING}
+                    </Text>
                 </View>
             )}
 
             {!loading && (!lyrics || lyrics.lines.length === 0) && (
                 <View style={styles.centerContent}>
-                    <Text style={styles.stateText}>No lyrics available</Text>
+                    <Text style={styles.stateText}>
+                        {vocabulary.LYRICS_UNAVAILABLE}
+                    </Text>
                 </View>
             )}
 
@@ -152,74 +158,78 @@ export default function PlayerLyrics() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: "rgba(255,255,255,0.1)",
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-    },
-    headerSubtitle: {
-        fontSize: 13,
-        color: COLORS.gray400,
-        marginTop: 2,
-    },
-    centerContent: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    stateText: {
-        fontSize: 16,
-        color: COLORS.gray400,
-        textAlign: "center",
-    },
-    content: {
-        paddingHorizontal: 24,
-        paddingTop: 20,
-        paddingBottom: 120,
-    },
-    lyricLine: {
-        fontSize: 22,
-        fontWeight: "600",
-        color: "rgba(255,255,255,0.35)",
-        lineHeight: 36,
-        marginBottom: 8,
-        paddingRight: 16,
-    },
-    lyricLineActive: {
-        color: COLORS.white,
-        fontSize: 26,
-        fontWeight: "700",
-    },
-    lyricLinePast: {
-        color: "rgba(255,255,255,0.2)",
-    },
-    footer: {
-        alignItems: "center",
-        marginTop: 96,
-        gap: 12,
-    },
-    footerLabel: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: COLORS.gray400,
-    },
-    footerProvider: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.gray400,
-    },
-    footerId: {
-        fontSize: 11,
-        color: COLORS.gray600,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+        },
+        header: {
+            paddingHorizontal: 20,
+            paddingVertical: theme.spacing.md,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: withAlpha(
+                theme.colors["foreground-strong"],
+                0.1
+            ),
+        },
+        headerTitle: {
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            color: theme.legacy.white,
+        },
+        headerSubtitle: {
+            fontSize: 13,
+            color: theme.legacy.gray400,
+            marginTop: 2,
+        },
+        centerContent: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        stateText: {
+            fontSize: theme.typography.label,
+            color: theme.legacy.gray400,
+            textAlign: "center",
+        },
+        content: {
+            paddingHorizontal: theme.spacing.xl,
+            paddingTop: 20,
+            paddingBottom: 120,
+        },
+        lyricLine: {
+            fontSize: 22,
+            fontWeight: "600",
+            color: withAlpha(theme.colors["foreground-strong"], 0.35),
+            lineHeight: 36,
+            marginBottom: theme.spacing.sm,
+            paddingRight: theme.spacing.lg,
+        },
+        lyricLineActive: {
+            color: theme.legacy.white,
+            fontSize: 26,
+            fontWeight: "700",
+        },
+        lyricLinePast: {
+            color: withAlpha(theme.colors["foreground-strong"], 0.2),
+        },
+        footer: {
+            alignItems: "center",
+            marginTop: 96,
+            gap: theme.spacing.md,
+        },
+        footerLabel: {
+            fontSize: theme.typography.label,
+            fontWeight: "600",
+            color: theme.legacy.gray400,
+        },
+        footerProvider: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.gray400,
+        },
+        footerId: {
+            fontSize: 11,
+            color: theme.legacy.gray600,
+        },
+    });

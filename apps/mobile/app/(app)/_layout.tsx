@@ -26,6 +26,7 @@ import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
 
 function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
+    const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const router = useRouter();
@@ -34,15 +35,36 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
     const activeTab = segments.at(1) || "index";
 
     const tabs = [
-        { name: "index", icon: Home, path: "/(app)" as const },
-        { name: "library", icon: BookOpen, path: "/(app)/library" as const },
-        { name: "search", icon: Search, path: "/(app)/search" as const },
+        {
+            name: "index",
+            label: vocabulary.HOME,
+            icon: Home,
+            path: "/(app)" as const,
+        },
+        {
+            name: "library",
+            label: vocabulary.LIBRARY,
+            icon: BookOpen,
+            path: "/(app)/library" as const,
+        },
+        {
+            name: "search",
+            label: vocabulary.SEARCH,
+            icon: Search,
+            path: "/(app)/search" as const,
+        },
         {
             name: "downloader",
+            label: vocabulary.DOWNLOADS,
             icon: Download,
             path: "/(app)/downloader" as const,
         },
-        { name: "settings", icon: Settings, path: "/(app)/settings" as const },
+        {
+            name: "settings",
+            label: vocabulary.SETTINGS,
+            icon: Settings,
+            path: "/(app)/settings" as const,
+        },
     ];
 
     return (
@@ -71,6 +93,7 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
                             }}
                             style={styles.tabItem}
                             accessibilityRole="button"
+                            accessibilityLabel={tab.label}
                             accessibilityState={{ selected: isFocused }}
                         >
                             <tab.icon

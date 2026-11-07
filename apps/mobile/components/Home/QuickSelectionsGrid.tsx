@@ -1,8 +1,9 @@
 import { PLACEHOLDER } from "@/constants/assets";
-import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 const SONGS_PER_COLUMN = 4;
 const MAX_ITEMS = 12;
@@ -21,6 +22,8 @@ export default function QuickSelectionsGrid({
     items,
     onMediaPress,
 }: QuickSelectionsGridProps) {
+    const { vocabulary } = useVocabulary();
+    const styles = useThemedStyles(createStyles);
     if (items.length === 0) return null;
 
     const songsPool = items.slice(0, MAX_ITEMS);
@@ -76,7 +79,7 @@ export default function QuickSelectionsGrid({
                                                 numberOfLines={1}
                                             >
                                                 {song.artists?.[0]?.name ||
-                                                    "Unknown Artist"}
+                                                    vocabulary.UNKNOWN}
                                             </Text>
                                         </View>
                                     </View>
@@ -89,51 +92,52 @@ export default function QuickSelectionsGrid({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        marginTop: 16,
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 20,
-        fontWeight: "bold",
-        paddingHorizontal: 16,
-        marginBottom: 12,
-    },
-    scrollContent: {
-        paddingHorizontal: 16,
-        gap: 16,
-    },
-    column: {
-        width: 160,
-    },
-    rowItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 6,
-    },
-    thumbnail: {
-        width: 44,
-        height: 44,
-        borderRadius: 4,
-        backgroundColor: COLORS.bgCard,
-    },
-    textContainer: {
-        flex: 1,
-        marginLeft: 10,
-        minWidth: 0,
-    },
-    songName: {
-        color: COLORS.white,
-        fontSize: 13,
-        fontWeight: "500",
-    },
-    artistName: {
-        color: COLORS.gray400,
-        fontSize: 11,
-        marginTop: 2,
-    },
-    pressed: {
-        opacity: 0.7,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            marginTop: theme.spacing.lg,
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: 20,
+            fontWeight: "bold",
+            paddingHorizontal: theme.spacing.lg,
+            marginBottom: theme.spacing.md,
+        },
+        scrollContent: {
+            paddingHorizontal: theme.spacing.lg,
+            gap: theme.spacing.lg,
+        },
+        column: {
+            width: 160,
+        },
+        rowItem: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 6,
+        },
+        thumbnail: {
+            width: 44,
+            height: 44,
+            borderRadius: theme.radius.sm,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        textContainer: {
+            flex: 1,
+            marginLeft: 10,
+            minWidth: 0,
+        },
+        songName: {
+            color: theme.legacy.white,
+            fontSize: 13,
+            fontWeight: "500",
+        },
+        artistName: {
+            color: theme.legacy.gray400,
+            fontSize: 11,
+            marginTop: 2,
+        },
+        pressed: {
+            opacity: 0.7,
+        },
+    });

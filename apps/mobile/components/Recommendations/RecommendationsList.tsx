@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import {
     getDiscoverKey,
@@ -10,8 +9,9 @@ import {
     type BaseSearchResultsItem,
     type BaseSongWithAlbumResponse,
 } from "@rockit/shared";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Download, Music } from "@rockit/ui/icons";
 import { Image } from "expo-image";
-import { Download, Music } from "lucide-react-native";
 import {
     ActivityIndicator,
     Pressable,
@@ -37,6 +37,7 @@ export default function RecommendationsList({
 }: {
     seedSongPublicId: string;
 }) {
+    const styles = useThemedStyles(createStyles);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const [songs, setSongs] = useState<BaseSongWithAlbumResponse[]>([]);
@@ -193,6 +194,8 @@ function Row({
     isDownloading: boolean;
     onPress: () => void;
 }) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     return (
         <Pressable
             style={styles.row}
@@ -208,7 +211,7 @@ function Row({
                 />
             ) : (
                 <View style={[styles.image, styles.imagePlaceholder]}>
-                    <Music size={18} color={COLORS.gray600} />
+                    <Music size={18} color={theme.legacy.gray600} />
                 </View>
             )}
             <View style={styles.info}>
@@ -223,61 +226,64 @@ function Row({
                 </Text>
             </View>
             {isDownloading ? (
-                <ActivityIndicator size="small" color={COLORS.gray400} />
+                <ActivityIndicator size="small" color={theme.legacy.gray400} />
             ) : (
-                showDownload && <Download size={18} color={COLORS.gray400} />
+                showDownload && (
+                    <Download size={18} color={theme.legacy.gray400} />
+                )
             )}
         </Pressable>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        paddingBottom: 32,
-    },
-    header: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 8,
-    },
-    row: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        gap: 12,
-    },
-    image: {
-        width: 46,
-        height: 46,
-        borderRadius: 6,
-        backgroundColor: COLORS.bgCard,
-    },
-    imageDimmed: {
-        opacity: 0.6,
-    },
-    imagePlaceholder: {
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    info: {
-        flex: 1,
-        minWidth: 0,
-    },
-    title: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.white,
-        marginBottom: 2,
-    },
-    titleDimmed: {
-        color: COLORS.gray400,
-    },
-    artist: {
-        fontSize: 12,
-        color: COLORS.gray400,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            paddingBottom: theme.spacing.xxl,
+        },
+        header: {
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            color: theme.legacy.white,
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: theme.spacing.lg,
+            paddingBottom: theme.spacing.sm,
+        },
+        row: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: 10,
+            gap: theme.spacing.md,
+        },
+        image: {
+            width: 46,
+            height: 46,
+            borderRadius: 6,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        imageDimmed: {
+            opacity: 0.6,
+        },
+        imagePlaceholder: {
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        info: {
+            flex: 1,
+            minWidth: 0,
+        },
+        title: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.white,
+            marginBottom: 2,
+        },
+        titleDimmed: {
+            color: theme.legacy.gray400,
+        },
+        artist: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray400,
+        },
+    });

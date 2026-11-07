@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import {
     Animated,
@@ -24,6 +24,7 @@ export default function QuickSelectionItem({
     songs,
     onPress,
 }: QuickSelectionItemProps) {
+    const styles = useThemedStyles(createStyles);
     const [scale] = useState(() => new Animated.Value(1));
 
     const handlePressIn = () =>
@@ -68,31 +69,32 @@ export default function QuickSelectionItem({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 8,
-        overflow: "hidden",
-    },
-    image: {
-        width: 52,
-        height: 52,
-    },
-    textContainer: {
-        flex: 1,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-    },
-    name: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: COLORS.white,
-        marginBottom: 2,
-    },
-    artist: {
-        fontSize: 11,
-        color: COLORS.gray400,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: theme.radius.md,
+            overflow: "hidden",
+        },
+        image: {
+            width: 52,
+            height: 52,
+        },
+        textContainer: {
+            flex: 1,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+        },
+        name: {
+            fontSize: theme.typography.caption,
+            fontWeight: "600",
+            color: theme.legacy.white,
+            marginBottom: 2,
+        },
+        artist: {
+            fontSize: 11,
+            color: theme.legacy.gray400,
+        },
+    });

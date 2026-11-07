@@ -82,3 +82,24 @@ installation, Android services or lock-screen behavior. Record each separately.
 - Session ownership: the shared user manager now owns the seeded session and
   ignores obsolete updates. Browser volume and playback lifecycles accept portable
   service contracts. Existing session/volume/Media Session regressions pass (45).
+
+- Runtime integration: the independent mobile web export now authenticates against
+  the local HTTP fixture using an HttpOnly cookie. PWA login is classified as WEB;
+  Android keeps MOBILE secure-store sessions. Native and browser playback/video
+  surfaces are selected by platform files. Player services cover popup portals;
+  logout cancels socket reconnection and obsolete session work.
+- Design rollout: native presenters consume live shared semantic theme values;
+  512 repeated spacing/radius/type properties now use common scales. Palette
+  values pass the native color processor in dark and light modes. Additional
+  controls/messages are translated in all workbook languages without rewriting
+  existing formula caches. Remaining literal/feature audits are still open.
+- Test foundation: 17 unit/browser-renderer tests and 5 native-renderer tests pass,
+  including real generated HTTP contracts, playlist-only song search, invalid
+  responses, offline cache failures, stale requests/accounts and socket disposal.
+  The first production-export login test passes in Android Chromium emulation.
+  Broader browser interaction acceptance is in progress. WebKit download is denied
+  by the local network policy; CI must install/run it. No physical iPhone or
+  installed Android APK acceptance has been claimed.
+- Loading: Expo web uses production route chunks. A measured export reduced the
+  uncompressed entry from about 5.5 MB to about 1.1 MB; this is bundle evidence,
+  not a production latency claim. Current Next and Expo production builds pass.

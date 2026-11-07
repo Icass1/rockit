@@ -1,19 +1,20 @@
 import { useCallback } from "react";
-import { COLORS } from "@/constants/theme";
 import {
     isAlbum,
     isPlaylist,
     type TListMedia,
     type TMedia,
 } from "@rockit/shared";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { ChevronDown, ChevronRight } from "@rockit/ui/icons";
 import { Image } from "expo-image";
-import { ChevronDown, ChevronRight } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { webSocketManager } from "@/lib/webSocketManager";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 function ListArtists({ media }: { media: TListMedia }) {
+    const styles = useThemedStyles(createStyles);
     if (isAlbum(media)) {
         const artists = media.artists.map((a) => a.name).join(", ");
         if (!artists) return null;
@@ -54,6 +55,8 @@ export function ListMedia({
     onToggle?: () => void;
     cycle?: boolean;
 }) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const $media = useMedia(_media);
     const handleToggle = useCallback((): void => {
         if (cycle) return;
@@ -95,9 +98,9 @@ export function ListMedia({
                         <ListArtists media={$media} />
                     </View>
                     {expanded ? (
-                        <ChevronDown size={16} color={COLORS.gray400} />
+                        <ChevronDown size={16} color={theme.legacy.gray400} />
                     ) : (
-                        <ChevronRight size={16} color={COLORS.gray400} />
+                        <ChevronRight size={16} color={theme.legacy.gray400} />
                     )}
                 </View>
             </MediaPressableWrapper>
@@ -105,43 +108,44 @@ export function ListMedia({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "column",
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: COLORS.gray800,
-        overflow: "hidden",
-    },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        backgroundColor: COLORS.bgCard,
-        padding: 6,
-    },
-    image: {
-        width: 48,
-        height: 48,
-        borderRadius: 6,
-        backgroundColor: COLORS.bgCardLight,
-    },
-    info: {
-        flex: 1,
-        minWidth: 0,
-    },
-    title: {
-        fontWeight: "500",
-        color: COLORS.white,
-    },
-    artistText: {
-        color: COLORS.gray400,
-        fontSize: 13,
-    },
-    mediaList: {
-        flexDirection: "column",
-        gap: 4,
-        paddingHorizontal: 4,
-        paddingVertical: 4,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "column",
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: theme.legacy.gray800,
+            overflow: "hidden",
+        },
+        header: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            backgroundColor: theme.legacy.bgCard,
+            padding: 6,
+        },
+        image: {
+            width: 48,
+            height: 48,
+            borderRadius: 6,
+            backgroundColor: theme.legacy.bgCardLight,
+        },
+        info: {
+            flex: 1,
+            minWidth: 0,
+        },
+        title: {
+            fontWeight: "500",
+            color: theme.legacy.white,
+        },
+        artistText: {
+            color: theme.legacy.gray400,
+            fontSize: 13,
+        },
+        mediaList: {
+            flexDirection: "column",
+            gap: theme.spacing.xs,
+            paddingHorizontal: theme.spacing.xs,
+            paddingVertical: theme.spacing.xs,
+        },
+    });

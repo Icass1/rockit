@@ -1,5 +1,6 @@
 import { memo, useCallback, useState } from "react";
 import useHandlePlay from "@/callbacks/handlePlay";
+import { capabilities } from "@/platform/capabilities";
 import {
     BaseSearchResultsItem,
     EEvent,
@@ -29,7 +30,7 @@ import {
     PlusCircle,
     Radio,
     Shuffle,
-} from "lucide-react-native";
+} from "@rockit/ui/icons";
 import { Pressable } from "react-native";
 import {
     ContextMenuConfig,
@@ -237,7 +238,10 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 });
             }
 
-            if (!isSearchResult(media) && isQueueable(media)) {
+            if (
+                !isSearchResult(media) &&
+                (isSong(media) || (isVideo(media) && capabilities.offlineVideo))
+            ) {
                 options.push({
                     label: vocabulary.DOWNLOAD_MEDIA_TO_DEVICE,
                     icon: Download,
@@ -253,7 +257,6 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                             if (isVideo(media)) url = getMediaVideoUrl(media);
                             else if (isSong(media))
                                 url = getMediaAudioUrl(media);
-                            else if (isStation(media)) url = media.streamUrl;
                             else url = null;
 
                             if (!url) {
@@ -348,7 +351,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [hide, show, extraOptions, listPublicId]
+        [hide, show, extraOptions, listPublicId, vocabulary]
     );
 
     const showPlaylistPicker = useCallback(
@@ -370,7 +373,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
 
             show({
                 imageUrl: item.imageUrl,
-                title: "Add to playlist",
+                title: vocabulary.ADD_MEDIA_TO_PLAYLIST,
                 subtitle: item.name,
                 backAction: () => show(buildMainMenu(item)),
                 options: playlists.map((pl) => ({
@@ -459,6 +462,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     return (
         <>
             <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={media.name}
                 onPress={handlePress}
                 onLongPress={handleLongPress}
                 delayLongPress={250}

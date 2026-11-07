@@ -1,4 +1,4 @@
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -12,6 +12,7 @@ export default function LibraryFilters({
     activeType,
     onTypeChange,
 }: LibraryFiltersProps) {
+    const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
 
     const TABS: { key: ELibraryActiveType; label: string }[] = [
@@ -55,28 +56,29 @@ export default function LibraryFilters({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        paddingVertical: 12,
-    },
-    scrollContent: {
-        gap: 4,
-    },
-    tab: {
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 999,
-        backgroundColor: COLORS.bgCard,
-    },
-    tabActive: {
-        backgroundColor: COLORS.white,
-    },
-    tabText: {
-        color: COLORS.gray400,
-        fontSize: 14,
-    },
-    tabTextActive: {
-        color: COLORS.bg,
-        fontWeight: "600",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            paddingVertical: theme.spacing.md,
+        },
+        scrollContent: {
+            gap: theme.spacing.xs,
+        },
+        tab: {
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderRadius: theme.radius.full,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        tabActive: {
+            backgroundColor: theme.legacy.white,
+        },
+        tabText: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.body,
+        },
+        tabTextActive: {
+            color: theme.legacy.bg,
+            fontWeight: "600",
+        },
+    });

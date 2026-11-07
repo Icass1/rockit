@@ -4,6 +4,23 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
     resolve: {
         alias: [
+            {
+                find: "@rockit/ui/runtime",
+                replacement: path.resolve("packages/ui/src/runtime.web.ts"),
+            },
+            {
+                find: "@rockit/ui/icons",
+                replacement: path.resolve("packages/ui/src/icons.web.ts"),
+            },
+            {
+                find: /^@rockit\/ui\/(.+)$/,
+                replacement: path.resolve("packages/ui/src") + "/$1",
+            },
+            {
+                find: /^@rockit\/platform-browser\/(.+)$/,
+                replacement:
+                    path.resolve("packages/platform-browser/src") + "/$1",
+            },
             { find: "@mobile", replacement: path.resolve("apps/mobile") },
             {
                 find: /^@rockit\/theme$/,

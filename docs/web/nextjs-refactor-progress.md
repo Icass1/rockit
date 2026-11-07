@@ -877,3 +877,11 @@ external-enabled suggestion request. Artwork cache ownership now lives in scoped
 web types and lint are checked; CI checks are recorded in PR 179. Earlier browser
 fixtures remain historical evidence; runtime acceptance on the rebased application
 and physical PiP/Vivaldi verification remain open.
+
+## Universal frontend migration — PR #189
+
+Shared user-session ownership preserves request-local SSR seeds and browser
+preferences; session/volume/Media Session regressions pass (45). Browser playback
+and volume lifecycles now live behind portable service contracts in
+`@rockit/platform-browser`; desktop wrappers retain compatibility. The independent
+mobile shell and production runtime acceptance remain in progress.

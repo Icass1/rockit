@@ -78,3 +78,7 @@ installation, Android services or lock-screen behavior. Record each separately.
   use browser cookies without exposing HttpOnly tokens; web updates no longer
   inspect native APK versions. Native typecheck and 3 new transport tests pass.
   Browser playback/storage boot and logout orchestration remain in progress.
+
+- Session ownership: the shared user manager now owns the seeded session and
+  ignores obsolete updates. Browser volume and playback lifecycles accept portable
+  service contracts. Existing session/volume/Media Session regressions pass (45).

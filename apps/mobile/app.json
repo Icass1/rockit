@@ -14,7 +14,9 @@
             "bundleIdentifier": "com.rockit.mobile",
             "icon": "./assets/images/icon.png",
             "infoPlist": {
-                "UIBackgroundModes": ["audio"]
+                "UIBackgroundModes": [
+                    "audio"
+                ]
             }
         },
         "android": {
@@ -35,11 +37,19 @@
             ]
         },
         "web": {
-            "output": "static",
+            "output": "single",
             "favicon": "./assets/images/favicon.png"
         },
         "plugins": [
-            "expo-router",
+            [
+                "expo-router",
+                {
+                    "asyncRoutes": {
+                        "web": "production",
+                        "default": false
+                    }
+                }
+            ],
             [
                 "expo-splash-screen",
                 {
@@ -72,7 +82,12 @@
                     "skipBackwardInterval": 10
                 }
             ],
-            ["expo-video", { "supportsBackgroundPlayback": true }],
+            [
+                "expo-video",
+                {
+                    "supportsBackgroundPlayback": true
+                }
+            ],
             [
                 "expo-screen-orientation",
                 {

@@ -1,13 +1,14 @@
 import { memo } from "react";
-import { COLORS } from "@/constants/theme";
 import {
     getMediaDuration,
     isDownloadable,
     type TMedia,
     type TPlayableMedia,
 } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Check } from "@rockit/ui/icons";
 import { Image } from "expo-image";
-import { Check } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { useMediaOffline } from "@/hooks/useMediaOffline";
@@ -38,6 +39,8 @@ export const PlayableMedia = memo(function PlayableMedia({
     showMediaImage: boolean;
     listPublicId?: string;
 }) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const $media = useMedia(_media);
 
     const availableOffline = useMediaOffline($media.publicId);
@@ -87,7 +90,7 @@ export const PlayableMedia = memo(function PlayableMedia({
                 </View>
                 {availableOffline && (
                     <View style={styles.offlineBadge}>
-                        <Check size={10} color={COLORS.white} />
+                        <Check size={10} color={theme.legacy.white} />
                     </View>
                 )}
                 {duration !== undefined && (
@@ -100,69 +103,70 @@ export const PlayableMedia = memo(function PlayableMedia({
     );
 });
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-    },
-    pressed: {
-        opacity: 0.7,
-    },
-    indexContainer: {
-        width: 24,
-        height: 24,
-        alignItems: "center",
-    },
-    indexText: {
-        color: COLORS.gray400,
-        fontSize: 14,
-    },
-    imageWrapper: {
-        position: "relative",
-    },
-    image: {
-        width: 48,
-        height: 48,
-        borderRadius: 4,
-        backgroundColor: COLORS.bgCard,
-    },
-    downloadBadge: {
-        position: "absolute",
-        bottom: 2,
-        right: 2,
-        backgroundColor: "rgba(0,0,0,0.6)",
-        borderRadius: 8,
-        padding: 2,
-    },
-    offlineBadge: {
-        backgroundColor: COLORS.accent,
-        borderRadius: 8,
-        padding: 2,
-    },
-    info: {
-        flex: 1,
-        minWidth: 0,
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 15,
-        fontWeight: "500",
-    },
-    titleNotDownloaded: {
-        color: COLORS.gray400,
-    },
-    subtitle: {
-        color: COLORS.gray400,
-        fontSize: 13,
-        marginTop: 2,
-    },
-    subtitleNotDownloaded: {
-        color: COLORS.gray400,
-        opacity: 0.6,
-    },
-    duration: {
-        color: COLORS.gray400,
-        fontSize: 13,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.md,
+        },
+        pressed: {
+            opacity: 0.7,
+        },
+        indexContainer: {
+            width: 24,
+            height: 24,
+            alignItems: "center",
+        },
+        indexText: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.body,
+        },
+        imageWrapper: {
+            position: "relative",
+        },
+        image: {
+            width: 48,
+            height: 48,
+            borderRadius: theme.radius.sm,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        downloadBadge: {
+            position: "absolute",
+            bottom: 2,
+            right: 2,
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.6),
+            borderRadius: theme.radius.md,
+            padding: 2,
+        },
+        offlineBadge: {
+            backgroundColor: theme.legacy.accent,
+            borderRadius: theme.radius.md,
+            padding: 2,
+        },
+        info: {
+            flex: 1,
+            minWidth: 0,
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: 15,
+            fontWeight: "500",
+        },
+        titleNotDownloaded: {
+            color: theme.legacy.gray400,
+        },
+        subtitle: {
+            color: theme.legacy.gray400,
+            fontSize: 13,
+            marginTop: 2,
+        },
+        subtitleNotDownloaded: {
+            color: theme.legacy.gray400,
+            opacity: 0.6,
+        },
+        duration: {
+            color: theme.legacy.gray400,
+            fontSize: 13,
+        },
+    });

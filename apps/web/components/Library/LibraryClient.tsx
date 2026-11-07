@@ -203,7 +203,7 @@ export default function LibraryClient({
                             {/* Sort */}
                             <button
                                 onClick={cycleSortMode}
-                                title="Sort"
+                                title={$vocabulary.LIBRARY_SORT}
                                 className="text-muted-foreground hover:text-foreground-strong flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition select-none"
                             >
                                 {filterMode === EFilterMode.DEFAULT && (

@@ -877,3 +877,22 @@ external-enabled suggestion request. Artwork cache ownership now lives in scoped
 web types and lint are checked; CI checks are recorded in PR 179. Earlier browser
 fixtures remain historical evidence; runtime acceptance on the rebased application
 and physical PiP/Vivaldi verification remain open.
+
+## Universal frontend migration — PR #189
+
+Shared user-session ownership preserves request-local SSR seeds and browser
+preferences; session/volume/Media Session regressions pass (45). Browser playback
+and volume lifecycles now live behind portable service contracts in
+`@rockit/platform-browser`; desktop wrappers retain compatibility. The independent
+mobile shell and production runtime acceptance remain in progress.
+
+
+## Universal frontend migration (PR #189)
+
+Desktop chrome no longer imports or mounts the former mobile shell. Browser audio,
+Media Session, offline storage and portable social/radio policies are shared via
+platform adapters; universal artwork/identity presenters are registered for SSR.
+The independent mobile PWA export/deployment and rollout gates are described in
+`docs/FRONTEND_DEPLOYMENT.md`. Consolidated verification is pending after feature
+integration, following the user's requested test schedule. No installed-device
+acceptance or production cutover is claimed.

@@ -3,7 +3,6 @@ import {
     BaseQueueManager,
     type QueueResponse,
 } from "@rockit/shared";
-import type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listenTogetherState";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, type ReadonlyAtom } from "@/lib/store";
 
@@ -31,29 +30,6 @@ export class QueueManager extends BaseQueueManager {
         // The player deduplicates requests for an already prepared source.
         if (rockIt.mediaPlayerManager.playingAtom.get())
             void rockIt.mediaPlayerManager.preloadNextTrack();
-    }
-
-    captureListeningQueue(): ListenTogetherQueueSnapshot {
-        return {
-            sorted: [...this.sortedQueue],
-            random: [...this.randomQueue],
-            currentQueueMediaId: this.currentQueueMediaId,
-            time: rockIt.mediaPlayerManager.currentTime,
-        };
-    }
-
-    restoreListeningQueue(snapshot: ListenTogetherQueueSnapshot): void {
-        this.sortedQueue = [...snapshot.sorted];
-        this.randomQueue = [...snapshot.random];
-        this.updateQueue();
-        if (
-            snapshot.currentQueueMediaId !== null &&
-            this.queue.some(
-                (item) => item.queueMediaId === snapshot.currentQueueMediaId
-            )
-        ) {
-            this.setQueueMediaId(snapshot.currentQueueMediaId);
-        } else this.clearCurrentMedia();
     }
 
     protected override async cacheCollectionQueueAsync(

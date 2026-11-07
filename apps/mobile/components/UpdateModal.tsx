@@ -1,7 +1,8 @@
-import { COLORS } from "@/constants/theme";
 import { APP_VERSION } from "@/constants/version";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { getModalRef, useModal, type ModalContent } from "@/lib/ModalContext";
+import { useModal } from "@/lib/ModalContext";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface UpdateModalContentProps {
     apkUrl: string;
@@ -12,20 +13,22 @@ export function UpdateModalContent({
     apkUrl,
     latestVersion,
 }: UpdateModalContentProps) {
+    const { vocabulary } = useVocabulary();
+    const styles = useThemedStyles(createStyles);
     const { hide } = useModal();
 
     return (
         <>
             <Text style={styles.body}>
-                A new version of RockIt! is available.
+                {vocabulary.MOBILE_UPDATE_AVAILABLE}
             </Text>
             <View style={styles.versions}>
                 <Text style={styles.versionLabel}>
-                    Current:{" "}
+                    {vocabulary.MOBILE_UPDATE_CURRENT}{" "}
                     <Text style={styles.versionValue}>{APP_VERSION}</Text>
                 </Text>
                 <Text style={styles.versionLabel}>
-                    New:{" "}
+                    {vocabulary.MOBILE_UPDATE_NEW}{" "}
                     <Text style={[styles.versionValue, styles.accent]}>
                         {latestVersion}
                     </Text>
@@ -38,54 +41,45 @@ export function UpdateModalContent({
                     hide();
                 }}
             >
-                <Text style={styles.buttonText}>Download &amp; Install</Text>
+                <Text style={styles.buttonText}>
+                    {vocabulary.MOBILE_UPDATE_INSTALL}
+                </Text>
             </Pressable>
         </>
     );
 }
 
-export function showUpdateModal(apkUrl: string, latestVersion: string): void {
-    const ref = getModalRef();
-    const content: ModalContent = {
-        title: "Update Available",
-        content: (
-            <UpdateModalContent apkUrl={apkUrl} latestVersion={latestVersion} />
-        ),
-    };
-
-    ref.show(content);
-}
-
-const styles = StyleSheet.create({
-    body: {
-        color: COLORS.gray400,
-        fontSize: 14,
-        lineHeight: 20,
-    },
-    versions: {
-        gap: 4,
-    },
-    versionLabel: {
-        color: COLORS.gray400,
-        fontSize: 13,
-    },
-    versionValue: {
-        color: COLORS.white,
-        fontWeight: "600",
-    },
-    accent: {
-        color: COLORS.accent,
-    },
-    button: {
-        backgroundColor: COLORS.accent,
-        borderRadius: 10,
-        paddingVertical: 14,
-        alignItems: "center",
-        marginTop: 4,
-    },
-    buttonText: {
-        color: COLORS.white,
-        fontSize: 15,
-        fontWeight: "700",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        body: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.body,
+            lineHeight: 20,
+        },
+        versions: {
+            gap: theme.spacing.xs,
+        },
+        versionLabel: {
+            color: theme.legacy.gray400,
+            fontSize: 13,
+        },
+        versionValue: {
+            color: theme.legacy.white,
+            fontWeight: "600",
+        },
+        accent: {
+            color: theme.legacy.accent,
+        },
+        button: {
+            backgroundColor: theme.legacy.accent,
+            borderRadius: 10,
+            paddingVertical: 14,
+            alignItems: "center",
+            marginTop: theme.spacing.xs,
+        },
+        buttonText: {
+            color: theme.legacy.white,
+            fontSize: 15,
+            fontWeight: "700",
+        },
+    });

@@ -1,4 +1,1 @@
-export interface RecommendationArtworkCacheEntry {
-    expiresAt: number;
-    request: Promise<string | null>;
-}
+export type { RecommendationArtworkCacheEntry } from "@rockit/shared";

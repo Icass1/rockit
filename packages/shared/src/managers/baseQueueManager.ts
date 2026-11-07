@@ -13,6 +13,7 @@ import { getRockIt } from "@/rockit/rockitRef";
 import { shuffle } from "@/utils/arrayTools";
 import { EQueueType } from "@/models/enums/queueType";
 import { ERepeatMode } from "@/models/enums/repeatMode";
+import type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listeningQueueSnapshot";
 import { type QueueMediaItem } from "@/models/interfaces/queue";
 import type { AutoplayRecommendation } from "@/models/types/autoplayRecommendation";
 import {
@@ -1105,6 +1106,40 @@ export class BaseQueueManager {
         this.randomQueue.splice(randomInsertIndex, 0, { ...newItem });
 
         this.updateQueue();
+    }
+
+    captureListeningQueue(): ListenTogetherQueueSnapshot {
+        return {
+            sorted: [...this.sortedQueue],
+            random: [...this.randomQueue],
+            currentQueueMediaId: this.currentQueueMediaId,
+            time: getRockIt().mediaPlayerManager.currentTime,
+            total: this._queueTotalAtom.get(),
+            pages: [...this._queuePages].map(([offset, items]) => [
+                offset,
+                [...items],
+            ]),
+        };
+    }
+
+    restoreListeningQueue(snapshot: ListenTogetherQueueSnapshot): void {
+        this._queueGeneration++;
+        this._queuePageLoads.clear();
+        this._queuePages = new Map(
+            snapshot.pages?.length ? snapshot.pages : [[0, snapshot.sorted]]
+        );
+        this._queueTotalAtom.set(snapshot.total ?? snapshot.sorted.length);
+        this.sortedQueue = [...snapshot.sorted];
+        this.randomQueue = [...snapshot.random];
+        this.updateQueue();
+        if (
+            snapshot.currentQueueMediaId !== null &&
+            this.queue.some(
+                (item) => item.queueMediaId === snapshot.currentQueueMediaId
+            )
+        )
+            this.setQueueMediaId(snapshot.currentQueueMediaId);
+        else this.clearCurrentMedia();
     }
 
     /** Changes when the queue is replaced, allowing pending loads to stop. */

@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react";
 import { TMedia } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { FlatList, StyleSheet, View } from "react-native";
 import MediaRow from "@/components/Media/MediaRow";
 
@@ -12,6 +13,7 @@ const ListItem = memo(function ListItem({ item }: { item: TMedia }) {
 });
 
 export default function LibraryListView({ items }: LibraryListViewProps) {
+    const styles = useThemedStyles(createStyles);
     const renderItem = useCallback(
         ({ item }: { item: TMedia }) => <ListItem item={item} />,
         []
@@ -39,10 +41,11 @@ export default function LibraryListView({ items }: LibraryListViewProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingHorizontal: 16,
-        paddingBottom: 100,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            paddingHorizontal: theme.spacing.lg,
+            paddingBottom: 100,
+        },
+    });

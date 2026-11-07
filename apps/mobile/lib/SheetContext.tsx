@@ -7,7 +7,6 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import { COLORS } from "@/constants/theme";
 import {
     BottomSheetBackdrop,
     BottomSheetModal,
@@ -17,6 +16,7 @@ import {
     type BottomSheetBackdropProps,
     type BottomSheetModal as BottomSheetModalType,
 } from "@gorhom/bottom-sheet";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     Dimensions,
     Platform,
@@ -48,6 +48,7 @@ export function useSheet() {
 }
 
 export function SheetProvider({ children }: { children: ReactNode }) {
+    const styles = useThemedStyles(createStyles);
     const sheetRef = useRef<BottomSheetModalType>(null);
     const isPresented = useRef(false);
     const isDismissing = useRef(false);
@@ -278,18 +279,19 @@ export function SheetProvider({ children }: { children: ReactNode }) {
     );
 }
 
-const styles = StyleSheet.create({
-    background: {
-        backgroundColor: COLORS.bgCard,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-    },
-    handle: {
-        width: 40,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: COLORS.gray600,
-    },
-    content: { flex: 1 },
-    fixedContent: { flex: 1, bottom: 0 },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        background: {
+            backgroundColor: theme.legacy.bgCard,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+        },
+        handle: {
+            width: 40,
+            height: 4,
+            borderRadius: theme.radius.xs,
+            backgroundColor: theme.legacy.gray600,
+        },
+        content: { flex: 1 },
+        fixedContent: { flex: 1, bottom: 0 },
+    });

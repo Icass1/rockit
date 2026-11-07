@@ -3,7 +3,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { Heart } from "lucide-react-native";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Heart } from "@rockit/ui/icons";
 import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 // Use built‑in easing definitions
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -17,6 +18,8 @@ export default function MobileLikeButton({
 }: {
     mediaPublicId: string;
 }) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     // Atom that holds an array of liked media public ids
     const $liked = useStore(rockIt.mediaManager.likedMediaAtom);
     const isLiked = $liked.includes(mediaPublicId);
@@ -160,8 +163,12 @@ export default function MobileLikeButton({
                 >
                     <Heart
                         size={22}
-                        color={isLiked ? "#202020" : "#A1A1AA"}
-                        fill={isLiked ? "#202020" : "transparent"}
+                        color={
+                            isLiked
+                                ? theme.colors["muted"]
+                                : theme.colors["muted-foreground"]
+                        }
+                        fill={isLiked ? theme.colors["muted"] : "transparent"}
                     />
                 </Animated.View>
             </Pressable>
@@ -169,99 +176,100 @@ export default function MobileLikeButton({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        width: 32,
-        height: 32,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    button: {
-        width: 22,
-        height: 22,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    // -----------------------------------------------------------------
-    // Flame – dimensions are taken from the web CSS (20 × 20 wrapper)
-    // -----------------------------------------------------------------
-    flameWrapper: {
-        position: "absolute",
-        width: 20,
-        height: 20,
-        left: "50%",
-        top: "55%",
-        transform: [{ translateX: -10 }, { translateY: -10 }], // centre it
-        pointerEvents: "none",
-    },
-    flameContainer: {
-        flex: 1,
-        width: 20,
-        height: 20,
-        position: "relative",
-        transformOrigin: "center bottom",
-    },
-    flame: {
-        position: "absolute",
-        bottom: 0,
-        borderBottomRightRadius: 999,
-        borderBottomLeftRadius: 999,
-        borderTopLeftRadius: 999,
-        transform: [{ rotate: "-45deg" }, { scaleX: 1.5 }, { scaleY: 1.5 }],
-    },
-    red: {
-        left: 1.7,
-        width: 16.7,
-        height: 16.7,
-        backgroundColor: "#ee1086",
-        shadowColor: "#ee1086",
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 1.3,
-    },
-    orange: {
-        left: 3.3,
-        width: 13.3,
-        height: 13.3,
-        backgroundColor: "#f53a76",
-        shadowColor: "#f53a76",
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 1.3,
-    },
-    yellow: {
-        left: 5,
-        width: 10,
-        height: 10,
-        backgroundColor: "#fb6467",
-        shadowColor: "#fb6467",
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 1.3,
-    },
-    white: {
-        left: 5,
-        bottom: -1.3,
-        width: 10,
-        height: 10,
-        backgroundColor: "#ffaacc",
-        shadowColor: "#ffaacc",
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 2,
-    },
-    circle: {
-        position: "absolute",
-        borderRadius: 999,
-        width: 3.3,
-        height: 3.3,
-        left: 8.3,
-        bottom: -6,
-        backgroundColor: "white",
-        shadowColor: "white",
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 3.3,
-    },
-    blue: {}, // uses the generic circle style above
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            width: 32,
+            height: 32,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        button: {
+            width: 22,
+            height: 22,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        // -----------------------------------------------------------------
+        // Flame – dimensions are taken from the web CSS (20 × 20 wrapper)
+        // -----------------------------------------------------------------
+        flameWrapper: {
+            position: "absolute",
+            width: 20,
+            height: 20,
+            left: "50%",
+            top: "55%",
+            transform: [{ translateX: -10 }, { translateY: -10 }], // centre it
+            pointerEvents: "none",
+        },
+        flameContainer: {
+            flex: 1,
+            width: 20,
+            height: 20,
+            position: "relative",
+            transformOrigin: "center bottom",
+        },
+        flame: {
+            position: "absolute",
+            bottom: 0,
+            borderBottomRightRadius: 999,
+            borderBottomLeftRadius: 999,
+            borderTopLeftRadius: 999,
+            transform: [{ rotate: "-45deg" }, { scaleX: 1.5 }, { scaleY: 1.5 }],
+        },
+        red: {
+            left: 1.7,
+            width: 16.7,
+            height: 16.7,
+            backgroundColor: theme.colors["primary"],
+            shadowColor: theme.colors["primary"],
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 1,
+            shadowRadius: 1.3,
+        },
+        orange: {
+            left: 3.3,
+            width: 13.3,
+            height: 13.3,
+            backgroundColor: theme.colors["brand-mid"],
+            shadowColor: theme.colors["brand-mid"],
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 1,
+            shadowRadius: 1.3,
+        },
+        yellow: {
+            left: 5,
+            width: 10,
+            height: 10,
+            backgroundColor: theme.colors["brand-light"],
+            shadowColor: theme.colors["brand-light"],
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 1,
+            shadowRadius: 1.3,
+        },
+        white: {
+            left: 5,
+            bottom: -1.3,
+            width: 10,
+            height: 10,
+            backgroundColor: theme.colors["primary-soft"],
+            shadowColor: theme.colors["primary-soft"],
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 1,
+            shadowRadius: 2,
+        },
+        circle: {
+            position: "absolute",
+            borderRadius: theme.radius.full,
+            width: 3.3,
+            height: 3.3,
+            left: 8.3,
+            bottom: -6,
+            backgroundColor: theme.colors["foreground-strong"],
+            shadowColor: theme.colors["foreground-strong"],
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 1,
+            shadowRadius: 3.3,
+        },
+        blue: {}, // uses the generic circle style above
+    });

@@ -33,6 +33,8 @@ function CustomTooltip({
     label?: string;
     range?: string;
 }): JSX.Element | null {
+    const vocabulary = useVocabulary();
+
     if (!active || !payload || payload.length === 0) return null;
 
     const entry = payload[0].payload;
@@ -66,7 +68,7 @@ function CustomTooltip({
             <p className="text-foreground-strong mt-0.5 text-lg font-bold whitespace-nowrap">
                 {payload[0].value.toFixed(1)}
                 <span className="text-muted-foreground ml-1 text-sm font-medium">
-                    min
+                    {vocabulary.MINUTES}
                 </span>
             </p>
         </div>

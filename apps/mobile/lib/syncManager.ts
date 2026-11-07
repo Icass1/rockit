@@ -14,16 +14,13 @@ class SyncManager {
     }
 
     async init(): Promise<void> {
-        console.log("SyncManager.init");
         if (this._initialized) return;
         this._initialized = true;
 
         const state = await getNetworkStateAsync();
-        console.log("sate 1", state);
         this.isOnlineAtom.set(state.isConnected ?? false);
 
         addNetworkStateListener((state) => {
-            console.log("sate 2", state);
             this.isOnlineAtom.set(state.isConnected ?? false);
         });
     }

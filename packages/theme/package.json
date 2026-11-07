@@ -1,0 +1,13 @@
+{
+    "name": "@rockit/theme",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts",
+        "./tokens": "./src/tokens.json"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    }
+}

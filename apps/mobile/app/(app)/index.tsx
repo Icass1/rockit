@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     ActivityIndicator,
     Animated,
@@ -9,6 +9,7 @@ import {
     Text,
     View,
 } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useHomeData } from "@/hooks/useHomeData";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -23,49 +24,39 @@ import MediaCard from "@/components/Media/MediaCard";
 import AutoplayDiscovery from "@/components/Recommendations/AutoplayDiscovery";
 
 function useFadeIn(delay: number = 0) {
+    const theme = useDesignTheme();
+    const reduceMotion = useReducedMotion();
     const [opacity] = useState(() => new Animated.Value(0));
     const [translateY] = useState(() => new Animated.Value(20));
 
     useEffect(() => {
+        if (reduceMotion) {
+            opacity.setValue(1);
+            translateY.setValue(0);
+            return;
+        }
         Animated.parallel([
             Animated.timing(opacity, {
                 toValue: 1,
-                duration: 400,
+                duration: theme.motion.slow,
                 delay,
                 useNativeDriver: true,
             }),
             Animated.timing(translateY, {
                 toValue: 0,
-                duration: 400,
+                duration: theme.motion.slow,
                 delay,
                 useNativeDriver: true,
             }),
         ]).start();
-    }, [opacity, translateY, delay]);
+    }, [opacity, translateY, delay, reduceMotion, theme.motion.slow]);
 
     return { opacity, transform: [{ translateY }] };
 }
 
-function getPreviousMonthName(): string {
-    // TODO: This should be keys in capital letters and then use vocabulary to get the correct translation.
-    const MONTH_NAMES = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-    ];
-    return MONTH_NAMES[(new Date().getMonth() + 11) % 12];
-}
-
 export default function HomeScreen() {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const { vocabulary, isLoading } = useVocabulary();
     const { data, loading, error } = useHomeData();
 
@@ -89,7 +80,10 @@ export default function HomeScreen() {
             <SafeAreaView style={styles.container} edges={["top"]}>
                 <Header />
                 <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color={COLORS.accent} />
+                    <ActivityIndicator
+                        size="large"
+                        color={theme.legacy.accent}
+                    />
                 </View>
             </SafeAreaView>
         );
@@ -123,8 +117,6 @@ export default function HomeScreen() {
         );
     }
 
-    const previousMonth = getPreviousMonthName();
-
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             <Header />
@@ -154,7 +146,9 @@ export default function HomeScreen() {
 
                 {data.recentlyClickedMedia.length > 0 && (
                     <Animated.View style={section6}>
-                        <HorizontalScrollList title="Recently opened">
+                        <HorizontalScrollList
+                            title={vocabulary.MOBILE_RECENTLY_OPENED}
+                        >
                             {data.recentlyClickedMedia
                                 .filter(
                                     (media) =>
@@ -214,7 +208,7 @@ export default function HomeScreen() {
                 {data.monthlyTop.length > 0 && (
                     <Animated.View style={section5}>
                         <HorizontalSongRow
-                            title={`${previousMonth} Recap`}
+                            title={vocabulary.NAV_LAST_MONTH}
                             songs={data.monthlyTop}
                             listKey="monthly"
                             onSongPress={handleSongPress}
@@ -242,28 +236,29 @@ export default function HomeScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.bg,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    content: {
-        paddingTop: HEADER_HEIGHT,
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    errorText: {
-        color: COLORS.accent,
-        fontSize: 16,
-    },
-    emptyText: {
-        color: COLORS.gray400,
-        fontSize: 16,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.legacy.bg,
+        },
+        scrollView: {
+            flex: 1,
+        },
+        content: {
+            paddingTop: HEADER_HEIGHT,
+        },
+        centerContainer: {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        errorText: {
+            color: theme.legacy.accent,
+            fontSize: theme.typography.label,
+        },
+        emptyText: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.label,
+        },
+    });

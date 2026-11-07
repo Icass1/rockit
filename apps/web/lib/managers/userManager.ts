@@ -40,7 +40,6 @@ export class UserManager extends BaseUserManager {
     private _initialization?: Promise<void>;
     private _cacheTask = Promise.resolve();
     private _bootstrapSession?: SessionResponse;
-    private _session = createAtom<SessionResponse | null | undefined>();
 
     constructor(private readonly dependencies?: UserSessionServices) {
         super();
@@ -140,13 +139,7 @@ export class UserManager extends BaseUserManager {
             this._scopeAtom.set(this._generation);
             this._accountGeneration++;
         }
-        this._queueTypeAtom.set(EQueueType[session.queueType]);
-        this._repeatModeAtom.set(ERepeatMode[session.repeatMode]);
-        this._image.set(session.image);
-        this._admin.set(session.admin);
-        this._username.set(session.username);
-        this._currentTimeMs.set(session.currentTimeMs);
-        this._loggedIn.set(true);
+        this.applySessionFields(session);
         this._showListeningHeatmap.set(session.showListeningHeatmap);
         this._session.set(session);
         this._sessionReady.set(true);

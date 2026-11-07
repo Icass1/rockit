@@ -31,7 +31,13 @@ const nextConfig: NextConfig = {
         ).trim(),
     },
     outputFileTracingRoot: workspaceRoot,
-    transpilePackages: ["@rockit/shared"],
+    transpilePackages: [
+        "@rockit/shared",
+        "@rockit/theme",
+        "@rockit/ui",
+        "@rockit/platform-browser",
+        "react-native-web",
+    ],
     onDemandEntries: {
         // Keep only the current route in the development compiler's buffer.
         maxInactiveAge: 15_000,

@@ -1,26 +1,33 @@
+import { createSocket } from "@/platform/socket";
 import {
     BACKEND_URL,
     CurrentMediaMessageRequest,
     CurrentMediaMessageSchema,
     CurrentQueueMessageRequest,
+    CurrentQueueMessageSchema,
     CurrentTimeMessageRequest,
     CurrentTimeMessageSchema,
+    DownloadProgressMessageSchema,
     EEvent,
     EventManager,
     EWebSocketMessage,
+    FriendActivityItemSchema,
+    FriendsPresenceChangedMessageSchema,
+    ListenTogetherSyncMessageSchema,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
     MediaExpandedMessageRequest,
+    QueueTypeMessageSchema,
     QueueTypeRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
+    SocialSnapshotMessageSchema,
     TWebSocketIncomingMessage,
     type DownloadProgressMessage,
     type IWebSocketMessagePayloadMap,
     type MediaRemovedFromPlaylistMessage,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
-import { getSessionCookie, refreshSessionFromBackend } from "@/lib/api";
 
 function getWsUrl(): string {
     const url = BACKEND_URL.replace(/^http:\/\//, "ws://").replace(
@@ -34,7 +41,9 @@ export class WebSocketManager {
     private static _instance: WebSocketManager;
 
     private _webSocket?: WebSocket;
-    private _init = false;
+    private _enabled = false;
+    private _generation = 0;
+    private _retryTimer?: ReturnType<typeof setTimeout>;
     private _latestPlaybackId = "";
     private _outgoingPlayback?: CurrentMediaMessageRequest;
     private _connecting = false;
@@ -57,6 +66,24 @@ export class WebSocketManager {
                 if (!this._latestPlaybackId)
                     this._latestPlaybackId = data.playbackId;
             }
+
+            if (data.type === EWebSocketMessage.SocialChanged)
+                data = SocialSnapshotMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.FriendActivity)
+                data = {
+                    type: "friend_activity",
+                    ...FriendActivityItemSchema.parse(data),
+                };
+            else if (data.type === EWebSocketMessage.FriendsPresenceChanged)
+                data = FriendsPresenceChangedMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.ListenTogetherSync)
+                data = ListenTogetherSyncMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.CurrentQueue)
+                data = CurrentQueueMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.DownloadProgress)
+                data = DownloadProgressMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.QueueType)
+                data = QueueTypeMessageSchema.parse(data);
 
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);
@@ -124,80 +151,73 @@ export class WebSocketManager {
             ?.delete(handler as WebSocketMessageHandler<EWebSocketMessage>);
     }
 
-    async init() {
-        if (this._init || this._connecting) return;
-
-        this._attemptReconnect();
+    async init(): Promise<void> {
+        this._enabled = true;
+        if (!this._connecting && !this.isConnected) await this._connect();
     }
 
-    private async _attemptReconnect() {
-        if (this._connecting) return;
-        this._connecting = true;
-        const maxRetries = 5;
-        let retries = 0;
-
-        while (retries < maxRetries) {
-            await new Promise((resolve) =>
-                setTimeout(resolve, Math.max(2000 * retries, 2000))
-            );
-
-            if (this._webSocket?.readyState === WebSocket.OPEN) break;
-
-            let cookie = await getSessionCookie();
-            if (!cookie) {
-                cookie = await refreshSessionFromBackend();
-            }
-            if (!cookie) {
-                console.error(
-                    "WebSocket connection requires a session cookie."
-                );
-                retries++;
-                continue;
-            }
-
-            try {
-                // React Native's WebSocket accepts headers as a non-standard 3rd argument.
-                // The session cookie must be passed explicitly since SecureStore is not
-                // the system cookie jar and Android/OkHttp won't include it automatically.
-
-                this._webSocket = new (WebSocket as any)(
-                    getWsUrl(),
-                    undefined,
-                    {
-                        headers: { Cookie: `session_id=${cookie}` },
-                    }
-                );
-
-                if (!this._webSocket) return;
-
-                this._webSocket.onopen = () => {
-                    this._init = true;
-                    if (this._outgoingPlayback) {
-                        this.sendCurrentMedia(this._outgoingPlayback);
-                    } else {
-                        this.requestPlaybackState();
-                    }
-                    this._connecting = false;
-                };
-
-                this._webSocket.onmessage = this._onMessageHandler;
-
-                this._webSocket.onclose = () => {
-                    this._init = false;
-                    this._connecting = false;
-                    this._attemptReconnect();
-                };
-
-                this._webSocket.onerror = (e) => {
-                    console.error("Error in web socket", e);
-                };
-
-                break;
-            } catch {
-                retries++;
-            }
-        }
+    stop(): void {
+        this._enabled = false;
+        this._generation++;
         this._connecting = false;
+        clearTimeout(this._retryTimer);
+        this._retryTimer = undefined;
+        const socket = this._webSocket;
+        this._webSocket = undefined;
+        if (socket) {
+            socket.onopen =
+                socket.onclose =
+                socket.onerror =
+                socket.onmessage =
+                    null;
+            socket.close();
+        }
+        this._latestPlaybackId = "";
+        this._outgoingPlayback = undefined;
+    }
+
+    private _retry(generation: number): void {
+        if (!this._enabled || generation !== this._generation) return;
+        clearTimeout(this._retryTimer);
+        this._retryTimer = setTimeout(() => void this._connect(), 2000);
+    }
+
+    private async _connect(): Promise<void> {
+        if (!this._enabled || this._connecting || this.isConnected) return;
+        this._connecting = true;
+        const generation = this._generation;
+        try {
+            const socket = await createSocket(getWsUrl());
+            if (!this._enabled || generation !== this._generation) {
+                socket?.close();
+                return;
+            }
+            if (!socket) {
+                this._connecting = false;
+                this._retry(generation);
+                return;
+            }
+            this._webSocket = socket;
+            socket.onopen = () => {
+                if (generation !== this._generation) return;
+                this._connecting = false;
+                if (this._outgoingPlayback)
+                    this.sendCurrentMedia(this._outgoingPlayback);
+                else this.requestPlaybackState();
+            };
+            socket.onmessage = this._onMessageHandler;
+            socket.onclose = () => {
+                if (generation !== this._generation) return;
+                this._connecting = false;
+                this._webSocket = undefined;
+                this._retry(generation);
+            };
+            socket.onerror = () => socket.close();
+        } catch {
+            if (generation !== this._generation) return;
+            this._connecting = false;
+            this._retry(generation);
+        }
     }
 
     get isConnected(): boolean {
@@ -213,14 +233,26 @@ export class WebSocketManager {
     }
 
     async send(message: object): Promise<void> {
+        if (!this._enabled) return;
+        const generation = this._generation;
         if (this._webSocket?.readyState !== WebSocket.OPEN) {
-            await this.init();
+            await this._connect();
             const deadline = Date.now() + 10000;
-            while (!this._isOpen() && Date.now() < deadline) {
+            while (
+                this._enabled &&
+                generation === this._generation &&
+                !this._isOpen() &&
+                Date.now() < deadline
+            ) {
                 await new Promise<void>((resolve) => setTimeout(resolve, 100));
             }
         }
-        if (this._webSocket?.readyState !== WebSocket.OPEN) return;
+        if (
+            !this._enabled ||
+            generation !== this._generation ||
+            !this._isOpen()
+        )
+            return;
         const playbackId = (message as Partial<CurrentTimeMessageRequest>)
             .playbackId;
         if (playbackId && playbackId !== this._latestPlaybackId) return;

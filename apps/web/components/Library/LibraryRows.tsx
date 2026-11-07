@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type JSX, type ReactNode } from "react";
+import { useMemo, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,6 +11,7 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { EMediaContextLocation } from "@rockit/shared";
+import { MediaArtwork } from "@rockit/ui";
 import { CircleCheck, SquareCheck, SquareDashed } from "lucide-react";
 import type { TMediaWithSearch } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
@@ -24,6 +25,7 @@ import {
 } from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function SelectableRow({
     media,
@@ -103,20 +105,7 @@ function SquareCover({
     alt: string;
     fallback?: string;
 }): JSX.Element {
-    const [failedImage, setFailedImage] = useState<string | null>(null);
-    const source = src || fallback;
-    return (
-        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
-            <Image
-                src={source === failedImage ? fallback : source}
-                alt={alt}
-                fill
-                sizes="48px"
-                onError={(): void => setFailedImage(source)}
-                className="object-cover select-none"
-            />
-        </div>
-    );
+    return <MediaArtwork uri={src} fallbackUri={fallback} label={alt} />;
 }
 
 /** Wider 16:9 thumbnail for video rows. */
@@ -340,6 +329,8 @@ export function StationRow({
 }: {
     station: BaseStationResponse;
 }): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const $station = useMedia(_station);
 
     const handlePlay = (): void => {
@@ -368,7 +359,7 @@ export function StationRow({
                             {$station.name}
                         </p>
                         <p className="text-muted-foreground truncate text-sm">
-                            Radio Station
+                            {vocabulary.RADIO_STATIONS}
                         </p>
                     </div>
                 </div>

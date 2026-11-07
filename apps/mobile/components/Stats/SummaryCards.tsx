@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
 import type { StatsSummaryResponse } from "@rockit/shared";
-import { Clock, Music, TrendingUp, Zap } from "lucide-react-native";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Clock, Music, TrendingUp, Zap } from "@rockit/ui/icons";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -41,6 +42,7 @@ interface CardProps {
 }
 
 function SummaryCard({ label, value, icon, accent, onPress }: CardProps) {
+    const styles = useThemedStyles(createStyles);
     return (
         <View
             style={[
@@ -61,6 +63,8 @@ function SummaryCard({ label, value, icon, accent, onPress }: CardProps) {
 }
 
 export default function SummaryCards({ summary }: SummaryCardsProps) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
     const { width } = useWindowDimensions();
     const numColumns = width > 500 ? 4 : 2;
@@ -75,27 +79,27 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
     const cards = [
         <SummaryCard
             key="songs"
-            icon={<Music size={16} color={COLORS.accent} />}
+            icon={<Music size={16} color={theme.legacy.accent} />}
             label={vocabulary.SONGS_LISTENED}
             value={formatNumber(summary.songsListened)}
             accent
         />,
         <SummaryCard
             key="minutes"
-            icon={<Clock size={16} color={COLORS.gray600} />}
+            icon={<Clock size={16} color={theme.legacy.gray600} />}
             label={vocabulary.MINUTES_LISTEND}
             value={minutesDisplay}
             onPress={() => setShowMinutes(!showMinutes)}
         />,
         <SummaryCard
             key="avg"
-            icon={<TrendingUp size={16} color={COLORS.gray600} />}
+            icon={<TrendingUp size={16} color={theme.legacy.gray600} />}
             label={vocabulary.AVERAGE_MINUTES_PER_SONG}
             value={summary.avgMinutesPerSong.toFixed(1)}
         />,
         <SummaryCard
             key="streak"
-            icon={<Zap size={16} color={COLORS.gray600} />}
+            icon={<Zap size={16} color={theme.legacy.gray600} />}
             label={vocabulary.LEVEL_ABBR}
             value={`${summary.currentStreak}d`}
         />,
@@ -117,48 +121,49 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        gap: 12,
-    },
-    row: {
-        flexDirection: "row",
-        gap: 12,
-    },
-    card: {
-        flex: 1,
-        borderRadius: 16,
-        padding: 12,
-    },
-    pressable: {
-        cursor: "pointer",
-    },
-    accentCard: {
-        backgroundColor: "rgba(238,16,134,0.15)",
-        borderWidth: 1,
-        borderColor: "rgba(238,16,134,0.2)",
-    },
-    normalCard: {
-        backgroundColor: COLORS.bgCard,
-        borderWidth: 1,
-        borderColor: "rgba(38,38,38,0.8)",
-    },
-    cardHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 8,
-    },
-    label: {
-        fontSize: 10,
-        fontWeight: "600",
-        color: COLORS.gray600,
-        textTransform: "uppercase",
-        letterSpacing: 1.5,
-    },
-    value: {
-        fontSize: 22,
-        fontWeight: "bold",
-        color: "#ffffff",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            gap: theme.spacing.md,
+        },
+        row: {
+            flexDirection: "row",
+            gap: theme.spacing.md,
+        },
+        card: {
+            flex: 1,
+            borderRadius: theme.radius.xl,
+            padding: theme.spacing.md,
+        },
+        pressable: {
+            cursor: "pointer",
+        },
+        accentCard: {
+            backgroundColor: withAlpha(theme.colors["primary"], 0.15),
+            borderWidth: 1,
+            borderColor: withAlpha(theme.colors["primary"], 0.2),
+        },
+        normalCard: {
+            backgroundColor: theme.legacy.bgCard,
+            borderWidth: 1,
+            borderColor: withAlpha(theme.colors["surface-raised"], 0.8),
+        },
+        cardHeader: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: theme.spacing.sm,
+        },
+        label: {
+            fontSize: 10,
+            fontWeight: "600",
+            color: theme.legacy.gray600,
+            textTransform: "uppercase",
+            letterSpacing: 1.5,
+        },
+        value: {
+            fontSize: 22,
+            fontWeight: "bold",
+            color: theme.colors["foreground-strong"],
+        },
+    });

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     Bug,
     ChevronDown,
@@ -11,7 +12,7 @@ import {
     Share2,
     TriangleAlert,
     X,
-} from "lucide-react-native";
+} from "@rockit/ui/icons";
 import {
     FlatList,
     Pressable,
@@ -25,41 +26,43 @@ import { logger, type LogEntry, type LogLevel } from "@/lib/logger";
 import { SHEET_DEBUG_PREFIX } from "@/lib/sheetDebug";
 import { useVocabulary } from "@/lib/vocabulary";
 
-const LEVEL_CONFIG: Record<
+const LEVEL_CONFIG = (
+    theme: DesignTheme
+): Record<
     LogLevel,
     { label: string; color: string; bg: string; icon: React.ReactNode }
-> = {
+> => ({
     debug: {
         label: "DEBUG",
-        color: "#a3a3a3",
-        bg: "rgba(163, 163, 163, 0.15)",
-        icon: <Bug size={12} color="#a3a3a3" />,
+        color: theme.colors["muted-foreground"],
+        bg: withAlpha(theme.colors["muted-foreground"], 0.15),
+        icon: <Bug size={12} color={theme.colors["muted-foreground"]} />,
     },
     log: {
         label: "LOG",
-        color: "#60a5fa",
-        bg: "rgba(96, 165, 250, 0.15)",
-        icon: <Info size={12} color="#60a5fa" />,
+        color: theme.colors["info"],
+        bg: withAlpha(theme.colors["info"], 0.15),
+        icon: <Info size={12} color={theme.colors["info"]} />,
     },
     info: {
         label: "INFO",
-        color: "#34d399",
-        bg: "rgba(52, 211, 153, 0.15)",
-        icon: <Info size={12} color="#34d399" />,
+        color: theme.colors["success"],
+        bg: withAlpha(theme.colors["success"], 0.15),
+        icon: <Info size={12} color={theme.colors["success"]} />,
     },
     warn: {
         label: "WARN",
-        color: "#fbbf24",
-        bg: "rgba(251, 191, 36, 0.15)",
-        icon: <TriangleAlert size={12} color="#fbbf24" />,
+        color: theme.colors["warning"],
+        bg: withAlpha(theme.colors["warning"], 0.15),
+        icon: <TriangleAlert size={12} color={theme.colors["warning"]} />,
     },
     error: {
         label: "ERROR",
-        color: "#f87171",
-        bg: "rgba(248, 113, 113, 0.15)",
-        icon: <CircleX size={12} color="#f87171" />,
+        color: theme.colors["destructive"],
+        bg: withAlpha(theme.colors["destructive"], 0.15),
+        icon: <CircleX size={12} color={theme.colors["destructive"]} />,
     },
-};
+});
 
 function formatTimestamp(iso: string): string {
     const d = new Date(iso);
@@ -71,8 +74,10 @@ function formatTimestamp(iso: string): string {
 }
 
 function LogRow({ item }: { item: LogEntry }) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const [expanded, setExpanded] = useState(false);
-    const cfg = LEVEL_CONFIG[item.level];
+    const cfg = LEVEL_CONFIG(theme)[item.level];
 
     return (
         <Pressable style={styles.logRow} onPress={() => setExpanded((p) => !p)}>
@@ -88,9 +93,9 @@ function LogRow({ item }: { item: LogEntry }) {
                 </Text>
                 <View style={styles.expandIcon}>
                     {expanded ? (
-                        <ChevronUp size={14} color={COLORS.gray400} />
+                        <ChevronUp size={14} color={theme.legacy.gray400} />
                     ) : (
-                        <ChevronDown size={14} color={COLORS.gray400} />
+                        <ChevronDown size={14} color={theme.legacy.gray400} />
                     )}
                 </View>
             </View>
@@ -129,6 +134,8 @@ function formatArg(arg: unknown): string {
 }
 
 export default function LogsScreen() {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const logs = useStore(logger.logsAtom);
     const [filter, setFilter] = useState<LogLevel | null>(null);
     const { top: safeTop } = useSafeAreaInsets();
@@ -175,35 +182,30 @@ export default function LogsScreen() {
         <View style={[styles.container, { paddingTop: safeTop + 12 }]}>
             <View style={styles.headerRow}>
                 <View style={styles.headerLeft}>
-                    <Bug size={20} color={COLORS.white} />
-                    <Text style={styles.headerTitle}>Logs</Text>
+                    <Bug size={20} color={theme.legacy.white} />
+                    <Text style={styles.headerTitle}>{vocabulary.LOGS}</Text>
                     <Text style={styles.logCount}>{logs.length}</Text>
                 </View>
                 <Pressable
                     style={styles.clearButton}
                     onPress={shareSheetLogs}
                     accessibilityRole="button"
-                    accessibilityLabel={
-                        vocabulary.SETTINGS_SHARE_SHEET_LOGS ===
-                        "SETTINGS_SHARE_SHEET_LOGS"
-                            ? "Share sheet logs"
-                            : vocabulary.SETTINGS_SHARE_SHEET_LOGS
-                    }
+                    accessibilityLabel={vocabulary.SETTINGS_SHARE_SHEET_LOGS}
                 >
-                    <Share2 size={16} color={COLORS.gray400} />
+                    <Share2 size={16} color={theme.legacy.gray400} />
                 </Pressable>
                 <Pressable
                     style={styles.clearButton}
                     onPress={() => logger.clear()}
                 >
-                    <Eraser size={16} color={COLORS.gray400} />
+                    <Eraser size={16} color={theme.legacy.gray400} />
                 </Pressable>
             </View>
 
             <View style={styles.filterRow}>
                 {levels.map((level) => {
                     const active = filter === level;
-                    const cfg = LEVEL_CONFIG[level];
+                    const cfg = LEVEL_CONFIG(theme)[level];
                     return (
                         <Pressable
                             key={level}
@@ -212,7 +214,7 @@ export default function LogsScreen() {
                                 {
                                     borderColor: active
                                         ? cfg.color
-                                        : COLORS.gray800,
+                                        : theme.legacy.gray800,
                                 },
                                 active && { backgroundColor: cfg.bg },
                             ]}
@@ -227,7 +229,7 @@ export default function LogsScreen() {
                                     {
                                         color: active
                                             ? cfg.color
-                                            : COLORS.gray400,
+                                            : theme.legacy.gray400,
                                     },
                                 ]}
                             >
@@ -240,7 +242,7 @@ export default function LogsScreen() {
                                         {
                                             color: active
                                                 ? cfg.color
-                                                : COLORS.gray600,
+                                                : theme.legacy.gray600,
                                         },
                                     ]}
                                 >
@@ -255,7 +257,7 @@ export default function LogsScreen() {
                         style={styles.clearFilterButton}
                         onPress={() => setFilter(null)}
                     >
-                        <X size={14} color={COLORS.gray400} />
+                        <X size={14} color={theme.legacy.gray400} />
                     </Pressable>
                 )}
             </View>
@@ -268,8 +270,10 @@ export default function LogsScreen() {
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Bug size={32} color={COLORS.gray600} />
-                        <Text style={styles.emptyText}>No logs yet</Text>
+                        <Bug size={32} color={theme.legacy.gray600} />
+                        <Text style={styles.emptyText}>
+                            {vocabulary.MOBILE_LOGS_EMPTY}
+                        </Text>
                     </View>
                 }
             />
@@ -277,138 +281,139 @@ export default function LogsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.bg,
-    },
-    headerRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        paddingBottom: 12,
-    },
-    headerLeft: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-    headerTitle: {
-        color: COLORS.white,
-        fontSize: 20,
-        fontWeight: "700",
-    },
-    logCount: {
-        color: COLORS.gray600,
-        fontSize: 14,
-        fontWeight: "600",
-    },
-    clearButton: {
-        padding: 8,
-        borderRadius: 8,
-        backgroundColor: COLORS.bgCard,
-    },
-    filterRow: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 6,
-        paddingHorizontal: 16,
-        paddingBottom: 12,
-        alignItems: "center",
-    },
-    filterChip: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: COLORS.gray800,
-    },
-    filterChipText: {
-        fontSize: 11,
-        fontWeight: "700",
-        letterSpacing: 0.5,
-    },
-    filterChipCount: {
-        fontSize: 10,
-        fontWeight: "600",
-        marginLeft: 2,
-    },
-    clearFilterButton: {
-        padding: 6,
-        borderRadius: 6,
-        backgroundColor: COLORS.bgCard,
-    },
-    listContent: {
-        paddingHorizontal: 16,
-        paddingBottom: 32,
-    },
-    logRow: {
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 10,
-        padding: 12,
-        marginBottom: 6,
-        borderWidth: 1,
-        borderColor: COLORS.gray800,
-    },
-    logHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        marginBottom: 6,
-    },
-    levelBadge: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-        paddingVertical: 2,
-        paddingHorizontal: 6,
-        borderRadius: 4,
-    },
-    levelText: {
-        fontSize: 10,
-        fontWeight: "800",
-        letterSpacing: 0.5,
-    },
-    timestamp: {
-        color: COLORS.gray600,
-        fontSize: 11,
-        fontFamily: "monospace",
-        flex: 1,
-    },
-    expandIcon: {
-        marginLeft: "auto",
-    },
-    summary: {
-        color: COLORS.white,
-        fontSize: 13,
-        fontFamily: "monospace",
-        lineHeight: 18,
-    },
-    argsContainer: {
-        marginTop: 8,
-        paddingTop: 8,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: COLORS.gray800,
-        gap: 4,
-    },
-    argText: {
-        color: COLORS.gray400,
-        fontSize: 12,
-        fontFamily: "monospace",
-        lineHeight: 16,
-    },
-    emptyContainer: {
-        alignItems: "center",
-        justifyContent: "center",
-        paddingTop: 80,
-        gap: 12,
-    },
-    emptyText: {
-        color: COLORS.gray600,
-        fontSize: 16,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.legacy.bg,
+        },
+        headerRow: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingHorizontal: theme.spacing.lg,
+            paddingBottom: theme.spacing.md,
+        },
+        headerLeft: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+        },
+        headerTitle: {
+            color: theme.legacy.white,
+            fontSize: 20,
+            fontWeight: "700",
+        },
+        logCount: {
+            color: theme.legacy.gray600,
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+        },
+        clearButton: {
+            padding: theme.spacing.sm,
+            borderRadius: theme.radius.md,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        filterRow: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 6,
+            paddingHorizontal: theme.spacing.lg,
+            paddingBottom: theme.spacing.md,
+            alignItems: "center",
+        },
+        filterChip: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.xs,
+            paddingVertical: 6,
+            paddingHorizontal: 10,
+            borderRadius: theme.radius.md,
+            borderWidth: 1,
+            borderColor: theme.legacy.gray800,
+        },
+        filterChipText: {
+            fontSize: 11,
+            fontWeight: "700",
+            letterSpacing: 0.5,
+        },
+        filterChipCount: {
+            fontSize: 10,
+            fontWeight: "600",
+            marginLeft: 2,
+        },
+        clearFilterButton: {
+            padding: 6,
+            borderRadius: 6,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        listContent: {
+            paddingHorizontal: theme.spacing.lg,
+            paddingBottom: theme.spacing.xxl,
+        },
+        logRow: {
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: 10,
+            padding: theme.spacing.md,
+            marginBottom: 6,
+            borderWidth: 1,
+            borderColor: theme.legacy.gray800,
+        },
+        logHeader: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            marginBottom: 6,
+        },
+        levelBadge: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.xs,
+            paddingVertical: 2,
+            paddingHorizontal: 6,
+            borderRadius: theme.radius.sm,
+        },
+        levelText: {
+            fontSize: 10,
+            fontWeight: "800",
+            letterSpacing: 0.5,
+        },
+        timestamp: {
+            color: theme.legacy.gray600,
+            fontSize: 11,
+            fontFamily: "monospace",
+            flex: 1,
+        },
+        expandIcon: {
+            marginLeft: "auto",
+        },
+        summary: {
+            color: theme.legacy.white,
+            fontSize: 13,
+            fontFamily: "monospace",
+            lineHeight: 18,
+        },
+        argsContainer: {
+            marginTop: theme.spacing.sm,
+            paddingTop: theme.spacing.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: theme.legacy.gray800,
+            gap: theme.spacing.xs,
+        },
+        argText: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.caption,
+            fontFamily: "monospace",
+            lineHeight: 16,
+        },
+        emptyContainer: {
+            alignItems: "center",
+            justifyContent: "center",
+            paddingTop: 80,
+            gap: theme.spacing.md,
+        },
+        emptyText: {
+            color: theme.legacy.gray600,
+            fontSize: theme.typography.label,
+        },
+    });

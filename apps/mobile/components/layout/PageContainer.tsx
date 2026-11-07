@@ -1,4 +1,4 @@
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 interface PageContainerProps {
@@ -14,6 +14,7 @@ export default function PageContainer({
     bottomPadding = 0,
     horizontalPadding = 16,
 }: PageContainerProps) {
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.container}>
             <ScrollView
@@ -33,13 +34,14 @@ export default function PageContainer({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.bg,
-    },
-    content: {
-        paddingHorizontal: 16,
-        paddingBottom: 0,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.legacy.bg,
+        },
+        content: {
+            paddingHorizontal: theme.spacing.lg,
+            paddingBottom: 0,
+        },
+    });

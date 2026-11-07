@@ -1,97 +1,74 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useDesignTheme } from "@rockit/ui";
+import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
+import { Pressable, Text, View } from "react-native";
+import { Http } from "@/lib/http";
+import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 
-// TODO: This should be a api call to get the supported languages.
-const LANGUAGES = [
-    { value: "en", label: "English" },
-    { value: "es", label: "Español" },
-    { value: "eu", label: "Euskera" },
-    { value: "fr", label: "Français" },
-    { value: "it", label: "Italiano" },
-    { value: "de", label: "Deutsch" },
-    { value: "zh", label: "中文" },
-    { value: "ja", label: "日本語" },
-    { value: "ar", label: "عربي" },
-];
-
 export default function LanguageSection() {
-    const { vocabulary, lang, setLanguage, isLoading } = useVocabulary();
-    const [isSaving, setIsSaving] = useState(false);
-
-    async function handleChange(newLang: string) {
-        setIsSaving(true);
+    const theme = useDesignTheme();
+    const { vocabulary, lang, setLanguage } = useVocabulary();
+    const [saving, setSaving] = useState(false);
+    const resource = useAsyncResource(async () => {
+        const response = await Http.getAllLanguages();
+        if (!response.isOk()) throw new Error(response.message);
+        return response.result.languages;
+    });
+    const change = async (code: string) => {
+        setSaving(true);
         try {
-            await setLanguage(newLang);
+            await setLanguage(code);
         } catch {
-            Alert.alert(vocabulary.ERROR, vocabulary.FAILED_TO_CHANGE_LANGUAGE);
+            toasterManager.notifyError(vocabulary.LANGUAGE_CHANGE_FAILED);
         } finally {
-            setIsSaving(false);
+            setSaving(false);
         }
-    }
-
-    const selectedLabel =
-        LANGUAGES.find((l) => l.value === lang)?.label ?? "English";
-
+    };
     return (
-        <View style={styles.container}>
-            <Pressable
-                style={({ pressed }) => [
-                    styles.selector,
-                    pressed && styles.selectorPressed,
-                ]}
-                onPress={() => {
-                    Alert.alert(
-                        vocabulary.LANGUAGE,
-                        undefined,
-                        LANGUAGES.map((l) => ({
-                            text: l.label,
-                            onPress: () => handleChange(l.value),
-                        })),
-                        { cancelable: true }
-                    );
-                }}
-            >
-                <Text style={styles.label}>{vocabulary.LANGUAGE}</Text>
-                <View style={styles.valueRow}>
-                    <Text style={styles.value}>{selectedLabel}</Text>
-                    {(isSaving || isLoading) && (
-                        <Text style={styles.saving}>{vocabulary.SAVING}</Text>
-                    )}
-                </View>
-            </Pressable>
+        <View style={{ gap: theme.spacing.sm }}>
+            {resource.error && (
+                <Pressable
+                    onPress={() => void resource.refresh()}
+                    accessibilityRole="button"
+                >
+                    <Text style={{ color: theme.colors.destructive }}>
+                        {vocabulary.RETRY}
+                    </Text>
+                </Pressable>
+            )}
+            {resource.data?.map((item) => (
+                <Pressable
+                    key={item.langCode}
+                    accessibilityRole="radio"
+                    accessibilityState={{
+                        checked: item.langCode === lang,
+                        disabled: saving,
+                    }}
+                    accessibilityLabel={item.language}
+                    disabled={saving}
+                    onPress={() => void change(item.langCode)}
+                    style={{
+                        minHeight: theme.layout.touchTarget,
+                        justifyContent: "center",
+                        padding: theme.spacing.sm,
+                        borderRadius: theme.radius.md,
+                        backgroundColor:
+                            item.langCode === lang
+                                ? theme.colors.accent
+                                : theme.colors.surface,
+                    }}
+                >
+                    <Text style={{ color: theme.colors.foreground }}>
+                        {item.language}
+                    </Text>
+                </Pressable>
+            ))}
+            {(resource.loading || saving) && (
+                <Text style={{ color: theme.colors["muted-foreground"] }}>
+                    {vocabulary.MOBILE_LOADING}
+                </Text>
+            )}
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {},
-    selector: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: COLORS.gray800,
-    },
-    selectorPressed: {
-        opacity: 0.7,
-    },
-    label: {
-        color: COLORS.white,
-        fontSize: 16,
-    },
-    valueRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-    value: {
-        color: COLORS.gray400,
-        fontSize: 16,
-    },
-    saving: {
-        color: COLORS.accent,
-        fontSize: 12,
-    },
-});

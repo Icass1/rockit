@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import Slider from "@react-native-community/slider";
+import { getBookmarkColors, withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
-import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -27,6 +27,8 @@ export default function PlayerProgress({
     onSeek,
     onSeekingChange,
 }: PlayerProgressProps) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const { currentTime, duration } = usePlayerTime();
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
@@ -49,9 +51,9 @@ export default function PlayerProgress({
                 >
                     <LinearGradient
                         colors={[
-                            COLORS.accent,
-                            COLORS.accentMid,
-                            COLORS.accentLight,
+                            theme.legacy.accent,
+                            theme.legacy.accentMid,
+                            theme.legacy.accentLight,
                         ]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
@@ -85,7 +87,7 @@ export default function PlayerProgress({
                     }}
                     minimumTrackTintColor="transparent"
                     maximumTrackTintColor="transparent"
-                    thumbTintColor={COLORS.white}
+                    thumbTintColor={theme.legacy.white}
                 />
                 {trackWidth > 0 &&
                     $bookmarks.map((bm) => {
@@ -98,7 +100,8 @@ export default function PlayerProgress({
                         const offset =
                             THUMB_HALF + (bm.timestamp / duration) * trackWidth;
                         const color =
-                            BOOKMARK_MODE_COLORS[bm.mode] ?? "#ffffff";
+                            getBookmarkColors(theme.mode)[bm.mode] ??
+                            theme.colors["foreground-strong"];
                         return (
                             <View
                                 key={bm.publicId}
@@ -122,52 +125,53 @@ export default function PlayerProgress({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        width: "100%",
-        paddingHorizontal: 4,
-    },
-    sliderContainer: {
-        position: "relative",
-        height: 40,
-    },
-    track: {
-        position: "absolute",
-        top: 16,
-        left: THUMB_HALF,
-        right: THUMB_HALF,
-        height: 7,
-        backgroundColor: "rgba(255,255,255,0.1)",
-        borderRadius: 4,
-        overflow: "hidden",
-    },
-    gradientFill: {
-        position: "absolute",
-        left: 0,
-        top: 0,
-        bottom: 0,
-    },
-    slider: {
-        width: "100%",
-        height: 40,
-    },
-    labels: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: -8,
-        paddingHorizontal: 4,
-    },
-    time: {
-        fontSize: 12,
-        color: "rgba(255,255,255,0.7)",
-        fontWeight: "500",
-    },
-    bookmarkMarker: {
-        position: "absolute",
-        top: 14,
-        width: 4,
-        height: 11,
-        borderRadius: 2,
-        zIndex: 10,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            width: "100%",
+            paddingHorizontal: theme.spacing.xs,
+        },
+        sliderContainer: {
+            position: "relative",
+            height: 40,
+        },
+        track: {
+            position: "absolute",
+            top: 16,
+            left: THUMB_HALF,
+            right: THUMB_HALF,
+            height: 7,
+            backgroundColor: withAlpha(theme.colors["foreground-strong"], 0.1),
+            borderRadius: theme.radius.sm,
+            overflow: "hidden",
+        },
+        gradientFill: {
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+        },
+        slider: {
+            width: "100%",
+            height: 40,
+        },
+        labels: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: -8,
+            paddingHorizontal: theme.spacing.xs,
+        },
+        time: {
+            fontSize: theme.typography.caption,
+            color: withAlpha(theme.colors["foreground-strong"], 0.7),
+            fontWeight: "500",
+        },
+        bookmarkMarker: {
+            position: "absolute",
+            top: 14,
+            width: 4,
+            height: 11,
+            borderRadius: theme.radius.xs,
+            zIndex: 10,
+        },
+    });

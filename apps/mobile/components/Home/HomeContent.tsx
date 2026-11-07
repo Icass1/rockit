@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
-import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
@@ -20,6 +20,7 @@ interface SongCardProps {
 }
 
 const SongCard = memo(function SongCard({ song }: SongCardProps) {
+    const styles = useThemedStyles(createStyles);
     const artistNames = song.artists.map((a) => a.name).join(", ");
     return (
         <View style={styles.songCard}>
@@ -44,6 +45,7 @@ interface SongSectionProps {
 }
 
 function SongSection({ title, songs }: SongSectionProps) {
+    const styles = useThemedStyles(createStyles);
     if (songs.length === 0) return null;
     return (
         <View style={styles.section}>
@@ -78,6 +80,7 @@ interface HomeContentProps {
 }
 
 export default function HomeContent({ data }: HomeContentProps) {
+    const styles = useThemedStyles(createStyles);
     const previousMonth = new Date().toLocaleString("default", {
         month: "long",
     });
@@ -140,12 +143,21 @@ export default function HomeContent({ data }: HomeContentProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    listContent: { paddingBottom: 20 },
-    section: { marginTop: 16 },
-    cardWrapper: { width: 140 },
-    songCard: { width: 140 },
-    songImage: { width: 140, height: 140, borderRadius: 8 },
-    songName: { color: COLORS.white, fontSize: 14, marginTop: 8 },
-    songArtist: { color: COLORS.gray400, fontSize: 12, marginTop: 2 },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        listContent: { paddingBottom: 20 },
+        section: { marginTop: theme.spacing.lg },
+        cardWrapper: { width: 140 },
+        songCard: { width: 140 },
+        songImage: { width: 140, height: 140, borderRadius: theme.radius.md },
+        songName: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.body,
+            marginTop: theme.spacing.sm,
+        },
+        songArtist: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.caption,
+            marginTop: 2,
+        },
+    });

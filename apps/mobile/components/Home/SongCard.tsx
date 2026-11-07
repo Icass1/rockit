@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { Animated, StyleSheet, Text } from "react-native";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
@@ -21,6 +21,7 @@ const SongCard = memo(function SongCard({
     songs,
     onPress,
 }: SongCardProps) {
+    const styles = useThemedStyles(createStyles);
     const [scale] = useState(() => new Animated.Value(1));
 
     return (
@@ -45,22 +46,23 @@ const SongCard = memo(function SongCard({
 
 export default SongCard;
 
-const styles = StyleSheet.create({
-    image: {
-        width: CARD_WIDTH,
-        height: CARD_WIDTH,
-        borderRadius: 10,
-        marginBottom: 8,
-        backgroundColor: COLORS.bgCard,
-    },
-    name: {
-        fontSize: 13,
-        fontWeight: "600",
-        color: COLORS.white,
-        marginBottom: 3,
-    },
-    artist: {
-        fontSize: 12,
-        color: COLORS.gray400,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        image: {
+            width: CARD_WIDTH,
+            height: CARD_WIDTH,
+            borderRadius: 10,
+            marginBottom: theme.spacing.sm,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        name: {
+            fontSize: 13,
+            fontWeight: "600",
+            color: theme.legacy.white,
+            marginBottom: 3,
+        },
+        artist: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray400,
+        },
+    });

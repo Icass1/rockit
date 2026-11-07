@@ -1,8 +1,9 @@
 // PlayerControls – solid (filled) icons using Lucide
 
 import React from "react";
-import { COLORS } from "@/constants/theme";
 import { EQueueType, ERepeatMode } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     Pause,
     Play,
@@ -10,15 +11,25 @@ import {
     Shuffle,
     SkipBack,
     SkipForward,
-} from "lucide-react-native";
+} from "@rockit/ui/icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
+import { useVocabulary } from "@/lib/vocabulary";
 
-function getRepeatColor(mode: ERepeatMode, accent: string): string {
-    return mode === ERepeatMode.OFF ? "rgba(255,255,255,0.5)" : accent;
+function getRepeatColor(
+    mode: ERepeatMode,
+    accent: string,
+    theme: DesignTheme
+): string {
+    return mode === ERepeatMode.OFF
+        ? withAlpha(theme.colors["foreground-strong"], 0.5)
+        : accent;
 }
 
 export default function PlayerControls() {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const {
         isPlaying,
         repeatMode,
@@ -31,13 +42,19 @@ export default function PlayerControls() {
     } = usePlayer();
 
     // Color for the repeat icon when active/inactive
-    const repeatColor = getRepeatColor(repeatMode, COLORS.accent);
+    const repeatColor = getRepeatColor(repeatMode, theme.legacy.accent, theme);
 
     return (
         <View style={styles.container}>
             {/* Shuffle */}
             <Pressable
                 style={styles.sideButton}
+                accessibilityRole="button"
+                accessibilityLabel={
+                    queueType === EQueueType.RANDOM
+                        ? vocabulary.PLAYER_DISABLE_SHUFFLE
+                        : vocabulary.PLAYER_ENABLE_SHUFFLE
+                }
                 onPress={toggleRandomQueue}
                 hitSlop={12}
             >
@@ -45,8 +62,8 @@ export default function PlayerControls() {
                     size={24}
                     color={
                         queueType === EQueueType.RANDOM
-                            ? COLORS.accent
-                            : "rgba(255,255,255,1)"
+                            ? theme.legacy.accent
+                            : withAlpha(theme.colors["foreground-strong"], 1)
                     }
                 />
             </Pressable>
@@ -54,10 +71,12 @@ export default function PlayerControls() {
             {/* Skip back */}
             <Pressable
                 style={styles.sideButton}
+                accessibilityRole="button"
+                accessibilityLabel={vocabulary.PREVIOUS_MEDIA}
                 onPress={skipBack}
                 hitSlop={12}
             >
-                <SkipBack size={24} color={COLORS.white} />
+                <SkipBack size={24} color={theme.legacy.white} />
             </Pressable>
 
             {/* Play / Pause – larger solid button */}
@@ -66,27 +85,47 @@ export default function PlayerControls() {
                     styles.playButton,
                     pressed && { opacity: 0.85, transform: [{ scale: 0.96 }] },
                 ]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                    isPlaying ? vocabulary.PAUSE : vocabulary.PLAY
+                }
                 onPress={togglePlayPause}
             >
                 {isPlaying ? (
-                    <Pause size={34} color={COLORS.white} />
+                    <Pause
+                        size={34}
+                        color={theme.colors["primary-foreground"]}
+                    />
                 ) : (
-                    <Play size={34} color={COLORS.white} />
+                    <Play
+                        size={34}
+                        color={theme.colors["primary-foreground"]}
+                    />
                 )}
             </Pressable>
 
             {/* Skip forward */}
             <Pressable
                 style={styles.sideButton}
+                accessibilityRole="button"
+                accessibilityLabel={vocabulary.NEXT_MEDIA}
                 onPress={skipForward}
                 hitSlop={12}
             >
-                <SkipForward size={24} color={COLORS.white} />
+                <SkipForward size={24} color={theme.legacy.white} />
             </Pressable>
 
             {/* Repeat */}
             <Pressable
                 style={styles.sideButton}
+                accessibilityRole="button"
+                accessibilityLabel={
+                    repeatMode === ERepeatMode.ONE
+                        ? vocabulary.REPEAT_ONE
+                        : repeatMode === ERepeatMode.ALL
+                          ? vocabulary.REPEAT_ALL
+                          : vocabulary.NO_REPEAT
+                }
                 onPress={cycleRepeat}
                 hitSlop={12}
             >
@@ -103,36 +142,37 @@ export default function PlayerControls() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-evenly",
-        paddingHorizontal: 4,
-        width: "100%",
-    },
-    sideButton: {
-        width: 48,
-        height: 48,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    playButton: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: "transparent",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    repeatOneBadge: {
-        position: "absolute",
-        bottom: -4,
-        right: -2,
-    },
-    repeatOneLabel: {
-        fontSize: 8,
-        color: COLORS.accent,
-        fontWeight: "700",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-evenly",
+            paddingHorizontal: theme.spacing.xs,
+            width: "100%",
+        },
+        sideButton: {
+            width: 48,
+            height: 48,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        playButton: {
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            backgroundColor: "transparent",
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        repeatOneBadge: {
+            position: "absolute",
+            bottom: -4,
+            right: -2,
+        },
+        repeatOneLabel: {
+            fontSize: 8,
+            color: theme.legacy.accent,
+            fontWeight: "700",
+        },
+    });

@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
+import type { Vocabulary } from "@rockit/shared";
 import {
     getMediaArtistsString,
     getMediaSubtitle,
     isSongWithAlbum,
     type TMedia,
 } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     ActivityIndicator,
     KeyboardAvoidingView,
@@ -28,78 +30,103 @@ interface FieldDef {
     multiline: boolean;
 }
 
-function getFieldsForMedia(media: TMedia): FieldDef[] {
+function getFieldsForMedia(media: TMedia, vocabulary: Vocabulary): FieldDef[] {
     switch (media.type) {
         case "song":
             return [
                 {
                     key: "title",
-                    label: "Title",
+                    label: vocabulary.EDIT_METADATA_FIELD_TITLE,
                     value: media.name,
                     multiline: false,
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: vocabulary.ARTIST,
                     value: getMediaArtistsString(media),
                     multiline: false,
                 },
                 {
                     key: "album",
-                    label: "Album",
+                    label: vocabulary.ALBUM,
                     value: isSongWithAlbum(media) ? media.album.name : "",
                     multiline: false,
                 },
-                { key: "genre", label: "Genre", value: "", multiline: false },
-                { key: "lyrics", label: "Lyrics", value: "", multiline: true },
+                {
+                    key: "genre",
+                    label: vocabulary.EDIT_METADATA_FIELD_GENRE,
+                    value: "",
+                    multiline: false,
+                },
+                {
+                    key: "lyrics",
+                    label: vocabulary.LYRICS,
+                    value: "",
+                    multiline: true,
+                },
             ];
         case "video":
             return [
                 {
                     key: "title",
-                    label: "Title",
+                    label: vocabulary.EDIT_METADATA_FIELD_TITLE,
                     value: media.name,
                     multiline: false,
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: vocabulary.ARTIST,
                     value: getMediaArtistsString(media),
                     multiline: false,
                 },
-                { key: "genre", label: "Genre", value: "", multiline: false },
+                {
+                    key: "genre",
+                    label: vocabulary.EDIT_METADATA_FIELD_GENRE,
+                    value: "",
+                    multiline: false,
+                },
             ];
         case "album":
             return [
                 {
                     key: "title",
-                    label: "Name",
+                    label: vocabulary.NAME,
                     value: media.name,
                     multiline: false,
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: vocabulary.ARTIST,
                     value: getMediaArtistsString(media),
                     multiline: false,
                 },
                 {
                     key: "releaseDate",
-                    label: "Release date",
+                    label: vocabulary.EDIT_METADATA_FIELD_RELEASE_DATE,
                     value: media.releaseDate ?? "",
                     multiline: false,
                 },
-                { key: "genre", label: "Genre", value: "", multiline: false },
+                {
+                    key: "genre",
+                    label: vocabulary.EDIT_METADATA_FIELD_GENRE,
+                    value: "",
+                    multiline: false,
+                },
             ];
         case "artist":
             return [
                 {
                     key: "title",
-                    label: "Name",
+                    label: vocabulary.NAME,
                     value: media.name,
                     multiline: false,
                 },
-                { key: "genre", label: "Genre", value: "", multiline: false },
+                {
+                    key: "genre",
+                    label: vocabulary.EDIT_METADATA_FIELD_GENRE,
+                    value: "",
+                    multiline: false,
+                },
             ];
         default:
             return [];
@@ -115,9 +142,11 @@ export function EditMetadataModalContent({
     media,
     onClose,
 }: EditMetadataModalContentProps) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
     const [fields, setFields] = useState<FieldDef[]>(() =>
-        getFieldsForMedia(media)
+        getFieldsForMedia(media, vocabulary)
     );
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -156,7 +185,8 @@ export function EditMetadataModalContent({
             setError(
                 typeof result.detail === "string"
                     ? result.detail
-                    : vocabulary.EDIT_METADATA_ERROR || "Failed to submit"
+                    : vocabulary.EDIT_METADATA_ERROR ||
+                          vocabulary.MOBILE_METADATA_ERROR
             );
         }
 
@@ -171,13 +201,15 @@ export function EditMetadataModalContent({
                 </View>
                 <Text style={styles.successTitle}>
                     {vocabulary.EDIT_METADATA_SUCCESS ||
-                        "Suggestion submitted!"}
+                        vocabulary.MOBILE_METADATA_SUBMITTED}
                 </Text>
                 <Text style={styles.successSubtitle}>
-                    An admin will review your changes.
+                    {vocabulary.MOBILE_METADATA_REVIEW}
                 </Text>
                 <Pressable style={styles.primaryButton} onPress={onClose}>
-                    <Text style={styles.primaryButtonText}>Close</Text>
+                    <Text style={styles.primaryButtonText}>
+                        {vocabulary.CANCEL}
+                    </Text>
                 </Pressable>
             </View>
         );
@@ -210,7 +242,7 @@ export function EditMetadataModalContent({
                         ]}
                         value={field.value}
                         onChangeText={(v) => handleFieldChange(field.key, v)}
-                        placeholderTextColor={COLORS.gray600}
+                        placeholderTextColor={theme.legacy.gray600}
                         multiline={field.multiline}
                         numberOfLines={field.multiline ? 4 : 1}
                         textAlignVertical={field.multiline ? "top" : "center"}
@@ -221,7 +253,8 @@ export function EditMetadataModalContent({
             {/* Comment */}
             <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>
-                    {vocabulary.EDIT_METADATA_COMMENT || "Comment"}
+                    {vocabulary.EDIT_METADATA_COMMENT ||
+                        vocabulary.EDIT_METADATA_COMMENT}
                 </Text>
                 <TextInput
                     style={[styles.input, styles.inputMultiline]}
@@ -229,9 +262,9 @@ export function EditMetadataModalContent({
                     onChangeText={setComment}
                     placeholder={
                         vocabulary.EDIT_METADATA_COMMENT_PLACEHOLDER ||
-                        "Optional: explain why"
+                        vocabulary.MOBILE_METADATA_COMMENT_HINT
                     }
-                    placeholderTextColor={COLORS.gray600}
+                    placeholderTextColor={theme.legacy.gray600}
                     multiline
                     numberOfLines={3}
                     textAlignVertical="top"
@@ -248,7 +281,9 @@ export function EditMetadataModalContent({
                     onPress={onClose}
                     disabled={submitting}
                 >
-                    <Text style={styles.secondaryButtonText}>Cancel</Text>
+                    <Text style={styles.secondaryButtonText}>
+                        {vocabulary.CANCEL}
+                    </Text>
                 </Pressable>
                 <Pressable
                     style={[
@@ -259,11 +294,14 @@ export function EditMetadataModalContent({
                     disabled={submitting}
                 >
                     {submitting ? (
-                        <ActivityIndicator color={COLORS.white} size="small" />
+                        <ActivityIndicator
+                            color={theme.legacy.white}
+                            size="small"
+                        />
                     ) : (
                         <Text style={styles.primaryButtonText}>
                             {vocabulary.EDIT_METADATA_SUBMIT ||
-                                "Submit Suggestion"}
+                                vocabulary.MOBILE_METADATA_SUBMIT}
                         </Text>
                     )}
                 </Pressable>
@@ -283,6 +321,7 @@ export default function EditMetadataModal({
     media,
     onClose,
 }: EditMetadataModalProps) {
+    const styles = useThemedStyles(createStyles);
     return (
         <Modal
             visible={visible}
@@ -311,134 +350,135 @@ export default function EditMetadataModal({
     );
 }
 
-const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.75)",
-        justifyContent: "center",
-        padding: 16,
-    },
-    keyboardView: {
-        flex: 1,
-        justifyContent: "center",
-    },
-    card: {
-        backgroundColor: COLORS.bgCard,
-        borderRadius: 16,
-        padding: 20,
-        maxHeight: "90%",
-        width: "100%",
-    },
-    scrollView: {
-        maxHeight: 500,
-    },
-    successContainer: {
-        alignItems: "center",
-        paddingVertical: 32,
-        gap: 12,
-    },
-    successIcon: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: "rgba(52, 211, 153, 0.1)",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    successIconText: {
-        fontSize: 32,
-        color: "#34d399",
-        fontWeight: "700",
-    },
-    successTitle: {
-        color: COLORS.white,
-        fontSize: 18,
-        fontWeight: "700",
-        textAlign: "center",
-    },
-    successSubtitle: {
-        color: COLORS.gray400,
-        fontSize: 14,
-        textAlign: "center",
-        marginBottom: 8,
-    },
-    mediaInfo: {
-        backgroundColor: COLORS.bgCardLight,
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 16,
-    },
-    mediaTitle: {
-        color: COLORS.white,
-        fontSize: 15,
-        fontWeight: "600",
-    },
-    mediaSubtitle: {
-        color: COLORS.gray400,
-        fontSize: 12,
-        marginTop: 2,
-    },
-    fieldGroup: {
-        marginBottom: 12,
-    },
-    fieldLabel: {
-        color: COLORS.gray400,
-        fontSize: 11,
-        fontWeight: "600",
-        textTransform: "uppercase",
-        letterSpacing: 0.5,
-        marginBottom: 6,
-    },
-    input: {
-        backgroundColor: COLORS.bgCardLight,
-        borderRadius: 10,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        color: COLORS.white,
-        fontSize: 14,
-        borderWidth: 1,
-        borderColor: COLORS.gray800,
-    },
-    inputMultiline: {
-        minHeight: 80,
-        paddingTop: 12,
-    },
-    errorText: {
-        color: COLORS.accent,
-        fontSize: 13,
-        marginBottom: 8,
-    },
-    buttonRow: {
-        flexDirection: "row",
-        gap: 10,
-        marginTop: 8,
-    },
-    secondaryButton: {
-        flex: 1,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: COLORS.gray600,
-        paddingVertical: 14,
-        alignItems: "center",
-    },
-    secondaryButtonText: {
-        color: COLORS.white,
-        fontSize: 15,
-        fontWeight: "600",
-    },
-    primaryButton: {
-        flex: 1,
-        borderRadius: 10,
-        backgroundColor: COLORS.accent,
-        paddingVertical: 14,
-        alignItems: "center",
-    },
-    primaryButtonText: {
-        color: COLORS.white,
-        fontSize: 15,
-        fontWeight: "700",
-    },
-    buttonDisabled: {
-        opacity: 0.4,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        overlay: {
+            flex: 1,
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.75),
+            justifyContent: "center",
+            padding: theme.spacing.lg,
+        },
+        keyboardView: {
+            flex: 1,
+            justifyContent: "center",
+        },
+        card: {
+            backgroundColor: theme.legacy.bgCard,
+            borderRadius: theme.radius.xl,
+            padding: 20,
+            maxHeight: "90%",
+            width: "100%",
+        },
+        scrollView: {
+            maxHeight: 500,
+        },
+        successContainer: {
+            alignItems: "center",
+            paddingVertical: theme.spacing.xxl,
+            gap: theme.spacing.md,
+        },
+        successIcon: {
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            backgroundColor: withAlpha(theme.colors["success"], 0.1),
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        successIconText: {
+            fontSize: theme.typography.heading,
+            color: theme.colors["success"],
+            fontWeight: "700",
+        },
+        successTitle: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            textAlign: "center",
+        },
+        successSubtitle: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.body,
+            textAlign: "center",
+            marginBottom: theme.spacing.sm,
+        },
+        mediaInfo: {
+            backgroundColor: theme.legacy.bgCardLight,
+            borderRadius: theme.radius.lg,
+            padding: theme.spacing.md,
+            marginBottom: theme.spacing.lg,
+        },
+        mediaTitle: {
+            color: theme.legacy.white,
+            fontSize: 15,
+            fontWeight: "600",
+        },
+        mediaSubtitle: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.caption,
+            marginTop: 2,
+        },
+        fieldGroup: {
+            marginBottom: theme.spacing.md,
+        },
+        fieldLabel: {
+            color: theme.legacy.gray400,
+            fontSize: 11,
+            fontWeight: "600",
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+            marginBottom: 6,
+        },
+        input: {
+            backgroundColor: theme.legacy.bgCardLight,
+            borderRadius: 10,
+            paddingHorizontal: 14,
+            paddingVertical: theme.spacing.md,
+            color: theme.legacy.white,
+            fontSize: theme.typography.body,
+            borderWidth: 1,
+            borderColor: theme.legacy.gray800,
+        },
+        inputMultiline: {
+            minHeight: 80,
+            paddingTop: theme.spacing.md,
+        },
+        errorText: {
+            color: theme.legacy.accent,
+            fontSize: 13,
+            marginBottom: theme.spacing.sm,
+        },
+        buttonRow: {
+            flexDirection: "row",
+            gap: 10,
+            marginTop: theme.spacing.sm,
+        },
+        secondaryButton: {
+            flex: 1,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: theme.legacy.gray600,
+            paddingVertical: 14,
+            alignItems: "center",
+        },
+        secondaryButtonText: {
+            color: theme.legacy.white,
+            fontSize: 15,
+            fontWeight: "600",
+        },
+        primaryButton: {
+            flex: 1,
+            borderRadius: 10,
+            backgroundColor: theme.legacy.accent,
+            paddingVertical: 14,
+            alignItems: "center",
+        },
+        primaryButtonText: {
+            color: theme.legacy.white,
+            fontSize: 15,
+            fontWeight: "700",
+        },
+        buttonDisabled: {
+            opacity: 0.4,
+        },
+    });

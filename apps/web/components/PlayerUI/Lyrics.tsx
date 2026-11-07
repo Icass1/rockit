@@ -153,7 +153,7 @@ function DynamicLyrics(): JSX.Element {
         return (
             <div className="flex h-full w-full animate-pulse items-center justify-center">
                 <p className="text-muted-foreground text-lg">
-                    Loading lyrics...
+                    {$vocabulary.LYRICS_LOADING}
                 </p>
             </div>
         );

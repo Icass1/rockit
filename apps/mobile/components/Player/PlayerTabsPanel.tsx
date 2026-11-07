@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, View } from "react-native";
 import { useSheet } from "@/lib/SheetContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
+import { useVocabulary } from "@/lib/vocabulary";
 import BookmarkPopup from "@/components/Player/BookmarkPopup";
 import type { PlayerTab } from "@/components/Player/FullPlayer";
 import PlayerLyrics from "@/components/Player/PlayerLyrics";
@@ -19,6 +20,8 @@ export default function PlayerTabsPanel({
     activeTab,
     onClose,
 }: PlayerTabsPanelProps) {
+    const styles = useThemedStyles(createStyles);
+    const { vocabulary } = useVocabulary();
     const { open, close } = useSheet();
     const hasOpenSheet = useRef(false);
     const content = useMemo(() => {
@@ -28,14 +31,16 @@ export default function PlayerTabsPanel({
         if (activeTab === "crossfade") {
             return (
                 <View style={styles.crossfadeWrapper}>
-                    <Text style={styles.crossfadeTitle}>Crossfade</Text>
+                    <Text style={styles.crossfadeTitle}>
+                        {vocabulary.AUDIO_TRANSITIONS}
+                    </Text>
                     <CrossfadeSettings />
                 </View>
             );
         }
         if (activeTab === "related") return <PlayerRelated />;
         return null;
-    }, [activeTab, close]);
+    }, [activeTab, close, styles, vocabulary]);
 
     useEffect(() => {
         logSheetDebug("playerTabs.effect", {
@@ -65,12 +70,16 @@ export default function PlayerTabsPanel({
     return null;
 }
 
-const styles = StyleSheet.create({
-    crossfadeWrapper: { paddingHorizontal: 20, paddingTop: 8 },
-    crossfadeTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-        marginBottom: 12,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        crossfadeWrapper: {
+            paddingHorizontal: 20,
+            paddingTop: theme.spacing.sm,
+        },
+        crossfadeTitle: {
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            color: theme.legacy.white,
+            marginBottom: theme.spacing.md,
+        },
+    });

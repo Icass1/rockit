@@ -923,7 +923,7 @@ export default function UploadModal({
                         onClick={handleClose}
                         disabled={uploading}
                         className="text-muted-foreground hover:bg-muted hover:text-foreground-strong rounded-full p-2 transition disabled:opacity-50"
-                        aria-label="Close"
+                        aria-label={$vocabulary.CANCEL}
                     >
                         <X className="h-5 w-5" />
                     </button>

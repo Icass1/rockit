@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
+import { capabilities } from "@/platform/capabilities";
 import { EPlatform } from "@rockit/shared";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -19,6 +20,8 @@ import { Http } from "@/lib/http";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LoginScreen() {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const router = useRouter();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -41,7 +44,7 @@ export default function LoginScreen() {
             const result = await Http.login({
                 username,
                 password,
-                platform: "MOBILE",
+                platform: capabilities.sessionPlatform,
                 rememberMe,
             });
 
@@ -85,7 +88,7 @@ export default function LoginScreen() {
                     <TextInput
                         style={styles.input}
                         placeholder={vocabulary.USERNAME}
-                        placeholderTextColor={COLORS.gray400}
+                        placeholderTextColor={theme.legacy.gray400}
                         value={username}
                         onChangeText={setUsername}
                         autoCapitalize="none"
@@ -94,7 +97,7 @@ export default function LoginScreen() {
                     <TextInput
                         style={styles.input}
                         placeholder={vocabulary.PASSWORD}
-                        placeholderTextColor={COLORS.gray400}
+                        placeholderTextColor={theme.legacy.gray400}
                         value={password}
                         onChangeText={setPassword}
                         secureTextEntry
@@ -130,7 +133,7 @@ export default function LoginScreen() {
                         disabled={loading}
                     >
                         {loading ? (
-                            <ActivityIndicator color={COLORS.white} />
+                            <ActivityIndicator color={theme.legacy.white} />
                         ) : (
                             <Text style={styles.buttonText}>
                                 {vocabulary.LOG_IN}
@@ -151,112 +154,113 @@ export default function LoginScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.bg,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: "center",
-        padding: 24,
-    },
-    logoContainer: {
-        alignItems: "center",
-        marginBottom: 40,
-    },
-    logo: {
-        width: 250,
-        height: 80,
-    },
-    form: {
-        width: "100%",
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 28,
-        fontWeight: "bold",
-        marginBottom: 24,
-        textAlign: "center",
-    },
-    input: {
-        backgroundColor: "#202020",
-        borderRadius: 999,
-        color: COLORS.white,
-        fontSize: 16,
-        height: 44,
-        marginBottom: 16,
-        paddingHorizontal: 20,
-    },
-    error: {
-        color: COLORS.accentLight,
-        fontSize: 14,
-        marginBottom: 16,
-        textAlign: "center",
-    },
-    button: {
-        backgroundColor: COLORS.accent,
-        borderRadius: 999,
-        height: 44,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    buttonDisabled: {
-        opacity: 0.6,
-    },
-    buttonText: {
-        color: COLORS.white,
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    linkButton: {
-        marginTop: 20,
-        alignItems: "center",
-    },
-    linkText: {
-        color: COLORS.accent,
-        fontSize: 14,
-    },
-    rememberMeRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        marginBottom: 16,
-        gap: 8,
-    },
-    checkbox: {
-        width: 20,
-        height: 20,
-        borderRadius: 4,
-        borderWidth: 2,
-        borderColor: COLORS.gray400,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    checkboxChecked: {
-        backgroundColor: COLORS.accent,
-        borderColor: COLORS.accent,
-    },
-    checkmark: {
-        color: COLORS.white,
-        fontSize: 14,
-        fontWeight: "bold",
-    },
-    rememberMeText: {
-        color: COLORS.gray400,
-        fontSize: 14,
-    },
-    fakeModeBadge: {
-        backgroundColor: COLORS.accent,
-        borderRadius: 4,
-        marginBottom: 16,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        alignSelf: "center",
-    },
-    fakeModeText: {
-        color: COLORS.white,
-        fontSize: 12,
-        fontWeight: "bold",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.legacy.bg,
+        },
+        scrollContent: {
+            flexGrow: 1,
+            justifyContent: "center",
+            padding: theme.spacing.xl,
+        },
+        logoContainer: {
+            alignItems: "center",
+            marginBottom: theme.spacing.page,
+        },
+        logo: {
+            width: 250,
+            height: 80,
+        },
+        form: {
+            width: "100%",
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: 28,
+            fontWeight: "bold",
+            marginBottom: theme.spacing.xl,
+            textAlign: "center",
+        },
+        input: {
+            backgroundColor: theme.colors["muted"],
+            borderRadius: theme.radius.full,
+            color: theme.legacy.white,
+            fontSize: theme.typography.label,
+            height: 44,
+            marginBottom: theme.spacing.lg,
+            paddingHorizontal: 20,
+        },
+        error: {
+            color: theme.legacy.accentLight,
+            fontSize: theme.typography.body,
+            marginBottom: theme.spacing.lg,
+            textAlign: "center",
+        },
+        button: {
+            backgroundColor: theme.legacy.accent,
+            borderRadius: theme.radius.full,
+            height: 44,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        buttonDisabled: {
+            opacity: 0.6,
+        },
+        buttonText: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.label,
+            fontWeight: "600",
+        },
+        linkButton: {
+            marginTop: 20,
+            alignItems: "center",
+        },
+        linkText: {
+            color: theme.legacy.accent,
+            fontSize: theme.typography.body,
+        },
+        rememberMeRow: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: theme.spacing.lg,
+            gap: theme.spacing.sm,
+        },
+        checkbox: {
+            width: 20,
+            height: 20,
+            borderRadius: theme.radius.sm,
+            borderWidth: 2,
+            borderColor: theme.legacy.gray400,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        checkboxChecked: {
+            backgroundColor: theme.legacy.accent,
+            borderColor: theme.legacy.accent,
+        },
+        checkmark: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.body,
+            fontWeight: "bold",
+        },
+        rememberMeText: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.body,
+        },
+        fakeModeBadge: {
+            backgroundColor: theme.legacy.accent,
+            borderRadius: theme.radius.sm,
+            marginBottom: theme.spacing.lg,
+            paddingVertical: 6,
+            paddingHorizontal: theme.spacing.md,
+            alignSelf: "center",
+        },
+        fakeModeText: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.caption,
+            fontWeight: "bold",
+        },
+    });

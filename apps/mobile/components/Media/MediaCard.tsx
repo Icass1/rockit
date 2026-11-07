@@ -1,11 +1,11 @@
 import { memo } from "react";
-import { COLORS } from "@/constants/theme";
 import {
     BaseSearchResultsItem,
     getMediaSubtitle,
     isSearchResult,
     TMedia,
 } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
@@ -19,6 +19,7 @@ const MediaCardInner = memo(function MediaCardInner({
     media,
     aspectRatio = 1,
 }: MediaCardProps) {
+    const styles = useThemedStyles(createStyles);
     return (
         <MediaPressableWrapper
             media={media}
@@ -45,34 +46,35 @@ const MediaCardInner = memo(function MediaCardInner({
 
 export default MediaCardInner;
 
-const styles = StyleSheet.create({
-    container: {
-        width: "100%",
-    },
-    image: {
-        width: "100%",
-        aspectRatio: 1,
-        borderRadius: 8,
-        backgroundColor: COLORS.bgCard,
-    },
-    info: {
-        marginTop: 6,
-        paddingHorizontal: 4,
-        alignItems: "center",
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 14,
-        fontWeight: "600",
-        textAlign: "center",
-    },
-    subtitle: {
-        color: COLORS.gray400,
-        fontSize: 12,
-        marginTop: 2,
-        textAlign: "center",
-    },
-    pressed: {
-        opacity: 0.7,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            width: "100%",
+        },
+        image: {
+            width: "100%",
+            aspectRatio: 1,
+            borderRadius: theme.radius.md,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        info: {
+            marginTop: 6,
+            paddingHorizontal: theme.spacing.xs,
+            alignItems: "center",
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            textAlign: "center",
+        },
+        subtitle: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.caption,
+            marginTop: 2,
+            textAlign: "center",
+        },
+        pressed: {
+            opacity: 0.7,
+        },
+    });

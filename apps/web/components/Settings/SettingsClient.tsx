@@ -99,7 +99,7 @@ function PasswordSection({
                     htmlFor="repeat-password"
                     className="text-muted-foreground text-sm font-medium"
                 >
-                    {vocabulary.REPEAT_PASSWORD ?? "Repeat password"}
+                    {vocabulary.REPEAT_PASSWORD}
                 </label>
                 <input
                     id="repeat-password"

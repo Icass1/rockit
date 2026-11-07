@@ -293,7 +293,7 @@ export default function AdminClient({
                                         </label>
                                         <input
                                             type="text"
-                                            placeholder="e.g. 1.2.0"
+                                            placeholder="1.2.0"
                                             value={version}
                                             onChange={(e): void =>
                                                 setVersion(e.target.value)

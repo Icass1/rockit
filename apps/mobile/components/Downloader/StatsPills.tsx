@@ -44,7 +44,7 @@ export default function StatsPills({
             <Pill
                 count={total}
                 color={theme.legacy.white}
-                label={vocabulary.SONGS}
+                label={vocabulary.UI_TOTAL}
             />
             <Pill
                 count={active}

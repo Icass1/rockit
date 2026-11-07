@@ -23,26 +23,25 @@ import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 type RequestStatus = "ALL" | "PENDING" | "ACCEPTED" | "REJECTED";
 
-const STATUS_BADGES: Record<
-    string,
-    { bg: string; text: string; label: string }
-> = {
+const statusBadges = (
+    vocabulary: import("@rockit/shared").Vocabulary
+): Record<string, { bg: string; text: string; label: string }> => ({
     pending: {
         bg: "bg-warning/10",
         text: "text-warning",
-        label: "Pending",
+        label: vocabulary.PENDING,
     },
     accepted: {
         bg: "bg-success/10",
         text: "text-success-foreground",
-        label: "Accepted",
+        label: vocabulary.ADMIN_STATUS_ACCEPTED,
     },
     rejected: {
         bg: "bg-destructive/10",
         text: "text-destructive-soft",
-        label: "Rejected",
+        label: vocabulary.ADMIN_STATUS_REJECTED,
     },
-};
+});
 
 const REQUEST_TYPE_ICONS: Record<string, string> = {
     lyrics: "🎵",
@@ -59,6 +58,8 @@ export default function AdminRequests(): JSX.Element {
     const [requests, setRequests] = useState<UserRequestResponse[]>([]);
     const [stats, setStats] = useState<AdminRequestStatsResponse | null>(null);
     const $vocabulary = useVocabulary();
+    const vocabulary = $vocabulary;
+    const STATUS_BADGES = statusBadges(vocabulary);
     const isAdmin = useStore(rockIt.userManager.admin);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -140,25 +141,25 @@ export default function AdminRequests(): JSX.Element {
 
     const statCards = [
         {
-            label: "Total",
+            label: vocabulary.UI_TOTAL,
             value: stats?.total ?? 0,
             color: "text-foreground",
             bg: "bg-muted/50",
         },
         {
-            label: "Pending",
+            label: vocabulary.PENDING,
             value: stats?.pending ?? 0,
             color: "text-warning",
             bg: "bg-warning/5",
         },
         {
-            label: "Accepted",
+            label: vocabulary.ADMIN_STATUS_ACCEPTED,
             value: stats?.accepted ?? 0,
             color: "text-success-foreground",
             bg: "bg-success/5",
         },
         {
-            label: "Rejected",
+            label: vocabulary.ADMIN_STATUS_REJECTED,
             value: stats?.rejected ?? 0,
             color: "text-destructive-soft",
             bg: "bg-destructive/5",
@@ -166,10 +167,10 @@ export default function AdminRequests(): JSX.Element {
     ];
 
     const filters: { id: RequestStatus; label: string }[] = [
-        { id: "ALL", label: "All" },
-        { id: "PENDING", label: "Pending" },
-        { id: "ACCEPTED", label: "Accepted" },
-        { id: "REJECTED", label: "Rejected" },
+        { id: "ALL", label: vocabulary.NOTIFICATIONS_ALL },
+        { id: "PENDING", label: vocabulary.PENDING },
+        { id: "ACCEPTED", label: vocabulary.ADMIN_STATUS_ACCEPTED },
+        { id: "REJECTED", label: vocabulary.ADMIN_STATUS_REJECTED },
     ];
 
     if (!isAdmin) {

@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "RockIt",
+        title: "RockIt!",
     },
     openGraph: {
         type: "website",

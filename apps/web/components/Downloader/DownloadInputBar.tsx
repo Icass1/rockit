@@ -27,7 +27,7 @@ export default function DownloadInputBar({
             setUrl("");
         } catch (err) {
             const message =
-                err instanceof Error ? err.message : "Unknown error";
+                err instanceof Error ? err.message : $vocabulary.ERROR;
             setError(message);
         } finally {
             setIsDownloading(false);

@@ -56,7 +56,7 @@ export default function SummaryCardsV2({
         },
         {
             icon: Flame,
-            label: "Current streak",
+            label: vocabulary.SOCIAL_STREAK,
             value: `${summary.currentStreak} days`,
         },
     ];

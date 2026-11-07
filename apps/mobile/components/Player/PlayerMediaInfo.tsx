@@ -4,7 +4,13 @@ import { TMedia } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Maximize, Video, VideoOff } from "@rockit/ui/icons";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+    Pressable,
+    StyleSheet,
+    Text,
+    useWindowDimensions,
+    View,
+} from "react-native";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaSubSubTitle from "@/components/MediaSubSubTitle";
 import MediaSubTitle from "@/components/MediaSubTitle";
@@ -13,10 +19,6 @@ import PlayerControls from "@/components/Player/PlayerControls";
 import PlayerCover from "@/components/Player/PlayerCover";
 import PlayerProgress from "@/components/Player/PlayerProgress";
 import VideoSurface from "@/components/Player/VideoSurface";
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-// Cover size mirrors the old MobilePlayerUI — fills most of the screen width
-const COVER_SIZE = Math.min(SCREEN_WIDTH - 48, 340);
 
 interface PlayerMediaInfoProps {
     currentMedia: TMedia | undefined; // TMedia from PlayerContext
@@ -40,6 +42,11 @@ export default function PlayerMediaInfo({
     onMediaFullscreen,
 }: PlayerMediaInfoProps) {
     const theme = useDesignTheme();
+    const { width } = useWindowDimensions();
+    const COVER_SIZE = Math.min(
+        width - theme.spacing.xl * 2,
+        theme.layout.playerArtworkMax
+    );
     const styles = useThemedStyles(createStyles);
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     return (
@@ -88,7 +95,9 @@ export default function PlayerMediaInfo({
                         style={styles.audioOnlyButton}
                         hitSlop={8}
                         accessibilityLabel={
-                            audioOnly ? "Show video" : "Audio only"
+                            audioOnly
+                                ? vocabulary.PLAYER_SHOW_VIDEO
+                                : vocabulary.PLAYER_AUDIO_ONLY
                         }
                     >
                         {audioOnly ? (

@@ -6,6 +6,7 @@ import { type VocabularyResponse } from "@rockit/shared";
 import { Check, Globe } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface SettingsClientProps {
     vocabulary: VocabularyResponse;
@@ -19,6 +20,8 @@ interface Language {
 export default function SettingsClient({
     vocabulary,
 }: SettingsClientProps): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $username = useStore(rockIt.userManager.usernameAtom);
     const $lang = useStore(rockIt.vocabularyManager.langAtom);
@@ -65,7 +68,9 @@ export default function SettingsClient({
                 </h2>
 
                 {loading ? (
-                    <p className="text-muted-foreground">Loading...</p>
+                    <p className="text-muted-foreground">
+                        {vocabulary.MOBILE_LOADING}
+                    </p>
                 ) : (
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {languages.map((lang): JSX.Element => (

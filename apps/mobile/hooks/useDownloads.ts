@@ -139,7 +139,7 @@ export function useDownloads() {
 
             if (!addResponse.isOk()) {
                 console.error(addResponse.message, addResponse.detail);
-                toasterManager.notifyError("Error starting download");
+                toasterManager.notifyError(vocabulary.ERROR_STARTING_DOWNLOAD);
                 return;
             }
 
@@ -147,12 +147,12 @@ export function useDownloads() {
 
             await Http.startDownload({
                 ids: [publicId],
-                title: "Download",
+                title: vocabulary.DOWNLOADS,
             });
             await fetchDownloads();
             return { ok: true };
         } catch {
-            return { ok: false, status: 400, message: "Could not fetch media" };
+            return { ok: false, status: 400, message: vocabulary.ERROR };
         }
     };
 

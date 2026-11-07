@@ -1065,4 +1065,13 @@ export interface Vocabulary {
     STATS_RANGE_ALL: string;
     STATS_SHOW_MORE: string;
     STATS_SHOW_LESS: string;
+    UI_TOTAL: string;
+    ADMIN_STATUS_ACCEPTED: string;
+    ADMIN_STATUS_REJECTED: string;
+    PLAYER_SHOW_VIDEO: string;
+    PLAYER_AUDIO_ONLY: string;
+    PLAYER_SHOW: string;
+    PLAYER_HIDE: string;
+    PLAYER_MINIPLAYER_OPEN: string;
+    PLAYER_MINIPLAYER_CLOSE: string;
 }

@@ -14,14 +14,11 @@
             "bundleIdentifier": "com.rockit.mobile",
             "icon": "./assets/images/icon.png",
             "infoPlist": {
-                "UIBackgroundModes": [
-                    "audio"
-                ]
+                "UIBackgroundModes": ["audio"]
             }
         },
         "android": {
             "adaptiveIcon": {
-                "backgroundColor": "#000000",
                 "foregroundImage": "./assets/images/icon.png",
                 "monochromeImage": "./assets/images/android-icon-monochromatic-1024.png"
             },
@@ -55,11 +52,7 @@
                 {
                     "image": "./assets/images/splash-icon.png",
                     "imageWidth": 200,
-                    "resizeMode": "contain",
-                    "backgroundColor": "#000000",
-                    "dark": {
-                        "backgroundColor": "#000000"
-                    }
+                    "resizeMode": "contain"
                 }
             ],
             "expo-asset",

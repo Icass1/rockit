@@ -22,7 +22,7 @@ interface EditMetadataModalProps {
 
 interface FieldDef {
     key: string;
-    label: string;
+    label: keyof import("@rockit/shared").Vocabulary;
     value: string;
     type: "text" | "textarea";
 }
@@ -33,76 +33,96 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
             return [
                 {
                     key: "title",
-                    label: "Title",
+                    label: "EDIT_METADATA_FIELD_TITLE",
                     value: media.name,
                     type: "text",
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: "EDIT_METADATA_FIELD_ARTIST",
                     value: getMediaArtistsString(media),
                     type: "text",
                 },
                 {
                     key: "album",
-                    label: "Album",
+                    label: "EDIT_METADATA_FIELD_ALBUM",
                     value:
                         !isSearchResult(media) && isSongWithAlbum(media)
                             ? media.album.name
                             : "",
                     type: "text",
                 },
-                { key: "genre", label: "Genre", value: "", type: "text" },
+                {
+                    key: "genre",
+                    label: "EDIT_METADATA_FIELD_GENRE",
+                    value: "",
+                    type: "text",
+                },
             ];
         case "video":
             return [
                 {
                     key: "title",
-                    label: "Title",
+                    label: "EDIT_METADATA_FIELD_TITLE",
                     value: media.name,
                     type: "text",
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: "EDIT_METADATA_FIELD_ARTIST",
                     value: getMediaArtistsString(media),
                     type: "text",
                 },
-                { key: "genre", label: "Genre", value: "", type: "text" },
+                {
+                    key: "genre",
+                    label: "EDIT_METADATA_FIELD_GENRE",
+                    value: "",
+                    type: "text",
+                },
             ];
         case "album":
             return [
                 {
                     key: "title",
-                    label: "Name",
+                    label: "NAME",
                     value: media.name,
                     type: "text",
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: "EDIT_METADATA_FIELD_ARTIST",
                     value: getMediaArtistsString(media),
                     type: "text",
                 },
                 {
                     key: "releaseDate",
-                    label: "Release date",
+                    label: "EDIT_METADATA_FIELD_RELEASE_DATE",
                     value: isSearchResult(media)
                         ? ""
                         : (media.releaseDate ?? ""),
                     type: "text",
                 },
-                { key: "genre", label: "Genre", value: "", type: "text" },
+                {
+                    key: "genre",
+                    label: "EDIT_METADATA_FIELD_GENRE",
+                    value: "",
+                    type: "text",
+                },
             ];
         case "artist":
             return [
                 {
                     key: "title",
-                    label: "Name",
+                    label: "NAME",
                     value: media.name,
                     type: "text",
                 },
-                { key: "genre", label: "Genre", value: "", type: "text" },
+                {
+                    key: "genre",
+                    label: "EDIT_METADATA_FIELD_GENRE",
+                    value: "",
+                    type: "text",
+                },
             ];
         default:
             return [];
@@ -255,7 +275,7 @@ export default function EditMetadataModal({
                         {fields.map((field) => (
                             <div key={field.key}>
                                 <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
-                                    {field.label}
+                                    {$vocabulary[field.label]}
                                 </label>
                                 {field.type === "textarea" ? (
                                     <textarea

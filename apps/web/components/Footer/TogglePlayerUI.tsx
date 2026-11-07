@@ -4,14 +4,18 @@ import type { JSX } from "react";
 import { ChevronUp } from "lucide-react";
 import { usePlaybackStore } from "@/hooks/usePlaybackStore";
 import { usePlaybackServices } from "@/components/providers/PlaybackProvider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function TogglePlayerUI(): JSX.Element {
+    const vocabulary = useVocabulary();
     const { playerUIManager } = usePlaybackServices();
     const $visible = usePlaybackStore(playerUIManager.visibleAtom, false);
 
     return (
         <button
-            aria-label={$visible ? "Hide player" : "Show player"}
+            aria-label={
+                $visible ? vocabulary.PLAYER_HIDE : vocabulary.PLAYER_SHOW
+            }
             className="border-border-strong text-muted-foreground md:hover:border-foreground-strong md:hover:text-foreground-strong relative h-6 w-6 rounded border-[2.4px] transition-all"
             onClick={(): void => playerUIManager.toggle()}
         >

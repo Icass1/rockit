@@ -304,7 +304,7 @@ export default function StorageScreen() {
                         <HardDrive size={32} color={theme.legacy.gray600} />
                         <Text style={styles.emptyText}>
                             {loading
-                                ? "Loading..."
+                                ? vocabulary.MOBILE_LOADING
                                 : searchQuery
                                   ? vocabulary.MOBILE_STORAGE_NO_MATCHES
                                   : vocabulary.MOBILE_STORAGE_EMPTY_DIRECTORY}

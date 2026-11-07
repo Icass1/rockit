@@ -1,9 +1,9 @@
 # Recommendations
 
-Rockit recommends music from two independent sources:
+RockIt! recommends music from two independent sources:
 
 1. **Local engine** (always on, offline, zero setup) — ranks songs this
-   instance already knows using Rockit's own data.
+   instance already knows using data from the instance.
 2. **Last.fm suggestions** (enabled for everyone when the server has a key) — tracks from
    Last.fm, preferred over local picks in recommendation displays. They may not
    be on this instance yet; tapping one searches the existing providers once
@@ -79,7 +79,7 @@ Last.fm lives in `apps/backend/lastfm/`, with its credentials in `constants.py`
 and its implementation in `framework/provider/lastfmProvider.py`. The existing
 provider registry discovers the exported `provider` and `name` exactly as it
 discovers every other integration. Last.fm is the only external recommendation
-implementation shipped by Rockit.
+implementation shipped with the application.
 
 Core owns `BaseExternalRecommendationProvider` and the generic orchestrator in
 `apps/backend/core/framework/externalRecommendation/`. It requests recommendation
@@ -107,7 +107,7 @@ The local engine supplies personal ranking and remains available independently.
 - Successful answers are cached in `core.cache_external_recommendation` for
   `RECOMMENDATION_EXTERNAL_CACHE_HOURS` (default 24 h); empty answers for one hour.
   Failures are not persisted as successful cache entries.
-- Without a key, with no usable seed, or on failure, Rockit serves its local
+- Without a key, with no usable seed, or on failure, RockIt! serves its local
   recommendations. No user action or settings screen is required.
 
 ## Configuration
@@ -127,7 +127,7 @@ for every user automatically; there is no per-user opt-in or credentials form.
 
 ## Limitations
 
-- Rockit stores no MusicBrainz IDs, so external suggestions are matched to
+- RockIt! stores no MusicBrainz IDs, so external suggestions are matched to
   the local library by fuzzy artist + title (`pg_trgm`, conservative
   thresholds). Downloading one runs a single provider search on tap.
 - Recently _recommended_ (as opposed to played) songs are not persisted.

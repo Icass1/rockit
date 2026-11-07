@@ -1,9 +1,11 @@
 <div align="center">
   <a href="https://github.com/Icass1/rockit">
-    <img src="apps/web/public/logo-banner-authors.png" alt="Rockit — by icass and Nicorebo18" width="760" />
+    <img src="apps/web/public/logo-banner.png" alt="RockIt!" width="640" />
   </a>
 
-# Your music. Your space. Rockit.
+# RockIt!
+
+**Your music. Your space.**
 
 **A self-hosted home for your music — built for listening, collecting, and sharing.**
 
@@ -23,7 +25,7 @@ A personal library, a player that travels with you, and music worth discovering 
 
 ---
 
-Rockit brings your collection, playlists, discovery, and friends into one music
+RockIt! brings your collection, playlists, discovery, and friends into one music
 player that you host yourself. Use the web app, install it as a PWA, or develop
 and build the native Expo app. PostgreSQL holds application data; S3-compatible
 storage holds persistent media and artwork.
@@ -33,10 +35,10 @@ storage holds persistent media and artwork.
 | Capability                           | Experience                                                                                                                                                                                        |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **A library you can explore**        | Organize songs, albums, and playlists. Search for individual tracks inside albums and playlists, then play just the song you wanted.                                                              |
-| **Your collection, within reach**    | Anchor albums, artists, playlists, and personal Rockit lists in navigation. Drag songs or albums into playlists you own.                                                                          |
+| **Your collection, within reach**    | Anchor albums, artists, playlists, and personal RockIt! lists in navigation. Drag songs or albums into playlists you own.                                                                         |
 | **A player that keeps up**           | Playback queues, shuffle, repeat, track transitions, and system media controls. Picture-in-Picture and the animated vinyl view are available on supported browsers.                               |
 | **Lyrics that follow the recording** | Plain and synchronized lyrics, version-aware matching, and reviewed timing corrections. Availability and alignment depend on the source recording and lyrics metadata.                            |
-| **Discovery with a fallback**        | Last.fm suggestions when configured, with Rockit's local recommendations as a fallback. Artwork is resolved lazily and cached.                                                                    |
+| **Discovery with a fallback**        | Last.fm suggestions when configured, with local recommendations from RockIt! as a fallback. Artwork is resolved lazily and cached.                                                                |
 | **Listen together**                  | Friends, music sharing, activity, and host-led listening sessions. Each participant streams through their own authenticated session.                                                              |
 | **Bring sources together**           | Provider integrations for Spotify, YouTube, and YouTube Music, alongside uploaded music. Background download processing selects catalogue audio for songs and preserves separate video downloads. |
 | **Choose your screen**               | A responsive web app and installable PWA, plus an Expo / React Native app with shared client and application logic.                                                                               |
@@ -47,16 +49,16 @@ Native builds and browser-specific playback features have their own requirements
 see the linked guides before deploying or building for a device.
 
 <details>
-<summary><strong>A look at Rockit — screenshots from an earlier interface</strong></summary>
+<summary><strong>A look at RockIt! — screenshots from an earlier interface</strong></summary>
 
 These images are already part of the repository. They show an earlier interface,
 not a freshly captured preview of the current branch.
 
-![Earlier Rockit desktop library with albums, playlists, and playback controls](apps/web/public/screenshot-1.png)
+![Earlier RockIt! desktop library with albums, playlists, and playback controls](apps/web/public/screenshot-1.png)
 
 <p align="center">
-  <img src="apps/web/public/screenshot-2.png" alt="Earlier Rockit mobile interface" width="240" />
-  <img src="apps/web/public/screenshot-3.png" alt="Another view of the earlier Rockit mobile interface" width="240" />
+  <img src="apps/web/public/screenshot-2.png" alt="Earlier RockIt! mobile interface" width="240" />
+  <img src="apps/web/public/screenshot-3.png" alt="Another view of the earlier RockIt! mobile interface" width="240" />
 </p>
 
 </details>
@@ -93,7 +95,7 @@ Run the following commands from the repository root unless stated otherwise.
 - Node.js 24 and pnpm **11.0.8**, as pinned in `package.json`.
 - Python **3.12** and uv.
 - A running PostgreSQL instance with a development database and credentials.
-- An S3-compatible service with credentials and a bucket available to Rockit.
+- An S3-compatible service with credentials and a bucket available to the application.
 - FFmpeg on `PATH` for media processing. Native Python dependencies may also require a compiler and PostgreSQL development headers.
 - For native mobile development, the Android SDK or Xcode on macOS, as appropriate.
 
@@ -223,9 +225,9 @@ reproduce. Remove credentials, cookies, and personal information from logs.
 
 Created by **[Ignacio Casado · Icass1](https://github.com/Icass1)** and
 **[Nicolás Rebollo · Nicorebo-18](https://github.com/Nicorebo-18)**, with the
-[Rockit contributors](https://github.com/Icass1/rockit/graphs/contributors).
+[RockIt! contributors](https://github.com/Icass1/rockit/graphs/contributors).
 
-Rockit is released under the **[MIT License](LICENSE)**. You may use, modify,
+RockIt! is released under the **[MIT License](LICENSE)**. You may use, modify,
 and redistribute the software, including commercially. Copies or substantial
 portions of the software must retain the copyright and permission notice in
 `LICENSE`, including in modified distributions. MIT does not require a visible

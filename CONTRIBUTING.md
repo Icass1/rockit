@@ -1,6 +1,6 @@
-# Contributing to Rockit
+# Contributing to RockIt!
 
-Contributions to Rockit's web app, mobile app, backend, tests, and documentation are welcome.
+Contributions to the RockIt! web app, mobile app, backend, tests, and documentation are welcome.
 
 ## Getting started
 

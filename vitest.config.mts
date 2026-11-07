@@ -5,6 +5,10 @@ export default defineConfig({
     resolve: {
         alias: [
             {
+                find: "@/platform/socket",
+                replacement: path.resolve("apps/mobile/platform/socket.web.ts"),
+            },
+            {
                 find: "@rockit/ui/runtime",
                 replacement: path.resolve("packages/ui/src/runtime.web.ts"),
             },

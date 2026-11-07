@@ -34,7 +34,9 @@ export class WebSocketManager {
     private static _instance: WebSocketManager;
 
     private _webSocket?: WebSocket;
-    private _init = false;
+    private _enabled = false;
+    private _generation = 0;
+    private _retryTimer?: ReturnType<typeof setTimeout>;
     private _latestPlaybackId = "";
     private _outgoingPlayback?: CurrentMediaMessageRequest;
     private _connecting = false;
@@ -124,58 +126,73 @@ export class WebSocketManager {
             ?.delete(handler as WebSocketMessageHandler<EWebSocketMessage>);
     }
 
-    async init() {
-        if (this._init || this._connecting) return;
-
-        this._attemptReconnect();
+    async init(): Promise<void> {
+        this._enabled = true;
+        if (!this._connecting && !this.isConnected) await this._connect();
     }
 
-    private async _attemptReconnect() {
-        if (this._connecting) return;
-        this._connecting = true;
-        const maxRetries = 5;
-        let retries = 0;
-
-        while (retries < maxRetries) {
-            await new Promise((resolve) =>
-                setTimeout(resolve, Math.max(2000 * retries, 2000))
-            );
-
-            if (this._webSocket?.readyState === WebSocket.OPEN) break;
-
-            try {
-                this._webSocket = await createSocket(getWsUrl());
-
-                if (!this._webSocket) return;
-
-                this._webSocket.onopen = () => {
-                    this._init = true;
-                    if (this._outgoingPlayback) {
-                        this.sendCurrentMedia(this._outgoingPlayback);
-                    } else {
-                        this.requestPlaybackState();
-                    }
-                    this._connecting = false;
-                };
-
-                this._webSocket.onmessage = this._onMessageHandler;
-
-                this._webSocket.onclose = () => {
-                    this._init = false;
-                    this._connecting = false;
-                    this._attemptReconnect();
-                };
-
-                this._webSocket.onerror = (e) => {
-                    console.error("Error in web socket", e);
-                };
-
-                break;
-            } catch {
-                retries++;
-            }
-        }
+    stop(): void {
+        this._enabled = false;
+        this._generation++;
         this._connecting = false;
+        clearTimeout(this._retryTimer);
+        this._retryTimer = undefined;
+        const socket = this._webSocket;
+        this._webSocket = undefined;
+        if (socket) {
+            socket.onopen =
+                socket.onclose =
+                socket.onerror =
+                socket.onmessage =
+                    null;
+            socket.close();
+        }
+        this._latestPlaybackId = "";
+        this._outgoingPlayback = undefined;
+    }
+
+    private _retry(generation: number): void {
+        if (!this._enabled || generation !== this._generation) return;
+        clearTimeout(this._retryTimer);
+        this._retryTimer = setTimeout(() => void this._connect(), 2000);
+    }
+
+    private async _connect(): Promise<void> {
+        if (!this._enabled || this._connecting || this.isConnected) return;
+        this._connecting = true;
+        const generation = this._generation;
+        try {
+            const socket = await createSocket(getWsUrl());
+            if (!this._enabled || generation !== this._generation) {
+                socket?.close();
+                return;
+            }
+            if (!socket) {
+                this._connecting = false;
+                this._retry(generation);
+                return;
+            }
+            this._webSocket = socket;
+            socket.onopen = () => {
+                if (generation !== this._generation) return;
+                this._connecting = false;
+                if (this._outgoingPlayback)
+                    this.sendCurrentMedia(this._outgoingPlayback);
+                else this.requestPlaybackState();
+            };
+            socket.onmessage = this._onMessageHandler;
+            socket.onclose = () => {
+                if (generation !== this._generation) return;
+                this._connecting = false;
+                this._webSocket = undefined;
+                this._retry(generation);
+            };
+            socket.onerror = () => socket.close();
+        } catch {
+            if (generation !== this._generation) return;
+            this._connecting = false;
+            this._retry(generation);
+        }
     }
 
     get isConnected(): boolean {
@@ -191,14 +208,26 @@ export class WebSocketManager {
     }
 
     async send(message: object): Promise<void> {
+        if (!this._enabled) return;
+        const generation = this._generation;
         if (this._webSocket?.readyState !== WebSocket.OPEN) {
-            await this.init();
+            await this._connect();
             const deadline = Date.now() + 10000;
-            while (!this._isOpen() && Date.now() < deadline) {
+            while (
+                this._enabled &&
+                generation === this._generation &&
+                !this._isOpen() &&
+                Date.now() < deadline
+            ) {
                 await new Promise<void>((resolve) => setTimeout(resolve, 100));
             }
         }
-        if (this._webSocket?.readyState !== WebSocket.OPEN) return;
+        if (
+            !this._enabled ||
+            generation !== this._generation ||
+            !this._isOpen()
+        )
+            return;
         const playbackId = (message as Partial<CurrentTimeMessageRequest>)
             .playbackId;
         if (playbackId && playbackId !== this._latestPlaybackId) return;

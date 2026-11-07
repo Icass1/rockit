@@ -1,0 +1,110 @@
+name: Frontend platform acceptance (manual)
+
+# Production builds and an emulator are deliberately outside the fast PR gate.
+on:
+    workflow_dispatch:
+        inputs:
+            ref:
+                description: Branch or commit to verify
+                required: true
+                default: develop
+                type: string
+
+permissions:
+    contents: read
+
+concurrency:
+    group: frontend-platform-acceptance-${{ inputs.ref }}
+    cancel-in-progress: false
+
+jobs:
+
+    browsers:
+        name: Desktop and mobile browser acceptance
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.ref }}
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - name: Install Chromium and WebKit
+              run: pnpm exec playwright install --with-deps chromium webkit
+            - name: Build production frontends against the isolated fixture
+              run: pnpm test:frontend:build
+            - name: Exercise desktop, Android browser and iOS WebKit
+              run: pnpm test:frontend:browser
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: frontend-browsers-${{ github.run_number }}
+                  path: .test-build/frontend/
+                  if-no-files-found: ignore
+                  retention-days: 14
+
+    android:
+        name: Android APK and native playback acceptance
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ inputs.ref }}
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+            - uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: 17
+            - uses: gradle/actions/setup-gradle@v4
+            - run: pnpm install --frozen-lockfile
+            - name: Prepare isolated emulator networking
+              run: node scripts/prepare-android-fixture.mjs
+            - name: Ensure Hermes compiler is executable
+              working-directory: apps/mobile
+              env:
+                  EAS_BUILD_PLATFORM: android
+              run: node scripts/check-hermes.cjs
+            - name: Build the real preview APK for the emulator
+              working-directory: apps/mobile/android
+              env:
+                  NODE_ENV: production
+                  EXPO_PUBLIC_BACKEND_URL: http://127.0.0.1:18899
+                  EXPO_PUBLIC_PLATFORM: android
+              run: ./gradlew :app:assembleRelease -Prockit.preview=true -PreactNativeArchitectures=x86_64 --no-daemon
+            - name: Verify native dependency graph
+              run: node scripts/check-mobile-bundle.mjs android apps/mobile/android/app/build/generated/sourcemaps/react/release
+            - name: Start local contract backend
+              run: |
+                  nohup node node_modules/tsx/dist/cli.mjs --tsconfig tests/frontend/tsconfig.json tests/frontend/fixtures/serve.ts > "$RUNNER_TEMP/rockit-fixture.log" 2>&1 &
+                  curl --fail --retry 20 --retry-connrefused --retry-delay 1 http://127.0.0.1:18899/__fixture/health
+            - name: Enable emulator acceleration
+              run: |
+                  echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+                  sudo udevadm control --reload-rules
+                  sudo udevadm trigger --name-match=kvm
+            - name: Install, authenticate, search and play in the background
+              uses: reactivecircus/android-emulator-runner@v2
+              with:
+                  api-level: 33
+                  arch: x86_64
+                  target: default
+                  disable-animations: true
+                  script: python3 scripts/smoke-mobile-fixture.py apps/mobile/android/app/build/outputs/apk/release/app-release.apk --serial emulator-5554
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: frontend-android-${{ github.run_number }}
+                  path: |
+                      .test-build/frontend/
+                      apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+                  if-no-files-found: ignore
+                  retention-days: 14

@@ -2,6 +2,13 @@
 
 ## To Do
 
+### [PIP] Pulsar en la cover / vinilo se pausa con al misma animacion que en el playerui
+
+- tags: [frontend, pip, vynil]
+- priority: medium
+- workload: Easy
+- defaultExpanded: false
+
 ## In Progress
 
 ## Idle
@@ -67,110 +74,6 @@
     Resolverlo de forma ligera, evitando cargar todos los álbumes y sus pistas en el cliente o lanzar una petición por álbum en cada búsqueda. Conservar los resultados actuales de álbumes y listas y evitar duplicados de canciones.
     ```
 
-### [LIBRARY] Drag & drop de canciones a listas
-
-- tags: [frontend, library, playlists, drag-drop, ui]
-- priority: medium
-- workload: Normal
-    ```md
-    Implementado en la vista All: canciones y álbumes se arrastran a playlists propias en tarjetas y filas, con mano cerrada, portada flotante y círculo verde con + blanco sobre destinos válidos. Destino resaltado, autoscroll, cancelación y guardado con feedback. Propiedad revalidada al soltar; un álbum usa la operación existente de colección completa. Sin cambios de almacenamiento ni suites locales; revisión dirigida en Chromium con componentes reales y HTTP simulado. CI verde en PR158; pendiente de revisión del usuario.
-
-    Al pinchar y arrastrar canciones en la library hacia las listas, mostrar un "+" y permitir añadirlas.
-    ```
-
-### [LYRICS] Mejorar detección y asignación de lyrics
-
-- tags: [frontend, backend, lyrics, matching]
-- priority: high
-- workload: Normal
-    ```md
-    Implementado: recuperación LRCLIB con fallback Unicode/acentos controlado, prioridad canónica y rechazo de ambigüedades, variantes de consulta y versiones en título/álbum, caché de texto plano ampliable a tiempos sin sobrescribir originales, LRC con offsets/tags repetidos y fallback visible a texto en todos los players. Propuestas de letra/offset con previsualización y revisión admin; overlays en solicitudes existentes, vinculados a revisiones de audio/letra y protegidos contra aprobaciones obsoletas. Reloj y seek compartidos en web, PiP y móvil. Sin migraciones, cambios de S3 ni reescalar tiempos. Ver docs/LYRICS_MATCHING.md. Sin suites locales; regresiones para CI. Pendiente de revisión funcional y medir contra la referencia aproximada del usuario (30% sincronizadas, 40% desincronizadas, 30% ausentes).
-
-    Mejorar la detección o assignment de las lyrics a las canciones para que se detecte mejor la canción que se está reproduciendo.
-    ```
-
-### [DOWNLOADS] Descargar solo música y no videoclips
-
-- tags: [backend, downloads, spotdl, ytdlp]
-- priority: high
-- workload: Normal
-- defaultExpanded: false
-    ```md
-    Implementado: se seleccionan grabaciones del catálogo de YouTube Music antes de descargar. Se rechazan videoclips OMV/UGC, versiones/artistas/duraciones incompatibles y fallbacks de vídeo. Las URLs guardadas se revalidan; YouTube Music también resuelve el ID principal. Búsqueda ISRC/metadatos acotada y con pacing existente. S3 y migración intactos; lógica en providers. Ver docs/SONG_RECORDING_SELECTION.md. Pendiente de revisión y CI; sin suites locales.
-
-    Hacer que yt-dlp descargue solo música que no sean videoclips. Ajustar la búsqueda.
-    ```
-
-### [UX] Guardar Volumen en BBDD
-
-- tags: [frontend, ux, volume]
-- priority: low
-- workload: Normal
-- defaultExpanded: false
-    ```md
-    Implementado: se reutiliza core.user.volume y se expone mediante sesión y ruta autenticada. Web restaura el volumen por usuario y guarda cambios con debounce y escrituras serializadas. iOS/iPadOS inicia al 100% y no guarda ni aplica el volumen de BBDD. Contratos y cliente HTTP regenerados. Sin cambios de almacenamiento. Pendiente de revisión y CI; sin suites locales.
-
-    Para frontend web Guardar el volumen del usuario en nuestra base de datos por cada usuario. Cuando el usuario ajuste el volumen, se guardará en la base de datos. Y luego, cuando el usuario salga de la página y vuelva a entrar, se cargará desde la base de datos. Hay una excepción: cuando el usuario cargue la web del móvil, es decir, la PWA de iOS, el volumen siempre será el 100%. Da igual lo que haya en la base de datos; no se guardará ni se cargará de ahí. Solo con esa excepción.
-    ```
-
-### [HEADER] Intensidad gradual de la llama de racha
-
-- tags: [frontend, header, streak, ui]
-- priority: low
-- workload: Easy
-    ```md
-    SVG de llama con gradiente continuo de amarillo tenue a naranja, centro más luminoso y halo creciente entre 1 y 30 días. A partir de 30 días se mantiene la intensidad máxima y el contador sigue mostrando los días reales. Tamaño fijo de 28 px, sin animaciones continuas y con alternativa para contraste alto/colores forzados. Vocabulary existente. Solo interfaz web; sin cambios de backend, almacenamiento ni S3.
-    Capturas de revisión en escritorio y móvil con 1, 3, 7, 14, 21, 30 y 60 días. Sin suites locales. Pendiente de revisión del usuario.
-    ```
-
-### [PLAYER] Tiempos reales de la barra de reproducción
-
-- tags: [frontend, player, playback, bug, kb-37]
-- priority: high
-- workload: Normal
-    ```md
-    KB-37: duración medida desde el recurso HTMLAudioElement/HTMLVideoElement activo, no desde el catálogo. Footer, mini player, PiP, player móvil web y marcadores usan la misma duración. El contador continúa más allá del metadato de catálogo; no se reescala ni desplaza el reloj de lyrics.
-    Validación dirigida: archivo real de 30 s con catálogo de 10 s, seek al segundo 15 y contador avanzando. Sin suites locales. Pendiente de revisión del usuario y CI.
-    ```
-
-### [SEARCH] Reproducir canciones ya descargadas
-
-- tags: [frontend, search, playback, ui, kb-25]
-- priority: medium
-- workload: Easy
-- defaultExpanded: false
-- steps:
-    - [x] Se me abre el context menu para una cancion qe ya tengo descargada y en mi library
-    ```md
-    Ampliado KB-25: disponibilidad local independiente del provider de búsqueda. Un resultado de B puede reproducir el archivo de A aunque A esté caído o desactivado. Coincidencia única por título completo y artistas normalizados; se verifica existencia del archivo y se conservan los calificadores de versiones. Las capacidades locales sobreviven a la desactivación sin reactivar búsqueda/descargas remotas. El caché remoto no se muta y la disponibilidad se vuelve a comprobar.
-
-    Corregida la causa en los providers: Search recibe publicId y disponibilidad reales de las canciones descargadas. SpotifyScrapper resuelve IDs exactos en una consulta por lote; YouTube Music y RockIt devuelven la identidad local. Sin coincidencias por título ni lógica específica en core.
-    Clic izquierdo reproduce o pausa; clic derecho/pulsación larga mantienen el menú. Hover: carátula oscurecida con play blanco centrado que aparece con una escala breve. Foco de teclado visible, acción visible en táctil y movimiento reducido respetado. Vocabulary existente.
-    Pendiente de revisión del usuario. Sin suites locales; comprobación visual en Chromium y regresión para CI.
-    ```
-
-### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
-
-- tags: [frontend, player, ios, transitions, bug, kb-32]
-- priority: high
-- workload: Easy
-    ```md
-    Implementado: los eventos pause/playing se contrastan con el estado actual del elemento, para ignorar eventos retrasados durante el cambio de pistas. La resolución de play() reconcilia el icono solo para el elemento y playbackId activos, manteniendo las comprobaciones de propiedad de reproducción. Pendiente de validación en iPhone con transiciones; sin tests locales.
-
-    Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
-    ```
-
-### [PWA] Mejorar UI de radios en PWA iOS
-
-- tags: [frontend, pwa, ios, ui, kb-29]
-- priority: medium
-- workload: Normal
-    ```md
-    Implementado en el buscador de emisoras: texto de 16 px para evitar zoom de foco en iPhone, apariencia consistente, foco visible y botón de borrar propio sin duplicado nativo de Safari. Teclado de búsqueda sin autocorrección ni mayúsculas automáticas. Pendiente de revisión en PWA iPhone, sin tests locales.
-
-    Mejorar el aspecto de los inputs radio en la PWA de iOS.
-    ```
-
 ## Done
 
 ### [LIBRARY] Investigar tiempo de carga
@@ -202,6 +105,62 @@
     Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
     ```
 
+### [UX] Guardar Volumen en BBDD
+
+- tags: [frontend, ux, volume]
+- priority: low
+- workload: Normal
+- defaultExpanded: false
+    ```md
+    Implementado: se reutiliza core.user.volume y se expone mediante sesión y ruta autenticada. Web restaura el volumen por usuario y guarda cambios con debounce y escrituras serializadas. iOS/iPadOS inicia al 100% y no guarda ni aplica el volumen de BBDD. Contratos y cliente HTTP regenerados. Sin cambios de almacenamiento. Pendiente de revisión y CI; sin suites locales.
+
+    Para frontend web Guardar el volumen del usuario en nuestra base de datos por cada usuario. Cuando el usuario ajuste el volumen, se guardará en la base de datos. Y luego, cuando el usuario salga de la página y vuelva a entrar, se cargará desde la base de datos. Hay una excepción: cuando el usuario cargue la web del móvil, es decir, la PWA de iOS, el volumen siempre será el 100%. Da igual lo que haya en la base de datos; no se guardará ni se cargará de ahí. Solo con esa excepción.
+    ```
+
+### [LYRICS] Mejorar detección y asignación de lyrics
+
+- tags: [frontend, backend, lyrics, matching]
+- priority: high
+- workload: Normal
+    ```md
+    Implementado: recuperación LRCLIB con fallback Unicode/acentos controlado, prioridad canónica y rechazo de ambigüedades, variantes de consulta y versiones en título/álbum, caché de texto plano ampliable a tiempos sin sobrescribir originales, LRC con offsets/tags repetidos y fallback visible a texto en todos los players. Propuestas de letra/offset con previsualización y revisión admin; overlays en solicitudes existentes, vinculados a revisiones de audio/letra y protegidos contra aprobaciones obsoletas. Reloj y seek compartidos en web, PiP y móvil. Sin migraciones, cambios de S3 ni reescalar tiempos. Ver docs/LYRICS_MATCHING.md. Sin suites locales; regresiones para CI. Pendiente de revisión funcional y medir contra la referencia aproximada del usuario (30% sincronizadas, 40% desincronizadas, 30% ausentes).
+
+    Mejorar la detección o assignment de las lyrics a las canciones para que se detecte mejor la canción que se está reproduciendo.
+    ```
+
+### [LIBRARY] Drag & drop de canciones a listas
+
+- tags: [frontend, library, playlists, drag-drop, ui]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en la vista All: canciones y álbumes se arrastran a playlists propias en tarjetas y filas, con mano cerrada, portada flotante y círculo verde con + blanco sobre destinos válidos. Destino resaltado, autoscroll, cancelación y guardado con feedback. Propiedad revalidada al soltar; un álbum usa la operación existente de colección completa. Sin cambios de almacenamiento ni suites locales; revisión dirigida en Chromium con componentes reales y HTTP simulado. CI verde en PR158; pendiente de revisión del usuario.
+
+    Al pinchar y arrastrar canciones en la library hacia las listas, mostrar un "+" y permitir añadirlas.
+    ```
+
+### [DOWNLOADS] Descargar solo música y no videoclips
+
+- tags: [backend, downloads, spotdl, ytdlp]
+- priority: high
+- workload: Normal
+- defaultExpanded: false
+    ```md
+    Implementado: se seleccionan grabaciones del catálogo de YouTube Music antes de descargar. Se rechazan videoclips OMV/UGC, versiones/artistas/duraciones incompatibles y fallbacks de vídeo. Las URLs guardadas se revalidan; YouTube Music también resuelve el ID principal. Búsqueda ISRC/metadatos acotada y con pacing existente. S3 y migración intactos; lógica en providers. Ver docs/SONG_RECORDING_SELECTION.md. Pendiente de revisión y CI; sin suites locales.
+
+    Hacer que yt-dlp descargue solo música que no sean videoclips. Ajustar la búsqueda.
+    ```
+
+### [HEADER] Intensidad gradual de la llama de racha
+
+- tags: [frontend, header, streak, ui]
+- priority: low
+- workload: Easy
+    ```md
+    SVG de llama con gradiente continuo de amarillo tenue a naranja, centro más luminoso y halo creciente entre 1 y 30 días. A partir de 30 días se mantiene la intensidad máxima y el contador sigue mostrando los días reales. Tamaño fijo de 28 px, sin animaciones continuas y con alternativa para contraste alto/colores forzados. Vocabulary existente. Solo interfaz web; sin cambios de backend, almacenamiento ni S3.
+    Capturas de revisión en escritorio y móvil con 1, 3, 7, 14, 21, 30 y 60 días. Sin suites locales. Pendiente de revisión del usuario.
+    ```
+
 ### [HOME] Añadir context menu a las canciones del home
 
 - tags: [frontend, home, songs, context-menu, ui, kb-20]
@@ -218,6 +177,32 @@
     Añadir un context menu a las canciones del home.
     ```
 
+### [PLAYER] Tiempos reales de la barra de reproducción
+
+- tags: [frontend, player, playback, bug, kb-37]
+- priority: high
+- workload: Normal
+    ```md
+    KB-37: duración medida desde el recurso HTMLAudioElement/HTMLVideoElement activo, no desde el catálogo. Footer, mini player, PiP, player móvil web y marcadores usan la misma duración. El contador continúa más allá del metadato de catálogo; no se reescala ni desplaza el reloj de lyrics.
+    Validación dirigida: archivo real de 30 s con catálogo de 10 s, seek al segundo 15 y contador avanzando. Sin suites locales. Pendiente de revisión del usuario y CI.
+    ```
+
+### [SEARCH] Reproducir canciones ya descargadas
+
+- tags: [frontend, search, playback, ui, kb-25]
+- priority: medium
+- workload: Easy
+- defaultExpanded: false
+- steps:
+    - [x] Se me abre el context menu para una cancion qe ya tengo descargada y en mi library
+    ```md
+    Ampliado KB-25: disponibilidad local independiente del provider de búsqueda. Un resultado de B puede reproducir el archivo de A aunque A esté caído o desactivado. Coincidencia única por título completo y artistas normalizados; se verifica existencia del archivo y se conservan los calificadores de versiones. Las capacidades locales sobreviven a la desactivación sin reactivar búsqueda/descargas remotas. El caché remoto no se muta y la disponibilidad se vuelve a comprobar.
+
+    Corregida la causa en los providers: Search recibe publicId y disponibilidad reales de las canciones descargadas. SpotifyScrapper resuelve IDs exactos en una consulta por lote; YouTube Music y RockIt devuelven la identidad local. Sin coincidencias por título ni lógica específica en core.
+    Clic izquierdo reproduce o pausa; clic derecho/pulsación larga mantienen el menú. Hover: carátula oscurecida con play blanco centrado que aparece con una escala breve. Foco de teclado visible, acción visible en táctil y movimiento reducido respetado. Vocabulary existente.
+    Pendiente de revisión del usuario. Sin suites locales; comprobación visual en Chromium y regresión para CI.
+    ```
+
 ### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
 
 - tags: [frontend, transitions, player, audio, kb-13]
@@ -226,6 +211,17 @@
     ```md
     KB-13 / PR144: análisis acotado y cacheado de silencios en los extremos, con margen para entradas suaves. Archivos y reloj de lyrics originales. Integrado con las transiciones web y resolución de archivos en cada provider.
     Evidencias y límites: docs/audio-silence-analysis.md. Revisar las grabaciones antes de mover a Done. Validación pendiente en iPhone/PWA real y carga de producción.
+    ```
+
+### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
+
+- tags: [frontend, player, ios, transitions, bug, kb-32]
+- priority: high
+- workload: Easy
+    ```md
+    Implementado: los eventos pause/playing se contrastan con el estado actual del elemento, para ignorar eventos retrasados durante el cambio de pistas. La resolución de play() reconcilia el icono solo para el elemento y playbackId activos, manteniendo las comprobaciones de propiedad de reproducción. Pendiente de validación en iPhone con transiciones; sin tests locales.
+
+    Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
     ```
 
 ### [SOCIAL] Emblemas Rockit y comparación entre amigos
@@ -250,6 +246,17 @@
     Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
 
     Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
+    ```
+
+### [PWA] Mejorar UI de radios en PWA iOS
+
+- tags: [frontend, pwa, ios, ui, kb-29]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en el buscador de emisoras: texto de 16 px para evitar zoom de foco en iPhone, apariencia consistente, foco visible y botón de borrar propio sin duplicado nativo de Safari. Teclado de búsqueda sin autocorrección ni mayúsculas automáticas. Pendiente de revisión en PWA iPhone, sin tests locales.
+
+    Mejorar el aspecto de los inputs radio en la PWA de iOS.
     ```
 
 ### [FRIENDS] Vocabulary desde el Excel

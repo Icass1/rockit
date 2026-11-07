@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
     resolve: {
         alias: [
+            { find: "@mobile", replacement: path.resolve("apps/mobile") },
             {
                 find: /^@rockit\/theme$/,
                 replacement: path.resolve("packages/theme/src/index.ts"),

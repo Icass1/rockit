@@ -194,6 +194,6 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-retro-next {right:0;top:30%;width:28%;height:40%;}
 .rockit-pip-document .pip-retro-play {bottom:0;left:30%;width:40%;height:28%;}
 .rockit-pip-document .pip-retro-wheel .pip-retro-center {inset:30%;width:40%;height:40%;border-radius:50%;background:linear-gradient(135deg,var(--theme-surface-raised),var(--theme-secondary));color:var(--pip-accent);font-size:11px;font-weight:700;}
-.rockit-pip-document .pip-retro-logo { width:64%;height:64%;object-fit:contain;pointer-events:none;opacity:.8;filter:saturate(.2) brightness(.75) contrast(.85) drop-shadow(0 1px 0 color-mix(in srgb,var(--theme-foreground) 10%,transparent)); }
+.rockit-pip-document .pip-retro-logo { width:54%;height:54%;object-fit:contain;pointer-events:none;filter:brightness(0) invert(.22) drop-shadow(0 1px 0 color-mix(in srgb,var(--theme-foreground) 18%,transparent)); }
 @media (prefers-reduced-motion: reduce) { .rockit-pip-document .pip-root * { transition: none !important; } }
 `;

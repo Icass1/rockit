@@ -75,6 +75,7 @@ Directed checks passed: retro previous/next, wheel pause/resume, exit to standar
 mode and geometric spindle centering; desktop TypeScript and changed-module lint
 also passed. These are fixture/component checks, not physical-device acceptance.
 
-The wheel center uses the existing RockIt! logo, desaturated by 80% with subdued
-brightness and a semantic highlight shadow for an engraved finish. It remains
+The wheel center uses the existing RockIt! logo at 54% of the center button.
+CSS brightness/inversion flatten it to a uniform dark gray, with a subtle semantic
+highlight shadow for an engraved finish and no retained pink tint. It remains
 decorative inside the existing labelled play/pause button.

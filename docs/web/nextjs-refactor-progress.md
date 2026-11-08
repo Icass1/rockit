@@ -901,3 +901,30 @@ APK acceptance is manually dispatched, not required on every PR. No physical-dev
 acceptance or production routing change is claimed. The current user instruction
 is consolidated checks after coherent work, superseding the historical per-step
 suite preference recorded above.
+
+## Player follow-ups stacked on PR189
+
+Separate branch `feat/player-kanban-followups`: continuous PiP header with close
+and movement handle, artwork/vinyl playback toggle and compact layouts; relative
+Media Session seek handlers removed in favor of track navigation. Shared album
+redownload orchestration resolves pages before changing files and stops on failures
+or account replacement. Artist credits remain visible in mobile cards and desktop
+artist rows; provider album/artist parsing accepts individual string/object credits.
+Frontend fast gate: 301 tests passed. Focused provider credit tests: 11 passed.
+Physical iOS controls and auxiliary-window movement remain device/browser checks.
+
+Chromium captures and artwork pause/resume passed in five viewports (320×420,
+570×100, 300×420 vinyl, 760×64 and 180×560). The sub-96px layout now keeps its
+horizontal transport. Stacked PR191 enables the same fast CI gate for its parent
+branch; no production builds/emulators were added to the required checks.
+
+## PiP efficiency review on PR191
+
+Separated video clock subscriptions from artwork and selected the active lyric
+index with useSyncExternalStore, also reused by Player UI. Compact mode no longer
+mounts its hidden full lyric list. Controlled Chromium measurements over 60 clock
+samples within one line show zero artwork/lyric rerenders after optimization
+(previously 60 artwork and 60–120 lyric renders). Progress updates remain active.
+Three focused component tests, desktop/fixture types and affected-module lint pass.
+This is not a device CPU/battery/FPS claim; see docs/PLAYER_FOLLOWUPS.md for limits.
+The two new explicit-metadata and mixed-provider redownload tasks are To Do only.

@@ -9,7 +9,7 @@ export class NavigationPinsManager extends SharedManager {
             ...(dependencies ?? rockIt),
             http: Http,
             subscribeToResume: (listener: () => void) => {
-                const visible = () => {
+                const visible = (): void => {
                     if (!document.hidden) listener();
                 };
                 window.addEventListener("focus", listener);

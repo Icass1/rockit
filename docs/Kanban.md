@@ -2,6 +2,46 @@
 
 ## To Do
 
+### [METADATA] Detectar y guardar si una canción es explícita
+
+- tags: [backend, metadata, explicit, downloads]
+- priority: medium
+- workload: Hard
+- steps:
+    - [ ] Investigar cómo se identifica y marca una canción explícita y qué fuentes son fiables
+    - [ ] Diseñar un algoritmo fiable y evaluar su aplicación a las canciones ya descargadas de RockIt!
+    - [ ] Integrarlo en el downloader y persistir el resultado en BBDD para devolverlo con la información de la canción
+    - [ ] Permitir revisar y editar la marca en Edit Metadata
+    ```md
+    Mostrar el símbolo de contenido explícito usando el dato persistido, sin consultar APIs externas cada vez que se muestra una canción. Investigar límites y falsos positivos; distinguir un resultado desconocido de una canción confirmada como no explícita. Tarea pendiente: no implementada en PR191.
+    ```
+
+### [BUG] Provider desactualizado y posible fallo al redescargar en listas o colas combinadas
+
+- tags: [frontend, backend, downloads, playlists, queue, providers, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Al redescargar una canción no se actualiza el provider mostrado. Posible crash cuando pertenece a una playlist o cola que combina providers; dentro de un álbum parece funcionar. Reproducir ambos escenarios y revisar la identidad/metadatos actualizados y su propagación a filas, cola y reproductor, sin perder el elemento seleccionado. Tarea pendiente: investigar y corregir después; no implementada en PR191.
+    ```
+
+## In Progress
+
+## Idle
+
+## To Review
+
+### [PIP] Modo retro RockIt! y eje de vinilo centrado
+
+- tags: [frontend, pip, easter-egg, vinyl]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en PR191: modo retro opcional en vertical, con rueda de controles reales, salida al modo normal, vocabulary en/es/fr y estilos semánticos. Eje del vinilo proporcional y centrado, incluido el vinilo horizontal mini. Ver docs/PLAYER_FOLLOWUPS.md para capturas y verificaciones dirigidas. Pendiente de revisión del usuario.
+    ```
+
+PR191 completa las cuatro tareas siguientes sobre la rama de PR189. Detalles y capturas: docs/PLAYER_FOLLOWUPS.md. Pendientes de validación del usuario.
+
 ### [PIP] Pulsar en la cover / vinilo se pausa con al misma animacion que en el playerui
 
 - tags: [frontend, pip, vynil]
@@ -26,8 +66,6 @@
     https://ca.v-cdn.net/6038735/uploads/images/170591iD8205BD23A7FD00F/Amayy_0-1710942636526.jpeg
     ```
 
-## In Progress
-
 ### [DOWNLOADS] Admitir colaboradores adicionales en el catálogo musical
 
 - tags: [backend, youtube, youtubeMusic, downloads, bug]
@@ -37,12 +75,9 @@
     ```md
     Corregido el rechazo de grabaciones cuyo catálogo acredita colaboradores ausentes en los metadatos de origen. Todos los artistas conocidos deben seguir presentes; coincidencia parcial, artistas ajenos, videoclips y versiones incompatibles siguen rechazados. Extracción y persistencia conservan todos los créditos de artista; enlaces por lotes e idempotentes también al recibir metadatos de canciones existentes. Regresión con los metadatos del log de Fever (Dua Lipa / Angèle), sin descargas ni cambios de almacenamiento. Pendiente de revisión del usuario. Ver docs/SONG_RECORDING_SELECTION.md.
 
-    Falta mostrar todos lso cpolaboradores en als cancioens de youtube music tanto men el album playlist como en el footer cuiando se reproduce la cancion
+    PR191: las tarjetas móviles y filas de artistas muestran todos los créditos suministrados; el parser de álbumes/artistas admite listas de nombres y objetos. Las respuestas conservan los créditos persistidos. No se inventan créditos históricos ausentes. Ver docs/PLAYER_FOLLOWUPS.md.
     ```
 
-## Idle
-
-## To Review
 
 ### [MOBILE] Migrar a una aplicación móvil universal con núcleo compartido
 

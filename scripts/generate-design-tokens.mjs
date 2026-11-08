@@ -6,6 +6,7 @@ const semantic = readFileSync(new URL("packages/theme/src/semantic.css", root), 
 const declarations = (theme, indent = "    ") =>
     Object.entries(theme).map(([key, value]) => `${indent}--theme-${key}: ${value};`).join("\n");
 const scales = [
+    `    --lyrics-emphasis-scale: ${tokens.layout.lyricsActiveScale};`,
     ...Object.entries(tokens.radius).map(([key, value]) => `    --radius-${key}: ${value}px;`),
     ...Object.entries(tokens.spacing).map(([key, value]) => `    --space-${key}: ${value}px;`),
     ...Object.entries(tokens.typography).map(([key, value]) => `    --font-size-${key}: ${value}px;`),

@@ -8,28 +8,19 @@ import { useReducedMotion } from "framer-motion";
 import { rockIt } from "@/lib/rockit/rockIt";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
 import VinylTransition from "@/components/PlayerUI/VinylTransition";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
-export function PiPCover(): JSX.Element {
+function PiPVideo({
+    videoUrl,
+    cover,
+    playing,
+}: {
+    videoUrl: string;
+    cover: string;
+    playing: boolean;
+}): JSX.Element {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const media = useStore(rockIt.queueManager.currentMediaAtom);
-    const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const vinylMode = useStore(rockIt.playerUIManager.vinylModeAtom);
-    const reducedMotion = useReducedMotion();
-    const [failedImage, setFailedImage] = useState<string | null>(null);
-    const videoUrl =
-        media?.type === "video" ? getMediaVideoUrl(media) : undefined;
-    const fallback =
-        media?.type === "station"
-            ? "/radio-placeholder.png"
-            : "/song-placeholder.png";
-    const imageUrl = media?.imageUrl || fallback;
-    const cover = imageUrl === failedImage ? fallback : imageUrl;
-
-    useEffect((): void => {
-        rockIt.playerUIManager.initializeArtworkMode();
-    }, []);
-
     useEffect((): void => {
         const video = videoRef.current;
         if (!video || !videoUrl) return;
@@ -49,24 +40,53 @@ export function PiPCover(): JSX.Element {
     }, [currentTime, videoUrl]);
 
     return (
-        <div className="pip-cover">
+        <video
+            ref={videoRef}
+            key={videoUrl}
+            src={videoUrl}
+            poster={cover}
+            playsInline
+            muted
+            onLoadedMetadata={(event): void => {
+                event.currentTarget.currentTime = Number.isFinite(currentTime)
+                    ? (currentTime ?? 0)
+                    : 0;
+            }}
+            data-testid="pip-video"
+        />
+    );
+}
+
+export function PiPCover(): JSX.Element {
+    const vocabulary = useVocabulary();
+    const media = useStore(rockIt.queueManager.currentMediaAtom);
+    const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const vinylMode = useStore(rockIt.playerUIManager.vinylModeAtom);
+    const reducedMotion = useReducedMotion();
+    const [failedImage, setFailedImage] = useState<string | null>(null);
+    const videoUrl =
+        media?.type === "video" ? getMediaVideoUrl(media) : undefined;
+    const fallback =
+        media?.type === "station"
+            ? "/radio-placeholder.png"
+            : "/song-placeholder.png";
+    const imageUrl = media?.imageUrl || fallback;
+    const cover = imageUrl === failedImage ? fallback : imageUrl;
+
+    useEffect((): void => {
+        rockIt.playerUIManager.initializeArtworkMode();
+    }, []);
+
+    return (
+        <button
+            type="button"
+            className="pip-cover"
+            aria-label={playing ? vocabulary.PAUSE : vocabulary.PLAY}
+            aria-pressed={playing}
+            onClick={() => rockIt.mediaPlayerManager.togglePlayPause()}
+        >
             {videoUrl ? (
-                <video
-                    ref={videoRef}
-                    key={videoUrl}
-                    src={videoUrl}
-                    poster={cover}
-                    playsInline
-                    muted
-                    onLoadedMetadata={(event): void => {
-                        event.currentTarget.currentTime = Number.isFinite(
-                            currentTime
-                        )
-                            ? (currentTime ?? 0)
-                            : 0;
-                    }}
-                    data-testid="pip-video"
-                />
+                <PiPVideo videoUrl={videoUrl} cover={cover} playing={playing} />
             ) : vinylMode && media?.type === "song" ? (
                 <div className="pip-vinyl" data-testid="pip-vinyl">
                     <VinylTransition
@@ -84,7 +104,7 @@ export function PiPCover(): JSX.Element {
             ) : (
                 <Image
                     src={cover}
-                    alt={media?.name ?? "Cover"}
+                    alt={media?.name ?? vocabulary.SONG}
                     width={1200}
                     height={1200}
                     draggable={false}
@@ -92,7 +112,7 @@ export function PiPCover(): JSX.Element {
                     data-testid="pip-image"
                 />
             )}
-        </div>
+        </button>
     );
 }
 

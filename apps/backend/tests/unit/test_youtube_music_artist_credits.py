@@ -152,3 +152,26 @@ async def test_existing_track_receives_all_credits_in_one_idempotent_insert() ->
         2,
     }
     assert "ON CONFLICT DO NOTHING" in str(compiled)
+
+
+async def test_album_tracks_keep_string_and_object_collaborator_credits(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import ytmusicapi
+
+    client = MagicMock()
+    client.get_album.return_value = {
+        "title": "Album",
+        "tracks": [
+            {"videoId": "one", "title": "Fever", "artists": ["Dua Lipa", "Angèle"]},
+            {
+                "videoId": "two",
+                "title": "Fever",
+                "artists": [{"name": "Dua Lipa"}, {"name": "Angèle"}, None],
+            },
+        ],
+    }
+    monkeypatch.setattr(ytmusicapi, "YTMusic", lambda: client)
+    response = await YoutubeMusicApi.get_album_tracks_async(youtube_id="album")
+    assert response.is_ok(), response.info()
+    assert [track.artists for track in response.result()] == [["Dua Lipa", "Angèle"]] * 2

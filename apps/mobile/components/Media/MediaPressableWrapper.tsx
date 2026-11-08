@@ -15,10 +15,12 @@ import {
     isSearchResult,
     isSong,
     isVideo,
+    redownloadMedia,
     TMedia,
 } from "@rockit/shared";
 import {
     Download,
+    HardDriveDownload,
     Heart,
     ListEnd,
     ListMinus,
@@ -373,6 +375,38 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     onPress: () => {
                         hide();
                         rockIt.sharingManager.compose(media.publicId);
+                    },
+                });
+            }
+
+            if (
+                !isSearchResult(media) &&
+                ["song", "video", "album"].includes(media.type)
+            ) {
+                options.push({
+                    label: vocabulary.REDOWNLOAD,
+                    icon: HardDriveDownload,
+                    onPress: async () => {
+                        hide();
+                        try {
+                            const username =
+                                rockIt.userManager.sessionAtom.get()?.username;
+                            await redownloadMedia(
+                                Http,
+                                media,
+                                () =>
+                                    !!username &&
+                                    rockIt.userManager.sessionAtom.get()
+                                        ?.username === username
+                            );
+                            toasterManager.notifySuccess(
+                                vocabulary.DOWNLOAD_STARTED
+                            );
+                        } catch {
+                            toasterManager.notifyError(
+                                vocabulary.ERROR_STARTING_DOWNLOAD
+                            );
+                        }
                     },
                 });
             }

@@ -12,6 +12,7 @@ import { PiPHeader } from "@/components/PiP/PiPHeader";
 import { PiPInfo } from "@/components/PiP/PiPInfo";
 import { PiPLyrics } from "@/components/PiP/PiPLyrics";
 import { PiPProgress } from "@/components/PiP/PiPProgress";
+import { PiPRetro } from "@/components/PiP/PiPRetro";
 import { PIP_STYLES } from "@/components/PiP/PiPStyles";
 
 interface PiPRootProps {
@@ -19,6 +20,7 @@ interface PiPRootProps {
 }
 
 export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
+    const [retro, setRetro] = useState(false);
     const [showLyrics, setShowLyrics] = useState(false);
     const [size, setSize] = useState(() => ({
         width: pipWindow?.innerWidth ?? 320,
@@ -71,10 +73,16 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
     }, [pipWindow]);
 
     const layout = getPiPLayout(size.width, size.height);
+    const retroEligible =
+        size.width >= 220 &&
+        size.height >= 380 &&
+        size.height > size.width * 1.1;
+    const retroVisible = retro && retroEligible;
     return (
         <div
             className={[
                 "pip-root",
+                retroVisible ? "pip-is-retro" : "",
                 `pip-layout--${layout}`,
                 lyricsVisible ? "pip-has-lyrics" : "",
             ].join(" ")}
@@ -89,24 +97,42 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
             style={theme}
             data-pip-layout={layout}
         >
-            <PiPHeader pipWindow={pipWindow} />
-            <div className="pip-stage">
-                <PiPCover />
-                {lyricsVisible && <PiPLyrics {...lyrics} />}
-            </div>
-            <div className="pip-panel">
-                <PiPInfo>
-                    {lyricsVisible && <PiPLyrics {...lyrics} glance />}
-                </PiPInfo>
-                <PiPControls
-                    layout={layout}
-                    showLyrics={showLyrics && media?.type === "song"}
-                    onToggleLyrics={(): void =>
-                        setShowLyrics((previous) => !previous)
-                    }
+            <PiPHeader
+                pipWindow={pipWindow}
+                retro={retroVisible}
+                onToggleRetro={
+                    retroEligible
+                        ? () => setRetro((value) => !value)
+                        : undefined
+                }
+            />
+            {retroVisible ? (
+                <PiPRetro
+                    lyrics={lyrics}
+                    showLyrics={lyricsVisible}
+                    onToggleLyrics={() => setShowLyrics((value) => !value)}
                 />
-                <PiPProgress />
-            </div>
+            ) : (
+                <>
+                    <div className="pip-stage">
+                        <PiPCover />
+                        {lyricsVisible && <PiPLyrics {...lyrics} />}
+                    </div>
+                    <div className="pip-panel">
+                        <PiPInfo>
+                            {lyricsVisible && <PiPLyrics {...lyrics} glance />}
+                        </PiPInfo>
+                        <PiPControls
+                            layout={layout}
+                            showLyrics={showLyrics && media?.type === "song"}
+                            onToggleLyrics={(): void =>
+                                setShowLyrics((previous) => !previous)
+                            }
+                        />
+                        <PiPProgress />
+                    </div>
+                </>
+            )}
         </div>
     );
 }

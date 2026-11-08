@@ -1094,4 +1094,7 @@ export interface Vocabulary {
     PIP_SHOW_VINYL: string;
     PIP_SHOW_COVER: string;
     PIP_POSITION: string;
+    PIP_RETRO_MODE: string;
+    PIP_STANDARD_MODE: string;
+    PIP_RETRO_MENU: string;
 }

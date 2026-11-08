@@ -809,3 +809,27 @@ test("a stopped lifecycle cannot install late redownload metadata", async () => 
     assert.equal(await refresh, false);
     assert.notEqual(e.queue.currentMedia.provider, "Obsolete");
 });
+
+test("concurrent redownload refresh keeps the newest metadata and rejects unrelated identities", async () => {
+    const e = setup();
+    await e.queue.init();
+    const first = e.queue.refreshDownloadedMediaAsync("song0");
+    const old = e.take("getMediaAsync");
+    const second = e.queue.refreshDownloadedMediaAsync("song0");
+    const fresh = e.take("getMediaAsync");
+    fresh.resolve(ok({ media: { ...song("song0"), provider: "New" } }));
+    assert.equal(await second, true);
+    old.resolve(ok({ media: { ...song("song0"), provider: "Old" } }));
+    assert.equal(await first, false);
+    assert.equal(e.queue.currentMedia.provider, "New");
+    for (const invalid of [
+        song("wrong"),
+        { type: "album", publicId: "song0" },
+    ]) {
+        const pending = e.queue.refreshDownloadedMediaAsync("song0");
+        e.take("getMediaAsync").resolve(ok({ media: invalid }));
+        assert.equal(await pending, false);
+        assert.equal(e.queue.currentMedia.provider, "New");
+    }
+    e.queue.stop();
+});

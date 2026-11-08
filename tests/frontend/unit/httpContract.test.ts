@@ -74,9 +74,12 @@ describe("real generated HTTP contracts against the local backend", () => {
         expect(result.result.songs.map((song) => song.name)).toEqual([
             "Canción de prueba — Snow",
         ]);
+        expect(result.result.songs[0].explicit).toBe(true);
+        expect(result.result.songs[0].explicitSource).toBe("manual:review");
         const exclusive =
             await Client.searchLibrarySongsAsync("Playlist exclusive");
         if (!exclusive.isOk()) throw new Error(exclusive.message);
+        expect(exclusive.result.songs[0].explicit).toBeNull();
         expect(exclusive.result.songs.map((song) => song.publicId)).toEqual([
             "song-2",
         ]);

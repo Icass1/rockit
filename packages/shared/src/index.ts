@@ -127,3 +127,5 @@ export {
     notificationPageHref,
     unreadNotifications,
 } from "@/utils/notifications";
+
+export { redownloadMedia } from "@/utils/redownloadMedia";

@@ -1,7 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
-import { isSearchResult } from "@rockit/shared";
+import { isSearchResult, redownloadMedia } from "@rockit/shared";
 import { HardDriveDownload } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -17,19 +17,25 @@ export default function RedownloadAction({
         if (isSearchResult(media)) return;
         setLoading(true);
 
-        const res = await Http.deleteMediaFileAsync(media.publicId);
-        if (res.isOk()) {
-            rockIt.notificationManager.notifySuccess(vocabulary.DELETE_SUCCESS);
-            await rockIt.mediaManager.downloadMedia(media);
-        } else {
-            const detail =
-                typeof res.detail === "string"
-                    ? res.detail
-                    : vocabulary.DELETE_ERROR;
-            rockIt.notificationManager.notifyError(detail);
+        try {
+            const username = rockIt.userManager.sessionAtom.get()?.username;
+            await redownloadMedia(
+                Http,
+                media,
+                () =>
+                    !!username &&
+                    rockIt.userManager.sessionAtom.get()?.username === username
+            );
+            rockIt.notificationManager.notifySuccess(
+                vocabulary.DOWNLOAD_STARTED
+            );
+        } catch {
+            rockIt.notificationManager.notifyError(
+                vocabulary.ERROR_STARTING_DOWNLOAD
+            );
+        } finally {
+            setLoading(false);
         }
-
-        setLoading(false);
     };
 
     return (

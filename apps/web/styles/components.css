@@ -360,6 +360,8 @@ img {
 }
 
 .vinyl-black-center {
+    display: grid;
+    place-items: center;
     position: absolute;
     border-radius: 9999px;
     background: var(--theme-foreground-strong);
@@ -374,14 +376,11 @@ img {
 }
 
 .vinyl-black-dot {
-    position: absolute;
-    width: 5px;
-    height: 5px;
+    width: 45%;
+    height: 45%;
     border-radius: 9999px;
     background: var(--theme-backdrop);
     pointer-events: none;
-    inset: 0;
-    margin: auto;
 }
 
 /* ── Hero Coverflow ────────────────────────────

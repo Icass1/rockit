@@ -1,3 +1,5 @@
+import { designTokens } from "@rockit/theme";
+
 export const PIP_STYLES = `
 html.rockit-pip-document, .rockit-pip-document body {
     margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -6,6 +8,8 @@ html.rockit-pip-document, .rockit-pip-document body {
 }
 .rockit-pip-document .pip-root, .rockit-pip-document .pip-root * { box-sizing: border-box; }
 .rockit-pip-document .pip-root {
+    --lyrics-emphasis-scale: ${designTokens.layout.lyricsActiveScale};
+    --lyrics-transition: ${designTokens.motion.lyricsHighlight}ms;
     --pip-cover-color: var(--theme-media-accent);
     --pip-accent: color-mix(in srgb, var(--pip-cover-color) 40%, var(--theme-foreground-strong));
     --pip-hover: color-mix(in srgb, var(--pip-accent) 16%, transparent);
@@ -99,10 +103,13 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-lyric-glance { color: var(--pip-accent); font-size: 12px; line-height: 18px; }
 .rockit-pip-document .pip-lyrics-close { position: absolute; top: 6px; right: 6px; z-index: 21; background: color-mix(in srgb, var(--theme-foreground-strong) 9.412%, transparent); font-size: 24px; }
 .rockit-pip-document .pip-lyrics-overlay { position: relative; min-width: 0; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; }
-.rockit-pip-document .pip-lyrics-scroll { position: relative; width: 100%; height: 100%; overflow: auto; padding: 8px 0; }
-.rockit-pip-document .pip-lyrics-line { display: block; margin: 0; width: 100%; min-height: 32px; padding: 8px; text-align: center; overflow-wrap: anywhere; cursor: pointer; }
-.rockit-pip-document .pip-lyrics-line--past, .rockit-pip-document .pip-lyrics-line--future { color: var(--theme-muted-foreground); font-size: 12px; }
-.rockit-pip-document .pip-lyrics-line--current { color: var(--pip-accent); font-size: 16px; font-weight: 700; }
+.rockit-pip-document .pip-lyrics-scroll { position: relative; min-width:0; width: 100%; height: 100%; overflow-x:hidden; overflow-y:auto; padding: 8px 0; }
+.rockit-pip-document .pip-lyrics-line { display: block; margin: 0; width: 100%; min-height: 32px; padding: 8px; text-align: center; overflow-wrap: anywhere; white-space:normal; cursor: pointer; box-sizing:border-box;
+    font-size:calc(${designTokens.typography.caption}px * var(--lyrics-emphasis-scale));font-weight:600;line-height:1.65;
+    transform:scale(calc(1 / var(--lyrics-emphasis-scale)));transform-origin:center;
+    transition:transform var(--lyrics-transition) ease-in-out,color var(--lyrics-transition) ease-in-out; }
+.rockit-pip-document .pip-lyrics-line--past, .rockit-pip-document .pip-lyrics-line--future { color: var(--theme-muted-foreground); }
+.rockit-pip-document .pip-lyrics-line--current { color: var(--pip-accent); transform:scale(1); }
 .rockit-pip-document .pip-lyrics-line:hover { color: var(--pip-accent); background: var(--pip-hover); border-radius: 8px; }
 @media (max-height: 179px) { .rockit-pip-document .pip-layout--cover-only .pip-info { display: none; } }
 @media (hover: none) { .rockit-pip-document .pip-layout--cover-only .pip-panel { opacity: 1; pointer-events: auto; } }

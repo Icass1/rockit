@@ -869,3 +869,27 @@ img {
     left: 2.125rem;
     right: auto;
 }
+
+/* Layout always reserves the emphasized size; transforms never rewrap words. */
+.player-lyric-line {
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+    font-size: calc(var(--font-size-subtitle) * var(--lyrics-emphasis-scale));
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    transform-origin: left center;
+    transform: scale(calc(1 / var(--lyrics-emphasis-scale)));
+    transition:
+        transform var(--motion-lyricsHighlight) ease-in-out,
+        color var(--motion-lyricsHighlight) ease-in-out;
+}
+.player-lyric-line--current {
+    transform: scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+    .player-lyric-line {
+        transition: none;
+    }
+}

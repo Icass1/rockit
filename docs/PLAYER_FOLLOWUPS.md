@@ -79,3 +79,23 @@ The wheel center uses the existing RockIt! logo at 54% of the center button.
 CSS brightness/inversion flatten it to a uniform dark gray, with a subtle semantic
 highlight shadow for an engraved finish and no retained pink tint. It remains
 decorative inside the existing labelled play/pause button.
+
+## Calm lyric emphasis without reflow
+
+Player UI and PiP reserve each line at its maximum emphasized size before rendering.
+Inactive text is visually scaled down; active text grows to 125% of its normal
+appearance over 650ms. Font metrics, weight, available width and layout height do
+not change with activation, so words retain their exact line breaks. Panels constrain
+horizontal overflow, including long unbroken words, and do not intrude into artwork.
+
+Both views use the same 900ms auto-scroll hook with a frame clock and cancellation
+owned by their document window. Switching lines/unmounting cancels only that view;
+resize recenters within the actual scroll container. Reduced-motion users receive
+immediate emphasis/centering. Durations and scale are shared design tokens.
+
+Directed Chromium checks on real lyric components preserved all ten wrapped rows
+in the Player UI sample and eight in PiP, before and after activation. A 200ms sample
+confirmed intermediate scale (about 0.833), rather than an instant change; line layout
+heights stayed fixed and active text remained inside its panel. Two deterministic
+component tests verify independent cancellation and reduced-motion centering (33ms
+of test execution locally). Song/lyric timestamps and reviewed offsets are unchanged.

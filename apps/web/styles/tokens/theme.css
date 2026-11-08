@@ -93,6 +93,7 @@
     --theme-bookmark-previous-muted: #b35900;
     --theme-vinyl-body: #0d0d0d;
     --theme-vinyl-groove: #1c1c1c;
+    --lyrics-emphasis-scale: 1.25;
     --radius-none: 0px;
     --radius-xs: 2px;
     --radius-sm: 4px;
@@ -117,6 +118,8 @@
     --motion-fast: 150ms;
     --motion-normal: 250ms;
     --motion-slow: 400ms;
+    --motion-lyricsHighlight: 650ms;
+    --motion-lyricsScroll: 900ms;
 }
 
 @theme inline {

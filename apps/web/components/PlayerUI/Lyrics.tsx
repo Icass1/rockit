@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { BaseLyricsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { useLyricAutoScroll } from "@/hooks/useLyricAutoScroll";
 import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -15,7 +16,7 @@ export default function PlayerUILyrics(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
 
     return (
-        <div className="relative h-full w-full">
+        <div className="relative h-full min-h-0 w-full min-w-0">
             {lyricsTab === "STATIC" ? (
                 <Lyrics key={$currentMedia?.publicId}></Lyrics>
             ) : (
@@ -49,46 +50,15 @@ function Lyrics(): JSX.Element {
     return (
         <div className="scrollbar-none overflow-y-auto scroll-smooth pl-7">
             {lyrics?.lines.map((line, index) => (
-                <p key={index} className="px-4 py-2 text-lg">
+                <p
+                    key={index}
+                    className="max-w-full px-4 py-2 text-lg [overflow-wrap:anywhere]"
+                >
                     {line}
                 </p>
             ))}
         </div>
     );
-}
-
-let activeScrollRaf: number | null = null;
-
-function smoothScrollTo(
-    element: HTMLElement,
-    targetY: number,
-    duration: number = 600
-): void {
-    const startY = element.scrollTop;
-    const diff = targetY - startY;
-    if (Math.abs(diff) < 1) return;
-
-    if (activeScrollRaf !== null) {
-        cancelAnimationFrame(activeScrollRaf);
-        activeScrollRaf = null;
-    }
-
-    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
-    const startTime = performance.now();
-
-    const animate = (currentTime: number): void => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.max(Math.min(elapsed / duration, 1), 0);
-        element.scrollTop = startY + diff * easeOutCubic(progress);
-
-        if (progress < 1) {
-            activeScrollRaf = requestAnimationFrame(animate);
-        } else {
-            activeScrollRaf = null;
-        }
-    };
-
-    activeScrollRaf = requestAnimationFrame(animate);
 }
 
 function DynamicLyrics(): JSX.Element {
@@ -122,22 +92,10 @@ function DynamicLyrics(): JSX.Element {
 
     const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!containerRef.current) return;
-        const element = containerRef.current.querySelector(
-            `#dynamic-lyric-line-${currentIndex}`
-        ) as HTMLElement;
-        if (element) {
-            const container = containerRef.current;
-            const elementTop = element.offsetTop;
-            const elementHeight = element.offsetHeight;
-            const containerHeight = container.clientHeight;
-            const targetY =
-                elementTop + elementHeight / 2 - containerHeight / 2;
-
-            smoothScrollTo(container, targetY);
-        }
-    }, [currentIndex]);
+    useLyricAutoScroll(
+        containerRef,
+        currentIndex === null ? null : `[data-lyric-index="${currentIndex}"]`
+    );
 
     const goToLine = (index: number): void => {
         if (!lyrics) return;
@@ -163,7 +121,10 @@ function DynamicLyrics(): JSX.Element {
         return (
             <div className="scrollbar-none h-full overflow-y-auto pl-7">
                 {snapshot.data?.lines.map((line, index) => (
-                    <p key={index} className="px-4 py-2 text-lg">
+                    <p
+                        key={index}
+                        className="max-w-full px-4 py-2 text-lg [overflow-wrap:anywhere]"
+                    >
                         {line.text}
                     </p>
                 ))}
@@ -177,17 +138,26 @@ function DynamicLyrics(): JSX.Element {
     return (
         <div
             ref={containerRef}
-            className="scrollbar-none h-full w-full overflow-y-auto pb-24 pl-10"
+            className="player-lyrics-scroll scrollbar-none relative h-full min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto pb-24 pl-4"
         >
             {lyrics?.lines.map((line, index) => (
                 <p
                     onClick={() => goToLine(index)}
                     key={index}
-                    className={`cursor-pointer py-2 pr-8 pl-4 text-lg font-semibold text-balance transition-all duration-300 ${
+                    className={`player-lyric-line cursor-pointer px-4 py-2 font-semibold text-balance ${
                         currentIndex === index
-                            ? "text-foreground-strong origin-left scale-[1.25]"
+                            ? "player-lyric-line--current text-foreground-strong"
                             : "text-muted-foreground hover:text-foreground"
                     }`}
+                    data-lyric-index={index}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            goToLine(index);
+                        }
+                    }}
                     id={`dynamic-lyric-line-${index}`}
                 >
                     {line.text}

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type JSX } from "react";
+import { useMemo, useRef, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import type { PiPLyricsState } from "@/models/types/pip";
+import { useLyricAutoScroll } from "@/hooks/useLyricAutoScroll";
 import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
@@ -36,28 +37,12 @@ export function PiPLyrics({
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (glance || !scrollRef.current || currentLineIndex < 0) return;
-
-        const el = scrollRef.current.querySelector(
-            `[data-lyric-index="${currentLineIndex}"]`
-        ) as HTMLElement | null;
-        if (!el) return;
-
-        const container = scrollRef.current;
-        const elTop = el.offsetTop;
-        const elHeight = el.offsetHeight;
-        const containerHeight = container.clientHeight;
-        const targetY = elTop + elHeight / 2 - containerHeight / 2;
-
-        const reducedMotion = container.ownerDocument.defaultView?.matchMedia(
-            "(prefers-reduced-motion: reduce)"
-        ).matches;
-        container.scrollTo({
-            top: Math.max(0, targetY),
-            behavior: reducedMotion ? "auto" : "smooth",
-        });
-    }, [currentLineIndex, glance]);
+    useLyricAutoScroll(
+        scrollRef,
+        glance || currentLineIndex < 0
+            ? null
+            : `[data-lyric-index="${currentLineIndex}"]`
+    );
 
     const goToLine = (index: number): void => {
         const ts = syncedLines[index]?.timestamp_s;

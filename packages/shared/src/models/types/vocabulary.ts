@@ -1097,4 +1097,9 @@ export interface Vocabulary {
     PIP_RETRO_MODE: string;
     PIP_STANDARD_MODE: string;
     PIP_RETRO_MENU: string;
+    CONTENT_RATING_LABEL: string;
+    CONTENT_RATING_UNKNOWN: string;
+    CONTENT_RATING_EXPLICIT: string;
+    CONTENT_RATING_CLEAN: string;
+    CONTENT_RATING_REVIEW_HINT: string;
 }

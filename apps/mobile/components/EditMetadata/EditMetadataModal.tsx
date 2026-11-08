@@ -1,8 +1,11 @@
 import { useState } from "react";
 import {
+    CONTENT_RATING_OPTIONS,
+    getContentRatingValue,
     getMediaArtistsString,
     getMediaSubtitle,
     isSongWithAlbum,
+    type ContentRatingValue,
     type TMedia,
     type Vocabulary,
 } from "@rockit/shared";
@@ -148,6 +151,10 @@ export function EditMetadataModalContent({
     const [fields, setFields] = useState<FieldDef[]>(() =>
         getFieldsForMedia(media, vocabulary)
     );
+    const [rating, setRating] = useState<ContentRatingValue | null>(null);
+    const initialRating = getContentRatingValue(
+        media.type === "song" ? media : {}
+    );
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -170,6 +177,7 @@ export function EditMetadataModalContent({
             }
         }
 
+        if (rating !== null && media.type === "song") changes.explicit = rating;
         const mediaPublicId = media.publicId;
 
         const result = await Http.createRequest({
@@ -250,6 +258,42 @@ export function EditMetadataModalContent({
                 </View>
             ))}
 
+            {media.type === "song" && (
+                <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>
+                        {vocabulary.CONTENT_RATING_LABEL}
+                    </Text>
+                    <View
+                        accessibilityRole="radiogroup"
+                        style={styles.ratingOptions}
+                    >
+                        {CONTENT_RATING_OPTIONS.map((option) => (
+                            <Pressable
+                                key={option.value}
+                                accessibilityRole="radio"
+                                accessibilityState={{
+                                    checked:
+                                        (rating ?? initialRating) ===
+                                        option.value,
+                                }}
+                                onPress={() => setRating(option.value)}
+                                style={[
+                                    styles.ratingOption,
+                                    (rating ?? initialRating) ===
+                                        option.value && styles.ratingSelected,
+                                ]}
+                            >
+                                <Text style={styles.secondaryButtonText}>
+                                    {vocabulary[option.label]}
+                                </Text>
+                            </Pressable>
+                        ))}
+                    </View>
+                    <Text style={styles.successSubtitle}>
+                        {vocabulary.CONTENT_RATING_REVIEW_HINT}
+                    </Text>
+                </View>
+            )}
             {/* Comment */}
             <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>
@@ -417,6 +461,23 @@ const createStyles = (theme: DesignTheme) =>
             color: theme.legacy.gray400,
             fontSize: theme.typography.caption,
             marginTop: 2,
+        },
+        ratingOptions: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: theme.spacing.sm,
+            marginBottom: theme.spacing.sm,
+        },
+        ratingOption: {
+            borderWidth: 1,
+            borderColor: theme.colors["border"],
+            borderRadius: theme.radius.md,
+            padding: theme.spacing.md,
+            minHeight: 44,
+        },
+        ratingSelected: {
+            borderColor: theme.colors["primary"],
+            backgroundColor: theme.colors["muted"],
         },
         fieldGroup: {
             marginBottom: theme.spacing.md,

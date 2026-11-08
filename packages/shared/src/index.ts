@@ -129,3 +129,9 @@ export {
 } from "@/utils/notifications";
 
 export { redownloadMedia } from "@/utils/redownloadMedia";
+
+export {
+    CONTENT_RATING_OPTIONS,
+    getContentRatingValue,
+    type ContentRatingValue,
+} from "@/models/contentRating";

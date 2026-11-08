@@ -7,6 +7,7 @@ import {
 } from "@rockit/shared";
 import { MediaIdentity, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 interface MediaRowProps {
@@ -15,6 +16,7 @@ interface MediaRowProps {
 }
 
 function MediaRow({ media, rightElement }: MediaRowProps) {
+    const { vocabulary } = useVocabulary();
     const styles = useThemedStyles(createStyles);
     return (
         <MediaPressableWrapper
@@ -24,6 +26,12 @@ function MediaRow({ media, rightElement }: MediaRowProps) {
             <View style={styles.container}>
                 <MediaIdentity
                     title={media.name}
+                    explicit={
+                        media.type === "song" && !isSearchResult(media)
+                            ? media.explicit
+                            : null
+                    }
+                    explicitLabel={vocabulary.CONTENT_RATING_EXPLICIT}
                     subtitle={getMediaSubtitle(media)}
                     imageUrl={media.imageUrl}
                     round={media.type === "artist"}

@@ -11,7 +11,7 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { EMediaContextLocation } from "@rockit/shared";
-import { MediaArtwork } from "@rockit/ui";
+import { ExplicitBadge, MediaArtwork } from "@rockit/ui";
 import { CircleCheck, SquareCheck, SquareDashed } from "lucide-react";
 import type { TMediaWithSearch } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
@@ -262,6 +262,7 @@ export function SongRow({
     albumName?: string;
     location?: EMediaContextLocation;
 }): JSX.Element {
+    const $vocabulary = useVocabulary();
     const $song = useMedia(_song);
 
     const handlePlay = (): void => {
@@ -300,6 +301,10 @@ export function SongRow({
                             <p className="text-foreground-strong truncate font-medium">
                                 {$song.name}
                             </p>
+                            <ExplicitBadge
+                                explicit={$song.explicit}
+                                label={$vocabulary.CONTENT_RATING_EXPLICIT}
+                            />
                             <OfflineIndicator
                                 publicId={$song.publicId}
                                 className="h-5 w-5"

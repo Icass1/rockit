@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { EMediaContextLocation, isStation } from "@rockit/shared";
 import type { BaseStationResponse } from "@rockit/shared";
+import { ExplicitBadge } from "@rockit/ui";
 import { Ellipsis, Pause, PauseIcon, Play, PlayIcon } from "lucide-react";
 import {
     getMediaAlbum,
@@ -25,6 +26,7 @@ function FooterLeftForMedia({
 }: {
     currentMedia: TPlayableMedia;
 }): JSX.Element {
+    const vocabulary = useVocabulary();
     const { mediaPlayerManager, playerUIManager } = usePlaybackServices();
     const $playing = usePlaybackStore(mediaPlayerManager.playingAtom, false);
     const [offlineCover, setOfflineCover] = useState<{
@@ -86,6 +88,14 @@ function FooterLeftForMedia({
                             <span className="truncate">
                                 {currentMedia.name}
                             </span>
+                            <ExplicitBadge
+                                explicit={
+                                    currentMedia.type === "song"
+                                        ? currentMedia.explicit
+                                        : null
+                                }
+                                label={vocabulary.CONTENT_RATING_EXPLICIT}
+                            />
                             {/* <MediaContextMenu
                                 media={currentMedia}
                                 location={EMediaContextLocation.QUEUE}

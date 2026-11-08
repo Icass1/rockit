@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
 import { getTheme } from "@rockit/theme";
-import { ActionButton, DesignThemeProvider, MediaIdentity } from "@rockit/ui";
+import {
+    ActionButton,
+    DesignThemeProvider,
+    ExplicitBadge,
+    MediaIdentity,
+} from "@rockit/ui";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
@@ -53,4 +58,15 @@ it("exposes toggle state in the web accessibility tree and ignores disabled pres
     expect(button.getAttribute("aria-pressed")).toBe("false");
     fireEvent.click(button);
     expect(press).toHaveBeenCalledOnce();
+});
+
+it("shows an accessible explicit marker only for positive persisted evidence", () => {
+    const view = render(<ExplicitBadge explicit label="Explicit recording" />);
+    expect(screen.getByLabelText("Explicit recording").tagName).toBe("SPAN");
+    view.rerender(<ExplicitBadge explicit={null} label="Explicit recording" />);
+    expect(screen.queryByLabelText("Explicit recording")).toBeNull();
+    view.rerender(
+        <ExplicitBadge explicit={false} label="Explicit recording" />
+    );
+    expect(screen.queryByLabelText("Explicit recording")).toBeNull();
 });

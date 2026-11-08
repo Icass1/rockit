@@ -3,10 +3,13 @@
 import { useState, type JSX } from "react";
 import Image from "next/image";
 import {
+    CONTENT_RATING_OPTIONS,
+    getContentRatingValue,
     getMediaArtistsString,
     getMediaSubtitle,
     isSearchResult,
     isSongWithAlbum,
+    type ContentRatingValue,
     type TMediaWithSearch,
 } from "@rockit/shared";
 import { Loader2, X } from "lucide-react";
@@ -137,6 +140,10 @@ export default function EditMetadataModal({
     const [fields, setFields] = useState<FieldDef[]>(() =>
         getOtherFields(media)
     );
+    const [rating, setRating] = useState<ContentRatingValue | null>(null);
+    const initialRating = getContentRatingValue(
+        media.type === "song" && !isSearchResult(media) ? media : {}
+    );
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -162,7 +169,11 @@ export default function EditMetadataModal({
             }
         }
 
-        if (!mediaPublicId) return;
+        if (rating !== null && isSong) changes.explicit = rating;
+        if (!mediaPublicId) {
+            setSubmitting(false);
+            return;
+        }
 
         const result = await Http.createRequest({
             mediaPublicId,
@@ -274,11 +285,15 @@ export default function EditMetadataModal({
                     <div className="flex-1 space-y-3 overflow-y-auto">
                         {fields.map((field) => (
                             <div key={field.key}>
-                                <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
+                                <label
+                                    htmlFor={`metadata-${field.key}`}
+                                    className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase"
+                                >
                                     {$vocabulary[field.label]}
                                 </label>
                                 {field.type === "textarea" ? (
                                     <textarea
+                                        id={`metadata-${field.key}`}
                                         value={field.value}
                                         onChange={(e): void =>
                                             handleFieldChange(
@@ -291,6 +306,7 @@ export default function EditMetadataModal({
                                     />
                                 ) : (
                                     <input
+                                        id={`metadata-${field.key}`}
                                         type="text"
                                         value={field.value}
                                         onChange={(e): void =>
@@ -306,6 +322,38 @@ export default function EditMetadataModal({
                         ))}
 
                         {isSong && mediaPublicId && (
+                            <div>
+                                <label
+                                    htmlFor="metadata-content-rating"
+                                    className="text-muted-foreground mb-1 block text-xs font-medium"
+                                >
+                                    {$vocabulary.CONTENT_RATING_LABEL}
+                                </label>
+                                <select
+                                    id="metadata-content-rating"
+                                    value={rating ?? initialRating}
+                                    onChange={(e): void =>
+                                        setRating(
+                                            e.target.value as ContentRatingValue
+                                        )
+                                    }
+                                    className="border-border bg-muted text-foreground-strong focus:ring-primary w-full rounded-lg border px-3 py-2.5 text-sm"
+                                >
+                                    {CONTENT_RATING_OPTIONS.map((option) => (
+                                        <option
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {$vocabulary[option.label]}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-muted-foreground mt-1 text-xs">
+                                    {$vocabulary.CONTENT_RATING_REVIEW_HINT}
+                                </p>
+                            </div>
+                        )}
+                        {isSong && mediaPublicId && (
                             <LyricsCorrectionEditor
                                 key={mediaPublicId}
                                 mediaPublicId={mediaPublicId}
@@ -314,10 +362,14 @@ export default function EditMetadataModal({
 
                         {/* Comment */}
                         <div>
-                            <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
+                            <label
+                                htmlFor="metadata-comment"
+                                className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase"
+                            >
                                 {$vocabulary.EDIT_METADATA_COMMENT}
                             </label>
                             <textarea
+                                id="metadata-comment"
                                 value={comment}
                                 onChange={(e): void =>
                                     setComment(e.target.value)

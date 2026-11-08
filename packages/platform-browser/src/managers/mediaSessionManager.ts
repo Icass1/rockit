@@ -1,4 +1,5 @@
 import type { MediaSessionServices } from "@rockit/platform-browser/models/mediaSessionServices";
+import { isIOS } from "@rockit/platform-browser/utils/isIOS";
 import {
     getMediaAlbum,
     getMediaArtists,
@@ -33,10 +34,7 @@ export class MediaSessionManager {
     private _unsubscribers: (() => void)[] = [];
 
     private static _isiOS(): boolean {
-        return (
-            typeof navigator !== "undefined" &&
-            /iPad|iPhone|iPod/.test(navigator.userAgent ?? "")
-        );
+        return isIOS();
     }
 
     constructor(private readonly services: MediaSessionServices) {}
@@ -265,41 +263,13 @@ export class MediaSessionManager {
             /* not supported */
         }
 
-        if (MediaSessionManager._isiOS()) {
+        // Track navigation owns the transport controls on every browser target.
+        // Clear legacy relative-seek registrations; never install ±10s handlers.
+        for (const action of ["seekbackward", "seekforward"] as const) {
             try {
-                session.setActionHandler("seekbackward", null);
+                session.setActionHandler(action, null);
             } catch {
-                /* not supported */
-            }
-
-            try {
-                session.setActionHandler("seekforward", null);
-            } catch {
-                /* not supported */
-            }
-        } else {
-            try {
-                session.setActionHandler("seekbackward", (): void => {
-                    const time = this.services.mediaPlayerManager.currentTime;
-                    this.services.mediaPlayerManager.setCurrentTime(
-                        Math.max(0, time - 10),
-                        true
-                    );
-                });
-            } catch {
-                /* not supported */
-            }
-
-            try {
-                session.setActionHandler("seekforward", (): void => {
-                    const time = this.services.mediaPlayerManager.currentTime;
-                    this.services.mediaPlayerManager.setCurrentTime(
-                        time + 10,
-                        true
-                    );
-                });
-            } catch {
-                /* not supported */
+                /* unsupported */
             }
         }
 

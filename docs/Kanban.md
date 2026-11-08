@@ -8,6 +8,8 @@
 
 ## To Review
 
+PR191 completa las cuatro tareas siguientes sobre la rama de PR189. Detalles y capturas: docs/PLAYER_FOLLOWUPS.md. Pendientes de validación del usuario.
+
 ### [PIP] Pulsar en la cover / vinilo se pausa con al misma animacion que en el playerui
 
 - tags: [frontend, pip, vynil]
@@ -41,7 +43,7 @@
     ```md
     Corregido el rechazo de grabaciones cuyo catálogo acredita colaboradores ausentes en los metadatos de origen. Todos los artistas conocidos deben seguir presentes; coincidencia parcial, artistas ajenos, videoclips y versiones incompatibles siguen rechazados. Extracción y persistencia conservan todos los créditos de artista; enlaces por lotes e idempotentes también al recibir metadatos de canciones existentes. Regresión con los metadatos del log de Fever (Dua Lipa / Angèle), sin descargas ni cambios de almacenamiento. Pendiente de revisión del usuario. Ver docs/SONG_RECORDING_SELECTION.md.
 
-    Falta mostrar todos lso cpolaboradores en als cancioens de youtube music tanto men el album playlist como en el footer cuiando se reproduce la cancion
+    PR191: las tarjetas móviles y filas de artistas muestran todos los créditos suministrados; el parser de álbumes/artistas admite listas de nombres y objetos. Las respuestas conservan los créditos persistidos. No se inventan créditos históricos ausentes. Ver docs/PLAYER_FOLLOWUPS.md.
     ```
 
 

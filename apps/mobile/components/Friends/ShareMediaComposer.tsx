@@ -136,11 +136,14 @@ export default function ShareMediaComposer() {
             snapPoints: ["85%"],
             scrollable: false,
             onClose: () => {
-                if (sharingManager.composeMediaAtom.get() === publicId)
+                if (
+                    friendManager.scopeAtom.get() === scope &&
+                    sharingManager.composeMediaAtom.get() === publicId
+                )
                     sharingManager.closeComposer();
             },
         });
         return close;
-    }, [publicId, scope, sharingManager, open, close]);
+    }, [publicId, scope, friendManager, sharingManager, open, close]);
     return null;
 }

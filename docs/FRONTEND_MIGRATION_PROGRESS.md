@@ -52,7 +52,7 @@ Implementation is ready for review in PR #189. This is not a production cutover.
 Next production build and Expo web export pass; the mobile web source-map graph
 contains no desktop application or native first-party implementation sources.
 Workspace types, both application linters, theme generation and portable boundaries
-pass. All required GitHub jobs at the final functional commit `44ec20a7` are green:
+pass. All required GitHub jobs at the verified implementation commit `44ec20a7` are green:
 backend, TypeScript, frontend and the strict aggregate quality check.
 
 The final GitHub fast gate passed 294 tests in approximately 30.9 seconds: 25 Vitest,
@@ -184,3 +184,7 @@ the desktop shell change.
   header fade from the active background. Pagination, theme/logout and sharing
   passed against production Expo output. Final required CI status is recorded on
   the PR; installed-device rollout gates remain open.
+
+- Final lifecycle review: a dismissed share sheet checks its account scope before
+  clearing the composer, so an old account's close callback cannot clear a new
+  account's composer for the same media ID.

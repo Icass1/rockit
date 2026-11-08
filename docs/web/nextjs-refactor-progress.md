@@ -891,7 +891,7 @@ Workspace types and web/mobile lint pass, Next production build and Expo web exp
 pass, and source-map checks show no desktop/native first-party sources in mobile
 web. The final fast frontend gate passed 294 tests in approximately 30.9 seconds in
 GitHub Actions, including boundary and fixture types. Seven production Chromium
-flows also pass. All required jobs are green at the final functional commit
+flows also pass. All required jobs are green at the verified implementation commit
 `44ec20a7`; documentation-only commits retain the same implementation.
 
 The [migration progress](../FRONTEND_MIGRATION_PROGRESS.md),

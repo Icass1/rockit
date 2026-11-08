@@ -14,7 +14,7 @@ the existing desktop Node tests. It does not build Next or Expo, install browser
 start an emulator or contact external music providers. The local HTTP/WebSocket
 fixture binds an ephemeral loopback port and closes after its tests.
 
-The final functional commit `44ec20a7` passed this command in approximately
+The verified implementation commit `44ec20a7` passed this command in approximately
 30.9 seconds in GitHub Actions: 25 Vitest tests, 8 native Jest tests and 261 desktop
 tests (294 total), including boundary and fixture type checks. A previous GitHub
 run took 19.4 seconds and the consolidated local gate took 44.2 seconds before

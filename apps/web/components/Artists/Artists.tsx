@@ -16,12 +16,13 @@ export default function Artists({
 }): JSX.Element {
     return (
         <div
-            className={`flex flex-row flex-wrap justify-center gap-1 ${className || ""}`}
+            title={artists.map((artist) => artist.name).join(", ")}
+            className={`flex flex-row flex-nowrap justify-start gap-1 ${className || ""}`}
         >
             {artists.map((artist, index): JSX.Element => (
                 <div
                     key={artist.publicId || artist.name}
-                    className="flex min-w-0 flex-nowrap overflow-hidden"
+                    className="flex shrink-0 flex-nowrap"
                 >
                     {linkable ? (
                         <Link

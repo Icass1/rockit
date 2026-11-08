@@ -637,10 +637,7 @@ class YoutubeMusicApi:
                     if thumb_url is not None:
                         thumbnail = thumb_url
 
-                artists: list[str] = []
-                artists_val = entry_dict.get("artists")
-                if artists_val is not None:
-                    artists = [str(a.get("name", "")) for a in artists_val]
+                artists = _artist_names(info=entry_dict)
 
                 track_number_val = entry_dict.get("trackNumber")
                 track_number = int(track_number_val) if track_number_val is not None else i
@@ -723,10 +720,7 @@ class YoutubeMusicApi:
                     if thumb_url is not None:
                         thumbnail = thumb_url
 
-                artists: list[str] = []
-                artists_val = entry_dict.get("artists")
-                if artists_val is not None:
-                    artists = [str(a.get("name", "")) for a in artists_val]
+                artists = _artist_names(info=entry_dict)
 
                 album = ""
                 album_val = entry_dict.get("album")

@@ -55,7 +55,7 @@ const FeaturedCarouselCard = memo(function FeaturedCarouselCard({
                     {song.name}
                 </Text>
                 <Text style={styles.artistName} numberOfLines={1}>
-                    {song.artists[0]?.name}
+                    {song.artists.map((artist) => artist.name).join(", ")}
                 </Text>
             </View>
         </TouchableOpacity>

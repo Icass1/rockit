@@ -37,7 +37,7 @@ const SongCard = memo(function SongCard({
                     {song.name}
                 </Text>
                 <Text style={styles.artist} numberOfLines={1}>
-                    {song.artists[0]?.name}
+                    {song.artists.map((artist) => artist.name).join(", ")}
                 </Text>
             </MediaPressableWrapper>
         </Animated.View>

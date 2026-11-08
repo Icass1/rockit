@@ -1,7 +1,8 @@
 # Persisted content rating and download-refresh follow-up
 
-Stack: PR191 → `feat/explicit-metadata-redownload-refresh` → new follow-up PR.
-This file tracks implementation work, not completed acceptance.
+Stack: PR191 → `feat/explicit-metadata-redownload-refresh` → PR192.
+Implementation is complete; production backfill and user/device acceptance remain
+explicit follow-ups. Required CI is checked separately on the final commit.
 
 ## Required outcomes
 
@@ -27,7 +28,7 @@ This file tracks implementation work, not completed acceptance.
 - Manual decisions take precedence over automatic ingestion. Backfill is bounded,
   resumable/idempotent and does not download or rewrite audio/S3 objects.
 
-References to verify during implementation:
+References checked during implementation (details in CONTENT_RATINGS.md):
 https://developer.spotify.com/documentation/web-api/reference/get-track
 https://ytmusicapi.readthedocs.io/en/stable/reference/search.html
 https://ytmusicapi.readthedocs.io/en/stable/reference/browsing.html
@@ -35,13 +36,14 @@ https://ytmusicapi.readthedocs.io/en/stable/reference/browsing.html
 ## Implementation checklist
 
 - [x] Read current provider, downloader, queue, edit-request and persistence paths.
-- [ ] Reproduce queue/playlist refresh defect with controlled HTTP/WebSocket data.
+- [x] Reproduce stale mixed-queue metadata with controlled HTTP data; guard completed-download refresh.
 - [x] Implement identity-safe shared refresh, preserving duplicate queue occurrences.
 - [x] Add rating persistence and typed backend requests/responses.
 - [x] Interpret source evidence inside providers; ingest in downloader.
 - [x] Implement bounded existing-library backfill and reviewed manual edits.
-- [ ] Generate DTOs and vocabulary; display persisted explicit labels.
-- [ ] Add focused regressions, then one consolidated verification and final CI.
+- [x] Generate DTOs and vocabulary; display persisted explicit labels.
+- [x] Add focused backend, DOM/native, HTTP-contract and mixed-queue regressions.
+- [ ] Confirm required CI on the final published commit.
 
 Existing inspected behavior: Spotify raw DTOs contain explicit but do not persist
 it. Edit Metadata creates review proposals. A completed download dispatches a media
@@ -58,3 +60,16 @@ lists to NOT_FOUND instead of indexing an empty list. These are demonstrated
 refresh/robustness defects; they do not yet establish every cause of the reported
 production mixed-playlist failure. Focused checks: 25 queue tests and four empty-
 provider tests pass; desktop TypeScript passes. Full final gates remain pending.
+
+
+## Rating checkpoint
+
+Migration 5 adds nullable evidence, provenance and an atomic manual-override guard
+to core.media. Provider-owned source interpretation, downloader ingestion, bounded
+local/cache-only pages, optional remote CLI refresh and reviewed metadata choices
+are implemented. DTOs are generated; all new labels are in Vocabulary.xlsx for
+en/es/fr. Unknown-only PostgreSQL VALUES batches use typed Boolean NULLs.
+
+See CONTENT_RATINGS.md for the design, source references, operator commands,
+proven behavior and coverage limitations. No production scan or S3 operation was
+performed. Both Kanban cards are To Review pending the user's validation.

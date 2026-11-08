@@ -350,3 +350,14 @@ async def test_download_does_not_reclassify_reviewed_unknown(
     )
     assert result.is_ok()
     write.assert_not_awaited()
+
+
+async def test_unknown_only_batch_has_a_typed_boolean_null_for_postgres() -> None:
+    # A VALUES column containing only untyped NULL otherwise resolves to TEXT.
+    session = AsyncMock(spec=AsyncSession)
+    result = await ContentRatingAccess.record_batch_async(
+        session=session, evidence=[(12, None, "catalog")]
+    )
+    assert result.is_ok()
+    sql = str(session.execute.call_args.args[0].compile(dialect=postgresql.dialect()))
+    assert "CAST(NULL AS BOOLEAN)" in sql

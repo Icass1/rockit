@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Integer, String, column, func, select, update, values
+from sqlalchemy import Boolean, Integer, String, cast, column, func, select, update, values
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
@@ -63,7 +63,7 @@ class ContentRatingAccess:
             column("flag", Boolean),
             column("source", String),
             name="rating_evidence",
-        ).data(evidence)
+        ).data([(media_id, cast(flag, Boolean), source) for media_id, flag, source in evidence])
         await session.execute(
             update(CoreMediaRow)
             .where(

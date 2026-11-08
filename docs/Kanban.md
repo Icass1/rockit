@@ -4,18 +4,22 @@
 
 ## In Progress
 
+## Idle
+
+## To Review
+
 ### [METADATA] Detectar y guardar si una canción es explícita
 
 - tags: [backend, metadata, explicit, downloads]
 - priority: medium
 - workload: Hard
 - steps:
-    - [ ] Investigar cómo se identifica y marca una canción explícita y qué fuentes son fiables
-    - [ ] Diseñar un algoritmo fiable y evaluar su aplicación a las canciones ya descargadas de RockIt!
-    - [ ] Integrarlo en el downloader y persistir el resultado en BBDD para devolverlo con la información de la canción
-    - [ ] Permitir revisar y editar la marca en Edit Metadata
+    - [x] Investigar cómo se identifica y marca una canción explícita y qué fuentes son fiables
+    - [x] Diseñar un algoritmo fiable y evaluar su aplicación a las canciones ya descargadas de RockIt!
+    - [x] Integrarlo en el downloader y persistir el resultado en BBDD para devolverlo con la información de la canción
+    - [x] Permitir revisar y editar la marca en Edit Metadata
     ```md
-    Mostrar el símbolo de contenido explícito usando el dato persistido, sin consultar APIs externas cada vez que se muestra una canción. Investigar límites y falsos positivos; distinguir un resultado desconocido de una canción confirmada como no explícita. En desarrollo en PR192, sobre PR191.
+    Mostrar el símbolo de contenido explícito usando el dato persistido, sin consultar APIs externas cada vez que se muestra una canción. Investigar límites y falsos positivos; distinguir un resultado desconocido de una canción confirmada como no explícita. Implementado en PR192 sobre PR191: tres estados persistidos con procedencia, lectura local, backfill acotado y revisión de metadatos. Backfill de producción pendiente de ejecución deliberada; validación del usuario pendiente. Ver docs/CONTENT_RATINGS.md.
     ```
 
 ### [BUG] Provider desactualizado y posible fallo al redescargar en listas o colas combinadas
@@ -24,13 +28,10 @@
 - priority: high
 - workload: Normal
     ```md
-    Al redescargar una canción no se actualiza el provider mostrado. Posible crash cuando pertenece a una playlist o cola que combina providers; dentro de un álbum parece funcionar. Reproducir ambos escenarios y revisar la identidad/metadatos actualizados y su propagación a filas, cola y reproductor, sin perder el elemento seleccionado. Corrección en desarrollo en PR192, sobre PR191.
+    Al redescargar una canción no se actualiza el provider mostrado. Posible crash cuando pertenece a una playlist o cola que combina providers; dentro de un álbum parece funcionar. Reproducir ambos escenarios y revisar la identidad/metadatos actualizados y su propagación a filas, cola y reproductor, sin perder el elemento seleccionado. Implementado en PR192 sobre PR191: refresco compartido con identidad y sesión protegidas, preservando ocurrencias y reproducción; respuesta NOT_FOUND ante listas vacías del provider. Regresiones con cola mixta y respuestas concurrentes. Pendiente de validación del usuario con su playlist; no se atribuyen todos los posibles crashes de producción a una única causa.
     ```
 
 
-## Idle
-
-## To Review
 
 ### [PIP] Modo retro RockIt! y eje de vinilo centrado
 

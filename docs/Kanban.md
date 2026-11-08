@@ -2,6 +2,29 @@
 
 ## To Do
 
+### [METADATA] Detectar y guardar si una canción es explícita
+
+- tags: [backend, metadata, explicit, downloads]
+- priority: medium
+- workload: Hard
+- steps:
+    - [ ] Investigar cómo se identifica y marca una canción explícita y qué fuentes son fiables
+    - [ ] Diseñar un algoritmo fiable y evaluar su aplicación a las canciones ya descargadas de RockIt!
+    - [ ] Integrarlo en el downloader y persistir el resultado en BBDD para devolverlo con la información de la canción
+    - [ ] Permitir revisar y editar la marca en Edit Metadata
+    ```md
+    Mostrar el símbolo de contenido explícito usando el dato persistido, sin consultar APIs externas cada vez que se muestra una canción. Investigar límites y falsos positivos; distinguir un resultado desconocido de una canción confirmada como no explícita. Tarea pendiente: no implementada en PR191.
+    ```
+
+### [BUG] Provider desactualizado y posible fallo al redescargar en listas o colas combinadas
+
+- tags: [frontend, backend, downloads, playlists, queue, providers, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Al redescargar una canción no se actualiza el provider mostrado. Posible crash cuando pertenece a una playlist o cola que combina providers; dentro de un álbum parece funcionar. Reproducir ambos escenarios y revisar la identidad/metadatos actualizados y su propagación a filas, cola y reproductor, sin perder el elemento seleccionado. Tarea pendiente: investigar y corregir después; no implementada en PR191.
+    ```
+
 ## In Progress
 
 ## Idle

@@ -167,6 +167,26 @@ export {
     type CompleteChunkedUploadRequest,
 } from "./completeChunkedUploadRequest";
 export {
+    ContentRatingBackfillRequestSchema,
+    type ContentRatingBackfillRequest,
+} from "./contentRatingBackfillRequest";
+export {
+    ContentRatingBackfillResponseSchema,
+    type ContentRatingBackfillResponse,
+} from "./contentRatingBackfillResponse";
+export {
+    ContentRatingLookupRequestSchema,
+    type ContentRatingLookupRequest,
+} from "./contentRatingLookupRequest";
+export {
+    ContentRatingLookupResponseSchema,
+    type ContentRatingLookupResponse,
+} from "./contentRatingLookupResponse";
+export {
+    ContentRatingResponseSchema,
+    type ContentRatingResponse,
+} from "./contentRatingResponse";
+export {
     CreateBookmarkRequestSchema,
     type CreateBookmarkRequest,
 } from "./createBookmarkRequest";
@@ -768,6 +788,10 @@ export {
     UpdateBookmarkRequestSchema,
     type UpdateBookmarkRequest,
 } from "./updateBookmarkRequest";
+export {
+    UpdateContentRatingRequestSchema,
+    type UpdateContentRatingRequest,
+} from "./updateContentRatingRequest";
 export {
     UpdateCrossfadeRequestSchema,
     type UpdateCrossfadeRequest,

@@ -27,6 +27,7 @@ from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.enums.skipDirectionEnum import SkipDirectionEnum
 from core.framework import providers
+from core.framework.contentRating import ContentRatings
 from core.framework.models.queue import QueueItem
 from core.framework.models.queueTask import (
     LibraryTask,
@@ -139,10 +140,9 @@ class User:
                     return Result(code=response.code(), message=response.message())
                 medias.update({media.publicId: media for media in response.result()})
 
-        return Result(
-            code=ResultCode.OK,
-            message="OK",
-            result=QueueResponse(
+        return await ContentRatings.enrich_async(
+            session=session,
+            response=QueueResponse(
                 currentQueueMediaId=current_queue_id,
                 queueType=queue_type,
                 offset=page_offset,

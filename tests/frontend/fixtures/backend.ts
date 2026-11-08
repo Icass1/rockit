@@ -43,7 +43,7 @@ export async function createFixtureBackend(port = 0) {
     let theme = "dark";
     let lang = "en";
     let volume = 1;
-    const artist = {
+    const artist: dto.BaseArtistResponse = {
         type: "artist",
         provider: "Fixture",
         publicId: "artist-1",
@@ -53,7 +53,7 @@ export async function createFixtureBackend(port = 0) {
         imageUrl: "",
         dominantColor: "",
     };
-    const album = {
+    const album: dto.BaseAlbumWithoutSongsResponse = {
         type: "album",
         provider: "Fixture",
         publicId: "album-1",
@@ -66,10 +66,12 @@ export async function createFixtureBackend(port = 0) {
         dominantColor: "",
         undownloadedCount: 0,
     };
-    const song = {
+    const song: dto.BaseSongWithAlbumResponse = {
         type: "song",
         provider: "Fixture",
         publicId: "song-1",
+        explicit: true,
+        explicitSource: "manual:review",
         providerUrl: "",
         name: "Canción de prueba — Snow",
         artists: [artist],
@@ -98,6 +100,8 @@ export async function createFixtureBackend(port = 0) {
     const playlistSong = {
         ...song,
         publicId: "song-2",
+        explicit: null,
+        explicitSource: null,
         name: "Playlist exclusive",
     };
     let queue: dto.QueueResponseItem[] = [];

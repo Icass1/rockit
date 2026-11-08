@@ -1,5 +1,10 @@
 import { getTheme } from "@rockit/theme";
-import { DesignThemeProvider, MediaArtwork, MediaIdentity } from "@rockit/ui";
+import {
+    DesignThemeProvider,
+    ExplicitBadge,
+    MediaArtwork,
+    MediaIdentity,
+} from "@rockit/ui";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
 it("uses the native renderer and updates semantic colors without changing media content", async () => {
@@ -66,4 +71,15 @@ it("exposes selected and disabled actions through the native accessibility tree"
     });
     await fireEvent.press(button);
     expect(press).not.toHaveBeenCalled();
+});
+
+it("renders the explicit marker through native Text and excludes unknown evidence", async () => {
+    const view = await render(
+        <ExplicitBadge explicit label="Explicit recording" />
+    );
+    expect(view.getByLabelText("Explicit recording")).toBeTruthy();
+    await view.rerender(
+        <ExplicitBadge explicit={null} label="Explicit recording" />
+    );
+    expect(view.queryByLabelText("Explicit recording")).toBeNull();
 });

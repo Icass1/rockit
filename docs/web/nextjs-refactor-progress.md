@@ -928,3 +928,29 @@ samples within one line show zero artwork/lyric rerenders after optimization
 Three focused component tests, desktop/fixture types and affected-module lint pass.
 This is not a device CPU/battery/FPS claim; see docs/PLAYER_FOLLOWUPS.md for limits.
 The two new explicit-metadata and mixed-provider redownload tasks are To Do only.
+
+
+## Persisted ratings and mixed-queue refresh — PR192
+
+Stacked on PR191. Shared queue and collection-tree refresh update recording
+metadata after redownload while preserving queue occurrence IDs, selection and
+current audio. Concurrent, late, wrong-identity and non-playable replies are
+rejected. Empty backend provider results return NOT_FOUND.
+
+Web and mobile Edit Metadata use the same three-state rating choices and vocabulary.
+A small platform-selected explicit badge uses the shared theme; DOM renders a span
+and native renders Text. Backend responses read persisted evidence in batches;
+showing badges does not query external catalogs. Controlled HTTP, renderer and
+queue tests pass. No production backfill or physical-device acceptance is claimed.
+Design, operations and limitations: ../CONTENT_RATINGS.md.
+
+
+## Auxiliary-document PiP artwork transitions — PR192
+
+Reproduced the stale-vinyl cover with the opener RAF frozen in Chromium. PiP
+artwork swaps now run as CSS animations in the auxiliary document, with a bounded
+outgoing/current pair, eager visible artwork and reduced-motion cleanup. The
+shared artwork-identity policy preserves same-album discs. Desktop Framer Motion
+and audio ownership/controls are unchanged. Three focused component tests and a
+controlled before/after browser check pass; Vivaldi minimization remains user
+acceptance. See ../PLAYER_FOLLOWUPS.md for evidence and limits.

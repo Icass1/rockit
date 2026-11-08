@@ -6,6 +6,8 @@ import { BaseArtistResponseSchema } from "./baseArtistResponse";
 
 export const BaseSongWithoutAlbumResponseSchema = z.object({
     type: z.union([z.literal("song")]).default("song"),
+    explicit: z.boolean().nullable(),
+    explicitSource: z.string().nullable(),
     provider: z.string(),
     publicId: z.string(),
     providerUrl: z.string(),

@@ -6,8 +6,8 @@ import { useStore } from "@nanostores/react";
 import { getMediaVideoUrl } from "@rockit/shared";
 import { useReducedMotion } from "framer-motion";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { PiPArtworkTransition } from "@/components/PiP/PiPArtworkTransition";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
-import VinylTransition from "@/components/PlayerUI/VinylTransition";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function PiPVideo({
@@ -89,21 +89,29 @@ export function PiPCover(): JSX.Element {
                 <PiPVideo videoUrl={videoUrl} cover={cover} playing={playing} />
             ) : vinylMode && media?.type === "song" ? (
                 <div className="pip-vinyl" data-testid="pip-vinyl">
-                    <VinylTransition
+                    <PiPArtworkTransition
                         media={media}
+                        cover={cover}
+                        reducedMotion={!!reducedMotion}
                         direction={rockIt.queueManager.lastNavigationDirection}
                     >
-                        <VinylRecord
-                            imageUrl={cover}
-                            name={media.name}
-                            artists={media.artists}
-                            isPlaying={playing && !reducedMotion}
-                        />
-                    </VinylTransition>
+                        {(snapshot, image) =>
+                            snapshot.type === "song" ? (
+                                <VinylRecord
+                                    imageUrl={image}
+                                    name={snapshot.name}
+                                    artists={snapshot.artists}
+                                    isPlaying={playing && !reducedMotion}
+                                    eager
+                                />
+                            ) : null
+                        }
+                    </PiPArtworkTransition>
                 </div>
             ) : (
                 <Image
                     src={cover}
+                    loading="eager"
                     alt={media?.name ?? vocabulary.SONG}
                     width={1200}
                     height={1200}

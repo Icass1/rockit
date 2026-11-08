@@ -192,6 +192,8 @@ async def get_track_response_async(
         code=ResultCode.OK,
         message="OK",
         result=SpotifyTrackResponse(
+            explicit=track_row.core_song.is_explicit,
+            explicitSource=track_row.core_song.explicit_source,
             provider=provider_name,
             publicId=public_id,
             providerUrl=f"https://open.spotify.com/track/{track_row.spotify_id}",
@@ -295,6 +297,8 @@ async def get_album_with_songs_response_async(
 
         song_responses.append(
             BaseSongWithoutAlbumResponse(
+                explicit=track_row.core_song.is_explicit,
+                explicitSource=track_row.core_song.explicit_source,
                 provider=provider_name,
                 publicId=track_public_id,
                 providerUrl=f"https://open.spotify.com/track/{track_row.spotify_id}",
@@ -428,6 +432,8 @@ async def get_playlist_with_medias_response_async(
         song_responses.append(
             PlaylistResponseItem(
                 item=BaseSongWithAlbumResponse(
+                    explicit=track_response.explicit,
+                    explicitSource=track_response.explicitSource,
                     provider=track_response.provider,
                     publicId=track_response.publicId,
                     providerUrl=track_response.providerUrl,
@@ -612,6 +618,8 @@ async def get_tracks_responses_async(
 
             responses.append(
                 SpotifyTrackResponse(
+                    explicit=track_row.core_song.is_explicit,
+                    explicitSource=track_row.core_song.explicit_source,
                     provider=provider_name,
                     publicId=track_row.core_song.public_id,
                     providerUrl=f"https://open.spotify.com/track/{track_row.spotify_id}",
@@ -855,6 +863,8 @@ async def get_albums_with_songs_responses_async(
 
                 song_responses.append(
                     BaseSongWithoutAlbumResponse(
+                        explicit=track.core_song.is_explicit,
+                        explicitSource=track.core_song.explicit_source,
                         provider=provider_name,
                         publicId=track.core_song.public_id,
                         providerUrl=f"https://open.spotify.com/track/{track.spotify_id}",

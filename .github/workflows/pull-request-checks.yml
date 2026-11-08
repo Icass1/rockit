@@ -6,6 +6,7 @@ on:
             - develop
             - main
             - docs/frontend-platform-architecture
+            - feat/player-kanban-followups
 
 permissions:
     contents: read
@@ -159,7 +160,6 @@ jobs:
 
             - name: Verify formatting made no changes
               run: git diff --exit-code
-
 
     frontend:
         name: Frontend contracts and component tests

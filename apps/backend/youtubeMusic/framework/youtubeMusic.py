@@ -564,6 +564,8 @@ class YoutubeMusic:
             )
 
             response = YoutubeMusicTrackResponse(
+                explicit=db_track.core_song.is_explicit,
+                explicitSource=db_track.core_song.explicit_source,
                 provider=YoutubeMusic.provider_name,
                 youtubeId=db_track.youtube_id,
                 publicId=public_id,
@@ -1192,6 +1194,8 @@ class YoutubeMusic:
             song_responses.append(
                 PlaylistResponseItem(
                     item=BaseSongWithAlbumResponse(
+                        explicit=track.explicit,
+                        explicitSource=track.explicitSource,
                         provider=track.provider,
                         publicId=track.publicId,
                         providerUrl=track.providerUrl,
@@ -1443,6 +1447,8 @@ class YoutubeMusic:
         )
 
         response = YoutubeMusicTrackResponse(
+            explicit=db_track.core_song.is_explicit,
+            explicitSource=db_track.core_song.explicit_source,
             provider=YoutubeMusic.provider_name,
             publicId=public_id,
             providerUrl=f"https://music.youtube.com/watch?v={db_track.youtube_id}",
@@ -1551,6 +1557,8 @@ class YoutubeMusic:
 
                 songs_list.append(
                     YoutubeMusicTrackResponse(
+                        explicit=track.core_song.is_explicit,
+                        explicitSource=track.core_song.explicit_source,
                         provider=YoutubeMusic.provider_name,
                         publicId=core_track.public_id,
                         providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
@@ -1667,6 +1675,8 @@ class YoutubeMusic:
 
                 top_songs.append(
                     YoutubeMusicTrackResponse(
+                        explicit=track.core_song.is_explicit,
+                        explicitSource=track.core_song.explicit_source,
                         provider=YoutubeMusic.provider_name,
                         publicId=core_track.public_id,
                         providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
@@ -1806,6 +1816,8 @@ class YoutubeMusic:
             )
 
             track_by_public_id[db_track.core_song.public_id] = YoutubeMusicTrackResponse(
+                explicit=db_track.core_song.is_explicit,
+                explicitSource=db_track.core_song.explicit_source,
                 provider=YoutubeMusic.provider_name,
                 publicId=db_track.core_song.public_id,
                 providerUrl=f"https://music.youtube.com/watch?v={db_track.youtube_id}",
@@ -1952,6 +1964,8 @@ class YoutubeMusic:
 
                 songs_list.append(
                     YoutubeMusicTrackResponse(
+                        explicit=track.core_song.is_explicit,
+                        explicitSource=track.core_song.explicit_source,
                         provider=YoutubeMusic.provider_name,
                         publicId=track.core_song.public_id,
                         providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",

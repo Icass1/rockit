@@ -1,5 +1,6 @@
 "use client";
 
+import { ExplicitBadge } from "@rockit/ui/primitives/ExplicitBadge";
 import { MediaArtwork } from "@rockit/ui/primitives/MediaArtwork";
 import { Text, View } from "@rockit/ui/runtime";
 import { useDesignTheme } from "@rockit/ui/theme";
@@ -11,6 +12,8 @@ export function MediaIdentity({
     imageLabel,
     fallbackUri,
     round = false,
+    explicit,
+    explicitLabel,
 }: {
     title: string;
     subtitle?: string;
@@ -18,6 +21,8 @@ export function MediaIdentity({
     imageLabel?: string;
     fallbackUri?: string;
     round?: boolean;
+    explicit?: boolean | null;
+    explicitLabel?: string;
 }) {
     const theme = useDesignTheme();
     return (
@@ -37,16 +42,31 @@ export function MediaIdentity({
                 round={round}
             />
             <View style={{ flex: 1, minWidth: 0 }}>
-                <Text
-                    numberOfLines={1}
+                <View
                     style={{
-                        color: theme.colors["foreground-strong"],
-                        fontSize: theme.typography.body,
-                        fontWeight: "500",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: theme.spacing.xs,
                     }}
                 >
-                    {title}
-                </Text>
+                    <Text
+                        numberOfLines={1}
+                        style={{
+                            color: theme.colors["foreground-strong"],
+                            fontSize: theme.typography.body,
+                            fontWeight: "500",
+                            flexShrink: 1,
+                        }}
+                    >
+                        {title}
+                    </Text>
+                    {explicitLabel && (
+                        <ExplicitBadge
+                            explicit={explicit}
+                            label={explicitLabel}
+                        />
+                    )}
+                </View>
                 <Text
                     numberOfLines={1}
                     style={{

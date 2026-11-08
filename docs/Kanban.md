@@ -2,18 +2,34 @@
 
 ## To Do
 
+## In Progress
+
+## Idle
+
+## To Review
+
+### [PIP] Actualizar carátula del vinilo con la ventana principal en segundo plano
+
+- tags: [frontend, pip, vinyl, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Al cambiar de álbum/artista, el vinilo del PiP conserva la portada anterior hasta enfocar la ventana principal. Colores, letras e información sí cambian. Corregido en PR192 sobre PR191: transición CSS del documento PiP, portada visible con carga inmediata y hasta dos discos durante 400 ms; se conserva la rotación y los controles. Reproducido antes/después en Chromium con el RAF de la ventana principal detenido. Tres regresiones rápidas para documento auxiliar, cambios rápidos y movimiento reducido. Pendiente de validación del usuario en Vivaldi minimizado.
+    ```
+
+
 ### [METADATA] Detectar y guardar si una canción es explícita
 
 - tags: [backend, metadata, explicit, downloads]
 - priority: medium
 - workload: Hard
 - steps:
-    - [ ] Investigar cómo se identifica y marca una canción explícita y qué fuentes son fiables
-    - [ ] Diseñar un algoritmo fiable y evaluar su aplicación a las canciones ya descargadas de RockIt!
-    - [ ] Integrarlo en el downloader y persistir el resultado en BBDD para devolverlo con la información de la canción
-    - [ ] Permitir revisar y editar la marca en Edit Metadata
+    - [x] Investigar cómo se identifica y marca una canción explícita y qué fuentes son fiables
+    - [x] Diseñar un algoritmo fiable y evaluar su aplicación a las canciones ya descargadas de RockIt!
+    - [x] Integrarlo en el downloader y persistir el resultado en BBDD para devolverlo con la información de la canción
+    - [x] Permitir revisar y editar la marca en Edit Metadata
     ```md
-    Mostrar el símbolo de contenido explícito usando el dato persistido, sin consultar APIs externas cada vez que se muestra una canción. Investigar límites y falsos positivos; distinguir un resultado desconocido de una canción confirmada como no explícita. Tarea pendiente: no implementada en PR191.
+    Mostrar el símbolo de contenido explícito usando el dato persistido, sin consultar APIs externas cada vez que se muestra una canción. Investigar límites y falsos positivos; distinguir un resultado desconocido de una canción confirmada como no explícita. Implementado en PR192 sobre PR191: tres estados persistidos con procedencia, lectura local, backfill acotado y revisión de metadatos. Backfill de producción pendiente de ejecución deliberada; validación del usuario pendiente. Ver docs/CONTENT_RATINGS.md.
     ```
 
 ### [BUG] Provider desactualizado y posible fallo al redescargar en listas o colas combinadas
@@ -22,14 +38,10 @@
 - priority: high
 - workload: Normal
     ```md
-    Al redescargar una canción no se actualiza el provider mostrado. Posible crash cuando pertenece a una playlist o cola que combina providers; dentro de un álbum parece funcionar. Reproducir ambos escenarios y revisar la identidad/metadatos actualizados y su propagación a filas, cola y reproductor, sin perder el elemento seleccionado. Tarea pendiente: investigar y corregir después; no implementada en PR191.
+    Al redescargar una canción no se actualiza el provider mostrado. Posible crash cuando pertenece a una playlist o cola que combina providers; dentro de un álbum parece funcionar. Reproducir ambos escenarios y revisar la identidad/metadatos actualizados y su propagación a filas, cola y reproductor, sin perder el elemento seleccionado. Implementado en PR192 sobre PR191: refresco compartido con identidad y sesión protegidas, preservando ocurrencias y reproducción; respuesta NOT_FOUND ante listas vacías del provider. Regresiones con cola mixta y respuestas concurrentes. Pendiente de validación del usuario con su playlist; no se atribuyen todos los posibles crashes de producción a una única causa.
     ```
 
-## In Progress
 
-## Idle
-
-## To Review
 
 ### [PIP] Modo retro RockIt! y eje de vinilo centrado
 

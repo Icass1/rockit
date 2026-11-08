@@ -3,6 +3,7 @@
 import { JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
+import { ExplicitBadge } from "@rockit/ui";
 import { GripVertical, Pause, Play } from "lucide-react";
 import { QueueItem } from "@/models/interfaces/queue";
 import {
@@ -14,6 +15,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Artists from "@/components/Artists/Artists";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export function QueueMedia({
@@ -23,6 +25,7 @@ export function QueueMedia({
     media: QueueItem;
     onClick?: () => void;
 }): JSX.Element {
+    const vocabulary = useVocabulary();
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );
@@ -87,6 +90,14 @@ export function QueueMedia({
                     <p className="text-foreground-strong truncate text-base font-semibold">
                         {media.media.name}
                     </p>
+                    <ExplicitBadge
+                        explicit={
+                            media.media.type === "song"
+                                ? media.media.explicit
+                                : null
+                        }
+                        label={vocabulary.CONTENT_RATING_EXPLICIT}
+                    />
                     {"publicId" in media.media && (
                         <OfflineIndicator
                             publicId={media.media.publicId}

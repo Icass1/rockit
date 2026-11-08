@@ -6,6 +6,10 @@
     "exports": {
         ".": "./src/index.ts",
         "./theme": "./src/theme.tsx",
+        "./primitives/ExplicitBadge": {
+            "react-native": "./src/primitives/ExplicitBadge.native.tsx",
+            "default": "./src/primitives/ExplicitBadge.tsx"
+        },
         "./primitives/*": "./src/primitives/*.tsx",
         "./headless/*": "./src/headless/*.ts",
         "./runtime": {

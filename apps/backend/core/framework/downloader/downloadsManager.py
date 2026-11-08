@@ -10,6 +10,7 @@ from core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from core.access.downloadAccess import DownloadAccess
 from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.framework import providers
+from core.framework.contentRating import ContentRatings
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.ongoingDownload import OngoingDownload
 from core.framework.notification import Notification
@@ -152,6 +153,15 @@ class DownloadsManager:
                         async with sem:
                             async with db_context.session_scope_async() as session:
                                 a_result: ResultCode = await d.download_method_async(session)
+                                if a_result.is_ok():
+                                    rating = await ContentRatings.ingest_download_async(
+                                        session=session, public_id=d.public_id
+                                    )
+                                    if rating.is_not_ok():
+                                        logger.error(
+                                            "Content rating persistence failed: %s", rating.info()
+                                        )
+                                        a_result = rating
 
                                 if a_result.is_not_ok() and a_result.is_retryable():
                                     a_result_retry = await DownloadAccess.increment_retry_count(

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.librarySearchAccess import LibrarySearchAccess
 from core.framework import providers
+from core.framework.contentRating import ContentRatings
 from core.models.librarySongSearch import LibrarySongSort
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.librarySongSearchResponse import LibrarySongSearchResponse
@@ -48,10 +49,9 @@ class LibrarySearch:
         if any(record.public_id not in songs for record in records):
             logger.error("Library search page could not be fully hydrated")
             return Result(code=ResultCode.GENERAL_ERROR, message="Song metadata unavailable")
-        return Result(
-            code=ResultCode.OK,
-            message="OK",
-            result=LibrarySongSearchResponse(
+        return await ContentRatings.enrich_async(
+            session=session,
+            response=LibrarySongSearchResponse(
                 songs=[songs[record.public_id] for record in records],
                 total=total,
                 offset=offset,

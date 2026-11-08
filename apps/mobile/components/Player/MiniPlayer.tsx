@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { getMediaArtistsString } from "@rockit/shared";
 import { designTokens, withAlpha } from "@rockit/theme";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    ExplicitBadge,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
 import { Pause, Play, SkipForward } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -113,9 +118,25 @@ export default function MiniPlayer() {
                     <Text style={styles.title} numberOfLines={1}>
                         {currentMedia.name}
                     </Text>
-                    <Text style={styles.artist} numberOfLines={1}>
-                        {getMediaArtistsString(currentMedia)}
-                    </Text>
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: theme.spacing.xs,
+                        }}
+                    >
+                        <ExplicitBadge
+                            explicit={
+                                currentMedia.type === "song"
+                                    ? currentMedia.explicit
+                                    : null
+                            }
+                            label={vocabulary.CONTENT_RATING_EXPLICIT}
+                        />
+                        <Text style={styles.artist} numberOfLines={1}>
+                            {getMediaArtistsString(currentMedia)}
+                        </Text>
+                    </View>
                 </View>
 
                 {/* Play / Pause */}

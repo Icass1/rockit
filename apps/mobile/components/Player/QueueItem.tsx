@@ -6,13 +6,19 @@ import {
     type TQueueMedia,
 } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    ExplicitBadge,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
 import { Menu, Trash2 } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useMediaOffline } from "@/hooks/useMediaOffline";
 import { syncManager } from "@/lib/syncManager";
+import { useVocabulary } from "@/lib/vocabulary";
 
 /** Width of the swipe-to-delete action revealed behind a queue row. */
 const DELETE_WIDTH = 80;
@@ -37,6 +43,7 @@ export default function QueueItem({
     onDelete,
     onPlay,
 }: QueueItemProps) {
+    const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const swipeableRef = useRef<Swipeable>(null);
@@ -117,15 +124,29 @@ export default function QueueItem({
                     >
                         {media.name}
                     </Text>
-                    <Text
-                        style={[
-                            styles.artist,
-                            isNotDownloaded && styles.artistNotDownloaded,
-                        ]}
-                        numberOfLines={1}
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: theme.spacing.xs,
+                        }}
                     >
-                        {getMediaArtistsString(media)}
-                    </Text>
+                        <ExplicitBadge
+                            explicit={
+                                media.type === "song" ? media.explicit : null
+                            }
+                            label={vocabulary.CONTENT_RATING_EXPLICIT}
+                        />
+                        <Text
+                            style={[
+                                styles.artist,
+                                isNotDownloaded && styles.artistNotDownloaded,
+                            ]}
+                            numberOfLines={1}
+                        >
+                            {getMediaArtistsString(media)}
+                        </Text>
+                    </View>
                 </View>
 
                 {/* Drag handle — only active when drag prop is provided */}

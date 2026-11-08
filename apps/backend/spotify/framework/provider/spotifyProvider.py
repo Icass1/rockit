@@ -65,6 +65,38 @@ SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyProvider(BaseMediaProvider):
+    async def get_content_rating_evidence_async(
+        self, session: AsyncSession, public_ids: list[str], allow_remote: bool = False
+    ) -> Result[dict[str, bool | None]]:
+        from spotify.framework.spotifyApi import spotify_api
+        from spotify.framework.spotifyCache import SpotifyCache
+
+        mapping = await SpotifyAccess.get_tracks_spotify_id_from_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+        if mapping.is_not_ok():
+            logger.warning("Rating identities unavailable: %s", mapping.info())
+            return Result(code=mapping.code(), message=mapping.message())
+        ids = list(dict.fromkeys(mapping.result().values()))
+        raw = (
+            await spotify_api.get_tracks_async(session=session, ids=ids)
+            if allow_remote
+            else await SpotifyCache.get_tracks_async(session=session, ids=ids)
+        )
+        if raw.is_not_ok():
+            logger.warning("Rating metadata unavailable: %s", raw.info())
+            return Result(code=raw.code(), message=raw.message())
+        # The API's false means either not flagged or unknown, never confirmed clean.
+        flags = {track.id: True if track.explicit is True else None for track in raw.result()}
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result={
+                public_id: flags.get(external_id)
+                for public_id, external_id in mapping.result().items()
+            },
+        )
+
     async def find_local_songs_async(
         self, session: AsyncSession, titles: list[str]
     ) -> Result[list[LocalSong]]:

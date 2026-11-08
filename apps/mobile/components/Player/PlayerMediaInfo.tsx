@@ -2,7 +2,12 @@ import React from "react";
 import { useStore } from "@nanostores/react";
 import { TMedia } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    ExplicitBadge,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
 import { Maximize, Video, VideoOff } from "@rockit/ui/icons";
 import {
     Pressable,
@@ -116,11 +121,21 @@ export default function PlayerMediaInfo({
                         {currentMedia?.name ?? ""}
                     </Text>
                     {currentMedia && (
-                        <MediaSubTitle
-                            media={currentMedia}
-                            style={styles.subTitle}
-                            numberOfLines={1}
-                        />
+                        <>
+                            <ExplicitBadge
+                                explicit={
+                                    currentMedia?.type === "song"
+                                        ? currentMedia.explicit
+                                        : null
+                                }
+                                label={vocabulary.CONTENT_RATING_EXPLICIT}
+                            />
+                            <MediaSubTitle
+                                media={currentMedia}
+                                style={styles.subTitle}
+                                numberOfLines={1}
+                            />
+                        </>
                     )}
                     <Text style={styles.subSubTitle} numberOfLines={1}>
                         {currentMedia && (

@@ -30,6 +30,15 @@ html.rockit-pip-document, .rockit-pip-document body {
     position: relative; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px;
 }
 .rockit-pip-document .pip-vinyl { position: relative; width: min(100cqw,100cqh); aspect-ratio: 1; flex: none; }
+.rockit-pip-document .pip-vinyl-layer { position: absolute; inset: 0; width: 100%; height: 100%; animation-duration: ${designTokens.motion.slow}ms; animation-timing-function: cubic-bezier(.45,0,.2,1); animation-fill-mode: both; }
+.rockit-pip-document .pip-vinyl-enter-forward { animation-name: rockit-pip-vinyl-enter-forward; }
+.rockit-pip-document .pip-vinyl-enter-backward { animation-name: rockit-pip-vinyl-enter-backward; }
+.rockit-pip-document .pip-vinyl-exit-forward { animation-name: rockit-pip-vinyl-exit-forward; pointer-events: none; }
+.rockit-pip-document .pip-vinyl-exit-backward { animation-name: rockit-pip-vinyl-exit-backward; pointer-events: none; }
+@keyframes rockit-pip-vinyl-enter-forward { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes rockit-pip-vinyl-enter-backward { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes rockit-pip-vinyl-exit-forward { from { transform: translateY(0); } to { transform: translateY(-100%); } }
+@keyframes rockit-pip-vinyl-exit-backward { from { transform: translateY(0); } to { transform: translateY(100%); } }
 .rockit-pip-document .pip-panel { min-width: 0; min-height: 0; display: grid; gap: 6px; align-content: center; }
 .rockit-pip-document .pip-info { min-width: 0; overflow: hidden; }
 .rockit-pip-document .pip-info p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }
@@ -202,5 +211,5 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-retro-play {bottom:0;left:30%;width:40%;height:28%;}
 .rockit-pip-document .pip-retro-wheel .pip-retro-center {inset:30%;width:40%;height:40%;border-radius:50%;background:linear-gradient(135deg,var(--theme-surface-raised),var(--theme-secondary));color:var(--pip-accent);font-size:11px;font-weight:700;}
 .rockit-pip-document .pip-retro-logo { width:54%;height:54%;object-fit:contain;pointer-events:none;filter:brightness(0) invert(.22) drop-shadow(0 1px 0 color-mix(in srgb,var(--theme-foreground) 18%,transparent)); }
-@media (prefers-reduced-motion: reduce) { .rockit-pip-document .pip-root * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .rockit-pip-document .pip-root * { transition: none !important; animation: none !important; } }
 `;

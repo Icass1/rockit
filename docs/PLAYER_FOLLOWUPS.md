@@ -140,3 +140,39 @@ A deterministic component regression checks that 60 clock samples preserve the
 render count while line changes, duplicate timestamps, reviewed offsets, backward
 seeks and unmount cleanup remain correct. The scoped scroll/reduced-motion tests
 also pass; three focused tests took 107ms of test execution locally.
+
+
+## PiP artwork freeze with an inactive opener — PR192
+
+Reported behavior: changing to a different album/artist updated the PiP text,
+lyrics and colors, while the vinyl retained the old artwork until the main
+window was brought forward. The PiP reused the desktop Framer Motion transition;
+its opener-owned RAF scheduler could suspend the outgoing/entering swap.
+
+PiP now uses document-owned CSS keyframes for the artwork swap. At most two
+record layers exist during the transition, using the shared 400 ms motion token;
+an animation-end event removes the outgoing layer. Rapid changes replace the
+outgoing snapshot rather than accumulating records. Same-album navigation keeps
+the current physical disc. Reduced motion replaces immediately and clears any
+outgoing layer. Visible PiP images use eager loading. The normal desktop vinyl
+transition and playback controls retain their behavior.
+
+The artwork-identity policy is a shared pure helper. Existing owner-document
+vinyl rotation stays unchanged; the new swap adds no JS frame loop, polling or
+interval. Clock-only playback updates still do not rerender artwork.
+
+Controlled Chromium reproduction used an auxiliary window with the real PiPCover,
+VinylRecord and transition components, mock media metadata/images, and an opener
+RAF implementation that executes zero callbacks:
+
+| Implementation | New cover visible after swap | Rotation continues | Opener RAF requests |
+| --- | --- | --- | --- |
+| Before | No: old red cover remains; blue cover stays below the viewport | Yes | 1 (never executed) |
+| After | Yes: blue cover centered; outgoing record removed | Yes | 0 |
+
+Three fast component tests cover a second document with frozen opener frames,
+same-album continuity and rapid swaps bounded to two layers, and reduced-motion
+cleanup. Browser artifacts in the execution workspace are under
+`/workspace/artifacts/pr192-pip-artwork/` (`results.json`, `before.png`, `after.png`).
+They are controlled fixtures, not captures from the user's Vivaldi installation.
+Physical minimization/background behavior in Vivaldi remains user acceptance.

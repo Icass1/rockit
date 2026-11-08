@@ -8,6 +8,16 @@
 
 ## To Review
 
+### [PIP] Actualizar carátula del vinilo con la ventana principal en segundo plano
+
+- tags: [frontend, pip, vinyl, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Al cambiar de álbum/artista, el vinilo del PiP conserva la portada anterior hasta enfocar la ventana principal. Colores, letras e información sí cambian. Corregido en PR192 sobre PR191: transición CSS del documento PiP, portada visible con carga inmediata y hasta dos discos durante 400 ms; se conserva la rotación y los controles. Reproducido antes/después en Chromium con el RAF de la ventana principal detenido. Tres regresiones rápidas para documento auxiliar, cambios rápidos y movimiento reducido. Pendiente de validación del usuario en Vivaldi minimizado.
+    ```
+
+
 ### [METADATA] Detectar y guardar si una canción es explícita
 
 - tags: [backend, metadata, explicit, downloads]

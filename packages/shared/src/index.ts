@@ -135,3 +135,5 @@ export {
     getContentRatingValue,
     type ContentRatingValue,
 } from "@/models/contentRating";
+
+export { shouldKeepVinyl } from "@/utils/vinylIdentity";

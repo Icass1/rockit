@@ -943,3 +943,14 @@ and native renders Text. Backend responses read persisted evidence in batches;
 showing badges does not query external catalogs. Controlled HTTP, renderer and
 queue tests pass. No production backfill or physical-device acceptance is claimed.
 Design, operations and limitations: ../CONTENT_RATINGS.md.
+
+
+## Auxiliary-document PiP artwork transitions — PR192
+
+Reproduced the stale-vinyl cover with the opener RAF frozen in Chromium. PiP
+artwork swaps now run as CSS animations in the auxiliary document, with a bounded
+outgoing/current pair, eager visible artwork and reduced-motion cleanup. The
+shared artwork-identity policy preserves same-album discs. Desktop Framer Motion
+and audio ownership/controls are unchanged. Three focused component tests and a
+controlled before/after browser check pass; Vivaldi minimization remains user
+acceptance. See ../PLAYER_FOLLOWUPS.md for evidence and limits.

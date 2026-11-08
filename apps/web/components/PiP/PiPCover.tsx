@@ -8,8 +8,10 @@ import { useReducedMotion } from "framer-motion";
 import { rockIt } from "@/lib/rockit/rockIt";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
 import VinylTransition from "@/components/PlayerUI/VinylTransition";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export function PiPCover(): JSX.Element {
+    const vocabulary = useVocabulary();
     const videoRef = useRef<HTMLVideoElement>(null);
     const media = useStore(rockIt.queueManager.currentMediaAtom);
     const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
@@ -49,7 +51,13 @@ export function PiPCover(): JSX.Element {
     }, [currentTime, videoUrl]);
 
     return (
-        <div className="pip-cover">
+        <button
+            type="button"
+            className="pip-cover"
+            aria-label={playing ? vocabulary.PAUSE : vocabulary.PLAY}
+            aria-pressed={playing}
+            onClick={() => rockIt.mediaPlayerManager.togglePlayPause()}
+        >
             {videoUrl ? (
                 <video
                     ref={videoRef}
@@ -84,7 +92,7 @@ export function PiPCover(): JSX.Element {
             ) : (
                 <Image
                     src={cover}
-                    alt={media?.name ?? "Cover"}
+                    alt={media?.name ?? vocabulary.SONG}
                     width={1200}
                     height={1200}
                     draggable={false}
@@ -92,7 +100,7 @@ export function PiPCover(): JSX.Element {
                     data-testid="pip-image"
                 />
             )}
-        </div>
+        </button>
     );
 }
 

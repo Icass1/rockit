@@ -2,6 +2,12 @@
 
 ## To Do
 
+## In Progress
+
+## Idle
+
+## To Review
+
 ### [PIP] Pulsar en la cover / vinilo se pausa con al misma animacion que en el playerui
 
 - tags: [frontend, pip, vynil]
@@ -26,8 +32,6 @@
     https://ca.v-cdn.net/6038735/uploads/images/170591iD8205BD23A7FD00F/Amayy_0-1710942636526.jpeg
     ```
 
-## In Progress
-
 ### [DOWNLOADS] Admitir colaboradores adicionales en el catálogo musical
 
 - tags: [backend, youtube, youtubeMusic, downloads, bug]
@@ -40,9 +44,6 @@
     Falta mostrar todos lso cpolaboradores en als cancioens de youtube music tanto men el album playlist como en el footer cuiando se reproduce la cancion
     ```
 
-## Idle
-
-## To Review
 
 ### [MOBILE] Migrar a una aplicación móvil universal con núcleo compartido
 

@@ -34,21 +34,21 @@ export function PiPControls({
 }: PiPControlsProps): JSX.Element {
     const text = usePiPText();
     const labels = {
-        shuffle: text("PIP_SHUFFLE", "Shuffle", "Aleatorio"),
-        previous: text("PIP_PREVIOUS", "Previous", "Anterior"),
-        next: text("PIP_NEXT", "Next", "Siguiente"),
-        play: text("PIP_PLAY", "Play", "Reproducir"),
-        pause: text("PIP_PAUSE", "Pause", "Pausar"),
-        options: text("PIP_OPTIONS", "More options", "Más opciones"),
-        repeatOne: text("PIP_REPEAT_ONE", "Repeat one", "Repetir canción"),
-        repeatAll: text("PIP_REPEAT_ALL", "Repeat all", "Repetir todo"),
-        repeatOff: text("PIP_REPEAT_OFF", "No repeat", "Sin repetición"),
-        like: text("PIP_LIKE", "Like", "Me gusta"),
-        unlike: text("PIP_UNLIKE", "Unlike", "Quitar me gusta"),
-        showLyrics: text("PIP_SHOW_LYRICS", "Show lyrics", "Mostrar letra"),
-        hideLyrics: text("PIP_HIDE_LYRICS", "Hide lyrics", "Ocultar letra"),
-        vinyl: text("PIP_SHOW_VINYL", "Show vinyl", "Mostrar vinilo"),
-        cover: text("PIP_SHOW_COVER", "Show cover", "Mostrar carátula"),
+        shuffle: text("PIP_SHUFFLE"),
+        previous: text("PIP_PREVIOUS"),
+        next: text("PIP_NEXT"),
+        play: text("PIP_PLAY"),
+        pause: text("PIP_PAUSE"),
+        options: text("PIP_OPTIONS"),
+        repeatOne: text("PIP_REPEAT_ONE"),
+        repeatAll: text("PIP_REPEAT_ALL"),
+        repeatOff: text("PIP_REPEAT_OFF"),
+        like: text("PIP_LIKE"),
+        unlike: text("PIP_UNLIKE"),
+        showLyrics: text("PIP_SHOW_LYRICS"),
+        hideLyrics: text("PIP_HIDE_LYRICS"),
+        vinyl: text("PIP_SHOW_VINYL"),
+        cover: text("PIP_SHOW_COVER"),
     };
     const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const repeat = useStore(rockIt.userManager.repeatModeAtom);

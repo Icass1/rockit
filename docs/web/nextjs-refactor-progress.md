@@ -901,3 +901,14 @@ APK acceptance is manually dispatched, not required on every PR. No physical-dev
 acceptance or production routing change is claimed. The current user instruction
 is consolidated checks after coherent work, superseding the historical per-step
 suite preference recorded above.
+
+## Player follow-ups stacked on PR189
+
+Separate branch `feat/player-kanban-followups`: continuous PiP header with close
+and movement handle, artwork/vinyl playback toggle and compact layouts; relative
+Media Session seek handlers removed in favor of track navigation. Shared album
+redownload orchestration resolves pages before changing files and stops on failures
+or account replacement. Artist credits remain visible in mobile cards and desktop
+artist rows; provider album/artist parsing accepts individual string/object credits.
+Frontend fast gate: 301 tests passed. Focused provider credit tests: 11 passed.
+Physical iOS controls and auxiliary-window movement remain device/browser checks.

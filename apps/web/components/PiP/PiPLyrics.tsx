@@ -73,13 +73,8 @@ export function PiPLyrics({
             syncedLines[Math.max(0, currentLineIndex)]?.text ??
             lyrics?.lyrics?.[0]?.text;
         const message = loading
-            ? text("PIP_LOADING_LYRICS", "Loading lyrics…", "Cargando letra…")
-            : (line ??
-              text(
-                  "PIP_NO_LYRICS",
-                  "No synced lyrics",
-                  "No hay letra sincronizada"
-              ));
+            ? text("PIP_LOADING_LYRICS")
+            : (line ?? text("PIP_NO_LYRICS"));
         return (
             <p className="pip-lyric-glance" title={message}>
                 {message}
@@ -120,11 +115,7 @@ export function PiPLyrics({
         return (
             <div className="pip-lyrics-overlay" data-testid="pip-lyrics-empty">
                 <p className="text-muted-foreground text-xs">
-                    {text(
-                        "PIP_NO_LYRICS",
-                        "No synced lyrics",
-                        "No hay letra sincronizada"
-                    )}
+                    {text("PIP_NO_LYRICS")}
                 </p>
             </div>
         );

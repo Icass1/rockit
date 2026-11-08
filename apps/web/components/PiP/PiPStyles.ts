@@ -20,6 +20,7 @@ html.rockit-pip-document, .rockit-pip-document body {
     position: relative; min-width: 0; min-height: 0; width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center; overflow: hidden;
     border-radius: 10px; background: transparent; container-type: size;
+    border: 0; padding: 0; color: inherit; cursor: pointer;
 }
 .rockit-pip-document .pip-cover > img, .rockit-pip-document .pip-cover > video {
     position: relative; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px;
@@ -134,5 +135,31 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-layout--cover-only.pip-has-lyrics .pip-info-artist-name { display: none; }
 .rockit-pip-document .pip-layout--cover-only .pip-panel .pip-lyric-glance { display: block; }
 .rockit-pip-document .pip-layout--cover-only .pip-time-label, .rockit-pip-document .pip-layout--cover-only .pip-info-artist-name { color: var(--theme-on-media-muted); }
+/* One continuous surface: header chrome has no separate panel or border. */
+.rockit-pip-document .pip-root { padding-top: 32px; }
+.rockit-pip-document .pip-header { position: absolute; inset: 2px 6px auto; height: 26px; display: flex; align-items: center; justify-content: center; z-index: 25; }
+.rockit-pip-document .pip-header button { border: 0; padding: 0; background: transparent; color: var(--theme-muted-foreground); display: grid; place-items: center; }
+.rockit-pip-document .pip-close { position: absolute; left: 0; width: 26px; height: 26px; cursor: pointer; }
+.rockit-pip-document .pip-close span { width: 12px; height: 12px; background: var(--theme-destructive); border-radius: 50%; }
+.rockit-pip-document .pip-grip { width: 36px; height: 26px; cursor: grab; touch-action: none; }
+.rockit-pip-document .pip-grip:active { cursor: grabbing; }
+.rockit-pip-document button:focus-visible, .rockit-pip-document summary:focus-visible { outline: 2px solid var(--pip-accent); outline-offset: -2px; }
+.rockit-pip-document .pip-layout--pill { padding-top: 8px; padding-left: 36px; }
+.rockit-pip-document .pip-layout--pill .pip-header { inset: 4px auto 4px 3px; width: 26px; height: auto; flex-direction: column; }
+.rockit-pip-document .pip-layout--pill .pip-close { top: 0; }
+.rockit-pip-document .pip-layout--pill .pip-grip { width: 26px; margin-top: 24px; }
+@media (max-height: 95px) {
+ .rockit-pip-document .pip-layout--pill { gap: 6px; padding: 4px 6px 4px 32px; grid-template-columns: minmax(0,min(16vw,calc(100dvh - 8px))) minmax(0,1fr); }
+ .rockit-pip-document .pip-layout--pill .pip-panel { grid-template-columns: minmax(0,1fr) auto; gap: 4px; }
+ .rockit-pip-document .pip-layout--pill .pip-progress-bar, .rockit-pip-document .pip-layout--pill .pip-secondary, .rockit-pip-document .pip-layout--pill .pip-lyrics-toggle { display:none; }
+ .rockit-pip-document .pip-layout--pill .pip-controls-icon-btn { width:24px; min-width:24px; height:24px; min-height:24px; flex-basis:24px; }
+ .rockit-pip-document .pip-layout--pill .pip-options {flex-basis:24px;}
+ .rockit-pip-document .pip-layout--pill .pip-grip { height:14px; }
+}
+@media (max-width: 139px) {
+ .rockit-pip-document .pip-controls-bar { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); justify-items:center; }
+ .rockit-pip-document .pip-lyrics-toggle { display:none; }
+ .rockit-pip-document .pip-root { padding-left:4px;padding-right:4px; }
+}
 @media (prefers-reduced-motion: reduce) { .rockit-pip-document .pip-root * { transition: none !important; } }
 `;

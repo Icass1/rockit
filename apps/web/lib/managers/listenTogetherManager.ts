@@ -9,7 +9,7 @@ export class ListenTogetherManager extends SharedManager {
             ...(dependencies ?? rockIt),
             http: Http,
             subscribeToResume: (listener: () => void) => {
-                const handle = () => {
+                const handle = (): void => {
                     if (!document.hidden) listener();
                 };
                 document.addEventListener("visibilitychange", handle);

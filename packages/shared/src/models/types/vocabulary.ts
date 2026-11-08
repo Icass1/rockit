@@ -1074,4 +1074,24 @@ export interface Vocabulary {
     PLAYER_HIDE: string;
     PLAYER_MINIPLAYER_OPEN: string;
     PLAYER_MINIPLAYER_CLOSE: string;
+    PIP_MOVE_WINDOW: string;
+    PIP_EMPTY: string;
+    PIP_LOADING_LYRICS: string;
+    PIP_NO_LYRICS: string;
+    PIP_SHUFFLE: string;
+    PIP_PREVIOUS: string;
+    PIP_NEXT: string;
+    PIP_PLAY: string;
+    PIP_PAUSE: string;
+    PIP_OPTIONS: string;
+    PIP_REPEAT_ONE: string;
+    PIP_REPEAT_ALL: string;
+    PIP_REPEAT_OFF: string;
+    PIP_LIKE: string;
+    PIP_UNLIKE: string;
+    PIP_SHOW_LYRICS: string;
+    PIP_HIDE_LYRICS: string;
+    PIP_SHOW_VINYL: string;
+    PIP_SHOW_COVER: string;
+    PIP_POSITION: string;
 }

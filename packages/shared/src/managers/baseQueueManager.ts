@@ -224,7 +224,14 @@ export class BaseQueueManager {
             )
                 return false;
             const updated = response.result.media;
-            if (updated.publicId !== publicId || !isPlayable(updated))
+            const existing = this._queueAtom
+                .get()
+                .find((item) => item.media.publicId === publicId);
+            if (
+                updated.publicId !== publicId ||
+                !isPlayable(updated) ||
+                updated.type !== existing?.media.type
+            )
                 return false;
             const patch = (items: QueueMediaItem[]): QueueMediaItem[] =>
                 items.map((item) =>

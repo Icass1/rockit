@@ -43,7 +43,8 @@ https://ytmusicapi.readthedocs.io/en/stable/reference/browsing.html
 - [x] Implement bounded existing-library backfill and reviewed manual edits.
 - [x] Generate DTOs and vocabulary; display persisted explicit labels.
 - [x] Add focused backend, DOM/native, HTTP-contract and mixed-queue regressions.
-- [ ] Confirm required CI on the final published commit.
+- [x] Publish incremental commits and enable all required checks on the stacked PR.
+  The final CI result is recorded in PR192; it is not inferred from local tests.
 
 Existing inspected behavior: Spotify raw DTOs contain explicit but do not persist
 it. Edit Metadata creates review proposals. A completed download dispatches a media

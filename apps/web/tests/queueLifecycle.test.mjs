@@ -825,6 +825,7 @@ test("concurrent redownload refresh keeps the newest metadata and rejects unrela
     for (const invalid of [
         song("wrong"),
         { type: "album", publicId: "song0" },
+        { type: "video", publicId: "song0" },
     ]) {
         const pending = e.queue.refreshDownloadedMediaAsync("song0");
         e.take("getMediaAsync").resolve(ok({ media: invalid }));

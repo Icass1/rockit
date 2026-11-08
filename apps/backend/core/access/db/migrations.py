@@ -60,6 +60,16 @@ MIGRATIONS: tuple[Migration, ...] = (
             "ON default_schema.playlist_media (playlist_id, media_id)",
         ),
     ),
+    Migration(
+        version=5,
+        name="persist_recording_content_ratings",
+        statements=(
+            "ALTER TABLE core.media ADD COLUMN IF NOT EXISTS is_explicit BOOLEAN",
+            "ALTER TABLE core.media ADD COLUMN IF NOT EXISTS explicit_source VARCHAR(128)",
+            "ALTER TABLE core.media ADD COLUMN IF NOT EXISTS "
+            "explicit_manual BOOLEAN NOT NULL DEFAULT FALSE",
+        ),
+    ),
 )
 
 

@@ -753,6 +753,8 @@ class SpotifyAccess:
                 provider_id=provider_id,
                 media_type_key=MediaTypeEnum.SONG.value,
             )
+            core_song.is_explicit = True if raw.explicit is True else None
+            core_song.explicit_source = "spotify:catalog" if raw.explicit is True else None
             session.add(core_song)
             await session.flush()
 

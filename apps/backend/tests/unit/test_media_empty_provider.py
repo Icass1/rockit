@@ -35,7 +35,11 @@ async def test_empty_provider_result_is_not_found(
     provider = SimpleNamespace(
         **{method: AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[]))}
     )
-    monkeypatch.setattr(providers, "find_media_provider", lambda _: provider)
+
+    def find_provider(_: int) -> SimpleNamespace:
+        return provider
+
+    monkeypatch.setattr(providers, "find_media_provider", find_provider)
     response = await Media.get_media_async(
         session=cast(AsyncSession, object()), public_id="missing"
     )

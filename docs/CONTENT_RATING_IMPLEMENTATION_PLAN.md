@@ -37,9 +37,9 @@ https://ytmusicapi.readthedocs.io/en/stable/reference/browsing.html
 - [x] Read current provider, downloader, queue, edit-request and persistence paths.
 - [ ] Reproduce queue/playlist refresh defect with controlled HTTP/WebSocket data.
 - [x] Implement identity-safe shared refresh, preserving duplicate queue occurrences.
-- [ ] Add rating persistence and typed backend requests/responses.
-- [ ] Interpret source evidence inside providers; ingest in downloader.
-- [ ] Implement bounded existing-library backfill and reviewed manual edits.
+- [x] Add rating persistence and typed backend requests/responses.
+- [x] Interpret source evidence inside providers; ingest in downloader.
+- [x] Implement bounded existing-library backfill and reviewed manual edits.
 - [ ] Generate DTOs and vocabulary; display persisted explicit labels.
 - [ ] Add focused regressions, then one consolidated verification and final CI.
 

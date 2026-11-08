@@ -46,6 +46,7 @@ class YoutubeMusicTrack:
     release_year: int | None = None
     track_number: int = 1
     disc_number: int = 1
+    explicit: bool | None = None
 
 
 @dataclass
@@ -644,6 +645,7 @@ class YoutubeMusicApi:
 
                 track = YoutubeMusicTrack(
                     youtube_id=video_id,
+                    explicit=True if entry_dict.get("isExplicit") is True else None,
                     title=str(entry_dict.get("title", "")),
                     artists=artists,
                     album=album_title,

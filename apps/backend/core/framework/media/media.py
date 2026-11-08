@@ -9,6 +9,7 @@ from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers
+from core.framework.contentRating import ContentRatings
 from core.framework.models.media import MediaModel
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.responses.audioBoundsResponse import AudioBoundsResponse
@@ -32,6 +33,7 @@ from core.responses.searchResponse import (
     BaseSearchResultsItem,
     SearchResultsResponse,
 )
+from core.responses.songListResponse import SongListResponse
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -177,7 +179,14 @@ class Media:
             for song in a_songs.result():
                 result_map[song.publicId] = song
 
-        return [result_map[pid] for pid in public_ids if pid in result_map]
+        songs = [result_map[pid] for pid in public_ids if pid in result_map]
+        enriched = await ContentRatings.enrich_async(
+            session=session, response=SongListResponse(songs=songs)
+        )
+        if enriched.is_not_ok():
+            logger.warning("Could not enrich song content ratings: %s", enriched.info())
+            return songs
+        return enriched.result().songs
 
     @staticmethod
     async def get_media_from_public_id_async(
@@ -261,7 +270,10 @@ class Media:
             logger.error(f"Provider error getting song. {a_result.info()}")
             return Result(code=a_result.code(), message=a_result.message())
 
-        return Media._extract_first_async_result(a_result=a_result, media_name="song")
+        first = Media._extract_first_async_result(a_result=a_result, media_name="song")
+        if first.is_not_ok():
+            return first
+        return await ContentRatings.enrich_async(session=session, response=first.result())
 
     @staticmethod
     async def get_album_async(
@@ -296,7 +308,11 @@ class Media:
             logger.error(f"Provider error getting album. {a_result.info()}")
             return Result(code=a_result.code(), message=a_result.message())
 
-        return Media._extract_first_async_result(a_result=a_result, media_name="album")
+        first = Media._extract_first_async_result(a_result=a_result, media_name="album")
+        if first.is_not_ok():
+            logger.warning("Album content unavailable: %s", first.info())
+            return Result(code=first.code(), message=first.message())
+        return await ContentRatings.enrich_async(session=session, response=first.result())
 
     @staticmethod
     async def get_artist_async(session: AsyncSession, public_id: str) -> Result[BaseArtistResponse]:
@@ -356,7 +372,11 @@ class Media:
             logger.error(f"Provider error getting playlist. {a_result.info()}")
             return Result(code=a_result.code(), message=a_result.message())
 
-        return Media._extract_first_async_result(a_result=a_result, media_name="playlist")
+        first = Media._extract_first_async_result(a_result=a_result, media_name="playlist")
+        if first.is_not_ok():
+            logger.warning("Playlist content unavailable: %s", first.info())
+            return Result(code=first.code(), message=first.message())
+        return await ContentRatings.enrich_async(session=session, response=first.result())
 
     @staticmethod
     async def get_playlist_without_async(
@@ -625,10 +645,8 @@ class Media:
             if not items:
                 logger.warning("Provider returned no media for public id %s", public_id)
                 return Result(code=ResultCode.NOT_FOUND, message="Media not found")
-            return Result(
-                code=ResultCode.OK,
-                message="OK",
-                result=MediaResponse(media=items[0]),
+            return await ContentRatings.enrich_async(
+                session=session, response=MediaResponse(media=items[0])
             )
 
         elif media_type in (MediaTypeEnum.ALBUM, MediaTypeEnum.PLAYLIST):
@@ -654,10 +672,8 @@ class Media:
             if not items:
                 logger.warning("Provider returned no media for public id %s", public_id)
                 return Result(code=ResultCode.NOT_FOUND, message="Media not found")
-            return Result(
-                code=ResultCode.OK,
-                message="OK",
-                result=MediaResponse(media=items[0]),
+            return await ContentRatings.enrich_async(
+                session=session, response=MediaResponse(media=items[0])
             )
 
         elif media_type == MediaTypeEnum.VIDEO:
@@ -668,10 +684,8 @@ class Media:
             if not items:
                 logger.warning("Provider returned no media for public id %s", public_id)
                 return Result(code=ResultCode.NOT_FOUND, message="Media not found")
-            return Result(
-                code=ResultCode.OK,
-                message="OK",
-                result=MediaResponse(media=items[0]),
+            return await ContentRatings.enrich_async(
+                session=session, response=MediaResponse(media=items[0])
             )
 
         elif media_type == MediaTypeEnum.RADIO:
@@ -682,10 +696,8 @@ class Media:
             if not items:
                 logger.warning("Provider returned no media for public id %s", public_id)
                 return Result(code=ResultCode.NOT_FOUND, message="Media not found")
-            return Result(
-                code=ResultCode.OK,
-                message="OK",
-                result=MediaResponse(media=items[0]),
+            return await ContentRatings.enrich_async(
+                session=session, response=MediaResponse(media=items[0])
             )
 
         logger.error(f"Unknown media type: {media_type}")

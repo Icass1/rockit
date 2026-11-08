@@ -73,6 +73,36 @@ YOUTUBE_MUSIC_URL_PATTERNS: list[UrlPattern] = [
 
 
 class YoutubeMusicProvider(BaseMediaProvider):
+    async def get_content_rating_evidence_async(
+        self, session: AsyncSession, public_ids: list[str], allow_remote: bool = False
+    ) -> Result[dict[str, bool | None]]:
+        from youtubeMusic.utils.youtubeMusicApi import YoutubeMusicApi
+
+        tracks = await YoutubeMusicAccess.get_tracks_by_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+        if tracks.is_not_ok():
+            logger.warning("Rating identities unavailable: %s", tracks.info())
+            return Result(code=tracks.code(), message=tracks.message())
+        flags: dict[str, bool | None] = {}
+        # Remote lookups are opt-in/background only, never a playback read.
+        if allow_remote:
+            albums = list(dict.fromkeys(track.album.youtube_id for track in tracks.result()))
+            for album_id in albums:
+                catalog = await YoutubeMusicApi.get_album_tracks_async(youtube_id=album_id)
+                if catalog.is_not_ok():
+                    logger.warning("Rating album unavailable: %s", catalog.info())
+                    return Result(code=catalog.code(), message=catalog.message())
+                flags.update({track.youtube_id: track.explicit for track in catalog.result()})
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result={
+                track.core_song.public_id: flags.get(track.youtube_id, track.core_song.is_explicit)
+                for track in tracks.result()
+            },
+        )
+
     async def find_local_songs_async(
         self, session: AsyncSession, titles: list[str]
     ) -> Result[list[LocalSong]]:

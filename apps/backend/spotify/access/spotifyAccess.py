@@ -720,6 +720,7 @@ class SpotifyAccess:
         artist_map: dict[str, ArtistRow],
         album_row: AlbumRow,
         provider_id: int,
+        is_explicit: bool | None = None,
     ) -> Result[tuple[TrackRow, CoreMediaRow]]:
         try:
             stmt = (
@@ -753,8 +754,8 @@ class SpotifyAccess:
                 provider_id=provider_id,
                 media_type_key=MediaTypeEnum.SONG.value,
             )
-            core_song.is_explicit = True if raw.explicit is True else None
-            core_song.explicit_source = "spotify:catalog" if raw.explicit is True else None
+            core_song.is_explicit = is_explicit
+            core_song.explicit_source = "spotify:catalog" if is_explicit is not None else None
             session.add(core_song)
             await session.flush()
 

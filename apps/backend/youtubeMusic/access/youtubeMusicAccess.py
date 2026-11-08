@@ -622,8 +622,8 @@ class YoutubeMusicAccess:
             provider_id=provider_id,
             media_type_key=MediaTypeEnum.SONG.value,
         )
-        core_track.is_explicit = True if raw.explicit is True else None
-        core_track.explicit_source = "youtubeMusic:catalog" if raw.explicit is True else None
+        core_track.is_explicit = raw.explicit
+        core_track.explicit_source = "youtubeMusic:catalog" if raw.explicit is not None else None
         session.add(core_track)
         await session.flush()
 

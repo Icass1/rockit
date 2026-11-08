@@ -1,0 +1,15 @@
+# Opt-in independent mobile PWA; does not alter the existing backend or desktop service.
+# docker compose -f compose.yaml -f compose.mobile.yaml --profile mobile-pwa up -d mobile-pwa
+services:
+    mobile-pwa:
+        profiles: [mobile-pwa]
+        build:
+            context: .
+            dockerfile: apps/mobile/Dockerfile.pwa
+            args:
+                EXPO_PUBLIC_BACKEND_URL: ${EXPO_PUBLIC_BACKEND_URL:?Set the public HTTPS backend URL}
+        restart: unless-stopped
+        ports:
+            - "${MOBILE_PWA_PORT:-9103}:8080"
+        networks:
+            - rockit-beta

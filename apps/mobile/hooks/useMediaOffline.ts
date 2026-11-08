@@ -6,38 +6,34 @@ import {
 } from "@rockit/shared";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 
+/** Check an index/file entry, not a playable Blob URL for every visible row. */
 export function useMediaOffline(publicId: string): boolean | undefined {
-    const [isOffline, setIsOffline] = useState<boolean | undefined>(undefined);
-
+    const [snapshot, setSnapshot] = useState<{
+        publicId: string;
+        available: boolean;
+    }>();
     useEffect(() => {
         let cancelled = false;
-
-        Promise.all([
-            mediaStorage.getSongUri(publicId),
-            mediaStorage.getVideoUri(publicId),
-        ]).then(([songUri, videoUri]) => {
-            if (!cancelled) setIsOffline(!!songUri || !!videoUri);
-        });
-
+        const refresh = () => {
+            void mediaStorage
+                .hasMedia(publicId)
+                .then((available) => {
+                    if (!cancelled) setSnapshot({ publicId, available });
+                })
+                .catch(() => {
+                    if (!cancelled) setSnapshot({ publicId, available: false });
+                });
+        };
+        const onDownload = (event: IMediaDownloadedEvent) => {
+            if (event.publicId === publicId) refresh();
+        };
+        refresh();
+        const events = EventManager.getInstance();
+        events.addEventListener(EEvent.MediaDownloaded, onDownload);
         return () => {
             cancelled = true;
+            events.removeEventListener(EEvent.MediaDownloaded, onDownload);
         };
     }, [publicId]);
-
-    useEffect(() => {
-        const handler = (data: IMediaDownloadedEvent) => {
-            if (data.publicId === publicId) {
-                setIsOffline(true);
-            }
-        };
-
-        const eventManager = EventManager.getInstance();
-        eventManager.addEventListener(EEvent.MediaDownloaded, handler);
-
-        return () => {
-            eventManager.removeEventListener(EEvent.MediaDownloaded, handler);
-        };
-    }, [publicId]);
-
-    return isOffline;
+    return snapshot?.publicId === publicId ? snapshot.available : undefined;
 }

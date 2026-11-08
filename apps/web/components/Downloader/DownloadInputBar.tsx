@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type JSX } from "react";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface DownloadInputBarProps {
     onSubmit: (url: string) => Promise<void>;
@@ -9,6 +10,7 @@ interface DownloadInputBarProps {
 export default function DownloadInputBar({
     onSubmit,
 }: DownloadInputBarProps): JSX.Element {
+    const $vocabulary = useVocabulary();
     const [url, setUrl] = useState("");
     const [isDownloading, setIsDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export default function DownloadInputBar({
             setUrl("");
         } catch (err) {
             const message =
-                err instanceof Error ? err.message : "Unknown error";
+                err instanceof Error ? err.message : $vocabulary.ERROR;
             setError(message);
         } finally {
             setIsDownloading(false);
@@ -40,7 +42,7 @@ export default function DownloadInputBar({
                         type="url"
                         value={url}
                         onChange={(e): void => setUrl(e.target.value)}
-                        placeholder="Paste a media URL..."
+                        placeholder={$vocabulary.DOWNLOAD_URL_PLACEHOLDER}
                         className="border-border-strong bg-muted/50 text-foreground-strong placeholder-muted-foreground focus:border-primary focus:ring-primary block w-full rounded-md border px-4 py-2 text-sm focus:ring-2"
                     />
                     <button

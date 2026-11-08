@@ -1,0 +1,109 @@
+@theme inline {
+    --color-background: var(--theme-background);
+    --color-foreground: var(--theme-foreground);
+    --color-foreground-strong: var(--theme-foreground-strong);
+    --color-muted-foreground: var(--theme-muted-foreground);
+    --color-subtle-foreground: var(--theme-subtle-foreground);
+    --color-disabled-foreground: var(--theme-disabled-foreground);
+    --color-surface: var(--theme-surface);
+    --color-secondary: var(--theme-secondary);
+    --color-muted: var(--theme-muted);
+    --color-surface-raised: var(--theme-surface-raised);
+    --color-accent: var(--theme-accent);
+    --color-hover: var(--theme-hover);
+    --color-primary: var(--theme-primary);
+    --color-primary-hover: var(--theme-primary-hover);
+    --color-brand-mid: var(--theme-brand-mid);
+    --color-brand-light: var(--theme-brand-light);
+    --color-primary-soft: var(--theme-primary-soft);
+    --color-primary-foreground: var(--theme-primary-foreground);
+    --color-border: var(--theme-border);
+    --color-border-subtle: var(--theme-border-subtle);
+    --color-border-strong: var(--theme-border-strong);
+    --color-ring: var(--theme-ring);
+    --color-destructive: var(--theme-destructive);
+    --color-destructive-hover: var(--theme-destructive-hover);
+    --color-destructive-subtle: var(--theme-destructive-subtle);
+    --color-destructive-foreground: var(--theme-destructive-foreground);
+    --color-destructive-soft: var(--theme-destructive-soft);
+    --color-success: var(--theme-success);
+    --color-success-hover: var(--theme-success-hover);
+    --color-success-subtle: var(--theme-success-subtle);
+    --color-success-foreground: var(--theme-success-foreground);
+    --color-warning: var(--theme-warning);
+    --color-warning-subtle: var(--theme-warning-subtle);
+    --color-warning-foreground: var(--theme-warning-foreground);
+    --color-info: var(--theme-info);
+    --color-info-hover: var(--theme-info-hover);
+    --color-info-foreground: var(--theme-info-foreground);
+    --color-highlight: var(--theme-highlight);
+    --color-highlight-soft: var(--theme-highlight-soft);
+    --color-highlight-dark: var(--theme-highlight-dark);
+    --color-backdrop: var(--theme-backdrop);
+    --color-scrim: var(--theme-scrim);
+    --color-media-accent: var(--theme-media-accent);
+    --color-gradient-start: var(--theme-gradient-start);
+    --color-gradient-end: var(--theme-gradient-end);
+    --color-glow: var(--theme-glow);
+    --color-input: var(--theme-muted);
+    --color-popover: var(--theme-secondary);
+    --color-popover-foreground: var(--theme-foreground);
+    --color-secondary-foreground: var(--theme-foreground);
+    --color-accent-foreground: var(--theme-foreground);
+    --color-on-media: var(--theme-on-media);
+    --color-on-media-muted: var(--theme-on-media-muted);
+    --color-provider-spotify: var(--theme-provider-spotify);
+    --color-provider-youtube: var(--theme-provider-youtube);
+    --color-provider-youtube-music: var(--theme-provider-youtube-music);
+    --color-provider-lyrics: var(--theme-provider-lyrics);
+    --color-social-tint: var(--theme-social-tint);
+    --color-social-positive: var(--theme-social-positive);
+    --color-social-negative: var(--theme-social-negative);
+    --color-medal-highlight: var(--theme-medal-highlight);
+    --color-medal-metal: var(--theme-medal-metal);
+    --color-medal-shadow: var(--theme-medal-shadow);
+    --color-medal-face: var(--theme-medal-face);
+    --color-medal-muted-highlight: var(--theme-medal-muted-highlight);
+    --color-medal-muted-metal: var(--theme-medal-muted-metal);
+    --color-medal-muted-shadow: var(--theme-medal-muted-shadow);
+    --color-medal-muted-face: var(--theme-medal-muted-face);
+    --color-emblem-listening: var(--theme-emblem-listening);
+    --color-emblem-discovery: var(--theme-emblem-discovery);
+    --color-emblem-community: var(--theme-emblem-community);
+    --color-emblem-collection: var(--theme-emblem-collection);
+    --color-emblem-activity: var(--theme-emblem-activity);
+    --color-emblem-mastery: var(--theme-emblem-mastery);
+    --color-flame-crown-cold: var(--theme-flame-crown-cold);
+    --color-flame-crown-hot: var(--theme-flame-crown-hot);
+    --color-flame-body-cold: var(--theme-flame-body-cold);
+    --color-flame-body-hot: var(--theme-flame-body-hot);
+    --color-flame-base-cold: var(--theme-flame-base-cold);
+    --color-flame-base-hot: var(--theme-flame-base-hot);
+    --color-flame-core-start: var(--theme-flame-core-start);
+    --color-flame-core-end: var(--theme-flame-core-end);
+    --color-flame-glow: var(--theme-flame-glow);
+    --color-bookmark-none: var(--theme-bookmark-none);
+    --color-bookmark-autoskip: var(--theme-bookmark-autoskip);
+    --color-bookmark-repeat: var(--theme-bookmark-repeat);
+    --color-bookmark-previous: var(--theme-bookmark-previous);
+    --color-bookmark-none-muted: var(--theme-bookmark-none-muted);
+    --color-bookmark-autoskip-muted: var(--theme-bookmark-autoskip-muted);
+    --color-bookmark-repeat-muted: var(--theme-bookmark-repeat-muted);
+    --color-bookmark-previous-muted: var(--theme-bookmark-previous-muted);
+    --color-vinyl-body: var(--theme-vinyl-body);
+    --color-vinyl-groove: var(--theme-vinyl-groove);
+    --background-image-summary:
+        radial-gradient(
+            circle at 15% 20%,
+            color-mix(in srgb, var(--theme-primary) 32%, transparent),
+            transparent 38%
+        ),
+        linear-gradient(135deg, var(--theme-surface), var(--theme-background));
+    --shadow-player-action: 0 0 20px 3px var(--theme-background);
+    --drop-shadow-player-icon: 0 0 4px
+        color-mix(in srgb, var(--theme-backdrop) 80%, transparent);
+}
+
+@utility brand-image {
+    filter: var(--theme-logo-filter);
+}

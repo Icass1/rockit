@@ -199,6 +199,11 @@ export abstract class BaseMediaPlayerManager {
         return !!media && isVideo(media) && !!getMediaAudioUrl(media);
     }
 
+    /** Application adapters report foreground/resume without leaking runtime APIs. */
+    protected subscribeToResume(_listener: () => void): () => void {
+        return () => {};
+    }
+
     // ===== Public API =====
 
     init(): void {
@@ -278,7 +283,7 @@ export abstract class BaseMediaPlayerManager {
             else if (!this._syncOwner) this._currentTimeAtom.set(time);
         };
         const onVisibility = (): void => {
-            if (!isCurrent() || document.hidden) return;
+            if (!isCurrent()) return;
             const currentMedia = getRockIt().queueManager.currentMedia;
             if (
                 this._playingAtom.get() &&
@@ -289,8 +294,7 @@ export abstract class BaseMediaPlayerManager {
         };
         socket.onMessage(EWebSocketMessage.CurrentMedia, onCurrentMedia);
         socket.onMessage(EWebSocketMessage.CurrentTime, onCurrentTime);
-        if (typeof document !== "undefined")
-            document.addEventListener("visibilitychange", onVisibility);
+        const unsubscribeResume = this.subscribeToResume(onVisibility);
         if (this._resumeMediaAfterRestart) {
             const resume = this._pendingMediaResume;
             void Promise.resolve()
@@ -314,8 +318,7 @@ export abstract class BaseMediaPlayerManager {
         this._synchronizationCleanup = (): void => {
             socket.offMessage(EWebSocketMessage.CurrentMedia, onCurrentMedia);
             socket.offMessage(EWebSocketMessage.CurrentTime, onCurrentTime);
-            if (typeof document !== "undefined")
-                document.removeEventListener("visibilitychange", onVisibility);
+            unsubscribeResume();
         };
     }
 

@@ -1,4 +1,4 @@
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, View } from "react-native";
 import { useDownloads } from "@/hooks/useDownloads";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -11,6 +11,7 @@ import {
 import { Header, PageContainer, SectionTitle } from "@/components/layout";
 
 export default function DownloaderScreen() {
+    const styles = useThemedStyles(createStyles);
     const { vocabulary, isLoading: vocabLoading } = useVocabulary();
     const {
         groups,
@@ -77,36 +78,37 @@ export default function DownloaderScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    headerSection: {
-        alignItems: "center",
-        marginVertical: 24,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: COLORS.white,
-    },
-    subtitle: {
-        fontSize: 14,
-        color: COLORS.gray600,
-        marginTop: 4,
-    },
-    groups: {
-        gap: 8,
-        paddingBottom: 124,
-    },
-    clearButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        marginTop: 8,
-    },
-    clearButtonText: {
-        fontSize: 13,
-        color: COLORS.gray400,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        headerSection: {
+            alignItems: "center",
+            marginVertical: theme.spacing.xl,
+        },
+        title: {
+            fontSize: theme.typography.title,
+            fontWeight: "bold",
+            color: theme.legacy.white,
+        },
+        subtitle: {
+            fontSize: theme.typography.body,
+            color: theme.legacy.gray600,
+            marginTop: theme.spacing.xs,
+        },
+        groups: {
+            gap: theme.spacing.sm,
+            paddingBottom: 124,
+        },
+        clearButton: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            paddingVertical: theme.spacing.sm,
+            paddingHorizontal: theme.spacing.lg,
+            marginTop: theme.spacing.sm,
+        },
+        clearButtonText: {
+            fontSize: 13,
+            color: theme.legacy.gray400,
+        },
+    });

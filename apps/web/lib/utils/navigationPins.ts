@@ -1,13 +1,11 @@
 import {
+    getRockitListName,
     isSearchResult,
     type NavigationPinResponse,
     type TMediaWithSearch,
     type Vocabulary,
 } from "@rockit/shared";
-import type {
-    PinnableMedia,
-    RockitListKey,
-} from "@/models/types/navigationPins";
+import type { PinnableMedia } from "@/models/types/navigationPins";
 
 export function isPinnableMedia(
     media: TMediaWithSearch
@@ -30,17 +28,4 @@ export function getNavigationPinName(
         : pin.name;
 }
 
-export function getRockitListName(
-    key: string,
-    vocabulary: Vocabulary,
-    fallback: string = key
-): string {
-    const names: Record<RockitListKey, string> = {
-        liked: vocabulary.LIKED_SONGS,
-        "most-listened": vocabulary.MOST_LISTENED,
-        "recent-mix": vocabulary.RECENT_MIX,
-        "last-month": vocabulary.NAV_LAST_MONTH,
-        "year-recap": vocabulary.NAV_YEAR_RECAP,
-    };
-    return Object.hasOwn(names, key) ? names[key as RockitListKey] : fallback;
-}
+export { getRockitListName };

@@ -5,6 +5,7 @@ import { PictureInPicture2 } from "lucide-react";
 import { createPortal } from "react-dom";
 import type { DocumentPiP } from "@/models/types/pip";
 import PiPContent from "@/components/PiP/PiPRoot";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 function getDocumentPiP(): DocumentPiP | null {
     if (typeof window === "undefined") return null;
@@ -42,6 +43,7 @@ function copyStylesToPiPWindow(pipWin: Window): void {
 }
 
 export default function PictureInPicture(): JSX.Element | null {
+    const vocabulary = useVocabulary();
     const openingRef = useRef(false);
     const [pipWindow, setPipWindow] = useState<Window | null>(null);
     const [isSupported, setIsSupported] = useState<boolean | null>(null);
@@ -97,8 +99,16 @@ export default function PictureInPicture(): JSX.Element | null {
             <button
                 onClick={togglePiP}
                 className="text-muted-foreground hover:text-foreground-strong rounded-full p-2 transition"
-                aria-label={pipWindow ? "Close miniplayer" : "Open miniplayer"}
-                title={pipWindow ? "Close miniplayer" : "Open miniplayer"}
+                aria-label={
+                    pipWindow
+                        ? vocabulary.PLAYER_MINIPLAYER_CLOSE
+                        : vocabulary.PLAYER_MINIPLAYER_OPEN
+                }
+                title={
+                    pipWindow
+                        ? vocabulary.PLAYER_MINIPLAYER_CLOSE
+                        : vocabulary.PLAYER_MINIPLAYER_OPEN
+                }
             >
                 <PictureInPicture2
                     size={24}

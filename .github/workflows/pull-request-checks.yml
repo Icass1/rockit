@@ -17,18 +17,20 @@ jobs:
     quality:
         # Preserve the required status name used by branch protection.
         name: PR quality checks
-        needs: [backend, typescript]
+        needs: [backend, typescript, frontend]
         if: ${{ always() }}
         runs-on: ubuntu-latest
         timeout-minutes: 1
         steps:
-            - name: Require both quality jobs to succeed
+            - name: Require every quality job to succeed
               env:
                   BACKEND_RESULT: ${{ needs.backend.result }}
                   TYPESCRIPT_RESULT: ${{ needs.typescript.result }}
+                  FRONTEND_RESULT: ${{ needs.frontend.result }}
               run: |
                   test "$BACKEND_RESULT" = success
                   test "$TYPESCRIPT_RESULT" = success
+                  test "$FRONTEND_RESULT" = success
 
     backend:
         name: Backend tests and quality
@@ -156,3 +158,34 @@ jobs:
 
             - name: Verify formatting made no changes
               run: git diff --exit-code
+
+
+    frontend:
+        name: Frontend contracts and component tests
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - name: Verify generated theme
+              run: pnpm check:theme
+            - name: Run portable, browser and native contracts
+              run: pnpm test:frontend
+            - name: Lint universal mobile
+              run: pnpm --filter @app/mobile lint
+            - name: Verify vocabulary workbook tooling
+              run: python3 -m unittest discover -s tests/tooling
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: frontend-contracts-${{ github.run_number }}
+                  path: .test-build/frontend/*results.json
+                  if-no-files-found: ignore
+                  retention-days: 14

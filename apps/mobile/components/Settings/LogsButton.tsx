@@ -1,8 +1,14 @@
-import { Bug } from "lucide-react-native";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Bug } from "@rockit/ui/icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTypedRouter } from "@/lib/useTypedRouter";
+import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LogsButton() {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const { push } = useTypedRouter();
 
     return (
@@ -14,33 +20,34 @@ export default function LogsButton() {
             onPress={() => push("/logs")}
         >
             <View style={styles.content}>
-                <Bug size={18} color="#a3a3a3" />
-                <Text style={styles.text}>Logs</Text>
+                <Bug size={18} color={theme.colors["muted-foreground"]} />
+                <Text style={styles.text}>{vocabulary.LOGS}</Text>
             </View>
         </Pressable>
     );
 }
 
-const styles = StyleSheet.create({
-    button: {
-        backgroundColor: "rgba(163, 163, 163, 0.15)",
-        borderRadius: 12,
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    buttonPressed: {
-        backgroundColor: "rgba(163, 163, 163, 0.3)",
-    },
-    content: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-    text: {
-        color: "#a3a3a3",
-        fontSize: 16,
-        fontWeight: "600",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        button: {
+            backgroundColor: withAlpha(theme.colors["muted-foreground"], 0.15),
+            borderRadius: theme.radius.lg,
+            paddingVertical: 14,
+            paddingHorizontal: theme.spacing.xl,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        buttonPressed: {
+            backgroundColor: withAlpha(theme.colors["muted-foreground"], 0.3),
+        },
+        content: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+        },
+        text: {
+            color: theme.colors["muted-foreground"],
+            fontSize: theme.typography.label,
+            fontWeight: "600",
+        },
+    });

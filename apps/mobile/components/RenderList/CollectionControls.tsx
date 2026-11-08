@@ -1,6 +1,6 @@
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import { CollectionPager } from "@rockit/shared";
+import { useDesignTheme } from "@rockit/ui";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -11,6 +11,7 @@ export default function CollectionControls({
     pager: CollectionPager;
     showSearch?: boolean;
 }) {
+    const theme = useDesignTheme();
     const state = useStore(pager.state);
     const { vocabulary } = useVocabulary();
     return (
@@ -19,12 +20,12 @@ export default function CollectionControls({
                 <TextInput
                     accessibilityLabel={vocabulary.SEARCH}
                     placeholder={vocabulary.SEARCH}
-                    placeholderTextColor={COLORS.gray400}
+                    placeholderTextColor={theme.legacy.gray400}
                     value={state.query}
                     onChangeText={(query) => pager.search(query)}
                     style={{
-                        color: COLORS.white,
-                        backgroundColor: COLORS.bgCard,
+                        color: theme.legacy.white,
+                        backgroundColor: theme.legacy.bgCard,
                         borderRadius: 8,
                         padding: 12,
                     }}
@@ -35,7 +36,7 @@ export default function CollectionControls({
                     accessibilityRole="button"
                     onPress={() => void pager.retry()}
                 >
-                    <Text style={{ color: COLORS.white }}>
+                    <Text style={{ color: theme.legacy.white }}>
                         {state.error} · {vocabulary.RETRY}
                     </Text>
                 </Pressable>

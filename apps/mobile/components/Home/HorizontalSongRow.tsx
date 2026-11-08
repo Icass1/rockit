@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import SongCard from "@/components/Home/SongCard";
 
@@ -21,6 +22,7 @@ function HorizontalSongRow({
     listKey,
     onSongPress,
 }: HorizontalSongRowProps) {
+    const styles = useThemedStyles(createStyles);
     const renderItem = useCallback(
         ({ item }: { item: BaseSongWithAlbumResponse }) => (
             <SongCard song={item} songs={songs} onPress={onSongPress} />
@@ -50,18 +52,19 @@ function HorizontalSongRow({
     );
 }
 
-const styles = StyleSheet.create({
-    container: { marginBottom: 28 },
-    title: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: "#ffffff",
-        paddingHorizontal: 20,
-        marginBottom: 12,
-    },
-    listContent: {
-        paddingHorizontal: 20,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: { marginBottom: 28 },
+        title: {
+            fontSize: 20,
+            fontWeight: "700",
+            color: theme.colors["foreground-strong"],
+            paddingHorizontal: 20,
+            marginBottom: theme.spacing.md,
+        },
+        listContent: {
+            paddingHorizontal: 20,
+        },
+    });
 
 export default memo(HorizontalSongRow);

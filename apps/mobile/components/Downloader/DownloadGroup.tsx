@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
-import { ChevronDown, ChevronRight, Trash2 } from "lucide-react-native";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { ChevronDown, ChevronRight, Trash2 } from "@rockit/ui/icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { DownloadGroup as DownloadGroupType } from "@/hooks/useDownloads";
+import { useVocabulary } from "@/lib/vocabulary";
 import DownloadItem from "@/components/Downloader/DownloadItem";
 
 interface DownloadGroupProps {
@@ -11,6 +13,9 @@ interface DownloadGroupProps {
 }
 
 export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const [isOpen, setIsOpen] = useState(group.isOpen);
 
     if (group.items.length === 0) return null;
@@ -34,9 +39,9 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
             >
                 <View style={styles.headerLeft}>
                     {isOpen ? (
-                        <ChevronDown size={14} color={COLORS.gray600} />
+                        <ChevronDown size={14} color={theme.legacy.gray600} />
                     ) : (
-                        <ChevronRight size={14} color={COLORS.gray600} />
+                        <ChevronRight size={14} color={theme.legacy.gray600} />
                     )}
                     <View
                         style={[styles.dot, { backgroundColor: group.color }]}
@@ -52,7 +57,7 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
                             }}
                             hitSlop={8}
                         >
-                            <Trash2 size={14} color={COLORS.white} />
+                            <Trash2 size={14} color={theme.legacy.white} />
                         </Pressable>
                     )}
                     <View
@@ -68,7 +73,10 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
                         </Text>
                     </View>
                     {avgProgress !== null && (
-                        <Text style={styles.avgText}>{avgProgress}% avg</Text>
+                        <Text style={styles.avgText}>
+                            {avgProgress}
+                            {vocabulary.MOBILE_DOWNLOAD_AVERAGE}
+                        </Text>
                     )}
                 </View>
             </Pressable>
@@ -86,60 +94,61 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: "rgba(38, 38, 38, 0.5)",
-        backgroundColor: "rgba(26, 26, 26, 0.7)",
-        overflow: "hidden",
-        marginBottom: 8,
-    },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
-    headerPressed: {
-        backgroundColor: "rgba(255, 255, 255, 0.03)",
-    },
-    headerLeft: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
-    },
-    dot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.white,
-    },
-    headerRight: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 10,
-    },
-    badgeText: {
-        fontSize: 11,
-        fontWeight: "700",
-    },
-    avgText: {
-        fontSize: 12,
-        color: COLORS.gray600,
-    },
-    items: {
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: "rgba(38, 38, 38, 0.4)",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            borderRadius: theme.radius.lg,
+            borderWidth: 1,
+            borderColor: withAlpha(theme.colors["surface-raised"], 0.5),
+            backgroundColor: withAlpha(theme.colors["secondary"], 0.7),
+            overflow: "hidden",
+            marginBottom: theme.spacing.sm,
+        },
+        header: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.md,
+        },
+        headerPressed: {
+            backgroundColor: withAlpha(theme.colors["foreground-strong"], 0.03),
+        },
+        headerLeft: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+        },
+        dot: {
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+        },
+        label: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.white,
+        },
+        headerRight: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+        },
+        badge: {
+            paddingHorizontal: theme.spacing.sm,
+            paddingVertical: 2,
+            borderRadius: 10,
+        },
+        badgeText: {
+            fontSize: 11,
+            fontWeight: "700",
+        },
+        avgText: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray600,
+        },
+        items: {
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: withAlpha(theme.colors["surface-raised"], 0.4),
+        },
+    });

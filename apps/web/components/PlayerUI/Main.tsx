@@ -8,12 +8,14 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
 import VinylTransition from "@/components/PlayerUI/VinylTransition";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function PlayerUIMain({
     currentMedia,
 }: {
     currentMedia: TPlayableMedia;
 }): JSX.Element | undefined {
+    const $vocabulary = useVocabulary();
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
     const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
@@ -245,7 +247,7 @@ export default function PlayerUIMain({
                                     rockIt.playerUIManager.toggleVinylMode();
                                 }}
                                 className="ignore-click-player-ui text-foreground-strong/80 hover:text-foreground-strong flex items-center justify-center rounded-full p-2 transition-colors"
-                                title="Vinyl record"
+                                title={$vocabulary.PLAYER_ARTWORK_VINYL}
                             >
                                 <Disc3 className="pointer-events-none h-8 w-8" />
                             </button>
@@ -273,7 +275,7 @@ export default function PlayerUIMain({
                                     rockIt.playerUIManager.toggleVinylMode();
                                 }}
                                 className="ignore-click-player-ui text-foreground-strong/80 hover:text-foreground-strong absolute top-2 left-2 z-30 flex items-center justify-center rounded-full p-3 opacity-0 transition-opacity group-hover:opacity-100"
-                                title="Square cover"
+                                title={$vocabulary.PLAYER_ARTWORK_COVER}
                             >
                                 <DiscAlbum className="pointer-events-none h-10 w-10" />
                             </button>

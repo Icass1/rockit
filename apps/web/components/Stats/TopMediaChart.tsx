@@ -4,6 +4,7 @@ import { JSX, useMemo } from "react";
 import Link from "next/link";
 import type { StatsRankedItemResponse } from "@/dto";
 import { Play } from "lucide-react";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface TopMediaChartProps {
     title: string;
@@ -22,6 +23,8 @@ export default function TopMediaChart({
     items,
     onPlay,
 }: TopMediaChartProps): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const ranked = useMemo(
         () => [...items].sort((a, b) => b.value - a.value).slice(0, 10),
         [items]
@@ -33,19 +36,19 @@ export default function TopMediaChart({
             <div className="mb-6 flex items-end justify-between gap-4">
                 <div>
                     <p className="text-primary text-[10px] font-semibold tracking-[0.22em] uppercase">
-                        Top 10
+                        {vocabulary.STATS_TOP_TEN}
                     </p>
                     <h3 className="text-foreground-strong mt-1 text-xl font-bold">
                         {title}
                     </h3>
                 </div>
                 <p className="text-disabled-foreground text-xs">
-                    by time listened
+                    {vocabulary.STATS_BY_TIME}
                 </p>
             </div>
             {ranked.length === 0 ? (
                 <div className="text-disabled-foreground flex h-64 items-center justify-center text-sm">
-                    Nothing played in this period
+                    {vocabulary.STATS_PERIOD_EMPTY}
                 </div>
             ) : (
                 <div className="space-y-2.5">

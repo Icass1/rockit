@@ -4,12 +4,35 @@ const expoConfig = require("eslint-config-expo/flat");
 const path = require("path");
 
 module.exports = defineConfig([
+    {
+        ignores: [
+            "**/*.json",
+            "dist/**",
+            ".expo/**",
+            "android/**",
+            "ios/**",
+            "node_modules/**",
+        ],
+    },
     expoConfig,
+    {
+        files: ["**/*.js", "**/*.cjs"],
+        languageOptions: {
+            globals: {
+                __dirname: "readonly",
+                require: "readonly",
+                module: "readonly",
+            },
+        },
+    },
     {
         ignores: ["dist/*"],
         languageOptions: {
             parserOptions: {
-                project: path.resolve(__dirname, "./tsconfig.json"),
+                project: [
+                    path.resolve(__dirname, "./tsconfig.json"),
+                    path.resolve(__dirname, "./tsconfig.web.json"),
+                ],
                 tsconfigRootDir: __dirname,
             },
         },
@@ -37,12 +60,35 @@ module.exports = defineConfig([
             "import/resolver": [
                 {
                     typescript: {
-                        project: path.resolve(__dirname, "./tsconfig.json"),
+                        extensions: [
+                            ".native.ts",
+                            ".native.tsx",
+                            ".web.ts",
+                            ".web.tsx",
+                            ".ts",
+                            ".tsx",
+                            ".js",
+                            ".json",
+                        ],
+                        project: [
+                            path.resolve(__dirname, "./tsconfig.json"),
+                            path.resolve(__dirname, "./tsconfig.web.json"),
+                        ],
                     },
                 },
                 {
                     node: {
-                        extensions: [".js", ".jsx", ".ts", ".tsx", ".mjs"],
+                        extensions: [
+                            ".native.ts",
+                            ".native.tsx",
+                            ".web.ts",
+                            ".web.tsx",
+                            ".js",
+                            ".jsx",
+                            ".ts",
+                            ".tsx",
+                            ".mjs",
+                        ],
                     },
                 },
             ],

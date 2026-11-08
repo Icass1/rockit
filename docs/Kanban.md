@@ -44,6 +44,24 @@
 
 ## To Review
 
+### [MOBILE] Migrar a una aplicación móvil universal con núcleo compartido
+
+- tags: [frontend, mobile, pwa, android, architecture]
+- priority: high
+- workload: Hard
+    ```md
+    Escritorio Next separado; Expo con React Native en Android y React Native Web para la PWA iOS. Núcleo en packages/shared, tokens/UI reutilizables y adaptadores para audio, sesión, offline y notificaciones. Implementación lista para revisión en PR189: entradas separadas Next/Expo, adaptadores web/nativos, UI y tokens compartidos, vocabulary desde Excel, búsqueda profunda, reproducción y caché por cuenta. Pruebas rápidas en segundos y siete flujos Chromium verificados; aceptación física iPhone/APK y activación del nuevo origen pendientes. Sin cambios de producción. Ver docs/FRONTEND_PLATFORM_ARCHITECTURE.md.
+    ```
+
+### [ARCHITECTURE] Diseñar separación de escritorio y móvil universal
+
+- tags: [frontend, mobile, pwa, android, architecture, research]
+- priority: high
+- workload: Normal
+    ```md
+    Investigación documentada sobre el código real y fuentes de React Native Web, Expo, Capacitor, Next y MDN. Compara UI universal, DOM con plugins, componentes DOM de Expo y TWA; recomienda Expo/RNW para mantener Android nativo e iOS PWA. Define límites de carpetas, lógica/UI compartidas, capacidades por plataforma, almacenamiento, origen, migración incremental y aceptación física. Diseño pendiente de revisión; no se presenta como migración implementada. Ver docs/FRONTEND_PLATFORM_ARCHITECTURE.md. Sustituye la recomendación Android TWA del piloto PR188.
+    ```
+
 ## Done
 
 ### [PLAYER] Estabilizar el scroll de recomendaciones bajo la cola

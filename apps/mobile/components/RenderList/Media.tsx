@@ -1,6 +1,7 @@
 import { isList, isPlayable, type TMedia } from "@rockit/shared";
 import { Text } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
+import { useVocabulary } from "@/lib/vocabulary";
 import { ListMedia } from "@/components/RenderList/ListMedia";
 import { PlayableMedia } from "@/components/RenderList/PlayableMedia";
 
@@ -25,6 +26,7 @@ export function Media({
     expandedByMediaId?: Record<string, boolean>;
     onToggle?: () => void;
 }) {
+    const { vocabulary } = useVocabulary();
     const $media = useMedia(media);
 
     if (isPlayable($media)) {
@@ -51,5 +53,5 @@ export function Media({
             />
         );
     }
-    return <Text>Unsupported media type</Text>;
+    return <Text>{vocabulary.MOBILE_UNSUPPORTED_MEDIA}</Text>;
 }

@@ -1,4 +1,4 @@
-import { type QueueTypeMessage } from "@/dto";
+import { type QueueTypeMessage, type SessionResponse } from "@/dto";
 import { getRockIt } from "@/rockit/rockitRef";
 import { EQueueType } from "@/models/enums/queueType";
 import { ERepeatMode } from "@/models/enums/repeatMode";
@@ -12,6 +12,8 @@ import { createAtom, type ReadonlyAtom } from "@/lib/store";
  */
 export class BaseUserManager {
     protected _init = false;
+    protected _session = createAtom<SessionResponse | null | undefined>();
+    private _sessionRevision = 0;
 
     protected _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
     protected _repeatModeAtom = createAtom<ERepeatMode>(ERepeatMode.OFF);
@@ -25,7 +27,7 @@ export class BaseUserManager {
         if (this._init) return;
         this._init = true;
 
-        await this.updateAsync();
+        if (!this._session.get()) await this.updateAsync();
 
         getRockIt().webSocketManager.onMessage(
             EWebSocketMessage.QueueType,
@@ -40,24 +42,49 @@ export class BaseUserManager {
         getRockIt().queueManager.updateQueue();
     };
 
+    seedSession(session: SessionResponse): void {
+        this._sessionRevision++;
+        this.applySessionFields(session);
+        this._session.set(session);
+    }
+
+    protected applySessionFields(session: SessionResponse): void {
+        this._queueTypeAtom.set(EQueueType[session.queueType]);
+        this._repeatModeAtom.set(ERepeatMode[session.repeatMode]);
+        this._image.set(session.image);
+        this._admin.set(session.admin);
+        this._username.set(session.username);
+        this._currentTimeMs.set(session.currentTimeMs);
+        this._loggedIn.set(true);
+    }
+
+    get sessionAtom(): ReadonlyAtom<SessionResponse | null | undefined> {
+        return this._session.getReadonlyAtom();
+    }
+
+    stop(): void {
+        this._sessionRevision++;
+        this._init = false;
+        getRockIt().webSocketManager.offMessage(
+            EWebSocketMessage.QueueType,
+            this._handleQueueType
+        );
+        this._session.set(null);
+        this._loggedIn.set(false);
+        this._username.set("");
+        this._image.set("");
+        this._admin.set(false);
+        this._currentTimeMs.set(null);
+    }
+
     async updateAsync(): Promise<void> {
-        const res = await getRockIt().http.getSession();
-
-        if (res.isOk()) {
-            this._queueTypeAtom.set(EQueueType[res.result.queueType]);
-            this._repeatModeAtom.set(ERepeatMode[res.result.repeatMode]);
-            this._image.set(res.result.image);
-            this._admin.set(res.result.admin);
-            this._username.set(res.result.username);
-            this._currentTimeMs.set(res.result.currentTimeMs);
-
-            this._loggedIn.set(true);
-        } else if (res.isNotOk()) {
+        const revision = ++this._sessionRevision;
+        const response = await getRockIt().http.getSession();
+        if (revision !== this._sessionRevision) return;
+        if (response.isOk()) this.seedSession(response.result);
+        else {
+            this._session.set(null);
             this._loggedIn.set(false);
-            console.error(res.detail);
-        } else {
-            this._loggedIn.set(false);
-            console.error("Unkown error", res.message);
         }
     }
 

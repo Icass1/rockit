@@ -4,8 +4,11 @@ import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function ListeningHistorySetting(): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const { userManager } = useRuntimeServices();
     const enabled = useStore(userManager.showListeningHeatmapAtom);
     const [saving, setSaving] = useState(false);
@@ -18,11 +21,10 @@ export default function ListeningHistorySetting(): JSX.Element {
                     htmlFor="show-listening-heatmap"
                     className="text-sm font-medium"
                 >
-                    Show listening history in the player
+                    {vocabulary.SETTINGS_HISTORY_SHOW}
                 </label>
                 <p className="text-muted-foreground mt-1 text-xs">
-                    Display the listening heatmap and history popup above the
-                    progress bar.
+                    {vocabulary.SETTINGS_HISTORY_DESCRIPTION}
                 </p>
             </div>
             <input

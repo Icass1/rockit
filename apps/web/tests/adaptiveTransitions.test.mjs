@@ -20,10 +20,15 @@ const { outputFiles } = await build({
         {
             name: "offline",
             setup(b) {
-                b.onResolve({ filter: /^@\/lib\/offline\/store$/ }, () => ({
-                    path: "offline",
-                    namespace: "mock",
-                }));
+                b.onResolve(
+                    {
+                        filter: /^(?:@\/lib\/offline\/store|\.\.\/offline\/store|@rockit\/platform-browser\/offline\/store)$/,
+                    },
+                    () => ({
+                        path: "offline",
+                        namespace: "mock",
+                    })
+                );
                 b.onLoad({ filter: /.*/, namespace: "mock" }, () => ({
                     contents:
                         "export const resolveOfflineAudioUrl=(...args)=>globalThis.offlineLookup?.(...args)??Promise.resolve(undefined);",

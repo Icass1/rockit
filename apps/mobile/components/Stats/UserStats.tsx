@@ -1,5 +1,5 @@
-import { COLORS } from "@/constants/theme";
 import type { UserStatsResponse } from "@rockit/shared";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 import ListeningHeatmap from "@/components/Stats/charts/ListeningHeatmap";
@@ -14,6 +14,7 @@ interface UserStatsProps {
 }
 
 export default function UserStats({ data, rangeLabel }: UserStatsProps) {
+    const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
     const { width } = useWindowDimensions();
     const isWide = width > 600;
@@ -80,24 +81,25 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        gap: 12,
-    },
-    row: {
-        flexDirection: "row",
-        gap: 12,
-    },
-    column: {
-        flexDirection: "column",
-        gap: 12,
-    },
-    flex1: {
-        flex: 1,
-    },
-    hint: {
-        fontSize: 10,
-        color: COLORS.gray600,
-        marginTop: 8,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            gap: theme.spacing.md,
+        },
+        row: {
+            flexDirection: "row",
+            gap: theme.spacing.md,
+        },
+        column: {
+            flexDirection: "column",
+            gap: theme.spacing.md,
+        },
+        flex1: {
+            flex: 1,
+        },
+        hint: {
+            fontSize: 10,
+            color: theme.legacy.gray600,
+            marginTop: theme.spacing.sm,
+        },
+    });

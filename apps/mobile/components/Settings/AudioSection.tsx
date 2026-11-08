@@ -1,71 +1,21 @@
-import { useCallback, useState } from "react";
-import { COLORS } from "@/constants/theme";
-import { StyleSheet, Switch, View } from "react-native";
-import { AudioIntegrationService } from "@/lib/audio/AudioIntegration";
+import { capabilities } from "@/platform/capabilities";
+import { View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
+import AudioDeviceSettings from "@/components/Settings/AudioDeviceSettings";
 import CrossfadeSettings from "@/components/Settings/CrossfadeSettings";
 import SettingRow from "@/components/Settings/SettingRow";
 
 export default function AudioSection() {
-    const [autoPlayBluetooth, setAutoPlayBluetooth] = useState(
-        () => AudioIntegrationService.getConfig().autoPlayOnBluetoothConnect
-    );
-    const [autoPlayHeadset, setAutoPlayHeadset] = useState(
-        () => AudioIntegrationService.getConfig().autoPlayOnWiredHeadsetConnect
-    );
-
-    const handleBluetoothToggle = useCallback(async (value: boolean) => {
-        setAutoPlayBluetooth(value);
-        AudioIntegrationService.setConfig({
-            autoPlayOnBluetoothConnect: value,
-        });
-    }, []);
-
-    const handleHeadsetToggle = useCallback(async (value: boolean) => {
-        setAutoPlayHeadset(value);
-        AudioIntegrationService.setConfig({
-            autoPlayOnWiredHeadsetConnect: value,
-        });
-    }, []);
-
+    const { vocabulary } = useVocabulary();
     return (
-        <View style={styles.container}>
-            <SettingRow label="Cross Fade" value={<CrossfadeSettings />} />
-            <SettingRow
-                label="Auto‑play on Bluetooth"
-                value={
-                    <Switch
-                        value={autoPlayBluetooth}
-                        onValueChange={handleBluetoothToggle}
-                        trackColor={{
-                            false: COLORS.gray800,
-                            true: COLORS.accent,
-                        }}
-                        thumbColor={COLORS.white}
-                    />
-                }
-                isLast={false}
-            />
-            <SettingRow
-                label="Auto‑play on Headset"
-                value={
-                    <Switch
-                        value={autoPlayHeadset}
-                        onValueChange={handleHeadsetToggle}
-                        trackColor={{
-                            false: COLORS.gray800,
-                            true: COLORS.accent,
-                        }}
-                        thumbColor={COLORS.white}
-                    />
-                }
-                isLast={true}
-            />
+        <View>
+            {capabilities.transitions && (
+                <SettingRow
+                    label={vocabulary.AUDIO_TRANSITIONS}
+                    value={<CrossfadeSettings />}
+                />
+            )}
+            <AudioDeviceSettings />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        paddingVertical: 4,
-    },
-});

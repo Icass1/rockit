@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, View } from "react-native";
 
 interface SettingRowProps {
@@ -13,6 +13,7 @@ export default function SettingRow({
     value,
     isLast = false,
 }: SettingRowProps) {
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={[styles.row, !isLast && styles.rowBorder]}>
             <Text style={styles.label}>{label}</Text>
@@ -21,23 +22,24 @@ export default function SettingRow({
     );
 }
 
-const styles = StyleSheet.create({
-    row: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    rowBorder: {
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: COLORS.gray800,
-    },
-    label: {
-        color: COLORS.white,
-        fontSize: 16,
-        flex: 1,
-    },
-    value: {
-        flex: 1,
-        alignItems: "flex-end",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        row: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+        },
+        rowBorder: {
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: theme.legacy.gray800,
+        },
+        label: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.label,
+            flex: 1,
+        },
+        value: {
+            flex: 1,
+            alignItems: "flex-end",
+        },
+    });

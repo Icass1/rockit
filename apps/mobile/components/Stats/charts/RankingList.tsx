@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
-import { COLORS } from "@/constants/theme";
 import type { StatsRankedItemResponse } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTypedRouter } from "@/lib/useTypedRouter";
@@ -18,6 +19,7 @@ export default function RankingList({
     valueLabel = "",
     maxItems,
 }: RankingListProps) {
+    const styles = useThemedStyles(createStyles);
     const { push } = useTypedRouter();
 
     const displayItems = useMemo(() => {
@@ -67,7 +69,7 @@ export default function RankingList({
                 </Text>
             </Pressable>
         ),
-        [handlePress, maxValue, showImages, valueLabel]
+        [handlePress, maxValue, showImages, valueLabel, styles]
     );
 
     const keyExtractor = useCallback(
@@ -98,50 +100,51 @@ export default function RankingList({
     );
 }
 
-const styles = StyleSheet.create({
-    row: {
-        flexDirection: "row",
-        alignItems: "center",
-        height: 44,
-        paddingHorizontal: 4,
-    },
-    rank: {
-        width: 20,
-        fontSize: 12,
-        color: COLORS.gray600,
-        textAlign: "right",
-        marginRight: 8,
-    },
-    image: {
-        width: 32,
-        height: 32,
-        borderRadius: 4,
-        marginRight: 8,
-        backgroundColor: COLORS.bgCard,
-    },
-    name: {
-        flex: 1,
-        fontSize: 14,
-        color: "#ffffff",
-        marginRight: 8,
-    },
-    progressContainer: {
-        width: "40%",
-        height: 6,
-        backgroundColor: "rgba(38,38,38,0.5)",
-        borderRadius: 3,
-        marginRight: 8,
-        overflow: "hidden",
-    },
-    progressBar: {
-        height: "100%",
-        backgroundColor: COLORS.accent,
-        borderRadius: 3,
-    },
-    value: {
-        width: 32,
-        fontSize: 12,
-        color: COLORS.gray600,
-        textAlign: "right",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        row: {
+            flexDirection: "row",
+            alignItems: "center",
+            height: 44,
+            paddingHorizontal: theme.spacing.xs,
+        },
+        rank: {
+            width: 20,
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray600,
+            textAlign: "right",
+            marginRight: theme.spacing.sm,
+        },
+        image: {
+            width: 32,
+            height: 32,
+            borderRadius: theme.radius.sm,
+            marginRight: theme.spacing.sm,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        name: {
+            flex: 1,
+            fontSize: theme.typography.body,
+            color: theme.colors["foreground-strong"],
+            marginRight: theme.spacing.sm,
+        },
+        progressContainer: {
+            width: "40%",
+            height: 6,
+            backgroundColor: withAlpha(theme.colors["surface-raised"], 0.5),
+            borderRadius: 3,
+            marginRight: theme.spacing.sm,
+            overflow: "hidden",
+        },
+        progressBar: {
+            height: "100%",
+            backgroundColor: theme.legacy.accent,
+            borderRadius: 3,
+        },
+        value: {
+            width: 32,
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray600,
+            textAlign: "right",
+        },
+    });

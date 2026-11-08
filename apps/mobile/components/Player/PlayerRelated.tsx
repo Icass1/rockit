@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import {
+    buildRecommendationQueue,
     getDiscoverKey,
     getMediaArtistsString,
     isDiscoverItemInLibrary,
@@ -10,8 +10,14 @@ import {
     type BaseSearchResultsItem,
     type BaseSongWithAlbumResponse,
 } from "@rockit/shared";
-import { Image } from "expo-image";
-import { Download, Radio } from "lucide-react-native";
+import { withAlpha } from "@rockit/theme";
+import {
+    ResolvedMediaArtwork,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
+import { Download, Radio } from "@rockit/ui/icons";
 import {
     ActivityIndicator,
     Pressable,
@@ -36,6 +42,8 @@ const RELATED_LIMIT = 20;
  * single on-demand search (or provider URL, when one exists).
  */
 export default function PlayerRelated() {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const { currentMedia, addToQueueNext } = usePlayer();
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
@@ -50,7 +58,7 @@ export default function PlayerRelated() {
     const seedPublicId = currentMedia?.publicId;
     const isCurrentSeed =
         seedPublicId !== undefined && loadedSeed === seedPublicId;
-    const visibleSongs = isCurrentSeed ? songs : [];
+    const visibleSongs = isCurrentSeed && discover.length === 0 ? songs : [];
     const visibleDiscover = isCurrentSeed ? discover : [];
     const loading = seedPublicId !== undefined && !isCurrentSeed;
 
@@ -59,12 +67,28 @@ export default function PlayerRelated() {
 
         let cancelled = false;
 
-        Http.getRelatedSongs(seedPublicId, RELATED_LIMIT).then((response) => {
-            if (cancelled) return;
-            setSongs(response.isOk() ? response.result.songs : []);
-            setDiscover(response.isOk() ? response.result.discover : []);
-            setLoadedSeed(seedPublicId);
-        });
+        Http.getRelatedSongs(seedPublicId, RELATED_LIMIT, true).then(
+            (response) => {
+                if (cancelled) return;
+                const queue = response.isOk()
+                    ? buildRecommendationQueue(
+                          response.result,
+                          new Set([seedPublicId])
+                      )
+                    : [];
+                setSongs(
+                    queue.flatMap((item) =>
+                        item.kind === "song" ? [item.song] : []
+                    )
+                );
+                setDiscover(
+                    queue.flatMap((item) =>
+                        item.kind === "discover" ? [item.item] : []
+                    )
+                );
+                setLoadedSeed(seedPublicId);
+            }
+        );
 
         return () => {
             cancelled = true;
@@ -153,7 +177,7 @@ export default function PlayerRelated() {
     if (loading) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator color={COLORS.gray400} />
+                <ActivityIndicator color={theme.legacy.gray400} />
             </View>
         );
     }
@@ -161,7 +185,7 @@ export default function PlayerRelated() {
     if (visibleSongs.length === 0 && visibleDiscover.length === 0) {
         return (
             <View style={styles.center}>
-                <Radio size={40} color={COLORS.gray400} />
+                <Radio size={40} color={theme.legacy.gray400} />
                 <Text style={styles.emptyTitle}>
                     {$vocabulary.PLAYER_RELATED_TITLE}
                 </Text>
@@ -198,15 +222,21 @@ export default function PlayerRelated() {
                                 disabled={isDownloading}
                                 onPress={() => handleSongPress(item)}
                             >
-                                <Image
-                                    source={{ uri: item.imageUrl }}
-                                    style={[
-                                        styles.image,
-                                        needsDownload && styles.imageDiscover,
-                                    ]}
-                                    contentFit="cover"
-                                    transition={200}
-                                />
+                                <View
+                                    style={
+                                        needsDownload && styles.imageDiscover
+                                    }
+                                >
+                                    <ResolvedMediaArtwork
+                                        resolver={
+                                            rockIt.recommendationArtworkManager
+                                        }
+                                        uri={item.imageUrl}
+                                        provider={""}
+                                        artist={getMediaArtistsString(item)}
+                                        track={item.name}
+                                    />
+                                </View>
                                 <View style={styles.info}>
                                     <Text
                                         style={[
@@ -228,13 +258,13 @@ export default function PlayerRelated() {
                                 {isDownloading ? (
                                     <ActivityIndicator
                                         size="small"
-                                        color={COLORS.gray400}
+                                        color={theme.legacy.gray400}
                                     />
                                 ) : (
                                     needsDownload && (
                                         <Download
                                             size={18}
-                                            color={COLORS.gray400}
+                                            color={theme.legacy.gray400}
                                         />
                                     )
                                 )}
@@ -262,15 +292,19 @@ export default function PlayerRelated() {
                                 disabled={isDownloading}
                                 onPress={() => handleDiscoverPress(item)}
                             >
-                                <Image
-                                    source={{ uri: item.imageUrl }}
-                                    style={[
-                                        styles.image,
-                                        !inLibrary && styles.imageDiscover,
-                                    ]}
-                                    contentFit="cover"
-                                    transition={200}
-                                />
+                                <View
+                                    style={!inLibrary && styles.imageDiscover}
+                                >
+                                    <ResolvedMediaArtwork
+                                        resolver={
+                                            rockIt.recommendationArtworkManager
+                                        }
+                                        uri={item.imageUrl}
+                                        provider={item.provider}
+                                        artist={getMediaArtistsString(item)}
+                                        track={item.name}
+                                    />
+                                </View>
                                 <View style={styles.info}>
                                     <Text
                                         style={[
@@ -293,13 +327,13 @@ export default function PlayerRelated() {
                                 {isDownloading ? (
                                     <ActivityIndicator
                                         size="small"
-                                        color={COLORS.gray400}
+                                        color={theme.legacy.gray400}
                                     />
                                 ) : (
                                     !inLibrary && (
                                         <Download
                                             size={18}
-                                            color={COLORS.gray400}
+                                            color={theme.legacy.gray400}
                                         />
                                     )
                                 )}
@@ -312,73 +346,77 @@ export default function PlayerRelated() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: "rgba(255,255,255,0.1)",
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-    },
-    list: {
-        paddingBottom: 40,
-    },
-    row: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        gap: 12,
-    },
-    image: {
-        width: 46,
-        height: 46,
-        borderRadius: 6,
-        backgroundColor: COLORS.bgCard,
-    },
-    imageDiscover: {
-        opacity: 0.7,
-    },
-    info: {
-        flex: 1,
-        minWidth: 0,
-    },
-    title: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.white,
-        marginBottom: 2,
-    },
-    titleDiscover: {
-        color: COLORS.gray400,
-    },
-    artist: {
-        fontSize: 12,
-        color: COLORS.gray400,
-    },
-    center: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-    },
-    emptySubtitle: {
-        fontSize: 14,
-        color: COLORS.gray400,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+        },
+        header: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 20,
+            paddingVertical: theme.spacing.md,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: withAlpha(
+                theme.colors["foreground-strong"],
+                0.1
+            ),
+        },
+        headerTitle: {
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            color: theme.legacy.white,
+        },
+        list: {
+            paddingBottom: theme.spacing.page,
+        },
+        row: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: 10,
+            gap: theme.spacing.md,
+        },
+        image: {
+            width: 46,
+            height: 46,
+            borderRadius: 6,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        imageDiscover: {
+            opacity: 0.7,
+        },
+        info: {
+            flex: 1,
+            minWidth: 0,
+        },
+        title: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.white,
+            marginBottom: 2,
+        },
+        titleDiscover: {
+            color: theme.legacy.gray400,
+        },
+        artist: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray400,
+        },
+        center: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            gap: theme.spacing.md,
+        },
+        emptyTitle: {
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            color: theme.legacy.white,
+        },
+        emptySubtitle: {
+            fontSize: theme.typography.body,
+            color: theme.legacy.gray400,
+        },
+    });

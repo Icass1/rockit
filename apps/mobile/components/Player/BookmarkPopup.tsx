@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import {
     BottomSheetFlatList,
     BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
 import { useStore } from "@nanostores/react";
 import type { BookmarkResponse } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     Bookmark,
     BookmarkCheck,
@@ -17,7 +18,7 @@ import {
     SkipBack,
     Trash2,
     X,
-} from "lucide-react-native";
+} from "@rockit/ui/icons";
 import {
     FlatList,
     ScrollView,
@@ -32,28 +33,34 @@ import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useVocabulary } from "@/lib/vocabulary";
 
-const MODE_OPTIONS: {
+const MODE_OPTIONS = (
+    theme: DesignTheme
+): {
     key: "NOTHING" | "AUTOSKIP" | "REPEAT_FROM_BEGINNING" | "PREVIOUS_BOOKMARK";
     Icon: React.ForwardRefExoticComponent<
         LucideProps & React.RefAttributes<SVGSVGElement>
     >;
     color: string;
-}[] = [
-    { key: "NOTHING", Icon: Bookmark, color: "#ffffff" },
+}[] => [
+    {
+        key: "NOTHING",
+        Icon: Bookmark,
+        color: theme.colors["foreground-strong"],
+    },
     {
         key: "AUTOSKIP",
         Icon: BookmarkCheck,
-        color: "#00ff00",
+        color: theme.colors["bookmark-autoskip"],
     },
     {
         key: "REPEAT_FROM_BEGINNING",
         Icon: Repeat1,
-        color: "#00ffff",
+        color: theme.colors["bookmark-repeat"],
     },
     {
         key: "PREVIOUS_BOOKMARK",
         Icon: SkipBack,
-        color: "#ff8000",
+        color: theme.colors["bookmark-previous"],
     },
 ];
 
@@ -80,6 +87,8 @@ export default function BookmarkPopup({
     onClose,
     standalone = false,
 }: BookmarkPopupProps) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const BookmarkList = standalone ? FlatList : BottomSheetFlatList;
     const BookmarkInput = standalone ? TextInput : BottomSheetTextInput;
     const $bookmarks = useStore(
@@ -148,9 +157,10 @@ export default function BookmarkPopup({
     );
 
     const ModeIcon =
-        MODE_OPTIONS.find((o) => o.key === editMode)?.Icon ?? Bookmark;
+        MODE_OPTIONS(theme).find((o) => o.key === editMode)?.Icon ?? Bookmark;
     const modeColor =
-        MODE_OPTIONS.find((o) => o.key === editMode)?.color ?? "#ffffff";
+        MODE_OPTIONS(theme).find((o) => o.key === editMode)?.color ??
+        theme.colors["foreground-strong"];
 
     return (
         <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
@@ -164,16 +174,21 @@ export default function BookmarkPopup({
                             onPress={() => setMode("list")}
                             style={styles.backButton}
                         >
-                            <ChevronDown
-                                size={18}
-                                color={COLORS.gray400}
+                            <View
                                 style={{
                                     transform: [{ rotate: "90deg" }],
                                 }}
-                            />
+                            >
+                                <ChevronDown
+                                    size={18}
+                                    color={theme.legacy.gray400}
+                                />
+                            </View>
                         </TouchableOpacity>
                         <Text style={styles.editTitle}>
-                            {editBookmark ? "Edit Bookmark" : "New Bookmark"}
+                            {editBookmark
+                                ? vocabulary.EDIT_BOOKMARK
+                                : vocabulary.NEW_BOOKMARK}
                         </Text>
                         <View style={{ flexDirection: "row", gap: 4 }}>
                             {editBookmark && (
@@ -181,14 +196,19 @@ export default function BookmarkPopup({
                                     onPress={handleDelete}
                                     style={styles.deleteButton}
                                 >
-                                    <Trash2 size={16} color="#ef4444" />
+                                    <Trash2
+                                        size={16}
+                                        color={theme.colors["destructive"]}
+                                    />
                                 </TouchableOpacity>
                             )}
                             <TouchableOpacity
                                 onPress={handleSave}
                                 style={styles.saveButton}
                             >
-                                <Text style={styles.saveText}>Save</Text>
+                                <Text style={styles.saveText}>
+                                    {vocabulary.SAVE}
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -198,7 +218,7 @@ export default function BookmarkPopup({
                             value={editTimestamp}
                             onChangeText={setEditTimestamp}
                             style={styles.timestampInput}
-                            placeholderTextColor={COLORS.gray600}
+                            placeholderTextColor={theme.legacy.gray600}
                             placeholder="0:00"
                         />
                         <View style={styles.modeWrapper}>
@@ -216,8 +236,14 @@ export default function BookmarkPopup({
                                         },
                                     ]}
                                 />
-                                <ModeIcon size={16} color={COLORS.gray400} />
-                                <ChevronDown size={12} color={COLORS.gray400} />
+                                <ModeIcon
+                                    size={16}
+                                    color={theme.legacy.gray400}
+                                />
+                                <ChevronDown
+                                    size={12}
+                                    color={theme.legacy.gray400}
+                                />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -226,13 +252,15 @@ export default function BookmarkPopup({
                         value={editDescription}
                         onChangeText={setEditDescription}
                         style={styles.descriptionInput}
-                        placeholderTextColor={COLORS.gray600}
-                        placeholder="Description (optional)"
+                        placeholderTextColor={theme.legacy.gray600}
+                        placeholder={
+                            vocabulary.BOOKMARK_DESCRIPTION_PLACEHOLDER
+                        }
                     />
 
                     {showModeDropdown && (
                         <View style={styles.dropdown}>
-                            {MODE_OPTIONS.map((opt) => {
+                            {MODE_OPTIONS(theme).map((opt) => {
                                 const Icon = opt.Icon;
                                 return (
                                     <TouchableOpacity
@@ -257,7 +285,7 @@ export default function BookmarkPopup({
                                         />
                                         <Icon
                                             size={16}
-                                            color={COLORS.gray400}
+                                            color={theme.legacy.gray400}
                                         />
                                         <Text style={styles.dropdownLabel}>
                                             {vocabulary[opt.key]}
@@ -271,15 +299,19 @@ export default function BookmarkPopup({
             ) : (
                 <View style={styles.listContainer}>
                     <View style={styles.listHeader}>
-                        <Text style={styles.listTitle}>Bookmarks</Text>
+                        <Text style={styles.listTitle}>
+                            {vocabulary.BOOKMARKS}
+                        </Text>
                         <TouchableOpacity onPress={onClose}>
-                            <X size={18} color={COLORS.gray400} />
+                            <X size={18} color={theme.legacy.gray400} />
                         </TouchableOpacity>
                     </View>
 
                     {sortedBookmarks.length === 0 ? (
                         <View style={styles.emptyState}>
-                            <Text style={styles.emptyText}>No bookmarks</Text>
+                            <Text style={styles.emptyText}>
+                                {vocabulary.NO_BOOKMARKS}
+                            </Text>
                         </View>
                     ) : (
                         <BookmarkList
@@ -297,9 +329,10 @@ export default function BookmarkPopup({
                                 item: BookmarkResponse;
                             }) => {
                                 const bmColor =
-                                    MODE_OPTIONS.find(
+                                    MODE_OPTIONS(theme).find(
                                         (o) => o.key === item.mode
-                                    )?.color ?? "#ffffff";
+                                    )?.color ??
+                                    theme.colors["foreground-strong"];
                                 return (
                                     <View style={styles.bookmarkItem}>
                                         <View
@@ -339,7 +372,7 @@ export default function BookmarkPopup({
                                         >
                                             <Pencil
                                                 size={14}
-                                                color={COLORS.gray400}
+                                                color={theme.legacy.gray400}
                                             />
                                         </TouchableOpacity>
                                         <TouchableOpacity
@@ -352,7 +385,7 @@ export default function BookmarkPopup({
                                         >
                                             <Trash2
                                                 size={14}
-                                                color={COLORS.gray400}
+                                                color={theme.legacy.gray400}
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -365,9 +398,10 @@ export default function BookmarkPopup({
                         onPress={() => startEdit(null)}
                         style={styles.addButton}
                     >
-                        <Plus size={16} color={COLORS.gray400} />
+                        <Plus size={16} color={theme.legacy.gray400} />
                         <Text style={styles.addButtonText}>
-                            Add bookmark at {formatTime(currentTime)}
+                            {vocabulary.ADD_BOOKMARK_AT}
+                            {formatTime(currentTime)}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -376,182 +410,183 @@ export default function BookmarkPopup({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingTop: 8,
-    },
-    // List mode
-    listContainer: {
-        flex: 1,
-        paddingHorizontal: 20,
-    },
-    listHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 12,
-    },
-    listTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-    },
-    list: {
-        flex: 1,
-    },
-    listContent: {
-        paddingBottom: 8,
-    },
-    emptyState: {
-        alignItems: "center",
-        paddingVertical: 32,
-    },
-    emptyText: {
-        fontSize: 14,
-        color: COLORS.gray400,
-    },
-    bookmarkItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 8,
-        borderRadius: 8,
-    },
-    bookmarkInfo: {
-        flex: 1,
-        minWidth: 0,
-    },
-    bookmarkTime: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.white,
-    },
-    bookmarkDesc: {
-        fontSize: 12,
-        color: COLORS.gray400,
-        marginTop: 1,
-    },
-    editIconButton: {
-        padding: 6,
-    },
-    addButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        borderWidth: 1,
-        borderStyle: "dashed",
-        borderColor: COLORS.gray600,
-        borderRadius: 8,
-        paddingVertical: 10,
-        marginTop: 8,
-        marginBottom: 16,
-    },
-    addButtonText: {
-        fontSize: 13,
-        color: COLORS.gray400,
-    },
-    // Edit mode
-    editContainer: {
-        paddingHorizontal: 20,
-        paddingTop: 4,
-    },
-    editHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: 12,
-    },
-    backButton: {
-        padding: 4,
-    },
-    editTitle: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.gray400,
-    },
-    deleteButton: {
-        padding: 6,
-    },
-    saveButton: {
-        backgroundColor: COLORS.accent,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 6,
-    },
-    saveText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: COLORS.white,
-    },
-    editRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        marginBottom: 8,
-    },
-    timestampInput: {
-        width: 60,
-        borderWidth: 1,
-        borderColor: COLORS.gray600,
-        borderRadius: 6,
-        backgroundColor: COLORS.bgCardLight,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        fontSize: 13,
-        color: COLORS.white,
-        textAlign: "center",
-    },
-    modeWrapper: {
-        position: "relative",
-    },
-    modeButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 6,
-    },
-    modeDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-    },
-    descriptionInput: {
-        borderWidth: 1,
-        borderColor: COLORS.gray600,
-        borderRadius: 6,
-        backgroundColor: COLORS.bgCardLight,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        fontSize: 13,
-        color: COLORS.white,
-        marginBottom: 8,
-    },
-    dropdown: {
-        backgroundColor: COLORS.bgCard,
-        borderWidth: 1,
-        borderColor: COLORS.gray600,
-        borderRadius: 8,
-        padding: 4,
-        marginBottom: 12,
-    },
-    dropdownItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        borderRadius: 6,
-    },
-    dropdownItemActive: {
-        backgroundColor: "rgba(238,16,134,0.15)",
-    },
-    dropdownLabel: {
-        fontSize: 13,
-        color: COLORS.white,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            paddingTop: theme.spacing.sm,
+        },
+        // List mode
+        listContainer: {
+            flex: 1,
+            paddingHorizontal: 20,
+        },
+        listHeader: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: theme.spacing.md,
+        },
+        listTitle: {
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            color: theme.legacy.white,
+        },
+        list: {
+            flex: 1,
+        },
+        listContent: {
+            paddingBottom: theme.spacing.sm,
+        },
+        emptyState: {
+            alignItems: "center",
+            paddingVertical: theme.spacing.xxl,
+        },
+        emptyText: {
+            fontSize: theme.typography.body,
+            color: theme.legacy.gray400,
+        },
+        bookmarkItem: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            paddingVertical: theme.spacing.sm,
+            paddingHorizontal: theme.spacing.sm,
+            borderRadius: theme.radius.md,
+        },
+        bookmarkInfo: {
+            flex: 1,
+            minWidth: 0,
+        },
+        bookmarkTime: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.white,
+        },
+        bookmarkDesc: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray400,
+            marginTop: 1,
+        },
+        editIconButton: {
+            padding: 6,
+        },
+        addButton: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            borderWidth: 1,
+            borderStyle: "dashed",
+            borderColor: theme.legacy.gray600,
+            borderRadius: theme.radius.md,
+            paddingVertical: 10,
+            marginTop: theme.spacing.sm,
+            marginBottom: theme.spacing.lg,
+        },
+        addButtonText: {
+            fontSize: 13,
+            color: theme.legacy.gray400,
+        },
+        // Edit mode
+        editContainer: {
+            paddingHorizontal: 20,
+            paddingTop: theme.spacing.xs,
+        },
+        editHeader: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: theme.spacing.md,
+        },
+        backButton: {
+            padding: theme.spacing.xs,
+        },
+        editTitle: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.gray400,
+        },
+        deleteButton: {
+            padding: 6,
+        },
+        saveButton: {
+            backgroundColor: theme.legacy.accent,
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: 6,
+            borderRadius: 6,
+        },
+        saveText: {
+            fontSize: theme.typography.caption,
+            fontWeight: "600",
+            color: theme.legacy.white,
+        },
+        editRow: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            marginBottom: theme.spacing.sm,
+        },
+        timestampInput: {
+            width: 60,
+            borderWidth: 1,
+            borderColor: theme.legacy.gray600,
+            borderRadius: 6,
+            backgroundColor: theme.legacy.bgCardLight,
+            paddingHorizontal: theme.spacing.sm,
+            paddingVertical: 6,
+            fontSize: 13,
+            color: theme.legacy.white,
+            textAlign: "center",
+        },
+        modeWrapper: {
+            position: "relative",
+        },
+        modeButton: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.xs,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 6,
+        },
+        modeDot: {
+            width: 8,
+            height: 8,
+            borderRadius: theme.radius.sm,
+        },
+        descriptionInput: {
+            borderWidth: 1,
+            borderColor: theme.legacy.gray600,
+            borderRadius: 6,
+            backgroundColor: theme.legacy.bgCardLight,
+            paddingHorizontal: 10,
+            paddingVertical: theme.spacing.sm,
+            fontSize: 13,
+            color: theme.legacy.white,
+            marginBottom: theme.spacing.sm,
+        },
+        dropdown: {
+            backgroundColor: theme.legacy.bgCard,
+            borderWidth: 1,
+            borderColor: theme.legacy.gray600,
+            borderRadius: theme.radius.md,
+            padding: theme.spacing.xs,
+            marginBottom: theme.spacing.md,
+        },
+        dropdownItem: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            paddingVertical: theme.spacing.sm,
+            paddingHorizontal: 10,
+            borderRadius: 6,
+        },
+        dropdownItemActive: {
+            backgroundColor: withAlpha(theme.colors["primary"], 0.15),
+        },
+        dropdownLabel: {
+            fontSize: 13,
+            color: theme.legacy.white,
+        },
+    });

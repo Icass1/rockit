@@ -16,7 +16,7 @@ export default function Footer(): JSX.Element {
             <div className="flex h-full w-full items-center justify-between md:justify-center">
                 <FooterLeft />
                 <FooterCenter />
-                <div className="group hidden h-full w-1/3 items-center justify-end gap-x-5 md:flex">
+                <div className="group flex h-full w-1/3 items-center justify-end gap-x-5">
                     <PictureInPicture />
                     <VolumeSlider />
                     <TogglePlayerUI />

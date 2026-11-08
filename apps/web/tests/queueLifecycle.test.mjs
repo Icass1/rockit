@@ -345,18 +345,17 @@ test("late local/external recommendation responses do not alter a restarted queu
         await e.queue.init();
         const first = e.queue.loadAutoplaySuggestionsAsync(),
             old = e.take("getRelatedSongs");
-        let externalRead;
-        if (external) {
-            old.resolve(ok({ songs: [song("old-local")], discover: [] }));
-            await first;
-            externalRead = e.take("getRelatedSongs");
-        }
+        assert.equal(old.args[2], true);
         e.queue.stop();
         await e.queue.init();
         const second = e.queue.loadAutoplaySuggestionsAsync(),
             fresh = e.take("getRelatedSongs");
-        (externalRead ?? old).resolve(
-            ok({ songs: [song("stale")], discover: [] })
+        old.resolve(
+            ok(
+                external
+                    ? { songs: [], discover: [{ publicId: "stale" }] }
+                    : { songs: [song("stale")], discover: [] }
+            )
         );
         await first;
         await flush();
@@ -378,7 +377,11 @@ test("old preparation finally cannot unlock a new preparation or resurrect retry
     );
     await flush();
     const old = e.take("prepareRecommendations");
-    e.take("getRelatedSongs").resolve(fail());
+    assert.equal(
+        e.requests.filter((request) => request.name === "getRelatedSongs")
+            .length,
+        0
+    );
     e.queue.stop();
     await e.queue.init();
     const second = e.queue.prepareAutoplayAsync();

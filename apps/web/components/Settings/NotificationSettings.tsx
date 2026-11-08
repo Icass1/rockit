@@ -98,7 +98,9 @@ export default function NotificationSettings(): JSX.Element {
             </p>
 
             {loading ? (
-                <p className="text-subtle-foreground text-sm">Loading...</p>
+                <p className="text-subtle-foreground text-sm">
+                    {vocabulary.MOBILE_LOADING}
+                </p>
             ) : (
                 <div className="divide-border-subtle border-border-subtle divide-y rounded-xl border">
                     {events.map((event) => (
@@ -149,7 +151,7 @@ export default function NotificationSettings(): JSX.Element {
                     onClick={() => void save()}
                     className="bg-primary text-primary-foreground hover:bg-brand-mid rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    {saving ? "Saving..." : vocabulary.NOTIFICATIONS_SAVE}
+                    {saving ? vocabulary.SAVING : vocabulary.NOTIFICATIONS_SAVE}
                 </button>
             </div>
         </div>

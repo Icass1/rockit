@@ -1,25 +1,31 @@
+import { confirmAction } from "@/platform/confirmAction";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { LogOut } from "@rockit/ui/icons";
 import { useRouter } from "expo-router";
-import { LogOut } from "lucide-react-native";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { clearSessionCookie } from "@/lib/api";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { logout } from "@/lib/session";
+import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LogoutButton() {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const router = useRouter();
     const { vocabulary } = useVocabulary();
 
     async function handleLogout() {
-        Alert.alert(vocabulary.LOG_OUT, "Are you sure you want to log out?", [
-            { text: vocabulary.CANCEL, style: "cancel" },
-            {
-                text: vocabulary.LOG_OUT,
-                style: "destructive",
-                onPress: async () => {
-                    await clearSessionCookie();
-                    router.replace("/(auth)/login");
-                },
-            },
-        ]);
+        if (
+            !(await confirmAction(
+                vocabulary.LOG_OUT,
+                vocabulary.MOBILE_LOG_OUT_CONFIRM,
+                vocabulary.LOG_OUT,
+                vocabulary.CANCEL
+            ))
+        )
+            return;
+        if (await logout()) router.replace("/(auth)/login");
+        else toasterManager.notifyError(vocabulary.ERROR);
     }
 
     return (
@@ -31,33 +37,34 @@ export default function LogoutButton() {
             onPress={handleLogout}
         >
             <View style={styles.content}>
-                <LogOut size={18} color="#f87171" />
+                <LogOut size={18} color={theme.colors["destructive"]} />
                 <Text style={styles.text}>{vocabulary.LOG_OUT}</Text>
             </View>
         </Pressable>
     );
 }
 
-const styles = StyleSheet.create({
-    button: {
-        backgroundColor: "rgba(220, 38, 38, 0.15)",
-        borderRadius: 12,
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    buttonPressed: {
-        backgroundColor: "rgba(220, 38, 38, 0.3)",
-    },
-    content: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-    text: {
-        color: "#f87171",
-        fontSize: 16,
-        fontWeight: "600",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        button: {
+            backgroundColor: withAlpha(theme.colors["destructive"], 0.15),
+            borderRadius: theme.radius.lg,
+            paddingVertical: 14,
+            paddingHorizontal: theme.spacing.xl,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        buttonPressed: {
+            backgroundColor: withAlpha(theme.colors["destructive"], 0.3),
+        },
+        content: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+        },
+        text: {
+            color: theme.colors["destructive"],
+            fontSize: theme.typography.label,
+            fontWeight: "600",
+        },
+    });

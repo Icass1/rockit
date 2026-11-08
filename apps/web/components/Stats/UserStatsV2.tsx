@@ -75,10 +75,10 @@ export default function UserStatsV2({
                 <div className="mb-8 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                     <div>
                         <p className="text-primary text-[10px] font-semibold tracking-[0.22em] uppercase">
-                            Listening timeline
+                            {$vocabulary.STATS_TIMELINE}
                         </p>
                         <h2 className="text-foreground-strong mt-1 text-2xl font-bold">
-                            Your rhythm over time
+                            {$vocabulary.STATS_RHYTHM}
                         </h2>
                     </div>
                     <p className="text-subtle-foreground text-sm">
@@ -93,10 +93,10 @@ export default function UserStatsV2({
             <div>
                 <div className="mb-5">
                     <p className="text-primary text-[10px] font-semibold tracking-[0.22em] uppercase">
-                        Leaderboards
+                        {$vocabulary.STATS_LEADERBOARDS}
                     </p>
                     <h2 className="text-foreground-strong mt-1 text-2xl font-bold">
-                        What owned your ears
+                        {$vocabulary.STATS_FAVORITES}
                     </h2>
                 </div>
                 <div className="grid gap-4 xl:grid-cols-2">
@@ -124,14 +124,13 @@ export default function UserStatsV2({
             <section className="border-foreground-strong/7 bg-background/60 rounded-[2rem] border p-5 md:p-8">
                 <div className="mb-8">
                     <p className="text-primary text-[10px] font-semibold tracking-[0.22em] uppercase">
-                        Weekly pulse
+                        {$vocabulary.STATS_WEEKLY_PULSE}
                     </p>
                     <h2 className="text-foreground-strong mt-1 text-2xl font-bold">
-                        When you press play
+                        {$vocabulary.STATS_PLAY_HOURS}
                     </h2>
                     <p className="text-subtle-foreground mt-2 text-sm">
-                        Every hour is shown in your local time. Hover a cell for
-                        the exact listening minutes.
+                        {$vocabulary.STATS_HEATMAP_HELP}
                     </p>
                 </div>
                 <ListeningHeatmap data={data.heatmap} />

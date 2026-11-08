@@ -123,7 +123,7 @@ function BookmarkEditForm({
                     <button
                         onClick={onBack}
                         className="ignore-click-player-ui text-subtle-foreground hover:text-foreground-strong rounded p-0.5"
-                        title="Back"
+                        title={$vocabulary.UI_BACK}
                     >
                         <ChevronDown className="ignore-click-player-ui h-3.5 w-3.5 rotate-90" />
                     </button>
@@ -353,7 +353,7 @@ export default function BookmarkPopup({
                             <button
                                 onClick={(): void => setUserOverride(bookmark)}
                                 className="text-subtle-foreground hover:text-foreground-strong rounded p-1 transition-colors"
-                                title="Edit"
+                                title={$vocabulary.UI_EDIT}
                             >
                                 <Pencil className="h-3 w-3" />
                             </button>

@@ -1,5 +1,6 @@
 import { memo, useCallback, useState } from "react";
 import useHandlePlay from "@/callbacks/handlePlay";
+import { capabilities } from "@/platform/capabilities";
 import {
     BaseSearchResultsItem,
     EEvent,
@@ -13,7 +14,6 @@ import {
     isQueueable,
     isSearchResult,
     isSong,
-    isStation,
     isVideo,
     TMedia,
 } from "@rockit/shared";
@@ -25,11 +25,14 @@ import {
     ListStart,
     Music,
     Pencil,
+    Pin,
+    PinOff,
     Play,
     PlusCircle,
     Radio,
+    Share2,
     Shuffle,
-} from "lucide-react-native";
+} from "@rockit/ui/icons";
 import { Pressable } from "react-native";
 import {
     ContextMenuConfig,
@@ -160,7 +163,6 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     label: vocabulary.PLAY,
                     icon: Play,
                     onPress: () => {
-                        console.log("Playing media from context menu", media);
                         if (listPublicId)
                             void rockIt.queueManager.playCollection(
                                 listPublicId,
@@ -237,7 +239,10 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 });
             }
 
-            if (!isSearchResult(media) && isQueueable(media)) {
+            if (
+                !isSearchResult(media) &&
+                (isSong(media) || (isVideo(media) && capabilities.offlineVideo))
+            ) {
                 options.push({
                     label: vocabulary.DOWNLOAD_MEDIA_TO_DEVICE,
                     icon: Download,
@@ -253,7 +258,6 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                             if (isVideo(media)) url = getMediaVideoUrl(media);
                             else if (isSong(media))
                                 url = getMediaAudioUrl(media);
-                            else if (isStation(media)) url = media.streamUrl;
                             else url = null;
 
                             if (!url) {
@@ -273,10 +277,16 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                             if (isSong(media))
                                 localPath = await mediaStorage.downloadSong(
                                     media.publicId,
-                                    url
+                                    url,
+                                    media.imageUrl,
+                                    media.name
                                 );
 
                             if (localPath) {
+                                EventManager.getInstance().dispatchEvent(
+                                    EEvent.MediaDownloaded,
+                                    { publicId: media.publicId }
+                                );
                                 toasterManager.notifySuccess(
                                     vocabulary.MEDIA_ADDED_TO_LIBRARY
                                 );
@@ -336,6 +346,37 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 });
             }
 
+            if (
+                !isSearchResult(media) &&
+                ["album", "playlist", "artist"].includes(media.type)
+            ) {
+                const pinned = rockIt.navigationPinsManager.pinsAtom
+                    .get()
+                    .some((pin) => pin.publicId === media.publicId);
+                options.push({
+                    label: pinned ? vocabulary.NAV_UNPIN : vocabulary.NAV_PIN,
+                    icon: pinned ? PinOff : Pin,
+                    onPress: () => {
+                        hide();
+                        void rockIt.navigationPinsManager.setPinnedAsync(
+                            media.publicId,
+                            !pinned
+                        );
+                    },
+                });
+            }
+
+            if (!isSearchResult(media)) {
+                options.push({
+                    label: vocabulary.FRIENDS_SHARE,
+                    icon: Share2,
+                    onPress: () => {
+                        hide();
+                        rockIt.sharingManager.compose(media.publicId);
+                    },
+                });
+            }
+
             if (extraOptions) {
                 options.push(...extraOptions);
             }
@@ -348,7 +389,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [hide, show, extraOptions, listPublicId]
+        [hide, show, extraOptions, listPublicId, vocabulary]
     );
 
     const showPlaylistPicker = useCallback(
@@ -370,7 +411,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
 
             show({
                 imageUrl: item.imageUrl,
-                title: "Add to playlist",
+                title: vocabulary.ADD_MEDIA_TO_PLAYLIST,
                 subtitle: item.name,
                 backAction: () => show(buildMainMenu(item)),
                 options: playlists.map((pl) => ({
@@ -441,7 +482,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     media.publicId
                 );
             else handlePlay(media, getAllPlayableMedia(allMedia));
-        } else if (isList(media)) {
+        } else if (isList(media) || media.type === "artist") {
             router.push(media.url);
         }
     }, [
@@ -459,6 +500,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     return (
         <>
             <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={media.name}
                 onPress={handlePress}
                 onLongPress={handleLongPress}
                 delayLongPress={250}

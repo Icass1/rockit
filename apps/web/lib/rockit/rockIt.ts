@@ -100,7 +100,7 @@ export class RockIt {
 
         cleanupLegacyIndexedDB();
         cleanupLegacyServiceWorker();
-        await hydrateOfflineIds();
+        await hydrateOfflineIds().catch(() => {});
 
         if (typeof navigator !== "undefined" && navigator.storage?.persist) {
             navigator.storage.persist().catch(() => {});

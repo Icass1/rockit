@@ -15,7 +15,7 @@ export default function SubContextMenu({
     const _triggerRef = useRef<HTMLButtonElement>(null);
 
     const [_hover, setHover] = useState(false);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect((): void => {
         if (_hover && onOpen) {

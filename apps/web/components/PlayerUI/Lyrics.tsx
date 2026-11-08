@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import { BaseLyricsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { useActiveLyricIndex } from "@/hooks/useActiveLyricIndex";
 import { useLyricAutoScroll } from "@/hooks/useLyricAutoScroll";
 import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { lyricSeekTime } from "@/lib/utils/lyricsTiming";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
@@ -63,7 +64,6 @@ function Lyrics(): JSX.Element {
 
 function DynamicLyrics(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $vocabulary = useVocabulary();
 
     const snapshot = useLyricsSnapshot(
@@ -72,23 +72,12 @@ function DynamicLyrics(): JSX.Element {
     const lyrics = snapshot.data?.dynamic;
     const loading = snapshot.loading;
 
-    const currentIndex = useMemo(() => {
-        if (!lyrics || $currentTime === null || $currentTime === undefined)
-            return null;
-
-        const offset = lyrics.offset;
-
-        for (let i = lyrics.lines.length - 1; i >= 0; i--) {
-            if (
-                $currentTime >=
-                lyricPlaybackTime(lyrics.lines[i].timestamp_s, offset)
-            ) {
-                return i;
-            }
-        }
-
-        return null;
-    }, [lyrics, $currentTime]);
+    const activeIndex = useActiveLyricIndex(
+        rockIt.mediaPlayerManager.currentTimeAtom,
+        lyrics?.lines,
+        lyrics?.offset
+    );
+    const currentIndex = activeIndex < 0 ? null : activeIndex;
 
     const containerRef = useRef<HTMLDivElement>(null);
 

@@ -27,8 +27,8 @@ branch to develop. The parent implementation is kept intact.
 These are the real React PiP components rendered in local Chromium with synthetic
 artwork and mock playback state, not production song artwork or an installed PWA.
 
-| Vertical | Vinyl |
-| --- | --- |
+| Vertical                                                  | Vinyl                                               |
+| --------------------------------------------------------- | --------------------------------------------------- |
 | ![Vertical PiP](images/player-followups/pip-vertical.png) | ![Vinyl PiP](images/player-followups/pip-vinyl.png) |
 
 ![Compact horizontal PiP](images/player-followups/pip-horizontal.png)
@@ -99,3 +99,44 @@ confirmed intermediate scale (about 0.833), rather than an instant change; line 
 heights stayed fixed and active text remained inside its panel. Two deterministic
 component tests verify independent cancellation and reduced-motion centering (33ms
 of test execution locally). Song/lyric timestamps and reviewed offsets are unchanged.
+
+## PiP efficiency review
+
+The mounted PiP shares the existing audio engine; the retro skin replaces the normal
+presentation instead of mounting a second hidden player. Lyric retrieval is gated
+by the existing enabled flag (no fetch while lyrics are closed). Theme/resize
+observers, store listeners and lyric scrolling have cleanup; the window's pagehide
+removes its React portal. Vinyl rotation still uses its document's animation clock
+and cleans up on unmount. This is not a claim of zero idle animation-frame cost.
+
+This review removed two unnecessary hot paths:
+
+- Artwork no longer subscribes to playback time. Only the mounted video mirror
+  subscribes when it needs synchronization; it remains muted.
+- Lyric views subscribe to their active line index instead of rendering the entire
+  list on every time sample. Reviewed offsets, duplicate timestamps and backward
+  seeking retain their behavior. Player UI reuses that same narrow subscription.
+- Compact PiP mounts the current-line view instead of keeping a hidden full list
+  and its scroll observer. Full layouts mount only the full lyric view.
+- Resize notifications with unchanged dimensions retain the current state object;
+  lyric scroll avoids scheduling an animation when already centered.
+
+A local Chromium fixture instrumented the real React components. Each scenario
+applied 60 clock changes within the same lyric line, once per animation frame:
+
+| Mode                | Artwork renders before → after | Lyric renders before → after |
+| ------------------- | ------------------------------ | ---------------------------- |
+| Cover + full lyrics | 60 → 0                         | 120 → 0                      |
+| Vinyl + full lyrics | 60 → 0                         | 120 → 0                      |
+| Retro + lyrics      | 60 → 0                         | 60 → 0                       |
+
+The progress/time display still updates. These are component render counts under
+controlled inputs, not production CPU, memory, battery or FPS benchmarks. Actual
+video decoding, vinyl animation and browser drawing remain real costs. Low-end
+hardware, minimized Vivaldi and long-running physical-device sessions are not
+established by these measurements.
+
+A deterministic component regression checks that 60 clock samples preserve the
+render count while line changes, duplicate timestamps, reviewed offsets, backward
+seeks and unmount cleanup remain correct. The scoped scroll/reduced-motion tests
+also pass; three focused tests took 107ms of test execution locally.

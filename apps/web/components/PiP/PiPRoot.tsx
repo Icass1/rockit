@@ -58,10 +58,15 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
         doc.head.appendChild(style);
         // Observe the viewport, not a body inflated by oversized content.
         const observer = new ResizeObserver((): void => {
-            setSize({
-                width: pipWindow.innerWidth,
-                height: pipWindow.innerHeight,
-            });
+            setSize((previous) =>
+                previous.width === pipWindow.innerWidth &&
+                previous.height === pipWindow.innerHeight
+                    ? previous
+                    : {
+                          width: pipWindow.innerWidth,
+                          height: pipWindow.innerHeight,
+                      }
+            );
         });
         observer.observe(doc.documentElement);
         return (): void => {
@@ -73,6 +78,9 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
     }, [pipWindow]);
 
     const layout = getPiPLayout(size.width, size.height);
+    const glanceLyrics =
+        lyricsVisible &&
+        (layout === "cover-only" || (layout === "pill" && size.height < 180));
     const retroEligible =
         size.width >= 220 &&
         size.height >= 380 &&
@@ -116,11 +124,13 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
                 <>
                     <div className="pip-stage">
                         <PiPCover />
-                        {lyricsVisible && <PiPLyrics {...lyrics} />}
+                        {lyricsVisible && !glanceLyrics && (
+                            <PiPLyrics {...lyrics} />
+                        )}
                     </div>
                     <div className="pip-panel">
                         <PiPInfo>
-                            {lyricsVisible && <PiPLyrics {...lyrics} glance />}
+                            {glanceLyrics && <PiPLyrics {...lyrics} glance />}
                         </PiPInfo>
                         <PiPControls
                             layout={layout}

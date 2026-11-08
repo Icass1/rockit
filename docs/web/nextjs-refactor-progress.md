@@ -917,3 +917,14 @@ Chromium captures and artwork pause/resume passed in five viewports (320×420,
 570×100, 300×420 vinyl, 760×64 and 180×560). The sub-96px layout now keeps its
 horizontal transport. Stacked PR191 enables the same fast CI gate for its parent
 branch; no production builds/emulators were added to the required checks.
+
+## PiP efficiency review on PR191
+
+Separated video clock subscriptions from artwork and selected the active lyric
+index with useSyncExternalStore, also reused by Player UI. Compact mode no longer
+mounts its hidden full lyric list. Controlled Chromium measurements over 60 clock
+samples within one line show zero artwork/lyric rerenders after optimization
+(previously 60 artwork and 60–120 lyric renders). Progress updates remain active.
+Three focused component tests, desktop/fixture types and affected-module lint pass.
+This is not a device CPU/battery/FPS claim; see docs/PLAYER_FOLLOWUPS.md for limits.
+The two new explicit-metadata and mixed-provider redownload tasks are To Do only.

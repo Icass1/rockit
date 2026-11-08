@@ -29,7 +29,8 @@ export function useLyricAutoScroll(
                 )
             );
         const start = (): void => {
-            if (running) return;
+            if (running || Math.abs(container.scrollTop - target()) < 0.5)
+                return;
             if (motion.matches) {
                 container.scrollTop = target();
                 return;

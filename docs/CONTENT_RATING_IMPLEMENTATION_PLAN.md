@@ -36,7 +36,7 @@ https://ytmusicapi.readthedocs.io/en/stable/reference/browsing.html
 
 - [x] Read current provider, downloader, queue, edit-request and persistence paths.
 - [ ] Reproduce queue/playlist refresh defect with controlled HTTP/WebSocket data.
-- [ ] Implement identity-safe shared refresh, preserving duplicate queue occurrences.
+- [x] Implement identity-safe shared refresh, preserving duplicate queue occurrences.
 - [ ] Add rating persistence and typed backend requests/responses.
 - [ ] Interpret source evidence inside providers; ingest in downloader.
 - [ ] Implement bounded existing-library backfill and reviewed manual edits.
@@ -47,3 +47,14 @@ Existing inspected behavior: Spotify raw DTOs contain explicit but do not persis
 it. Edit Metadata creates review proposals. A completed download dispatches a media
 completion event; the queue has no listener that refreshes recording metadata.
 These are findings, not yet a complete explanation of the reported mixed-list crash.
+
+## Queue-refresh checkpoint
+
+Shared queue refresh listens for completed download messages and patches all
+occurrences and page caches by identity, preserving queue-item IDs, selection and
+playback. Collection refresh rejects old-lifecycle/wrong-ID replies and handles
+transport failures. Generic media lookup now converts empty successful provider
+lists to NOT_FOUND instead of indexing an empty list. These are demonstrated
+refresh/robustness defects; they do not yet establish every cause of the reported
+production mixed-playlist failure. Focused checks: 25 queue tests and four empty-
+provider tests pass; desktop TypeScript passes. Full final gates remain pending.

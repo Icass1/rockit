@@ -765,3 +765,47 @@ test("section playback replaces smaller or paged queues before selecting the cli
         }
     }
 });
+
+test("redownload refresh patches every mixed-queue occurrence without replaying or changing selection", async () => {
+    const seed = page({ ids: [1, 2, 3], current: 2 });
+    seed.queue[0].media = { ...song("shared"), provider: "First" };
+    seed.queue[1].media = { ...song("shared"), provider: "First" };
+    seed.queue[2].media = { ...song("other"), provider: "Other" };
+    const e = setup({ seed });
+    await e.queue.init();
+    const loads = e.calls.loads;
+    const refresh = e.queue.refreshDownloadedMediaAsync("shared");
+    e.take("getMediaAsync").resolve(
+        ok({
+            media: {
+                ...song("shared"),
+                provider: "Refreshed",
+                audioUrl: "new",
+            },
+        })
+    );
+    assert.equal(await refresh, true);
+    assert.deepEqual(
+        Array.from(e.queue.queueAtom.get(), (item) => item.queueMediaId),
+        [1, 2, 3]
+    );
+    assert.deepEqual(
+        Array.from(e.queue.queueAtom.get(), (item) => item.media.provider),
+        ["Refreshed", "Refreshed", "Other"]
+    );
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    assert.equal(e.queue.currentMedia.provider, "Refreshed");
+    assert.equal(e.calls.loads, loads);
+    e.queue.stop();
+});
+
+test("a stopped lifecycle cannot install late redownload metadata", async () => {
+    const e = setup();
+    await e.queue.init();
+    const refresh = e.queue.refreshDownloadedMediaAsync("song0");
+    const pending = e.take("getMediaAsync");
+    e.queue.stop();
+    pending.resolve(ok({ media: { ...song("song0"), provider: "Obsolete" } }));
+    assert.equal(await refresh, false);
+    assert.notEqual(e.queue.currentMedia.provider, "Obsolete");
+});

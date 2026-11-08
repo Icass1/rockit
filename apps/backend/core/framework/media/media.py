@@ -621,10 +621,14 @@ class Media:
             a_result = await provider.get_songs_async(session=session, public_ids=[public_id])
             if a_result.is_not_ok():
                 return Result(code=a_result.code(), message=a_result.message())
+            items = a_result.result()
+            if not items:
+                logger.warning("Provider returned no media for public id %s", public_id)
+                return Result(code=ResultCode.NOT_FOUND, message="Media not found")
             return Result(
                 code=ResultCode.OK,
                 message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
+                result=MediaResponse(media=items[0]),
             )
 
         elif media_type in (MediaTypeEnum.ALBUM, MediaTypeEnum.PLAYLIST):
@@ -646,30 +650,42 @@ class Media:
             a_result = await provider.get_artists_async(session=session, public_ids=[public_id])
             if a_result.is_not_ok():
                 return Result(code=a_result.code(), message=a_result.message())
+            items = a_result.result()
+            if not items:
+                logger.warning("Provider returned no media for public id %s", public_id)
+                return Result(code=ResultCode.NOT_FOUND, message="Media not found")
             return Result(
                 code=ResultCode.OK,
                 message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
+                result=MediaResponse(media=items[0]),
             )
 
         elif media_type == MediaTypeEnum.VIDEO:
             a_result = await provider.get_videos_async(session=session, public_ids=[public_id])
             if a_result.is_not_ok():
                 return Result(code=a_result.code(), message=a_result.message())
+            items = a_result.result()
+            if not items:
+                logger.warning("Provider returned no media for public id %s", public_id)
+                return Result(code=ResultCode.NOT_FOUND, message="Media not found")
             return Result(
                 code=ResultCode.OK,
                 message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
+                result=MediaResponse(media=items[0]),
             )
 
         elif media_type == MediaTypeEnum.RADIO:
             a_result = await provider.get_stations_async(session=session, public_ids=[public_id])
             if a_result.is_not_ok():
                 return Result(code=a_result.code(), message=a_result.message())
+            items = a_result.result()
+            if not items:
+                logger.warning("Provider returned no media for public id %s", public_id)
+                return Result(code=ResultCode.NOT_FOUND, message="Media not found")
             return Result(
                 code=ResultCode.OK,
                 message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
+                result=MediaResponse(media=items[0]),
             )
 
         logger.error(f"Unknown media type: {media_type}")

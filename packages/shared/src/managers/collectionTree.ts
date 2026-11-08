@@ -15,6 +15,9 @@ export class CollectionTree {
     private branches = new Map<string, CollectionTreeBranch>();
     private expanded = new Map<string, boolean>();
     private started = false;
+    private lifecycle = 0;
+    private refreshSequence = 0;
+    private refreshes = new Map<string, number>();
 
     constructor(
         readonly root: CollectionPager,
@@ -25,12 +28,16 @@ export class CollectionTree {
     }
 
     start(): void {
+        if (this.started) return;
+        this.lifecycle++;
         this.started = true;
         for (const [key, branch] of this.branches) this.subscribe(key, branch);
         this.rebuild();
     }
 
     stop(): void {
+        this.lifecycle++;
+        this.refreshes.clear();
         this.started = false;
         for (const [key, branch] of this.branches) {
             branch.unsubscribe?.();
@@ -94,9 +101,23 @@ export class CollectionTree {
             )
         )
             return;
-        const response = await getRockIt().http.getMediaAsync(publicId);
-        if (!response.isOk() || !this.started) return;
+        const lifecycle = this.lifecycle;
+        const request = ++this.refreshSequence;
+        this.refreshes.set(publicId, request);
+        let response;
+        try {
+            response = await getRockIt().http.getMediaAsync(publicId);
+            if (this.refreshes.get(publicId) !== request) return;
+        } catch {
+            return;
+        } finally {
+            if (this.refreshes.get(publicId) === request)
+                this.refreshes.delete(publicId);
+        }
+        if (!response.isOk() || !this.started || lifecycle !== this.lifecycle)
+            return;
         const updated = response.result.media;
+        if (updated.publicId !== publicId) return;
         for (const branch of this.branches.values()) {
             const state = branch.pager.state.get();
             if (

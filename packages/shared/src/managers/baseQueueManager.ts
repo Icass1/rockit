@@ -7,6 +7,7 @@ import {
     type BaseSongWithAlbumResponse,
     type CurrentMediaMessage,
     type CurrentQueueMessageRequestItem,
+    type DownloadProgressMessage,
     type QueueResponse,
 } from "@/dto";
 import { getRockIt } from "@/rockit/rockitRef";
@@ -17,6 +18,7 @@ import type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listeningQ
 import { type QueueMediaItem } from "@/models/interfaces/queue";
 import type { AutoplayRecommendation } from "@/models/types/autoplayRecommendation";
 import {
+    isPlayable,
     isQueueable,
     isStation,
     type TListMedia,
@@ -79,6 +81,8 @@ export class BaseQueueManager {
     protected _lifecycleGeneration = 0;
     private _refreshRequest = 0;
     private _playRequest = 0;
+    private readonly _downloadRefreshes = new Map<string, number>();
+    private _downloadRefreshSequence = 0;
     private _cleanup: (() => void)[] = [];
 
     protected sortedQueue: QueueMediaItem[] = [];
@@ -115,9 +119,19 @@ export class BaseQueueManager {
         const schedule = (): void => {
             if (isCurrent()) this._scheduleAutoplayLoad();
         };
+        const onDownload = (data: DownloadProgressMessage): void => {
+            if (isCurrent() && data.status === "COMPLETED")
+                void this.refreshDownloadedMediaAsync(data.mediaPublicId);
+        };
+        socket.onMessage(EWebSocketMessage.DownloadProgress, onDownload);
         socket.onMessage(EWebSocketMessage.CurrentQueue, onCurrentQueue);
         socket.onMessage(EWebSocketMessage.CurrentMedia, onCurrentMedia);
         this._cleanup = [
+            () =>
+                socket.offMessage(
+                    EWebSocketMessage.DownloadProgress,
+                    onDownload
+                ),
             () =>
                 socket.offMessage(
                     EWebSocketMessage.CurrentQueue,
@@ -152,6 +166,7 @@ export class BaseQueueManager {
         this._initialization = undefined;
         this._lifecycleGeneration++;
         this._refreshRequest++;
+        this._downloadRefreshes.clear();
         this._queueGeneration++;
         for (const cleanup of this._cleanup) cleanup();
         this._cleanup = [];
@@ -183,6 +198,55 @@ export class BaseQueueManager {
         this._currentListAtom.set(undefined);
         this._lastNavigationDirection = 1;
         this._setRecommendations([]);
+    }
+
+    /** Refresh recording metadata without replacing queue occurrences or restarting audio. */
+    async refreshDownloadedMediaAsync(publicId: string): Promise<boolean> {
+        if (
+            !this._init ||
+            !this._queueAtom
+                .get()
+                .some((item) => item.media.publicId === publicId)
+        )
+            return false;
+        const lifecycle = this._lifecycleGeneration,
+            queue = this._queueGeneration;
+        const request = ++this._downloadRefreshSequence;
+        this._downloadRefreshes.set(publicId, request);
+        try {
+            const response = await getRockIt().http.getMediaAsync(publicId);
+            if (
+                !this._init ||
+                lifecycle !== this._lifecycleGeneration ||
+                queue !== this._queueGeneration ||
+                this._downloadRefreshes.get(publicId) !== request ||
+                !response.isOk()
+            )
+                return false;
+            const updated = response.result.media;
+            if (updated.publicId !== publicId || !isPlayable(updated))
+                return false;
+            const patch = (items: QueueMediaItem[]): QueueMediaItem[] =>
+                items.map((item) =>
+                    item.media.publicId === publicId
+                        ? { ...item, media: updated }
+                        : item
+                );
+            this.sortedQueue = patch(this.sortedQueue);
+            this.randomQueue = patch(this.randomQueue);
+            for (const [offset, items] of this._queuePages)
+                this._queuePages.set(offset, patch(items));
+            this._sortedQueueAtom.set([...this.sortedQueue]);
+            this._queueAtom.set(patch([...this._queueAtom.get()]));
+            if (this._currentMediaAtom.get()?.publicId === publicId)
+                this._currentMediaAtom.set(updated);
+            return true;
+        } catch {
+            return false;
+        } finally {
+            if (this._downloadRefreshes.get(publicId) === request)
+                this._downloadRefreshes.delete(publicId);
+        }
     }
 
     async refreshAsync(updateCurrentMedia = true): Promise<void> {

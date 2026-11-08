@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1220" viewBox="0 0 1440 1220" role="img" aria-labelledby="title desc">
+<title id="title">RockIt! — Arquitectura frontend implementada</title>
+<desc id="desc">Escritorio Next y una interfaz móvil Expo para PWA iOS y APK Android comparten lógica, componentes UI y tokens. Los adaptadores web y nativos conservan sus APIs propias y usan el mismo backend.</desc>
+<rect width="1440" height="1220" fill="#f6f7fa"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#79869b"/></marker></defs>
+<text x="56" y="64" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#17202f" text-anchor="start">RockIt!</text>
+<text x="56" y="105" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" fill="#17202f" text-anchor="start">Arquitectura frontend implementada</text>
+<text x="1384" y="67" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#aa1c75" text-anchor="end">PR #189</text>
+<text x="1384" y="105" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" fill="#516077" text-anchor="end">Código compartido · despliegues separados</text>
+<rect x="56" y="145" width="410" height="245" rx="20" fill="#ffffff" stroke="#ccd4df" stroke-width="1.5"/>
+<text x="84" y="184" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#aa1c75" text-anchor="start">ESCRITORIO</text>
+<text x="84" y="223" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" fill="#17202f" text-anchor="start">apps/web</text>
+<text x="84" y="262" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" fill="#516077" text-anchor="start">Next.js + React DOM</text>
+<text x="84" y="294" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" fill="#516077" text-anchor="start">UI de ordenador · SSR</text>
+<text x="84" y="326" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" fill="#516077" text-anchor="start">Navegación · PiP</text>
+<rect x="490" y="145" width="894" height="245" rx="20" fill="#ffffff" stroke="#ccd4df" stroke-width="1.5"/>
+<text x="518" y="184" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#aa1c75" text-anchor="start">MÓVIL · UNA SOLA INTERFAZ</text>
+<text x="518" y="223" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" fill="#17202f" text-anchor="start">apps/mobile · Expo</text>
+<text x="518" y="260" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" fill="#516077" text-anchor="start">Mismas pantallas, rutas y controles táctiles</text>
+<rect x="518" y="286" width="398" height="77" rx="12" fill="#eaf1fb" stroke="#ccd4df" stroke-width="1.5"/>
+<text x="538" y="316" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#17202f" text-anchor="start">PWA iOS</text>
+<text x="538" y="343" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" fill="#516077" text-anchor="start">React Native Web → navegador</text>
+<rect x="936" y="286" width="420" height="77" rx="12" fill="#eaf5f0" stroke="#ccd4df" stroke-width="1.5"/>
+<text x="956" y="316" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#17202f" text-anchor="start">APK Android</text>
+<text x="956" y="343" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" fill="#516077" text-anchor="start">React Native → vistas nativas</text>
+<path d="M261,390 L261,446" fill="none" stroke="#79869b" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M937,390 L937,446" fill="none" stroke="#79869b" stroke-width="2"  marker-end="url(#arrow)"/>
+<text x="720" y="432" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#516077" text-anchor="middle">AMBAS APLICACIONES REUTILIZAN</text>
+<rect x="56" y="456" width="1328" height="278" rx="20" fill="#f9eef5" stroke="#aa1c75" stroke-width="1.5"/>
+<text x="84" y="493" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#aa1c75" text-anchor="start">BASE COMÚN DEL FRONTEND</text>
+<rect x="80" y="516" width="410" height="156" rx="12" fill="#ffffff" stroke="#ccd4df" stroke-width="1.5"/>
+<rect x="510" y="516" width="410" height="156" rx="12" fill="#ffffff" stroke="#ccd4df" stroke-width="1.5"/>
+<rect x="940" y="516" width="420" height="156" rx="12" fill="#ffffff" stroke="#ccd4df" stroke-width="1.5"/>
+<text x="100" y="550" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#17202f" text-anchor="start">@rockit/shared</text>
+<text x="100" y="584" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Lógica: cola, sesión, funciones</text>
+<text x="100" y="613" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Contratos HTTP y DTOs</text>
+<text x="100" y="642" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Vocabulary ← Excel</text>
+<text x="530" y="550" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#17202f" text-anchor="start">@rockit/ui</text>
+<text x="530" y="584" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Portadas, identidad y botones</text>
+<text x="530" y="613" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Hooks: búsqueda, carga, páginas</text>
+<text x="530" y="642" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Renderizador web / nativo</text>
+<text x="960" y="550" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#17202f" text-anchor="start">@rockit/theme</text>
+<text x="960" y="584" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Colores semánticos y temas</text>
+<text x="960" y="613" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Espaciado, texto, radios</text>
+<text x="960" y="642" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">Misma fuente → CSS y estilos RN</text>
+<text x="720" y="708" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#17202f" text-anchor="middle">Mismo código; cada aplicación tiene sus propias instancias y sesión.</text>
+<path d="M430,734 L430,810" fill="none" stroke="#79869b" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+<path d="M1110,734 L1110,810" fill="none" stroke="#79869b" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+<rect x="230" y="757" width="1100" height="32" fill="#f6f7fa"/>
+<text x="720" y="780" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#516077" text-anchor="middle">CADA APP CONECTA LOS CONTRATOS COMUNES CON SUS ADAPTADORES</text>
+<rect x="56" y="820" width="802" height="192" rx="20" fill="#eaf1fb" stroke="#ccd4df" stroke-width="1.5"/>
+<text x="84" y="858" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#17202f" text-anchor="start">NAVEGADOR · ESCRITORIO + PWA iOS</text>
+<text x="84" y="896" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#17202f" text-anchor="start">@rockit/platform-browser</text>
+<text x="84" y="932" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" fill="#516077" text-anchor="start">Audio · transiciones · Media Session</text>
+<text x="84" y="964" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" fill="#516077" text-anchor="start">HTTP con cookies · IndexedDB offline</text>
+<rect x="882" y="820" width="502" height="192" rx="20" fill="#eaf5f0" stroke="#ccd4df" stroke-width="1.5"/>
+<text x="910" y="858" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#17202f" text-anchor="start">NATIVO · APK ANDROID</text>
+<text x="910" y="896" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#17202f" text-anchor="start">apps/mobile · *.native.ts</text>
+<text x="910" y="932" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">expo-audio · controles del sistema</text>
+<text x="910" y="964" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" fill="#516077" text-anchor="start">SecureStore · archivos · AppState</text>
+<path d="M430,1012 L430,1058" fill="none" stroke="#79869b" stroke-width="2"  marker-end="url(#arrow)"/>
+<path d="M1110,1012 L1110,1058" fill="none" stroke="#79869b" stroke-width="2"  marker-end="url(#arrow)"/>
+<rect x="56" y="1070" width="1328" height="94" rx="20" fill="#ffffff" stroke="#ccd4df" stroke-width="1.5"/>
+<text x="720" y="1108" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#17202f" text-anchor="middle">MISMO BACKEND · API AUTENTICADA</text>
+<text x="720" y="1142" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" fill="#516077" text-anchor="middle">Providers y almacenamiento S3 existentes</text>
+<text x="56" y="1198" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#516077" text-anchor="start">Implementado en el PR189 · activación en producción y aceptación física pendientes</text>
+</svg>

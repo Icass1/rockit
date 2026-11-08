@@ -6,6 +6,10 @@ documentation listed below. This document supersedes the Android TWA recommendat
 in the earlier [PR #188 pilot](https://github.com/Icass1/rockit/pull/188). That pilot
 demonstrates web shell isolation, not the architecture or native capabilities below.
 
+For the resulting code, concrete consumers and diagrams, see
+[implemented frontend architecture](FRONTEND_IMPLEMENTATION.md). The baseline and
+alternative comparisons below preserve the reasoning behind the migration.
+
 ## Decision
 
 Keep **Next.js / React DOM for desktop**. Evolve the existing **Expo application
@@ -137,8 +141,8 @@ isolated screen; it adds complexity to a frequently updating audio/lyrics surfac
 
 Keep the existing workspace names to avoid a disruptive rename. Here,
 `packages/shared` is the frontend **core** from the requested diagram; it is
-unrelated to the backend's `core` module. The additional packages are proposed
-boundaries and should be introduced when a real consumer needs them.
+unrelated to the backend's `core` module. These packages are implemented and
+consumed in PR #189; see the implementation guide for concrete imports.
 
 ```text
 apps/
@@ -147,9 +151,13 @@ apps/
     app/                       Expo Router routes and application composition
     components/                Mobile layouts, touch interactions, safe areas
     platform/
-      services.web.ts          iOS PWA/browser composition
-      services.android.ts      Android native composition
-      services.ts              Explicit unsupported/fallback composition
+      bootstrap.web.ts         Browser shell and offline initialization
+      bootstrap.native.ts      Native initialization
+      capabilities.*.ts        Explicit browser/native capabilities
+      resume.*.ts              Browser/native lifecycle adapters
+    lib/                       HTTP, player, session and storage adapters
+      *.web.ts                 Browser implementations
+      *.native.ts              Native implementations
 packages/
   shared/                      Existing contracts and portable frontend logic
     src/models/                DTO-facing models, port/capability interfaces

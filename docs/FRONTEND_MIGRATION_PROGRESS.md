@@ -46,6 +46,9 @@ WebKit automation represents a browser engine, not an installed iPhone PWA or iO
 background policy. Native component tests and Metro exports do not establish APK
 installation, Android services or lock-screen behavior. Record each separately.
 
+Architecture overview, actual component reuse and a Library search flow:
+[implemented frontend diagrams](FRONTEND_IMPLEMENTATION.md).
+
 ## Current verification and release status
 
 Implementation is ready for review in PR #189. This is not a production cutover.

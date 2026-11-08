@@ -161,5 +161,22 @@ html.rockit-pip-document, .rockit-pip-document body {
  .rockit-pip-document .pip-lyrics-toggle { display:none; }
  .rockit-pip-document .pip-root { padding-left:4px;padding-right:4px; }
 }
+.rockit-pip-document .pip-grip-dots { display:grid; grid-template-columns:repeat(4,3px); gap:3px; }
+.rockit-pip-document .pip-grip-dots span { width:3px; height:3px; border-radius:50%; background:currentColor; }
+.rockit-pip-document .pip-layout--pill .pip-grip-dots { grid-template-columns:repeat(2,3px); }
+@media (max-height:179px) and (min-width:360px) {
+ .rockit-pip-document .pip-layout--pill .pip-controls-icon-btn { width:40px; min-width:40px; height:40px; min-height:40px; flex-basis:40px; }
+ .rockit-pip-document .pip-layout--pill .pip-play-button { width:48px; min-width:48px; height:48px; min-height:48px; flex-basis:48px; }
+ .rockit-pip-document .pip-layout--pill .pip-icon { width:24px; height:24px; }
+ .rockit-pip-document .pip-layout--pill .pip-play-icon { width:28px; height:28px; }
+ .rockit-pip-document .pip-layout--pill .pip-options { flex-basis:32px; }
+ .rockit-pip-document .pip-layout--pill .pip-options > summary { width:32px; min-width:32px; flex-basis:32px; }
+ .rockit-pip-document .pip-layout--pill .pip-lyrics-toggle { display:none; }
+}
+@media (max-height:63px) and (min-width:360px) {
+ .rockit-pip-document .pip-layout--pill .pip-controls-icon-btn { width:28px; min-width:28px; height:28px; min-height:28px; flex-basis:28px; }
+ .rockit-pip-document .pip-layout--pill .pip-play-button { width:32px; min-width:32px; height:32px; min-height:32px; flex-basis:32px; }
+ .rockit-pip-document .pip-layout--pill .pip-play-icon { width:24px; height:24px; }
+}
 @media (prefers-reduced-motion: reduce) { .rockit-pip-document .pip-root * { transition: none !important; } }
 `;

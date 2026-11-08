@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, type JSX } from "react";
-import { GripHorizontal } from "lucide-react";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 /** Window movement remains subject to the browser's auxiliary-window policy. */
@@ -73,7 +72,11 @@ export function PiPHeader({
                     }
                 }}
             >
-                <GripHorizontal aria-hidden size={16} />
+                <span className="pip-grip-dots" aria-hidden>
+                    {Array.from({ length: 8 }, (_, index) => (
+                        <span key={index} />
+                    ))}
+                </span>
             </button>
         </div>
     );

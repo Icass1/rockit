@@ -912,3 +912,8 @@ or account replacement. Artist credits remain visible in mobile cards and deskto
 artist rows; provider album/artist parsing accepts individual string/object credits.
 Frontend fast gate: 301 tests passed. Focused provider credit tests: 11 passed.
 Physical iOS controls and auxiliary-window movement remain device/browser checks.
+
+Chromium captures and artwork pause/resume passed in five viewports (320×420,
+570×100, 300×420 vinyl, 760×64 and 180×560). The sub-96px layout now keeps its
+horizontal transport. Stacked PR191 enables the same fast CI gate for its parent
+branch; no production builds/emulators were added to the required checks.

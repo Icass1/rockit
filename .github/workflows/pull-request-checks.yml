@@ -5,6 +5,7 @@ on:
         branches:
             - develop
             - main
+            - docs/frontend-platform-architecture
 
 permissions:
     contents: read

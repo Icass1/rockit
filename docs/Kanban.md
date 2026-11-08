@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [PIP] Modo retro RockIt! y eje de vinilo centrado
+
+- tags: [frontend, pip, easter-egg, vinyl]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en PR191: modo retro opcional en vertical, con rueda de controles reales, salida al modo normal, vocabulary en/es/fr y estilos semánticos. Eje del vinilo proporcional y centrado, incluido el vinilo horizontal mini. Ver docs/PLAYER_FOLLOWUPS.md para capturas y verificaciones dirigidas. Pendiente de revisión del usuario.
+    ```
+
 PR191 completa las cuatro tareas siguientes sobre la rama de PR189. Detalles y capturas: docs/PLAYER_FOLLOWUPS.md. Pendientes de validación del usuario.
 
 ### [PIP] Pulsar en la cover / vinilo se pausa con al misma animacion que en el playerui

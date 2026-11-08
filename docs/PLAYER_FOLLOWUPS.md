@@ -49,3 +49,28 @@ Actual iPhone system-control presentation still needs device acceptance. Browser
 own native window chrome and can restrict auxiliary-window movement; the custom
 handle cannot override that policy. Local captures validate the content UI and
 mock playback transitions, not native window positioning or real background audio.
+
+## RockIt! retro mode and spindle correction
+
+A device-shaped header button appears in portrait PiP windows at least 220 pixels
+wide and 380 pixels high. It toggles the optional RockIt! retro skin: artwork,
+metadata/progress and a circular set of real queue/playback controls. MENU opens
+the existing PiP controls, including lyrics and artwork mode; the same header button
+returns to the normal player. Resizing to landscape temporarily shows the standard
+layout and retains the chosen retro preference for a return to portrait.
+
+The skin uses semantic theme values and workbook vocabulary in en/es/fr. It does
+not instantiate another player or claim iPod firmware/touch-wheel behavior.
+
+The vinyl spindle dot now scales with its housing and uses grid centering instead
+of a fixed-size absolutely positioned dot, which could overflow its tiny housing.
+Local Chromium measured center deltas below 0.02 CSS pixels, including the horizontal
+mini vinyl. The same existing vinyl artwork mode works in horizontal mini layouts.
+
+![RockIt retro](images/player-followups/pip-retro.png)
+![RockIt retro vinyl](images/player-followups/pip-retro-vinyl.png)
+![Horizontal mini vinyl](images/player-followups/pip-mini-vinyl.png)
+
+Directed checks passed: retro previous/next, wheel pause/resume, exit to standard
+mode and geometric spindle centering; desktop TypeScript and changed-module lint
+also passed. These are fixture/component checks, not physical-device acceptance.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type JSX } from "react";
+import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import type { PiPLyricsState } from "@/models/types/pip";
@@ -88,7 +89,14 @@ export function PiPRetro({
                     aria-label={label}
                     onClick={toggle}
                 >
-                    <span>RockIt!</span>
+                    <Image
+                        className="pip-retro-logo"
+                        src="/logo-192.png"
+                        alt=""
+                        width={64}
+                        height={64}
+                        draggable={false}
+                    />
                 </button>
             </div>
         </div>

@@ -40,6 +40,9 @@ jobs:
 
             - name: Set up Gradle
               uses: gradle/actions/setup-gradle@v4
+              with:
+                  # Manual preview runs also need to populate their branch cache.
+                  cache-read-only: false
 
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
@@ -62,7 +65,7 @@ jobs:
                   mkdir -p "${RUNNER_TEMP}/android-build-logs"
                   for attempt in 1 2 3; do
                       log="${RUNNER_TEMP}/android-build-logs/attempt-${attempt}.log"
-                      if ./gradlew :app:assembleRelease -Prockit.preview=true --no-daemon 2>&1 | tee "${log}"; then
+                      if ./gradlew :app:assembleRelease -Prockit.preview=true --build-cache --no-daemon 2>&1 | tee "${log}"; then
                           exit 0
                       else
                           build_status=$?

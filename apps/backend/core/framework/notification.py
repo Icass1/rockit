@@ -201,6 +201,18 @@ class Notification:
         return result
 
     @staticmethod
+    async def mark_all_read_async(session: AsyncSession, user_id: int) -> Result[bool]:
+        """Mark all owned notifications read and synchronize counts after commit."""
+        result = await NotificationAccess.mark_all_read_async(session=session, user_id=user_id)
+        if result.is_not_ok():
+            logger.error(f"Error marking notifications read. {result.info()}")
+            return result
+        from core.framework.friend.notifications import notify_notifications_after_commit
+
+        notify_notifications_after_commit(session=session, user_id=user_id)
+        return result
+
+    @staticmethod
     async def download_async(
         session: AsyncSession,
         user_id: int,

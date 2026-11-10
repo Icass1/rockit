@@ -124,3 +124,33 @@ def test_retried_downloads_keep_the_same_recipient() -> None:
     assert emit.await_args_list[0] == emit.await_args_list[1]
     assert emit.await_args is not None
     assert emit.await_args.kwargs["recipient_user_id"] == 7
+
+
+async def test_mark_all_read_failure_does_not_schedule_counts(monkeypatch):
+    session = MagicMock(spec=AsyncSession)
+    failed = Result[bool](ResultCode.GENERAL_ERROR, "Update failed")
+    monkeypatch.setattr(NotificationAccess, "mark_all_read_async", AsyncMock(return_value=failed))
+    notify = MagicMock()
+    monkeypatch.setattr(
+        "core.framework.friend.notifications.notify_notifications_after_commit", notify
+    )
+    result = await Notification.mark_all_read_async(session=session, user_id=7)
+    assert result.is_not_ok()
+    notify.assert_not_called()
+
+
+def test_web_notification_center_bulk_read_and_account_isolation() -> None:
+    """Exercise the web manager's real bulk-read, failure, and account-switch paths."""
+    import subprocess
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[4]
+    result = subprocess.run(
+        args=["node", "--test", str(root / "apps/web/tests/notificationCenter.test.mjs")],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr

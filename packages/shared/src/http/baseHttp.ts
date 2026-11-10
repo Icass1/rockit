@@ -1190,6 +1190,13 @@ export class BaseHttp {
         );
     }
 
+    static async markAllNotificationsRead() {
+        return this.apiPatchAsync(
+            `/notifications/read-all`,
+            dto.OkResponseSchema
+        );
+    }
+
     static async getNotificationDestination(publicId: string) {
         return this.apiGetAsync(
             `/notifications/${encodeURIComponent(publicId)}/destination`,

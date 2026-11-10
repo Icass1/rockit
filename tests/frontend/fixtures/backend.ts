@@ -813,7 +813,26 @@ export async function createFixtureBackend(port = 0) {
                         communityTop: [],
                         monthlyTop: [],
                         moodSongs: [],
-                        recentlyClickedMedia: [],
+                        recentlyClickedMedia: [
+                            {
+                                media: {
+                                    ...playlist,
+                                    medias: [],
+                                    total: 3,
+                                    playableCount: 7,
+                                    imageUrl: "/rockit.svg",
+                                },
+                            },
+                            {
+                                media: {
+                                    ...album,
+                                    songs: [],
+                                    total: 1,
+                                    playableCount: 1,
+                                    imageUrl: "/rockit.svg",
+                                },
+                            },
+                        ],
                     },
                     dto.HomeStatsResponseSchema
                 );

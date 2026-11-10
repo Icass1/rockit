@@ -19,3 +19,5 @@ class BasePlaylistWithoutMediasResponse(BaseModel):
     contributors: list[PlaylistContributor]
     imageUrl: str
     owner: BaseArtistResponse
+
+    playableCount: int = 0

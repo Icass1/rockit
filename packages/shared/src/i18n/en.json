@@ -1028,6 +1028,7 @@
     "STATS_PLAY_HOURS": "When you press play",
     "STATS_PRIME_TIME": "Prime time",
     "STATS_RANGE_ALL": "All time",
+    "STATS_RANGE_TODAY": "Today",
     "STATS_REPLAY_RATE": "Replay rate",
     "STATS_RHYTHM": "Your rhythm over time",
     "STATS_SEEKS": "Seeks",

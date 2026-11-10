@@ -475,7 +475,7 @@ export async function createFixtureBackend(port = 0) {
                 );
             }
             if (path === "/stats/v2/user") {
-                dto.UserStatsRequestSchema.parse(body);
+                const { range } = dto.UserStatsV2RequestSchema.parse(body);
                 return send(
                     {
                         summary: {
@@ -488,7 +488,47 @@ export async function createFixtureBackend(port = 0) {
                             avgPlayTimePerMediaMs: 180000,
                             currentStreak: 2,
                         },
-                        minutes: [],
+                        minutes: Array.from(
+                            {
+                                length:
+                                    range === "today"
+                                        ? 24
+                                        : range === "30d"
+                                          ? 5
+                                          : 7,
+                            },
+                            (_, index) => {
+                                const start = new Date(Date.UTC(2026, 10, 2));
+                                const end = new Date(start);
+                                if (range === "today") {
+                                    start.setUTCHours(index);
+                                    end.setUTCHours(index + 1);
+                                } else {
+                                    const days = range === "30d" ? 7 : 1;
+                                    start.setUTCDate(2 + index * days);
+                                    end.setUTCDate(2 + (index + 1) * days);
+                                }
+                                return {
+                                    minutes: index === 0 ? 211.2 : 0,
+                                    start: start.toISOString(),
+                                    end: end.toISOString(),
+                                    label:
+                                        range === "today"
+                                            ? `${String(index).padStart(2, "0")}:00`
+                                            : range === "30d"
+                                              ? `W${index + 1}`
+                                              : [
+                                                    "MONDAY",
+                                                    "TUESDAY",
+                                                    "WEDNESDAY",
+                                                    "THURSDAY",
+                                                    "FRIDAY",
+                                                    "SATURDAY",
+                                                    "SUNDAY",
+                                                ][index],
+                                };
+                            }
+                        ),
                         topSongs: [],
                         topVideos: [],
                         topAlbums: [],

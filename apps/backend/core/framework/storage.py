@@ -103,12 +103,13 @@ def _ensure_bucket() -> None:
 
 def _put_object(
     data: bytes,
+    bucket: str,
     key: str,
     content_type: str | None = None,
 ) -> PutObjectOutputTypeDef:
     client: S3Client = get_s3_client()
     put_kwargs: dict[str, Any] = {
-        "Bucket": settings.S3_BUCKET,
+        "Bucket": bucket,
         "Key": key,
         "Body": data,
     }
@@ -213,6 +214,7 @@ class Storage:
             response: PutObjectOutputTypeDef = await asyncio.to_thread(
                 _put_object,
                 data=data,
+                bucket=settings.S3_BUCKET,
                 key=key,
                 content_type=content_type,
             )
@@ -300,10 +302,11 @@ class Storage:
     @staticmethod
     async def restore_object_async(
         data: bytes,
+        bucket: str,
         key: str,
         content_type: str | None = None,
     ) -> bool:
-        """Re-upload bytes under an existing key without touching the DB.
+        """Re-upload bytes to the recorded bucket and key without touching the DB.
 
         Used to self-heal when a DB row exists but the storage object was
         removed externally (e.g. an object storage data reset).
@@ -314,12 +317,13 @@ class Storage:
             await asyncio.to_thread(
                 _put_object,
                 data=data,
+                bucket=bucket,
                 key=key,
                 content_type=content_type,
             )
             return True
         except Exception as e:
-            logger.error(f"Error restoring object with key {key}: {e}", exc_info=True)
+            logger.error(f"Error restoring object {key} in bucket {bucket}: {e}", exc_info=True)
             return False
 
     @staticmethod

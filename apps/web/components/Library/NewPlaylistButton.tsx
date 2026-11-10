@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useId, useState, type JSX } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Http } from "@/lib/http";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import Dialog from "@/components/Dialog";
 
 export default function NewPlaylistButton({
     variant = "card",
@@ -17,10 +18,12 @@ export default function NewPlaylistButton({
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const nameId = useId();
 
     const $vocabulary = useVocabulary();
 
     const handleCreate = async (): Promise<void> => {
+        if (loading) return;
         if (!name.trim()) {
             setError($vocabulary.ENTER_NEW_PLAYLIST_NAME);
             return;
@@ -37,6 +40,8 @@ export default function NewPlaylistButton({
             if (res.isOk()) {
                 router.push(`/playlist/${res.result.publicId}`);
                 closeModal();
+            } else {
+                setError($vocabulary.ERROR_CREATING_PLAYLIST);
             }
         } catch {
             setError($vocabulary.ERROR_CREATING_PLAYLIST);
@@ -100,71 +105,75 @@ export default function NewPlaylistButton({
                             />
                             <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6 select-none" />
                         </div>
-                        <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
+                        <span className="min-h-6 cursor-pointer truncate text-center font-semibold">
                             {$vocabulary.NEW_PLAYLIST}
-                        </label>
+                        </span>
                     </div>
                 </div>
             )}
 
-            {/* Modal */}
-            {showModal && (
-                <div
-                    className="bg-backdrop/70 fixed inset-0 z-50 flex items-center justify-center px-6"
-                    onClick={(e): void => {
-                        if (e.target === e.currentTarget) closeModal();
+            <Dialog
+                open={showModal}
+                onClose={closeModal}
+                title={$vocabulary.NEW_PLAYLIST}
+            >
+                <form
+                    className="flex flex-col gap-4"
+                    onSubmit={(event): void => {
+                        event.preventDefault();
+                        void handleCreate();
                     }}
                 >
-                    <div className="bg-secondary flex w-full max-w-sm flex-col gap-y-4 rounded-xl p-6 shadow-2xl">
-                        <label className="text-foreground-strong text-base font-semibold">
-                            {$vocabulary.NEW_PLAYLIST_NAME}
-                            {error && (
-                                <span className="text-destructive-soft ml-2">
-                                    — {error}
-                                </span>
-                            )}
-                        </label>
+                    <label htmlFor={nameId} className="text-sm font-medium">
+                        {$vocabulary.NEW_PLAYLIST_NAME}
+                    </label>
+                    <input
+                        id={nameId}
+                        aria-invalid={!!error}
+                        aria-describedby={error ? `${nameId}-error` : undefined}
+                        className={`w-full border-b border-solid bg-transparent text-xl font-bold outline-none ${
+                            error
+                                ? "border-destructive text-destructive-soft"
+                                : "border-border-strong text-foreground-strong"
+                        }`}
+                        value={name}
+                        type="text"
+                        placeholder={$vocabulary.PLACEHOLDER_PLAYLIST_NAME}
+                        onChange={(e): void => {
+                            setName(e.target.value);
+                            setError("");
+                        }}
+                    />
+                    {error && (
+                        <p
+                            id={`${nameId}-error`}
+                            role="alert"
+                            className="text-sm text-destructive-soft"
+                        >
+                            {error}
+                        </p>
+                    )}
 
-                        <input
-                            className={`w-full border-b border-solid bg-transparent text-xl font-bold outline-none ${
-                                error
-                                    ? "border-destructive text-destructive-soft"
-                                    : "border-border-strong text-foreground-strong"
-                            }`}
-                            value={name}
-                            type="text"
-                            autoFocus
-                            placeholder={$vocabulary.PLACEHOLDER_PLAYLIST_NAME}
-                            onChange={(e): void => {
-                                setName(e.target.value);
-                                setError("");
-                            }}
-                            onKeyDown={(e): void => {
-                                if (e.key === "Enter") handleCreate();
-                                if (e.key === "Escape") closeModal();
-                            }}
-                        />
-
-                        <div className="flex justify-end gap-3 pt-2">
-                            <button
-                                className="border-border-strong text-foreground hover:border-border-strong hover:text-foreground-strong rounded-md border px-4 py-2 text-sm transition"
-                                onClick={closeModal}
-                            >
-                                {$vocabulary.CANCEL}
-                            </button>
-                            <button
-                                className="bg-success-hover text-primary-foreground hover:bg-success rounded-md px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
-                                onClick={handleCreate}
-                                disabled={loading || !name.trim()}
-                            >
-                                {loading
-                                    ? $vocabulary.CREATING
-                                    : $vocabulary.CREATE}
-                            </button>
-                        </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            className="rounded-md border border-gray-600 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-300 hover:text-white"
+                            type="button"
+                            onClick={closeModal}
+                        >
+                            {$vocabulary.CANCEL}
+                        </button>
+                        <button
+                            className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            type="submit"
+                            disabled={loading || !name.trim()}
+                        >
+                            {loading
+                                ? $vocabulary.CREATING
+                                : $vocabulary.CREATE}
+                        </button>
                     </div>
-                </div>
-            )}
+                </form>
+            </Dialog>
         </>
     );
 }

@@ -81,7 +81,7 @@ class Image:
         target_format: str | None = "webp",
     ) -> Result[ImageRow]:
         """
-        Ensure an image exists for the given key, uploading the bytes and registering it if missing.
+        Ensure an image exists in S3 and the database, restoring missing S3 bytes.
 
         ``target_format`` (default ``"webp"``) converts the image before upload;
         pass ``None`` to keep the original bytes unchanged.
@@ -112,6 +112,7 @@ class Image:
                 )
                 if not await Storage.restore_object_async(
                     data=data,
+                    bucket=existing_storage_object.bucket,
                     key=existing_storage_object.key,
                     content_type=content_type,
                 ):
@@ -125,7 +126,10 @@ class Image:
                 existing_storage_object.original_key = original_key
                 await session.flush()
 
-            logger.info(f"Image already exists: {key}")
+            logger.info(
+                f"Image verified in storage: {existing_storage_object.key} "
+                f"(bucket '{existing_storage_object.bucket}')"
+            )
             return a_result_image
 
         if a_result_image.code() != ResultCode.NOT_FOUND:

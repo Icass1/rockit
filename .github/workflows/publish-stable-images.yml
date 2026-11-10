@@ -101,3 +101,16 @@ jobs:
                   build-args: |
                       NEXT_PUBLIC_BACKEND_URL=https://api-rockit.rockhosting.org
                       ROCKIT_VERSION=${{ steps.version.outputs.value }}
+
+            - name: Build and publish mobile PWA image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: ./apps/mobile/Dockerfile.pwa
+                  target: runtime
+                  push: true
+                  tags: |
+                      ghcr.io/${{ steps.image.outputs.repository }}/mobile-pwa:${{ steps.image.outputs.tag }}
+                      ghcr.io/${{ steps.image.outputs.repository }}/mobile-pwa:${{ steps.version.outputs.image }}
+                  build-args: |
+                      EXPO_PUBLIC_BACKEND_URL=https://api-rockit.rockhosting.org

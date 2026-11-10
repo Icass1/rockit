@@ -2,6 +2,7 @@ from sqlalchemy import (
     Integer,
     String,
     and_,
+    any_,
     delete,
     exists,
     func,
@@ -12,6 +13,7 @@ from sqlalchemy import (
     text,
     update,
 )
+from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import ColumnElement
 from sqlalchemy.sql.selectable import CTE, Subquery
@@ -58,6 +60,54 @@ class CollectionAccess:
             CollectionAccess._edges(user_id=user_id),
             CollectionAccess._visible(user_id=user_id),
         )
+
+    @staticmethod
+    @safe_async
+    async def playable_counts_async(
+        session: AsyncSession, public_ids: list[str], user_id: int
+    ) -> Result[dict[str, int]]:
+        """Count playable occurrences in several collection graphs in one query."""
+        if not public_ids:
+            return Result[dict[str, int]].ok({})
+        media = shared_metadata.tables["core.media"]
+        edges = CollectionAccess._edges(user_id=user_id)
+        descendants = (
+            select(
+                media.c.public_id.label("root_public_id"),
+                media.c.id.label("media_id"),
+                media.c.media_type_key,
+                array([media.c.id]).label("path"),
+            )
+            .where(
+                media.c.public_id.in_(public_ids),
+                media.c.media_type_key.in_((2, 3)),
+                CollectionAccess._visible(user_id=user_id),
+            )
+            .cte("playable_descendants", recursive=True)
+        )
+        # UNION ALL retains repeated entries; a per-path guard breaks collection cycles.
+        descendants = descendants.union_all(
+            select(
+                descendants.c.root_public_id,
+                media.c.id,
+                media.c.media_type_key,
+                descendants.c.path + array([media.c.id]),
+            )
+            .join(edges, edges.c.parent_id == descendants.c.media_id)
+            .join(media, media.c.id == edges.c.media_id)
+            .where(
+                descendants.c.media_type_key.in_((2, 3)),
+                ~(media.c.id == any_(descendants.c.path)),
+                CollectionAccess._visible(user_id=user_id),
+            )
+        )
+        rows = await session.execute(
+            select(
+                descendants.c.root_public_id,
+                func.count().filter(descendants.c.media_type_key.in_((4, 5, 6))),
+            ).group_by(descendants.c.root_public_id)
+        )
+        return Result[dict[str, int]].ok({row[0]: row[1] for row in rows.all()})
 
     @staticmethod
     @safe_async

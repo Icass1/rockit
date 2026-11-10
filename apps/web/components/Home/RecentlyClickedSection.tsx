@@ -13,7 +13,10 @@ import type {
 } from "@/dto";
 import { getMediaSubtitle, isList, isPlayable } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 type RecentlyClickedMedia =
     | BaseAlbumWithSongsResponse
@@ -28,6 +31,7 @@ export default function RecentlyClickedSection({
     items: MediaResponse["media"][];
 }): JSX.Element | null {
     const vocabulary = useVocabulary();
+    const lang = useLanguage();
 
     const mediaItems = items.filter(
         (item): item is RecentlyClickedMedia =>
@@ -58,7 +62,18 @@ export default function RecentlyClickedSection({
                                 {media.name}
                             </p>
                             <p className="text-muted-foreground truncate text-xs">
-                                {getMediaSubtitle(media)}
+                                {media.type === "playlist" ||
+                                media.type === "album"
+                                    ? (media.playableCount === 1
+                                          ? vocabulary.HOME_MEDIA_COUNT_ONE
+                                          : vocabulary.HOME_MEDIA_COUNT_OTHER
+                                      ).replace(
+                                          "{count}",
+                                          (
+                                              media.playableCount ?? 0
+                                          ).toLocaleString(lang)
+                                      )
+                                    : getMediaSubtitle(media)}
                             </p>
                         </>
                     );

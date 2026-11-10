@@ -49,7 +49,7 @@ async def deliver_notification_events(session: AsyncSession) -> None:
         try:
             async with db_context.session_scope_async() as read_session:
                 result = await NotificationAccess.list_async(
-                    session=read_session, user_id=user_id, limit=20, offset=0
+                    session=read_session, user_id=user_id, limit=20, offset=0, unread_only=False
                 )
                 if result.is_not_ok():
                     logger.error("Unable to load notification counts: %s", result.info())

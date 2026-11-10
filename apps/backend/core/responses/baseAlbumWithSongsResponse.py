@@ -15,3 +15,5 @@ class BaseAlbumWithSongsResponse(BaseAlbumWithoutSongsResponse):
     limit: int = 100
     total: int = 0
     hasMore: bool = False
+
+    playableCount: int = 0

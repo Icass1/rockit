@@ -526,6 +526,8 @@
     "HOME": "Home",
     "HOME_HIGHLIGHTS": "Home highlights",
     "HOME_LISTEN_TO": "Listen to",
+    "HOME_MEDIA_COUNT_ONE": "{count} media",
+    "HOME_MEDIA_COUNT_OTHER": "{count} medias",
     "HOME_MINUTES_THIS_WEEK": "min this week",
     "HOME_STREAK_DAYS": "days in a row",
     "HOME_YOUR_MUSIC_AWAITS": "Your music awaits",

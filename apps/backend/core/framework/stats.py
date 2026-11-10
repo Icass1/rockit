@@ -3,11 +3,14 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.access.collectionAccess import CollectionAccess
 from core.access.recommendationAccess import RecommendationAccess
 from core.access.statsAccess import StatsAccess
 from core.access.userLikedMediaAccess import UserLikedMediaAccess
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.media.media import Media
+from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from core.responses.basePlaylistWithoutMediasResponse import BasePlaylistWithoutMediasResponse
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.homeStatsResponse import HomeStatsResponse
 from core.responses.mediaResponse import MediaResponse
@@ -236,6 +239,25 @@ class Stats:
                 recently_clicked.append(clicked_result.result())
             else:
                 logger.error(f"Error resolving clicked media {public_id}. {clicked_result.info()}")
+
+        collections = [
+            item.media
+            for item in recently_clicked
+            if isinstance(
+                item.media, (BaseAlbumWithSongsResponse, BasePlaylistWithoutMediasResponse)
+            )
+        ]
+        counts_result = await CollectionAccess.playable_counts_async(
+            session=session,
+            public_ids=[item.publicId for item in collections],
+            user_id=user_id,
+        )
+        if counts_result.is_not_ok():
+            logger.error(f"Error counting recently opened media. {counts_result.info()}")
+            return Result(code=counts_result.code(), message=counts_result.message())
+        counts = counts_result.result()
+        for collection in collections:
+            collection.playableCount = counts.get(collection.publicId, 0)
 
         def lookup(ids: list[str]) -> list[BaseSongWithAlbumResponse]:
             return [resolved[pid] for pid in ids if pid in resolved]

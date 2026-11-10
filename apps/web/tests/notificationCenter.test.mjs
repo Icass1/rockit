@@ -122,3 +122,19 @@ test("pending bulk updates suppress duplicates and cannot update a different acc
     assert.equal(manager.actionPendingAtom.get(), false);
     state.wait = null;
 });
+
+
+test("inbox starts unread and only includes read history after an explicit selection", async () => {
+    const manager = createManager();
+    await manager.refreshAsync();
+    assert.deepEqual(state.calls.at(-1), ["list", 0, true]);
+    manager.setPage(0, false);
+    await manager.refreshAsync();
+    assert.deepEqual(state.calls.at(-1), ["list", 0, false]);
+    manager.setPage(0);
+    await manager.refreshAsync();
+    assert.deepEqual(state.calls.at(-1), ["list", 0, true]);
+    sessions.get(manager)("bob");
+    await manager.refreshAsync();
+    assert.deepEqual(state.calls.at(-1), ["list", 0, true]);
+});

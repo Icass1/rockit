@@ -30,11 +30,13 @@ function CustomTooltip({
     active,
     payload,
     range,
+    showYear,
 }: {
     active?: boolean;
     payload?: { value: number; payload: StatsMinutesEntryResponse }[];
     label?: string;
     range?: string;
+    showYear: boolean;
 }): JSX.Element | null {
     const vocabulary = useVocabulary();
     const lang = useLanguage();
@@ -51,15 +53,22 @@ function CustomTooltip({
     if (isHourly) {
         label = `${toLocalHHMM(entry.start)} — ${toLocalHHMM(entry.end)}`;
     } else if (isDaily) {
-        label = start.toLocaleDateString(lang, { weekday: "long" });
+        label = start.toLocaleDateString(lang, {
+            weekday: "long",
+            ...(showYear
+                ? { year: "numeric", month: "short", day: "numeric" }
+                : {}),
+        });
     } else {
         const startStr = start.toLocaleDateString(lang, {
             month: "short",
             day: "numeric",
+            ...(showYear ? { year: "numeric" } : {}),
         });
         const endStr = new Date(end.getTime() - 1).toLocaleDateString(lang, {
             month: "short",
             day: "numeric",
+            ...(showYear ? { year: "numeric" } : {}),
         });
         label = startStr === endStr ? startStr : `${startStr} — ${endStr}`;
     }
@@ -86,6 +95,18 @@ export default function MinutesBarChart({
     const $vocabulary = useVocabulary();
     const lang = useLanguage();
     const gradientId = useId();
+    const monthly = _data.some((entry) =>
+        /^(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)$/.test(
+            entry.label
+        )
+    );
+    const showYear =
+        new Set(
+            _data.flatMap((entry) => [
+                new Date(entry.start).getFullYear(),
+                new Date(new Date(entry.end).getTime() - 1).getFullYear(),
+            ])
+        ).size > 1;
 
     const data = useMemo(() => {
         return _data.map((entry) => {
@@ -106,7 +127,13 @@ export default function MinutesBarChart({
                             month: "short",
                             day: "numeric",
                         })
-                      : ($vocabulary[entry.label as keyof typeof $vocabulary] ??
+                      : ((monthly
+                            ? new Date(entry.start).toLocaleDateString(lang, {
+                                  month: "short",
+                              })
+                            : $vocabulary[
+                                  entry.label as keyof typeof $vocabulary
+                              ]) ??
                         new Date(entry.start).toLocaleDateString(lang, {
                             month: "short",
                             day: "numeric",
@@ -116,7 +143,7 @@ export default function MinutesBarChart({
                 label,
             };
         });
-    }, [_data, $vocabulary, lang, range]);
+    }, [_data, $vocabulary, lang, range, monthly]);
 
     if (data.length === 0) {
         return (
@@ -129,71 +156,87 @@ export default function MinutesBarChart({
     }
 
     return (
-        <ResponsiveContainer width="100%" height={320}>
-            <BarChart
-                data={data}
-                margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-            >
-                <defs>
-                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                            offset="0%"
-                            stopColor={BRAND_LIGHT}
-                            stopOpacity={1}
+        <div className="overflow-x-auto">
+            <div style={{ minWidth: monthly ? data.length * 64 : undefined }}>
+                <ResponsiveContainer width="100%" height={320}>
+                    <BarChart
+                        data={data}
+                        margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
+                    >
+                        <defs>
+                            <linearGradient
+                                id={gradientId}
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="0%"
+                                    stopColor={BRAND_LIGHT}
+                                    stopOpacity={1}
+                                />
+                                <stop
+                                    offset="100%"
+                                    stopColor={PRIMARY}
+                                    stopOpacity={0.85}
+                                />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke={CHART_GRID}
+                            strokeOpacity={0.2}
+                            vertical={false}
                         />
-                        <stop
-                            offset="100%"
-                            stopColor={PRIMARY}
-                            stopOpacity={0.85}
+                        <XAxis
+                            dataKey="start"
+                            tickFormatter={(start: string) =>
+                                data.find((entry) => entry.start === start)
+                                    ?.label ?? ""
+                            }
+                            tick={{
+                                fill: "var(--theme-foreground-strong)",
+                                fontSize: 12,
+                                fontWeight: 500,
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                            interval={monthly ? 0 : "preserveStartEnd"}
+                            minTickGap={20}
                         />
-                    </linearGradient>
-                </defs>
-                <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke={CHART_GRID}
-                    strokeOpacity={0.2}
-                    vertical={false}
-                />
-                <XAxis
-                    dataKey="start"
-                    tickFormatter={(start: string) =>
-                        data.find((entry) => entry.start === start)?.label ?? ""
-                    }
-                    tick={{
-                        fill: "var(--theme-foreground-strong)",
-                        fontSize: 12,
-                        fontWeight: 500,
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval="preserveStartEnd"
-                    minTickGap={20}
-                />
-                <YAxis
-                    tick={{
-                        fill: "var(--theme-foreground-strong)",
-                        fontSize: 12,
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={40}
-                />
-                <Tooltip
-                    content={<CustomTooltip range={range} />}
-                    cursor={{
-                        fill: "color-mix(in srgb, var(--theme-foreground-strong) 3%, transparent)",
-                    }}
-                />
-                <Bar
-                    dataKey="minutes"
-                    fill={`url(#${gradientId})`}
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={64}
-                    animationBegin={200}
-                    animationDuration={800}
-                    animationEasing="ease-out"
-                />
-            </BarChart>
-        </ResponsiveContainer>
+                        <YAxis
+                            tick={{
+                                fill: "var(--theme-foreground-strong)",
+                                fontSize: 12,
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                            width={40}
+                        />
+                        <Tooltip
+                            content={
+                                <CustomTooltip
+                                    range={range}
+                                    showYear={showYear}
+                                />
+                            }
+                            cursor={{
+                                fill: "color-mix(in srgb, var(--theme-foreground-strong) 3%, transparent)",
+                            }}
+                        />
+                        <Bar
+                            dataKey="minutes"
+                            fill={`url(#${gradientId})`}
+                            radius={[6, 6, 0, 0]}
+                            maxBarSize={64}
+                            animationBegin={200}
+                            animationDuration={800}
+                            animationEasing="ease-out"
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
     );
 }

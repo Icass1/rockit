@@ -33,7 +33,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
             className={styles.dialog}
         >
             <form
-                className={styles.form}
+                className="flex flex-col gap-4"
                 onSubmit={async (event) => {
                     event.preventDefault();
                     if (sending) return;
@@ -120,7 +120,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                     </button>
                 </div>
             </form>
-        </dialog>
+        </Dialog>
     );
 }
 

@@ -338,7 +338,7 @@ function DownloadGroupSection({
             <dialog
                 ref={confirmation}
                 aria-labelledby={`delete-${group.publicId}`}
-                className="border-border bg-secondary text-foreground-strong backdrop:bg-backdrop/70 m-auto max-w-md rounded-xl border p-6"
+                className="overlay-surface m-auto max-w-md p-6"
             >
                 <h3 id={`delete-${group.publicId}`} className="font-semibold">
                     {group.name}

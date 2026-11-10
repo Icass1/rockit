@@ -38,7 +38,7 @@ export default function Dialog({
         <dialog
             ref={ref}
             aria-labelledby={titleId}
-            className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-sm overflow-y-auto rounded-md border border-white/10 bg-neutral-800 p-6 text-white shadow-[0px_0px_20px_3px_#0e0e0e] backdrop:bg-black/70"
+            className="overlay-surface fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-sm overflow-y-auto p-6"
             onCancel={(event): void => {
                 event.preventDefault();
                 onClose();

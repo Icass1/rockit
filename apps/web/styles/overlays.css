@@ -1,0 +1,101 @@
+/* Shared surfaces and controls for menus, popovers, and modal dialogs. */
+:root {
+    --overlay-surface: #202020;
+    --overlay-border: #ffffff1f;
+    --overlay-hover: #ffffff0d;
+    --overlay-muted: #b8b8b8;
+    --overlay-radius: 12px;
+    --overlay-shadow: 0 16px 48px #0008, 0 2px 8px #0006;
+    --overlay-backdrop: #000b;
+}
+
+.overlay-surface {
+    border: 1px solid var(--overlay-border);
+    border-radius: var(--overlay-radius);
+    background: var(--overlay-surface);
+    color: #f5f5f5;
+    box-shadow: var(--overlay-shadow);
+    color-scheme: dark;
+}
+
+.overlay-surface::backdrop,
+.overlay-backdrop {
+    background: var(--overlay-backdrop);
+}
+
+.overlay-action,
+.overlay-icon-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 120ms;
+}
+
+.overlay-icon-button {
+    width: 44px;
+    flex-shrink: 0;
+    padding: 10px;
+}
+
+.overlay-action:hover:not(:disabled),
+.overlay-icon-button:hover:not(:disabled) {
+    background: var(--overlay-hover);
+}
+
+.overlay-action:disabled,
+.overlay-icon-button:disabled {
+    cursor: default;
+    opacity: 0.4;
+}
+
+.overlay-surface :is(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid #f9a8d4;
+    outline-offset: -2px;
+}
+
+.overlay-divider {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--overlay-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .overlay-action,
+    .overlay-icon-button {
+        transition: none;
+    }
+}
+
+.overlay-menu-item {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.overlay-action.overlay-primary {
+    background: #be185d;
+    color: white;
+}
+
+.overlay-action.overlay-primary:hover:not(:disabled) {
+    background: #db2777;
+}
+
+@media (max-width: 767px), (max-height: 499px) {
+    .notification-panel {
+        position: fixed;
+        top: 4.5rem;
+        right: 1rem;
+        left: 1rem;
+        margin-top: 0;
+        width: auto;
+        max-height: min(36rem, calc(100dvh - 6rem));
+    }
+}

@@ -58,6 +58,13 @@ These instructions apply to `apps/web/` in addition to the root `AGENTS.md`.
   adequate contrast, and reduced-motion support for interactive UI.
 - Use semantic Tailwind tokens and reusable `components/ui/` primitives. Palette
   values belong in the central theme, preserving the Rockit pink brand. The custom `md:` breakpoint requires width ≥768px AND height ≥500px.
+- Do not use raw `<input>` elements in feature components. Use an existing input
+  component from `apps/web/components/ui/`, or create a reusable UI component there
+  when the existing components do not support the required behavior. Raw `<input>`
+  elements belong only inside these reusable UI components.
+- Use a separate UI component for each input type (for example, `Input` for text,
+  `PasswordInput`, and `FileInput`). Each component fixes its native input type
+  internally and must not accept a `type` prop.
 - Use the existing `skeleton` class for loading placeholders. Preserve safe-area
   handling and test narrow screens and short landscape viewports.
 - Use passive touch listeners where appropriate for iOS scrolling; clean up listeners

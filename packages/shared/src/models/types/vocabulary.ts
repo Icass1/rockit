@@ -1102,4 +1102,14 @@ export interface Vocabulary {
     CONTENT_RATING_EXPLICIT: string;
     CONTENT_RATING_CLEAN: string;
     CONTENT_RATING_REVIEW_HINT: string;
+    PLAYLIST_RENAME: string;
+    PLAYLIST_RENAME_ERROR: string;
+    PLAYLIST_IMAGE_CHANGE: string;
+    PLAYLIST_IMAGE_UPLOAD: string;
+    PLAYLIST_IMAGE_GENERATE: string;
+    PLAYLIST_IMAGE_HELP: string;
+    PLAYLIST_IMAGE_INVALID: string;
+    PLAYLIST_IMAGE_ERROR: string;
+    PLAYLIST_IMAGE_SAVED: string;
+    PLAYLIST_IMAGE_SAVING: string;
 }

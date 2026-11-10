@@ -66,3 +66,27 @@ def test_unknown_subscription_events_are_rejected_before_database_access() -> No
     )
     assert response.status_code == 422
     assert not session.statements
+
+
+def test_mark_all_read_updates_entire_owned_unread_history() -> None:
+    session = RecordingSession()
+    harness = DirectEndpointHarness(app, session)
+    response = harness.call("PATCH", "/notifications/read-all")
+    assert response.status_code == 200
+    assert response.json() == {"status": "OK"}
+    assert len(session.statements) == 1
+    sql = session.statements[0]
+    assert sql.startswith("UPDATE core.notification SET")
+    assert "user_id =" in sql and "read_at IS NULL" in sql
+    assert "LIMIT" not in sql and "OFFSET" not in sql
+    assert session.parameters[0]["user_id_1"] == harness.user.id
+    assert session.parameters[0]["read_at"] is not None
+    assert session.info["after_commit"]
+
+
+def test_mark_all_read_requires_authentication() -> None:
+    session = RecordingSession()
+    harness = DirectEndpointHarness(app, session)
+    harness.user = None
+    assert harness.call("PATCH", "/notifications/read-all").status_code == 401
+    assert not session.statements

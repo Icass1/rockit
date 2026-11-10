@@ -11,6 +11,7 @@ import {
     TMediaWithSearch,
     type BaseSearchResultsItem,
 } from "@rockit/shared";
+import { ImagePlus, Pencil } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
@@ -57,10 +58,13 @@ import {
     getActionsForMedia,
     type ActionDef,
 } from "@/components/MediaContextMenu/mediaContextMenuActions";
+import PlaylistImageDialog from "@/components/Playlist/PlaylistImageDialog";
+import RenamePlaylistDialog from "@/components/Playlist/RenamePlaylistDialog";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import SearchSourcePicker from "@/components/Search/SearchSourcePicker";
 import ContextMenuContent from "@/components/ui/ContextMenu/Content";
 import ContextMenu from "@/components/ui/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ui/ContextMenu/Splitter";
 import ContextMenuTrigger from "@/components/ui/ContextMenu/Trigger";
 
@@ -129,6 +133,8 @@ export default function MediaContextMenu({
     const $vocabulary = useVocabulary();
     const [loading, setLoading] = useState(false);
     const [showEditMetadata, setShowEditMetadata] = useState(false);
+    const [showRenamePlaylist, setShowRenamePlaylist] = useState(false);
+    const [showPlaylistImage, setShowPlaylistImage] = useState(false);
     const $playlists = useStore(rockIt.playlistManager.playlistsAtom);
 
     const [selectedSource, setSelectedSource] = useState(
@@ -138,6 +144,12 @@ export default function MediaContextMenu({
         sources?.find((source) => source.providerUrl === selectedSource) ??
         media;
     const visibleActions = getActionsForMedia(activeMedia, location);
+    const ownedPlaylist =
+        !isSearchResult(activeMedia) && activeMedia.type === "playlist"
+            ? $playlists.find(
+                  (playlist) => playlist.publicId === activeMedia.publicId
+              )
+            : undefined;
 
     const isSearch =
         openOnLeftClick !== undefined ? openOnLeftClick : isSearchResult(media);
@@ -202,13 +214,41 @@ export default function MediaContextMenu({
 
                         return <Component key={action.id} {...actionProps} />;
                     })}
+                    {ownedPlaylist && (
+                        <ContextMenuOption
+                            onClick={(): void => setShowRenamePlaylist(true)}
+                        >
+                            <Pencil className="h-5 w-5" />
+                            {$vocabulary.PLAYLIST_RENAME}
+                        </ContextMenuOption>
+                    )}
                     {!isSearchResult(media) && <ShareAction {...actionProps} />}
+                    {ownedPlaylist && (
+                        <ContextMenuOption
+                            onClick={(): void => setShowPlaylistImage(true)}
+                        >
+                            <ImagePlus className="h-5 w-5" />
+                            {$vocabulary.PLAYLIST_IMAGE_CHANGE}
+                        </ContextMenuOption>
+                    )}
                 </ContextMenuContent>
             </ContextMenu>
             {showEditMetadata && (
                 <EditMetadataModal
                     media={media}
                     onClose={(): void => setShowEditMetadata(false)}
+                />
+            )}
+            {showRenamePlaylist && ownedPlaylist && (
+                <RenamePlaylistDialog
+                    playlist={ownedPlaylist}
+                    onClose={(): void => setShowRenamePlaylist(false)}
+                />
+            )}
+            {showPlaylistImage && ownedPlaylist && (
+                <PlaylistImageDialog
+                    playlist={ownedPlaylist}
+                    onClose={(): void => setShowPlaylistImage(false)}
                 />
             )}
         </>

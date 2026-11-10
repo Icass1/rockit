@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,30 +40,18 @@ from result import Result
 
 async def add_default_images(session: AsyncSession) -> None:
     """Upload bundled default images to S3 and register them in the database."""
-    source_dir = str(Path(__file__).resolve().parents[1] / "images")
-    if not os.path.exists(source_dir):
-        logger.error(f"Source images directory does not exist: {source_dir}")
+    source_dir = Path(__file__).resolve().parents[1] / "assets" / "placeholders"
+    if not source_dir.is_dir():
+        logger.error(f"Bundled placeholder directory is missing: {source_dir}")
         return
-
-    for filename in os.listdir(source_dir):
-        source_path = os.path.join(source_dir, filename)
-
-        if not os.path.isfile(source_path):
-            continue
-
-        with open(source_path, "rb") as image_file:
-            image_bytes: bytes = image_file.read()
-
-        a_result: Result[ImageRow] = await Image.ensure_image_from_bytes_async(
-            session=session,
-            key=filename,
-            data=image_bytes,
-            filename=filename,
+    for source in sorted(source_dir.glob("*-placeholder.png")):
+        a_result: Result[ImageRow] = await Image.ensure_default_image_async(
+            session=session, filename=source.name
         )
-        if a_result.is_ok():
-            logger.info(f"Added image to database: {filename}")
+        if a_result.is_not_ok():
+            logger.error(f"Error initializing placeholder {source.name}: {a_result.info()}")
         else:
-            logger.error(f"Error adding image to database: {filename} - {a_result.message()}")
+            logger.info(f"Initialized placeholder: {source.name}")
 
 
 async def add_initial_reference_data_async(session: AsyncSession) -> None:

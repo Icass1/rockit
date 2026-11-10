@@ -16,6 +16,8 @@ export class NotificationInbox {
     private _unreadCount = createAtom(0);
     private _totalCount = createAtom(0);
     private _error = createAtom<string | null>(null);
+    private _loading = createAtom(false);
+    private _actionPending = createAtom(false);
     private _active = false;
     private _unsubscribeSession?: () => void;
     private _username?: string;
@@ -61,7 +63,9 @@ export class NotificationInbox {
         (message) => {
             if (!this._active || !this._username) return;
             this._unreadCount.set(message.unreadCount);
-            this._totalCount.set(message.totalCount);
+            this._totalCount.set(
+                this._unreadOnly ? message.unreadCount : message.totalCount
+            );
         };
 
     private reset(username?: string): void {
@@ -74,6 +78,8 @@ export class NotificationInbox {
         this._unreadCount.set(0);
         this._totalCount.set(0);
         this._error.set(null);
+        this._loading.set(false);
+        this._actionPending.set(false);
         this.services.onReset?.();
     }
 
@@ -93,6 +99,7 @@ export class NotificationInbox {
         if (!this._active || !this._username) return;
         const generation = this._generation;
         const revision = ++this._revision;
+        this._loading.set(true);
         try {
             const result = await this.services.http.listNotifications(
                 20,
@@ -116,26 +123,46 @@ export class NotificationInbox {
         } catch {
             if (this.isCurrent(generation) && revision === this._revision)
                 this._error.set("NOTIFICATIONS_LOAD_FAILED");
+        } finally {
+            if (this.isCurrent(generation) && revision === this._revision)
+                this._loading.set(false);
         }
     }
 
     async markRead(id: string): Promise<boolean> {
-        if (!this._active || !this._username) return false;
+        return this.changeReadStateAsync(id);
+    }
+
+    async markAllReadAsync(): Promise<boolean> {
+        return this.changeReadStateAsync();
+    }
+
+    private async changeReadStateAsync(id?: string): Promise<boolean> {
+        if (!this._active || !this._username || this._actionPending.get())
+            return false;
         const generation = this._generation;
         this._revision++;
+        this._loading.set(false);
+        this._actionPending.set(true);
+        this._error.set(null);
         try {
-            const result = await this.services.http.markNotificationRead(id);
+            const result = id
+                ? await this.services.http.markNotificationRead(id)
+                : await this.services.http.markAllNotificationsRead();
             if (!this.isCurrent(generation)) return false;
             if (!result.isOk()) {
                 this._error.set(result.message);
                 return false;
             }
+            if (!id) this._offset = 0;
             await this.refreshAsync();
             return this.isCurrent(generation);
         } catch {
             if (this.isCurrent(generation))
                 this._error.set("NOTIFICATIONS_LOAD_FAILED");
             return false;
+        } finally {
+            if (this.isCurrent(generation)) this._actionPending.set(false);
         }
     }
 
@@ -164,6 +191,12 @@ export class NotificationInbox {
         }
     }
 
+    get loadingAtom(): ReadonlyAtom<boolean> {
+        return this._loading.getReadonlyAtom();
+    }
+    get actionPendingAtom(): ReadonlyAtom<boolean> {
+        return this._actionPending.getReadonlyAtom();
+    }
     get notificationsAtom(): ReadonlyArrayAtom<NotificationResponse> {
         return this._notificationsAtom.getReadonlyAtom();
     }

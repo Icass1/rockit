@@ -8,6 +8,7 @@ from core.responses.notificationResponses import (
     NotificationPageResponse,
     NotificationResponse,
 )
+from core.responses.okResponse import OkResponse
 from result import Result
 
 
@@ -43,6 +44,15 @@ async def list_notifications(
         unreadCount=unread,
         totalCount=total,
     )
+
+
+@router.patch("/read-all", response_model=OkResponse)
+async def mark_all_notifications_read(request: Request) -> OkResponse:
+    """Mark the authenticated user's entire notification history as read."""
+    session = DBSessionMiddleware.get_session(request=request)
+    user = value_or_error(AuthDependency.get_current_user(request=request))
+    value_or_error(await Notification.mark_all_read_async(session=session, user_id=user.id))
+    return OkResponse()
 
 
 @router.patch("/{public_id}/read", response_model=NotificationResponse)

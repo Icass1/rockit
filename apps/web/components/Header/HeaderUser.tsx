@@ -79,7 +79,7 @@ export default function HeaderUser(): JSX.Element {
                                 close();
                                 router.push("/settings");
                             }}
-                            className="text-foreground hover:bg-foreground-strong/10 focus-visible:outline-primary flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm focus-visible:outline-2"
+                            className="overlay-action overlay-menu-item"
                         >
                             <Settings size={17} />
                             {$vocabulary.SETTINGS}
@@ -87,7 +87,7 @@ export default function HeaderUser(): JSX.Element {
                         <button
                             disabled={$networkStatus === "offline"}
                             onClick={handleLogOut}
-                            className="text-foreground hover:bg-foreground-strong/10 focus-visible:outline-primary flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm focus-visible:outline-2 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="overlay-action overlay-menu-item"
                         >
                             <LogOut size={17} />
                             {$vocabulary.LOG_OUT}

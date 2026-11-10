@@ -1,5 +1,6 @@
 import asyncio
 import os
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +15,20 @@ from result import Result, ResultCode
 
 
 class Image:
+    @staticmethod
+    async def ensure_default_image_async(session: AsyncSession, filename: str) -> Result[ImageRow]:
+        """Upload or repair a bundled placeholder and return its persistent image reference."""
+
+        source = Path(__file__).resolve().parents[3] / "assets" / "placeholders" / filename
+        try:
+            data = await asyncio.to_thread(source.read_bytes)
+        except OSError as error:
+            logger.error(f"Cannot read bundled placeholder {filename}: {error}")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Placeholder image unavailable")
+        return await Image.ensure_image_from_bytes_async(
+            session=session, key=filename, data=data, filename=filename
+        )
+
     @staticmethod
     async def get_all_images_async(session: AsyncSession) -> Result[list[ImageRow]]:
         """Get all registered images."""
@@ -101,6 +116,10 @@ class Image:
                     content_type=content_type,
                 ):
                     logger.error(f"Failed to restore missing image object: {key}")
+                    return Result(
+                        code=ResultCode.GENERAL_ERROR,
+                        message="Failed to restore placeholder image",
+                    )
 
             if original_key is not None and not existing_storage_object.original_key:
                 existing_storage_object.original_key = original_key
@@ -108,6 +127,10 @@ class Image:
 
             logger.info(f"Image already exists: {key}")
             return a_result_image
+
+        if a_result_image.code() != ResultCode.NOT_FOUND:
+            logger.error(f"Error looking up image {key}: {a_result_image.info()}")
+            return Result(code=a_result_image.code(), message=a_result_image.message())
 
         a_result_upload: Result[StorageObjectRow] = await Storage.upload_bytes_async(
             session=session,

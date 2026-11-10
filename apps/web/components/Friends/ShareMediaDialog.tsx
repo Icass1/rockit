@@ -1,39 +1,32 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type JSX } from "react";
+import { useEffect, useId, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { LoaderCircle } from "lucide-react";
-import styles from "@/components/Friends/Friends.module.css";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import { Dialog } from "@/components/ui/Dialog";
 
 function ShareForm({ publicId }: { publicId: string }): JSX.Element {
     const { friendManager, sharingManager } = useRuntimeServices();
     const recipientId = useId();
     const messageId = useId();
-    const ref = useRef<HTMLDialogElement>(null);
     const friends = useStore(friendManager.friendsAtom);
     const v = useVocabulary();
     const [recipient, setRecipient] = useState("");
     const [message, setMessage] = useState("");
     const [sending, setSending] = useState(false);
     useEffect(() => {
-        const dialog = ref.current;
-        dialog?.showModal();
         void friendManager.fetchFriends();
-        return () => {
-            if (dialog?.open) dialog.close();
-        };
     }, [friendManager]);
     return (
-        <dialog
-            ref={ref}
-            aria-labelledby="share-media-title"
-            onCancel={() => sharingManager.closeComposer()}
-            className={styles.dialog}
+        <Dialog
+            open
+            titleId={`${recipientId}-title`}
+            onClose={() => sharingManager.closeComposer()}
         >
             <form
-                className={styles.form}
+                className="flex flex-col gap-4"
                 onSubmit={async (event) => {
                     event.preventDefault();
                     if (sending) return;
@@ -52,7 +45,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                     }
                 }}
             >
-                <h2 id="share-media-title">{v.FRIENDS_SHARE}</h2>
+                <h2 id={`${recipientId}-title`}>{v.FRIENDS_SHARE}</h2>
                 <label
                     htmlFor={recipientId}
                     className="flex flex-col gap-2 text-sm"
@@ -100,7 +93,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                     <button
                         type="button"
                         onClick={() => sharingManager.closeComposer()}
-                        className="rounded-full px-4 py-2"
+                        className="overlay-action"
                     >
                         {v.CANCEL}
                     </button>
@@ -108,7 +101,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                         type="submit"
                         aria-busy={sending}
                         disabled={sending || !recipient}
-                        className="bg-primary rounded-full px-4 py-2 disabled:opacity-40"
+                        className="overlay-action overlay-primary"
                     >
                         {sending && (
                             <LoaderCircle
@@ -120,7 +113,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                     </button>
                 </div>
             </form>
-        </dialog>
+        </Dialog>
     );
 }
 

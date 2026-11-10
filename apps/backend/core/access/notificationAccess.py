@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,6 +9,7 @@ from core.access.db.ormModels.notification import NotificationRow
 from core.access.db.ormModels.notificationSubscription import NotificationSubscriptionRow
 from core.access.db.ormModels.user import UserRow
 from core.responses.notificationResponses import NotificationDestination, NotificationReplacement
+from core.utils.safeAsyncCall import safe_async
 from result import Result, ResultCode
 
 
@@ -132,3 +133,14 @@ class NotificationAccess:
             row.read_at = datetime.now(UTC)
             await session.flush()
         return Result[NotificationRow].ok(row)
+
+    @staticmethod
+    @safe_async
+    async def mark_all_read_async(session: AsyncSession, user_id: int) -> Result[bool]:
+        """Mark every unread notification belonging to this user read in one update."""
+        await session.execute(
+            statement=update(NotificationRow)
+            .where(NotificationRow.user_id == user_id, NotificationRow.read_at.is_(None))
+            .values(read_at=datetime.now(UTC))
+        )
+        return Result[bool].ok(True)

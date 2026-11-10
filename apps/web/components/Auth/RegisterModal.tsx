@@ -9,6 +9,7 @@ import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export default function RegisterModal(): JSX.Element {
     const router = useRouter();
@@ -84,9 +85,8 @@ export default function RegisterModal(): JSX.Element {
                     />
                 </Field>
                 <Field id="register-password" label={vocabulary.PASSWORD}>
-                    <Input
+                    <PasswordInput
                         id="register-password"
-                        type="password"
                         autoComplete="new-password"
                         required
                         value={password}
@@ -97,9 +97,8 @@ export default function RegisterModal(): JSX.Element {
                     id="register-repeat-password"
                     label={vocabulary.REPEAT_PASSWORD}
                 >
-                    <Input
+                    <PasswordInput
                         id="register-repeat-password"
-                        type="password"
                         autoComplete="new-password"
                         required
                         value={repeatPassword}

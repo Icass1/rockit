@@ -954,3 +954,24 @@ shared artwork-identity policy preserves same-album discs. Desktop Framer Motion
 and audio ownership/controls are unchanged. Three focused component tests and a
 controlled before/after browser check pass; Vivaldi minimization remains user
 acceptance. See ../PLAYER_FOLLOWUPS.md for evidence and limits.
+
+## Playlist, library drop and notification branch rebase — 2026-11-10
+
+Rebased the five feature commits onto current develop and retained its vocabulary
+Context, scoped runtime references, shared notification inbox, and relocated base
+UI. Playlist creation and media sharing now compose `components/ui/Dialog` rather
+than introducing a second dialog implementation. Shared popup/dialog surfaces use
+semantic theme tokens. The playlist input keeps a neutral focus underline without
+the pink rectangle. Notification bulk-read, loading, and action state extend the
+shared inbox lifecycle, including account replacement and stopped-runtime guards.
+Existing workbook translations cover the added notification and library text.
+
+Verification: all 272 web Node tests pass; web/mobile TypeScript, web ESLint,
+frontend architecture checks, backend Ruff formatting/lint and Pyright pass.
+Regenerated and formatted DTOs match the committed contract. Isolated Chromium
+checks at 1280×800 and 390×844 cover dialog opening, input focus/typing, enabled
+Create, and Escape dismissal; these do not establish full application or native
+runtime acceptance. Production web build passes. The final backend run passes 663 tests and
+43 subtests; six persistence checks skip without a dedicated test database.
+Production SSR smoke passes after updating its song fixture with the current
+nullable content-rating fields.

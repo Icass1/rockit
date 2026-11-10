@@ -5,6 +5,7 @@
 @import "./base.css";
 @import "./animations.css";
 @import "./components.css";
+@import "./overlays.css";
 
 @layer utilities {
     .scrollbar-none {

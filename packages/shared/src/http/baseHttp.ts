@@ -443,6 +443,27 @@ export class BaseHttp {
         );
     }
 
+    static async uploadPlaylistImageAsync(
+        playlistPublicId: string,
+        file: Blob,
+        filename: string
+    ) {
+        return this.apiPostFileAsync(
+            `/default/playlist/${encodeURIComponent(playlistPublicId)}/image`,
+            dto.OkResponseSchema,
+            file,
+            filename
+        );
+    }
+
+    static async generatePlaylistImageAsync(playlistPublicId: string) {
+        return this.apiFetchAsync(
+            `/default/playlist/${encodeURIComponent(playlistPublicId)}/image/generate`,
+            dto.OkResponseSchema,
+            { method: "POST" }
+        );
+    }
+
     static async addMediaToPlaylistAsync(
         playlistPublicId: string,
         payload: dto.AddMediaToPlaylistRequest
@@ -1187,6 +1208,13 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/notifications${queryString ? `?${queryString}` : ""}`,
             dto.NotificationPageResponseSchema
+        );
+    }
+
+    static async markAllNotificationsRead() {
+        return this.apiPatchAsync(
+            `/notifications/read-all`,
+            dto.OkResponseSchema
         );
     }
 

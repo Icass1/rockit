@@ -1102,4 +1102,6 @@ export interface Vocabulary {
     CONTENT_RATING_EXPLICIT: string;
     CONTENT_RATING_CLEAN: string;
     CONTENT_RATING_REVIEW_HINT: string;
+    PLAYLIST_RENAME: string;
+    PLAYLIST_RENAME_ERROR: string;
 }

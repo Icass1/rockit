@@ -850,6 +850,8 @@
     "PLAYER_SHOW_VIDEO": "Show video",
     "PLAYLIST": "Playlist",
     "PLAYLISTS": "Playlists",
+    "PLAYLIST_RENAME": "Rename playlist",
+    "PLAYLIST_RENAME_ERROR": "Could not rename the playlist. Try again.",
     "PLAYLIST_WITHOUT_MEDIAS": "Playlist doesn't have medias",
     "PLAY_LIST": "Play list",
     "PLAY_MEDIA": "Play media",

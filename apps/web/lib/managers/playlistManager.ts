@@ -116,6 +116,42 @@ export class PlaylistManager {
         }
     }
 
+    async renamePlaylist(publicId: string, name: string): Promise<boolean> {
+        try {
+            const result = await Http.updatePlaylistAsync(publicId, {
+                name: name.trim(),
+                description: null,
+                isPublic: null,
+            });
+            if (!result.isOk()) {
+                rockIt.notificationManager.notifyError(
+                    rockIt.vocabularyManager.vocabulary.PLAYLIST_RENAME_ERROR
+                );
+                return false;
+            }
+            const updatedPlaylist = result.result;
+            this._playlistsAtom.set(
+                this._playlistsAtom
+                    .get()
+                    .map((playlist) =>
+                        playlist.publicId === publicId
+                            ? updatedPlaylist
+                            : playlist
+                    )
+            );
+            rockIt.eventManager.dispatchEvent(EEvent.PlaylistRenamed, {
+                publicId,
+                name: updatedPlaylist.name,
+            });
+            return true;
+        } catch {
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.PLAYLIST_RENAME_ERROR
+            );
+            return false;
+        }
+    }
+
     async playPlaylist(
         _songs: BaseSongWithAlbumResponse[],
         listPublicId: string,

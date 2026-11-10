@@ -23,8 +23,17 @@ dependency installation, runner provisioning or production latency.
 
 The frontend job has a two-minute limit. Workspace types, web/mobile lint, generated
 theme consistency and two fast Python workbook-tooling checks also run in CI.
-`PR quality checks` requires backend, TypeScript and frontend jobs to succeed.
-There are no production builds or emulator boots in that required gate.
+Backend, TypeScript and frontend jobs report their results directly to GitHub.
+There are no production builds or emulator boots in the pull request checks.
+
+For `develop` and `main`, configure the repository ruleset to require these checks:
+
+- `Backend tests and quality`
+- `TypeScript types, formatting, and web lint`
+- `Frontend contracts and component tests`
+
+These replace the removed `PR quality checks` aggregate. Update the ruleset before
+merging this workflow change so GitHub does not wait for the removed check.
 
 To target affected behavior during development:
 

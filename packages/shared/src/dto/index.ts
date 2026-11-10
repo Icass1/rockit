@@ -902,6 +902,10 @@ export {
     type UserStatsResponse,
 } from "./userStatsResponse";
 export {
+    UserStatsV2RequestSchema,
+    type UserStatsV2Request,
+} from "./userStatsV2Request";
+export {
     UserStatsV2ResponseSchema,
     type UserStatsV2Response,
 } from "./userStatsV2Response";

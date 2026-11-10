@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from core.framework.statsV2 import StatsV2
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
-from core.requests.userStatsRequest import UserStatsRequest
+from core.requests.userStatsV2Request import UserStatsV2Request
 from core.responses.userStatsV2Response import UserStatsV2Response
 from logger import getLogger
 
@@ -20,7 +20,7 @@ router = APIRouter(
 @router.post("/user")
 async def get_user_stats_v2(
     request: Request,
-    body: UserStatsRequest,
+    body: UserStatsV2Request,
 ) -> UserStatsV2Response:
     """
     Get user listening statistics (v2) using listen interval data for accurate ms-based

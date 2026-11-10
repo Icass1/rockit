@@ -5,11 +5,19 @@ def parse_range(
     range_value: str,
     custom_start: datetime | None = None,
     custom_end: datetime | None = None,
+    timezone_offset_minutes: int = 0,
 ) -> tuple[datetime, datetime]:
     now = datetime.now(UTC)
-    end_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    offset = timedelta(minutes=timezone_offset_minutes)
+    local_now = now - offset
+    end_of_today = (
+        local_now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1) + offset
+    )
 
-    if range_value == "7d":
+    if range_value == "today":
+        start_date = end_of_today - timedelta(days=1)
+        end_date = end_of_today
+    elif range_value == "7d":
         start_date = end_of_today - timedelta(days=7)
         end_date = end_of_today
     elif range_value == "30d":
@@ -36,7 +44,9 @@ def get_group_by(
     start_date: datetime | None = None,
     end_date: datetime | None = None,
 ) -> str:
-    if range_value == "7d":
+    if range_value == "today":
+        return "hour"
+    elif range_value == "7d":
         return "day"
     elif range_value == "30d":
         return "week"

@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useMemo } from "react";
+import { JSX, useId, useMemo } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
 import { toLocalHHMM } from "@rockit/shared";
 import {
@@ -12,7 +12,10 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 interface MinutesBarChartProps {
     data: StatsMinutesEntryResponse[];
@@ -34,6 +37,7 @@ function CustomTooltip({
     range?: string;
 }): JSX.Element | null {
     const vocabulary = useVocabulary();
+    const lang = useLanguage();
 
     if (!active || !payload || payload.length === 0) return null;
 
@@ -47,13 +51,13 @@ function CustomTooltip({
     if (isHourly) {
         label = `${toLocalHHMM(entry.start)} — ${toLocalHHMM(entry.end)}`;
     } else if (isDaily) {
-        label = start.toLocaleDateString("en-US", { weekday: "long" });
+        label = start.toLocaleDateString(lang, { weekday: "long" });
     } else {
-        const startStr = start.toLocaleDateString("en-US", {
+        const startStr = start.toLocaleDateString(lang, {
             month: "short",
             day: "numeric",
         });
-        const endStr = end.toLocaleDateString("en-US", {
+        const endStr = new Date(end.getTime() - 1).toLocaleDateString(lang, {
             month: "short",
             day: "numeric",
         });
@@ -80,6 +84,8 @@ export default function MinutesBarChart({
     range = "30d",
 }: MinutesBarChartProps): JSX.Element {
     const $vocabulary = useVocabulary();
+    const lang = useLanguage();
+    const gradientId = useId();
 
     const data = useMemo(() => {
         return _data.map((entry) => {
@@ -90,12 +96,27 @@ export default function MinutesBarChart({
                     label: toLocalHHMM(entry.start),
                 };
             }
+            const label =
+                range === "7d"
+                    ? new Date(entry.start).toLocaleDateString(lang, {
+                          weekday: "short",
+                      })
+                    : /^W\d+$/.test(entry.label)
+                      ? new Date(entry.start).toLocaleDateString(lang, {
+                            month: "short",
+                            day: "numeric",
+                        })
+                      : ($vocabulary[entry.label as keyof typeof $vocabulary] ??
+                        new Date(entry.start).toLocaleDateString(lang, {
+                            month: "short",
+                            day: "numeric",
+                        }));
             return {
                 ...entry,
-                label: $vocabulary[entry.label as keyof typeof $vocabulary],
+                label,
             };
         });
-    }, [_data, $vocabulary]);
+    }, [_data, $vocabulary, lang, range]);
 
     if (data.length === 0) {
         return (
@@ -114,13 +135,7 @@ export default function MinutesBarChart({
                 margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
             >
                 <defs>
-                    <linearGradient
-                        id="barGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                    >
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                         <stop
                             offset="0%"
                             stopColor={BRAND_LIGHT}
@@ -140,7 +155,10 @@ export default function MinutesBarChart({
                     vertical={false}
                 />
                 <XAxis
-                    dataKey="label"
+                    dataKey="start"
+                    tickFormatter={(start: string) =>
+                        data.find((entry) => entry.start === start)?.label ?? ""
+                    }
                     tick={{
                         fill: "var(--theme-foreground-strong)",
                         fontSize: 12,
@@ -168,23 +186,12 @@ export default function MinutesBarChart({
                 />
                 <Bar
                     dataKey="minutes"
-                    fill="url(#barGradient)"
+                    fill={`url(#${gradientId})`}
                     radius={[6, 6, 0, 0]}
                     maxBarSize={64}
                     animationBegin={200}
                     animationDuration={800}
                     animationEasing="ease-out"
-                    shape={(props: unknown) => {
-                        const { value } = props as { value: number };
-                        if (value <= 0) return null;
-                        return (
-                            <rect
-                                {...(props as Record<string, unknown>)}
-                                rx={6}
-                                ry={6}
-                            />
-                        );
-                    }}
                 />
             </BarChart>
         </ResponsiveContainer>

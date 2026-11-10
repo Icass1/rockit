@@ -2,11 +2,11 @@
 
 import { JSX, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import type { UserStatsV2Request } from "@/dto";
 import {
     EWebSocketMessage,
     formatStatsRange,
     statsRangeOptions,
-    type StatsRange as Range,
 } from "@rockit/shared";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
@@ -46,7 +46,7 @@ function LoadingSkeleton(): JSX.Element {
 export default function StatsClientV2(): JSX.Element {
     const $vocabulary = useVocabulary();
     const lang = useLanguage();
-    const [range, setRange] = useState<Range>("7d");
+    const [range, setRange] = useState<UserStatsV2Request["range"]>("7d");
     const [customStart, setCustomStart] = useState("");
     const [customEnd, setCustomEnd] = useState("");
 
@@ -85,15 +85,18 @@ export default function StatsClientV2(): JSX.Element {
         };
     }, [update]);
 
-    const rangeLabel = formatStatsRange(
-        range,
-        $vocabulary,
-        lang,
-        customStart,
-        customEnd
-    );
+    const rangeLabel =
+        range === "today"
+            ? $vocabulary.STATS_RANGE_TODAY
+            : formatStatsRange(
+                  range,
+                  $vocabulary,
+                  lang,
+                  customStart,
+                  customEnd
+              );
 
-    function handleRangeChange(newRange: Range): void {
+    function handleRangeChange(newRange: UserStatsV2Request["range"]): void {
         setRange(newRange);
         if (newRange !== "custom") {
             setCustomStart("");
@@ -128,10 +131,17 @@ export default function StatsClientV2(): JSX.Element {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {statsRangeOptions($vocabulary).map((opt) => (
+                    {[
+                        {
+                            value: "today" as const,
+                            label: $vocabulary.STATS_RANGE_TODAY,
+                        },
+                        ...statsRangeOptions($vocabulary),
+                    ].map((opt) => (
                         <button
                             key={opt.value}
                             type="button"
+                            aria-pressed={range === opt.value}
                             onClick={() => handleRangeChange(opt.value)}
                             className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300 ${
                                 range === opt.value

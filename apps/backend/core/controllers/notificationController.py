@@ -32,7 +32,7 @@ async def list_notifications(
     request: Request,
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    unread_only: bool = Query(default=False),
+    unread_only: bool = Query(default=True),
 ) -> NotificationPageResponse:
     session = DBSessionMiddleware.get_session(request)
     user = value_or_error(AuthDependency.get_current_user(request))

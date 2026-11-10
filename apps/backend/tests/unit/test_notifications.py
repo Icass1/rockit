@@ -156,3 +156,45 @@ def test_web_notification_center_bulk_read_and_account_isolation() -> None:
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("unread_only", [None, True, False])
+async def test_list_notifications_filters_read_rows_unless_explicitly_requested(
+    unread_only: bool | None,
+) -> None:
+    from sqlalchemy.dialects import postgresql
+
+    session = MagicMock(spec=AsyncSession)
+    counts = MagicMock()
+    counts.one.return_value = (30, 7)
+    session.execute = AsyncMock(return_value=counts)
+    session.scalars = AsyncMock(return_value=[])
+    kwargs = {} if unread_only is None else {"unread_only": unread_only}
+    result = await NotificationAccess.list_async(
+        session=cast(AsyncSession, session), user_id=42, limit=20, offset=0, **kwargs
+    )
+    assert result.is_ok(), result.info()
+    _, unread, total = result.result()
+    assert unread == 7
+    assert total == (30 if unread_only is False else 7)
+    compiled = session.scalars.call_args.args[0].compile(dialect=postgresql.dialect())
+    assert compiled.params["user_id_1"] == 42
+    assert ("notification.read_at IS NULL" in str(compiled)) is (unread_only is not False)
+
+
+async def test_notification_framework_defaults_to_unread(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    list_rows = AsyncMock(return_value=Result[tuple[list[object], int, int]].ok(([], 0, 0)))
+    monkeypatch.setattr(NotificationAccess, "list_async", list_rows)
+    session = MagicMock(spec=AsyncSession)
+    await Notification.list_async(session=session, user_id=42, limit=20, offset=0)
+    list_rows.assert_awaited_once_with(session, 42, 20, 0, True)
+
+
+def test_notification_endpoint_defaults_to_unread() -> None:
+    import inspect
+
+    from core.controllers.notificationController import list_notifications
+
+    assert inspect.signature(list_notifications).parameters["unread_only"].default.default is True

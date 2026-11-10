@@ -193,7 +193,7 @@ test("session metadata retains inbox work; identity changes reset page, filter, 
     assert.equal(manager.offset, 0);
     assert.equal(manager.totalCountAtom.get(), 0);
     const refreshing = manager.refreshAsync();
-    assert.deepEqual(f.requests[1].args, [20, 0, false]);
+    assert.deepEqual(f.requests[1].args, [20, 0, true]);
     f.requests[1].resolve(page("second"));
     await refreshing;
     assert.equal(f.dismissals.length, 2);

@@ -79,7 +79,7 @@ class NotificationAccess:
 
     @staticmethod
     async def list_async(
-        session: AsyncSession, user_id: int, limit: int, offset: int, unread_only: bool = False
+        session: AsyncSession, user_id: int, limit: int, offset: int, unread_only: bool = True
     ) -> Result[tuple[list[NotificationRow], int, int]]:
         """Return only the current user's notifications and counts."""
         counts = (

@@ -20,7 +20,7 @@ function NotificationCenter() {
     const total = useStore(manager.totalCountAtom);
     const error = useStore(manager.errorAtom);
     const [offset, setOffset] = useState(0);
-    const [unread, setUnread] = useState(false);
+    const [unread, setUnread] = useState(true);
     const sheet = useSheet();
     const router = useTypedRouter();
     useEffect(() => manager.setPage(offset, unread), [manager, offset, unread]);

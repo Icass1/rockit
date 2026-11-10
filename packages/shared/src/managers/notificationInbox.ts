@@ -24,7 +24,7 @@ export class NotificationInbox {
     private _generation = 0;
     private _revision = 0;
     private _offset = 0;
-    private _unreadOnly = false;
+    private _unreadOnly = true;
     constructor(
         private readonly getServices: () => NotificationInboxServices
     ) {}
@@ -73,7 +73,7 @@ export class NotificationInbox {
         this._generation++;
         this._revision++;
         this._offset = 0;
-        this._unreadOnly = false;
+        this._unreadOnly = true;
         this._notificationsAtom.set([]);
         this._unreadCount.set(0);
         this._totalCount.set(0);
@@ -89,7 +89,7 @@ export class NotificationInbox {
         );
     }
 
-    setPage(offset: number, unreadOnly = false): void {
+    setPage(offset: number, unreadOnly = true): void {
         this._offset = Math.max(0, offset);
         this._unreadOnly = unreadOnly;
         void this.refreshAsync();

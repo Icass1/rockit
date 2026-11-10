@@ -15,14 +15,12 @@ test("recently opened uses playable counts from unloaded collection summaries", 
         },
     ]);
     await page.goto("http://127.0.0.1:13000");
-    const section = page
-        .locator("section")
-        .filter({
-            has: page.getByRole("heading", {
-                name: "Recently opened",
-                exact: true,
-            }),
-        });
+    const section = page.locator("section").filter({
+        has: page.getByRole("heading", {
+            name: "Recently opened",
+            exact: true,
+        }),
+    });
     for (const viewport of [
         { width: 1440, height: 900 },
         { width: 390, height: 844 },

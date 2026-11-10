@@ -21,6 +21,7 @@ import { EViewMode } from "@/models/enums/viewMode";
 import type { ILibraryInitialData } from "@/models/interfaces/library";
 import { downloadMediaAsZip } from "@/lib/services/downloadZip";
 import { cycleEnum } from "@/lib/utils/cycleEnum";
+import DropOverlay from "@/components/DropOverlay/DropOverlay";
 import { LibraryDragDropProvider } from "@/components/Library/LibraryDragDrop";
 import { LibraryFilters } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";
@@ -182,6 +183,13 @@ export default function LibraryClient({
     return (
         <LibrarySelectionProvider>
             <LibraryDragDropProvider enabled={activeType === EContentType.All}>
+                <DropOverlay
+                    enabled={!showUploadModal}
+                    label={$vocabulary.ADD_TO_LIBRARY}
+                    onDropLink={(url): void => {
+                        void rockIt.libraryManager.addUrlToLibraryAsync(url);
+                    }}
+                />
                 <SelectionScrollSpacer />
                 <div className="mx-4 flex flex-col">
                     {/* DESKTOP HEADER */}

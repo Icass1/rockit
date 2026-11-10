@@ -74,6 +74,34 @@ export class LibraryManager {
         }
     }
 
+    async addUrlToLibraryAsync(url: string): Promise<void> {
+        rockIt.notificationManager.notifyInfo(
+            rockIt.vocabularyManager.vocabulary.ADDING_MEDIA_TO_LIBRARY
+        );
+        try {
+            const res = await Http.addFromUrlAsync({
+                url,
+                addToPlaylist: false,
+                addToLibrary: true,
+                playlistPublicId: null,
+            });
+            if (!res.isOk()) {
+                rockIt.notificationManager.notifyError(res.message);
+                return;
+            }
+            rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
+                publicId: res.result.data.publicId,
+            });
+            rockIt.notificationManager.notifySuccess(
+                `"${res.result.data.name}" ${rockIt.vocabularyManager.vocabulary.ADDED_TO_LIBRARY}`
+            );
+        } catch {
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.LIBRARY_DROP_ERROR
+            );
+        }
+    }
+
     async removeMediaFromLibrary(media: TMedia): Promise<void> {
         const res = await Http.removeMediaFromLibrary(media.publicId);
         if (res.isNotOk()) {

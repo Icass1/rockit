@@ -90,7 +90,10 @@ export default function RenderListClient({
 
     return (
         <>
-            <DropOverlay onDropLink={handleLinkDrop} />
+            <DropOverlay
+                enabled={type === EMediaType.Playlist}
+                onDropLink={handleLinkDrop}
+            />
             <RenderList
                 title={title}
                 artists={artists}

@@ -877,3 +877,101 @@ external-enabled suggestion request. Artwork cache ownership now lives in scoped
 web types and lint are checked; CI checks are recorded in PR 179. Earlier browser
 fixtures remain historical evidence; runtime acceptance on the rebased application
 and physical PiP/Vivaldi verification remain open.
+
+## Universal frontend migration — PR #189
+
+Desktop no longer imports or mounts the former mobile presentation shell. Next
+retains its SSR/session boundaries and desktop integrations. Browser audio,
+transitions, Media Session, HTTP and offline storage live in the common browser
+adapter; Expo selects browser or native adapters without importing the desktop app.
+Portable social/radio/notification policies, universal media controls and semantic
+styles/vocabulary are shared by the two application shells.
+
+Workspace types and web/mobile lint pass, Next production build and Expo web export
+pass, and source-map checks show no desktop/native first-party sources in mobile
+web. The final fast frontend gate passed 294 tests in approximately 30.9 seconds in
+GitHub Actions, including boundary and fixture types. Seven production Chromium
+flows also pass. All required jobs are green at the verified implementation commit
+`44ec20a7`; documentation-only commits retain the same implementation.
+
+The [migration progress](../FRONTEND_MIGRATION_PROGRESS.md),
+[test guide](../FRONTEND_TESTING.md) and [deployment guide](../FRONTEND_DEPLOYMENT.md)
+record the final scope and remaining installed iPhone/Android gates. Heavy browser/
+APK acceptance is manually dispatched, not required on every PR. No physical-device
+acceptance or production routing change is claimed. The current user instruction
+is consolidated checks after coherent work, superseding the historical per-step
+suite preference recorded above.
+
+## Player follow-ups stacked on PR189
+
+Separate branch `feat/player-kanban-followups`: continuous PiP header with close
+and movement handle, artwork/vinyl playback toggle and compact layouts; relative
+Media Session seek handlers removed in favor of track navigation. Shared album
+redownload orchestration resolves pages before changing files and stops on failures
+or account replacement. Artist credits remain visible in mobile cards and desktop
+artist rows; provider album/artist parsing accepts individual string/object credits.
+Frontend fast gate: 301 tests passed. Focused provider credit tests: 11 passed.
+Physical iOS controls and auxiliary-window movement remain device/browser checks.
+
+Chromium captures and artwork pause/resume passed in five viewports (320×420,
+570×100, 300×420 vinyl, 760×64 and 180×560). The sub-96px layout now keeps its
+horizontal transport. Stacked PR191 enables the same fast CI gate for its parent
+branch; no production builds/emulators were added to the required checks.
+
+## PiP efficiency review on PR191
+
+Separated video clock subscriptions from artwork and selected the active lyric
+index with useSyncExternalStore, also reused by Player UI. Compact mode no longer
+mounts its hidden full lyric list. Controlled Chromium measurements over 60 clock
+samples within one line show zero artwork/lyric rerenders after optimization
+(previously 60 artwork and 60–120 lyric renders). Progress updates remain active.
+Three focused component tests, desktop/fixture types and affected-module lint pass.
+This is not a device CPU/battery/FPS claim; see docs/PLAYER_FOLLOWUPS.md for limits.
+The two new explicit-metadata and mixed-provider redownload tasks are To Do only.
+
+
+## Persisted ratings and mixed-queue refresh — PR192
+
+Stacked on PR191. Shared queue and collection-tree refresh update recording
+metadata after redownload while preserving queue occurrence IDs, selection and
+current audio. Concurrent, late, wrong-identity and non-playable replies are
+rejected. Empty backend provider results return NOT_FOUND.
+
+Web and mobile Edit Metadata use the same three-state rating choices and vocabulary.
+A small platform-selected explicit badge uses the shared theme; DOM renders a span
+and native renders Text. Backend responses read persisted evidence in batches;
+showing badges does not query external catalogs. Controlled HTTP, renderer and
+queue tests pass. No production backfill or physical-device acceptance is claimed.
+Design, operations and limitations: ../CONTENT_RATINGS.md.
+
+
+## Auxiliary-document PiP artwork transitions — PR192
+
+Reproduced the stale-vinyl cover with the opener RAF frozen in Chromium. PiP
+artwork swaps now run as CSS animations in the auxiliary document, with a bounded
+outgoing/current pair, eager visible artwork and reduced-motion cleanup. The
+shared artwork-identity policy preserves same-album discs. Desktop Framer Motion
+and audio ownership/controls are unchanged. Three focused component tests and a
+controlled before/after browser check pass; Vivaldi minimization remains user
+acceptance. See ../PLAYER_FOLLOWUPS.md for evidence and limits.
+
+## Playlist, library drop and notification branch rebase — 2026-11-10
+
+Rebased the five feature commits onto current develop and retained its vocabulary
+Context, scoped runtime references, shared notification inbox, and relocated base
+UI. Playlist creation and media sharing now compose `components/ui/Dialog` rather
+than introducing a second dialog implementation. Shared popup/dialog surfaces use
+semantic theme tokens. The playlist input keeps a neutral focus underline without
+the pink rectangle. Notification bulk-read, loading, and action state extend the
+shared inbox lifecycle, including account replacement and stopped-runtime guards.
+Existing workbook translations cover the added notification and library text.
+
+Verification: all 272 web Node tests pass; web/mobile TypeScript, web ESLint,
+frontend architecture checks, backend Ruff formatting/lint and Pyright pass.
+Regenerated and formatted DTOs match the committed contract. Isolated Chromium
+checks at 1280×800 and 390×844 cover dialog opening, input focus/typing, enabled
+Create, and Escape dismissal; these do not establish full application or native
+runtime acceptance. Production web build passes. The final backend run passes 663 tests and
+43 subtests; six persistence checks skip without a dedicated test database.
+Production SSR smoke passes after updating its song fixture with the current
+nullable content-rating fields.

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
-import { VideoView, type VideoPlayer } from "expo-video";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     Bookmark,
     Minimize,
@@ -11,7 +11,7 @@ import {
     RotateCw,
     SkipBack,
     SkipForward,
-} from "lucide-react-native";
+} from "@rockit/ui/icons";
 import {
     ActivityIndicator,
     KeyboardAvoidingView,
@@ -33,9 +33,9 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import BookmarkPopup from "@/components/Player/BookmarkPopup";
 import PlayerCover from "@/components/Player/PlayerCover";
 import PlayerProgress from "@/components/Player/PlayerProgress";
+import VideoSurface from "@/components/Player/VideoSurface";
 
 interface FullscreenMediaPlayerProps {
-    videoPlayer: VideoPlayer | null;
     onClose: () => void;
 }
 
@@ -77,11 +77,12 @@ interface FullscreenMediaContentProps extends FullscreenMediaPlayerProps {
 }
 
 function FullscreenMediaContent({
-    videoPlayer,
     onClose,
     bookmarksVisible,
     onBookmarksChange,
 }: FullscreenMediaContentProps) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     useMediaFullscreen(onClose);
     const {
         currentMedia,
@@ -180,9 +181,8 @@ function FullscreenMediaContent({
 
     return (
         <View style={styles.container}>
-            {hasVideo && videoPlayer ? (
-                <VideoView
-                    player={videoPlayer}
+            {hasVideo ? (
+                <VideoSurface
                     style={StyleSheet.absoluteFill}
                     contentFit="contain"
                     nativeControls={false}
@@ -238,7 +238,10 @@ function FullscreenMediaContent({
                                 onBookmarksChange(true);
                             }}
                         >
-                            <Bookmark size={24} color={COLORS.white} />
+                            <Bookmark
+                                size={24}
+                                color={theme.colors["on-media"]}
+                            />
                         </Pressable>
                         <Pressable
                             style={styles.button}
@@ -248,7 +251,10 @@ function FullscreenMediaContent({
                                 vocabulary.PLAYER_EXIT_FULLSCREEN
                             }
                         >
-                            <Minimize size={24} color={COLORS.white} />
+                            <Minimize
+                                size={24}
+                                color={theme.colors["on-media"]}
+                            />
                         </Pressable>
                     </View>
                     <View
@@ -264,7 +270,10 @@ function FullscreenMediaContent({
                             accessibilityRole="button"
                             accessibilityLabel={vocabulary.PREVIOUS_MEDIA}
                         >
-                            <SkipBack size={28} color={COLORS.white} />
+                            <SkipBack
+                                size={28}
+                                color={theme.colors["on-media"]}
+                            />
                         </Pressable>
                         <Pressable
                             style={styles.seekButton}
@@ -275,7 +284,10 @@ function FullscreenMediaContent({
                                 vocabulary.PLAYER_REWIND_TEN_SECONDS
                             }
                         >
-                            <RotateCcw size={28} color={COLORS.white} />
+                            <RotateCcw
+                                size={28}
+                                color={theme.colors["on-media"]}
+                            />
                             <Text style={styles.seekLabel}>10</Text>
                         </Pressable>
                         <Pressable
@@ -289,20 +301,20 @@ function FullscreenMediaContent({
                             {isLoading ? (
                                 <ActivityIndicator
                                     size="large"
-                                    color={COLORS.white}
+                                    color={theme.colors["on-media"]}
                                     pointerEvents="none"
                                 />
                             ) : isPlaying ? (
                                 <Pause
                                     size={42}
-                                    color={COLORS.white}
-                                    fill={COLORS.white}
+                                    color={theme.colors["on-media"]}
+                                    fill={theme.colors["on-media"]}
                                 />
                             ) : (
                                 <Play
                                     size={42}
-                                    color={COLORS.white}
-                                    fill={COLORS.white}
+                                    color={theme.colors["on-media"]}
+                                    fill={theme.colors["on-media"]}
                                 />
                             )}
                         </Pressable>
@@ -315,7 +327,10 @@ function FullscreenMediaContent({
                                 vocabulary.PLAYER_FORWARD_TEN_SECONDS
                             }
                         >
-                            <RotateCw size={28} color={COLORS.white} />
+                            <RotateCw
+                                size={28}
+                                color={theme.colors["on-media"]}
+                            />
                             <Text style={styles.seekLabel}>10</Text>
                         </Pressable>
                         <Pressable
@@ -327,7 +342,10 @@ function FullscreenMediaContent({
                             accessibilityRole="button"
                             accessibilityLabel={vocabulary.NEXT_MEDIA}
                         >
-                            <SkipForward size={28} color={COLORS.white} />
+                            <SkipForward
+                                size={28}
+                                color={theme.colors["on-media"]}
+                            />
                         </Pressable>
                     </View>
                     <View style={styles.progress}>
@@ -372,67 +390,81 @@ function FullscreenMediaContent({
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#000" },
-    cover: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    tapSurface: { ...StyleSheet.absoluteFill, flexDirection: "row" },
-    tapRegion: { flex: 1 },
-    controls: {
-        ...StyleSheet.absoluteFill,
-        justifyContent: "space-between",
-        backgroundColor: "rgba(0,0,0,0.25)",
-    },
-    topBar: { flexDirection: "row", alignItems: "center", gap: 8 },
-    title: { flex: 1, color: COLORS.white, fontSize: 18, fontWeight: "600" },
-    button: {
-        width: 48,
-        height: 48,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    centerControls: {
-        ...StyleSheet.absoluteFill,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-    },
-    playButton: {
-        width: 72,
-        height: 72,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 36,
-        backgroundColor: "rgba(0,0,0,0.35)",
-    },
-    seekButton: {
-        width: 56,
-        height: 56,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    seekLabel: { color: COLORS.white, fontSize: 12, marginTop: 2 },
-    progress: {
-        backgroundColor: "rgba(0,0,0,0.4)",
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        paddingBottom: 8,
-    },
-    bookmarkScrim: {
-        ...StyleSheet.absoluteFill,
-        backgroundColor: "rgba(0,0,0,0.4)",
-    },
-    bookmarkPanel: {
-        position: "absolute",
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: "50%",
-        maxWidth: 400,
-        backgroundColor: COLORS.bgCard,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: { flex: 1, backgroundColor: theme.colors["backdrop"] },
+        cover: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        tapSurface: { ...StyleSheet.absoluteFill, flexDirection: "row" },
+        tapRegion: { flex: 1 },
+        controls: {
+            ...StyleSheet.absoluteFill,
+            justifyContent: "space-between",
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.25),
+        },
+        topBar: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+        },
+        title: {
+            flex: 1,
+            color: theme.colors["on-media"],
+            fontSize: theme.typography.subtitle,
+            fontWeight: "600",
+        },
+        button: {
+            width: 48,
+            height: 48,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        centerControls: {
+            ...StyleSheet.absoluteFill,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: theme.spacing.sm,
+        },
+        playButton: {
+            width: 72,
+            height: 72,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 36,
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.35),
+        },
+        seekButton: {
+            width: 56,
+            height: 56,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        seekLabel: {
+            color: theme.colors["on-media"],
+            fontSize: theme.typography.caption,
+            marginTop: 2,
+        },
+        progress: {
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.4),
+            borderRadius: theme.radius.md,
+            paddingHorizontal: theme.spacing.sm,
+            paddingBottom: theme.spacing.sm,
+        },
+        bookmarkScrim: {
+            ...StyleSheet.absoluteFill,
+            backgroundColor: withAlpha(theme.colors["backdrop"], 0.4),
+        },
+        bookmarkPanel: {
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: "50%",
+            maxWidth: 400,
+            backgroundColor: theme.legacy.bgCard,
+        },
+    });

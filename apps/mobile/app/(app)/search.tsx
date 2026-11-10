@@ -1,4 +1,4 @@
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     ScrollView,
     StyleSheet,
@@ -17,6 +17,7 @@ import {
 } from "@/components/Search";
 
 function SearchSkeletons() {
+    const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
     return (
         <View style={styles.skeletonsContainer}>
@@ -41,6 +42,7 @@ function SearchSkeletons() {
 }
 
 export default function SearchScreen() {
+    const styles = useThemedStyles(createStyles);
     const { height } = useWindowDimensions();
     const { vocabulary } = useVocabulary();
     const { results, searching, error, query, search, clearResults } =
@@ -115,39 +117,40 @@ export default function SearchScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    errorText: {
-        color: COLORS.accent,
-        fontSize: 14,
-        textAlign: "center",
-    },
-    loadingText: {
-        color: COLORS.gray400,
-        fontSize: 16,
-    },
-    resultsContainer: {
-        flex: 1,
-    },
-    resultsContent: {
-        paddingHorizontal: 16,
-        paddingBottom: 32,
-    },
-    skeletonsContainer: {
-        paddingVertical: 20,
-    },
-    skeletonSection: {
-        marginBottom: 24,
-    },
-    skeletonTitle: {
-        color: COLORS.gray600,
-        fontSize: 12,
-        fontWeight: "700",
-        letterSpacing: 1.5,
-        marginBottom: 12,
-        paddingHorizontal: 16,
-    },
-    rowSkeleton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        errorText: {
+            color: theme.legacy.accent,
+            fontSize: theme.typography.body,
+            textAlign: "center",
+        },
+        loadingText: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.label,
+        },
+        resultsContainer: {
+            flex: 1,
+        },
+        resultsContent: {
+            paddingHorizontal: theme.spacing.lg,
+            paddingBottom: theme.spacing.xxl,
+        },
+        skeletonsContainer: {
+            paddingVertical: 20,
+        },
+        skeletonSection: {
+            marginBottom: theme.spacing.xl,
+        },
+        skeletonTitle: {
+            color: theme.legacy.gray600,
+            fontSize: theme.typography.caption,
+            fontWeight: "700",
+            letterSpacing: 1.5,
+            marginBottom: theme.spacing.md,
+            paddingHorizontal: theme.spacing.lg,
+        },
+        rowSkeleton: {
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.sm,
+        },
+    });

@@ -1,13 +1,15 @@
 import { useCallback } from "react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
 import { EEvent, EventManager } from "@rockit/shared";
-import { Heart, Music, PlusCircle } from "lucide-react-native";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Heart, Music, PlusCircle } from "@rockit/ui/icons";
 import { FlatList, StyleSheet, View } from "react-native";
 import {
     useContextMenu,
     type ContextMenuConfig,
 } from "@/lib/ContextMenuContext";
 import { Http } from "@/lib/http";
+import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
 import ArtistAvatar from "@/components/Media/ArtistAvatar";
 import MediaCard from "@/components/Media/MediaCard";
@@ -26,6 +28,8 @@ export default function SearchSection({
     items,
     layout = "row",
 }: SearchSectionProps) {
+    const { vocabulary } = useVocabulary();
+    const styles = useThemedStyles(createStyles);
     const { show, hide } = useContextMenu();
 
     const buildMainMenu = useCallback(
@@ -35,7 +39,7 @@ export default function SearchSection({
             subtitle: item.artists?.map((a) => a.name).join(", "),
             options: [
                 {
-                    label: "Add to library",
+                    label: vocabulary.ADD_TO_LIBRARY,
                     icon: Heart,
                     onPress: async () => {
                         hide();
@@ -54,14 +58,14 @@ export default function SearchSection({
                     },
                 },
                 {
-                    label: "Add to playlist",
+                    label: vocabulary.ADD_MEDIA_TO_PLAYLIST,
                     icon: PlusCircle,
                     onPress: () => showPlaylistPicker(item),
                 },
             ],
         }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [hide, show]
+        [hide, show, vocabulary]
     );
 
     const showPlaylistPicker = useCallback(
@@ -82,7 +86,7 @@ export default function SearchSection({
 
             show({
                 imageUrl: item.imageUrl,
-                title: "Add to playlist",
+                title: vocabulary.ADD_MEDIA_TO_PLAYLIST,
                 subtitle: item.name,
                 backAction: () => show(buildMainMenu(item)),
                 options: playlists.map((pl) => ({
@@ -115,7 +119,7 @@ export default function SearchSection({
                 })),
             });
         },
-        [show, hide, buildMainMenu]
+        [show, hide, buildMainMenu, vocabulary]
     );
 
     const handlePress = useCallback(
@@ -131,7 +135,7 @@ export default function SearchSection({
                 <MediaCard media={item} />
             </View>
         ),
-        []
+        [styles]
     );
 
     const renderRowItem = useCallback(
@@ -151,7 +155,7 @@ export default function SearchSection({
                 />
             </View>
         ),
-        [handlePress]
+        [handlePress, styles]
     );
 
     const renderItem =
@@ -188,21 +192,22 @@ export default function SearchSection({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        marginBottom: 24,
-    },
-    gridItem: {
-        flex: 1,
-        margin: 4,
-        maxWidth: "50%",
-    },
-    gridRow: {
-        justifyContent: "flex-start",
-    },
-    artistItem: {
-        alignItems: "center",
-        width: 100,
-        marginHorizontal: 8,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            marginBottom: theme.spacing.xl,
+        },
+        gridItem: {
+            flex: 1,
+            margin: theme.spacing.xs,
+            maxWidth: "50%",
+        },
+        gridRow: {
+            justifyContent: "flex-start",
+        },
+        artistItem: {
+            alignItems: "center",
+            width: 100,
+            marginHorizontal: theme.spacing.sm,
+        },
+    });

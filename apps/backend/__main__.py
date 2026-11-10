@@ -31,6 +31,9 @@ parser.add_argument(
     type=int,
     help="User ID used by commands that operate on one user",
 )
+parser.add_argument("--refresh-rating-sources", action="store_true")
+parser.add_argument("--rating-after", default="")
+parser.add_argument("--rating-pages", type=int, default=1)
 parser.add_argument("command", nargs="?", help="Command to run")
 args, _ = parser.parse_known_args()
 command_to_run = args.command if args.command else ""
@@ -317,6 +320,34 @@ async def main() -> None:
 
             elif command == "reinit":
                 await db_context.reinit()
+
+            elif command == "backfill-content-ratings":
+                from core.framework.contentRating import ContentRatings
+
+                cursor = args.rating_after
+                for _ in range(max(1, min(args.rating_pages, 100))):
+                    async with db_context.session_scope_async() as session:
+                        result = await ContentRatings.backfill_async(
+                            session=session,
+                            after=cursor,
+                            limit=25,
+                            allow_remote=args.refresh_rating_sources,
+                        )
+                        if result.is_not_ok():
+                            logger.error(
+                                "Content rating backfill failed at cursor %s: %s",
+                                cursor,
+                                result.info(),
+                            )
+                            break
+                        page = result.result()
+                        await session.commit()
+                        cursor = page.nextAfter
+                        logger.info("Content rating page: %s", page.model_dump_json())
+                        if not page.hasMore:
+                            break
+                if command_to_run:
+                    return
 
             elif command == "models":
                 from core.utils.addInit import add_init_to_orm

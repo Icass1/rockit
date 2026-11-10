@@ -903,12 +903,12 @@ export default function UploadModal({
 
     return createPortal(
         <div
-            className="bg-backdrop/80 fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="overlay-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e): void => {
                 if (e.target === e.currentTarget) handleClose();
             }}
         >
-            <div className="bg-secondary flex max-h-[90vh] w-full flex-col rounded-2xl p-5 md:max-h-[85vh] md:max-w-3xl md:p-6">
+            <div className="overlay-surface flex max-h-[90vh] w-full flex-col p-5 md:max-h-[85vh] md:max-w-3xl md:p-6">
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
                     <div>
@@ -923,7 +923,7 @@ export default function UploadModal({
                         onClick={handleClose}
                         disabled={uploading}
                         className="text-muted-foreground hover:bg-muted hover:text-foreground-strong rounded-full p-2 transition disabled:opacity-50"
-                        aria-label="Close"
+                        aria-label={$vocabulary.CANCEL}
                     >
                         <X className="h-5 w-5" />
                     </button>

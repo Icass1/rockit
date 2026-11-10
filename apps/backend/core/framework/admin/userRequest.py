@@ -6,6 +6,7 @@ from core.access.db.ormModels.userRequest import UserRequestRow
 from core.access.requestAccess import RequestAccess
 from core.enums.requestStatusEnum import RequestStatusEnum
 from core.enums.requestTypeEnum import RequestTypeEnum
+from core.framework.contentRating import ContentRatings
 from core.framework.lyricsCorrections import LyricsCorrections
 from core.responses.userRequestResponse import (
     AdminRequestStatsResponse,
@@ -85,6 +86,12 @@ class UserRequest:
                 logger.warning("Cannot create lyrics request: %s", prepared.info())
                 return Result(code=prepared.code(), message=prepared.message())
             proposed_value = prepared.result()
+
+        if request_type == RequestTypeEnum.METADATA:
+            rating = ContentRatings.parse_metadata_rating(payload=proposed_value)
+            if rating.is_not_ok():
+                logger.warning("Cannot create metadata request: %s", rating.info())
+                return Result(code=rating.code(), message=rating.message())
 
         a_result = await RequestAccess.create_request_async(
             session=session,
@@ -187,6 +194,38 @@ class UserRequest:
             if checked.is_not_ok():
                 logger.warning("Lyrics review rejected: %s", checked.info())
                 return Result(code=checked.code(), message=checked.message())
+        if (
+            request_row.request_type_key == RequestTypeEnum.METADATA.value
+            and status == RequestStatusEnum.ACCEPTED
+        ):
+            rating = ContentRatings.parse_metadata_rating(payload=request_row.proposed_value)
+            if rating.is_not_ok():
+                logger.warning("Invalid reviewed metadata: %s", rating.info())
+                return Result(code=rating.code(), message=rating.message())
+            proposed_rating = rating.result()[0] if rating.result() else None
+            if proposed_rating is not None:
+                identity = await RequestAccess.get_media_public_id_from_id_async(
+                    session=session, media_id=request_row.media_id
+                )
+                if identity.is_not_ok():
+                    logger.warning("Reviewed song unavailable: %s", identity.info())
+                    return Result(code=identity.code(), message=identity.message())
+                applied = await ContentRatings.record_async(
+                    session=session,
+                    public_id=identity.result(),
+                    value=(
+                        True
+                        if proposed_rating.value == "explicit"
+                        else False
+                        if proposed_rating.value == "clean"
+                        else None
+                    ),
+                    source="manual:review",
+                    manual=True,
+                )
+                if applied.is_not_ok():
+                    logger.error("Cannot apply reviewed content rating: %s", applied.info())
+                    return Result(code=applied.code(), message=applied.message())
         a_result = await RequestAccess.update_request_status_async(
             session=session,
             request_id=request_row.id,

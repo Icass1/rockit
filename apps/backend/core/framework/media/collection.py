@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.collectionAccess import CollectionAccess
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.framework import providers
+from core.framework.contentRating import ContentRatings
 from core.framework.media.image import Image
 from core.framework.models.collection import CollectionEntry, CollectionRecord
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
@@ -215,10 +216,9 @@ class Collection:
         if any(ids.get(entry.media_id) not in items for entry in entries):
             logger.error("Provider omitted a collection page item")
             return Result(code=ResultCode.NOT_FOUND, message="Collection media unavailable")
-        return Result(
-            code=ResultCode.OK,
-            message="OK",
-            result=CollectionPageResponse(
+        return await ContentRatings.enrich_async(
+            session=session,
+            response=CollectionPageResponse(
                 collection=await Collection.summary_async(session=session, record=root),
                 items=[
                     PlaylistResponseItem(
@@ -340,10 +340,9 @@ class Collection:
             logger.error("Provider omitted a queue item")
             return Result(code=ResultCode.NOT_FOUND, message="Queue media unavailable")
         if not persist:
-            return Result(
-                code=ResultCode.OK,
-                message="OK",
-                result=QueueResponse(
+            return await ContentRatings.enrich_async(
+                session=session,
+                response=QueueResponse(
                     currentQueueMediaId=start,
                     queueType=QueueTypeEnum.SORTED,
                     queue=[
@@ -369,10 +368,9 @@ class Collection:
         if saved.is_not_ok():
             logger.error(f"Queue save failed: {saved.info()}")
             return Result(code=saved.code(), message=saved.message())
-        return Result(
-            code=ResultCode.OK,
-            message="OK",
-            result=QueueResponse(
+        return await ContentRatings.enrich_async(
+            session=session,
+            response=QueueResponse(
                 currentQueueMediaId=start_by_queue_type[saved.result()],
                 queueType=QueueTypeEnum(saved.result()),
                 queue=[

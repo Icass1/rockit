@@ -28,11 +28,7 @@ export function PiPProgress(): JSX.Element {
             <input
                 type="range"
                 className="pip-slider"
-                aria-label={text(
-                    "PIP_POSITION",
-                    "Playback position",
-                    "Posición de reproducción"
-                )}
+                aria-label={text("PIP_POSITION")}
                 value={position}
                 min={0}
                 max={duration || 1}

@@ -86,7 +86,7 @@ export default function RenderList({
                             type="button"
                             onClick={handlePlay}
                             className="from-primary to-brand-light text-foreground-strong absolute right-2 bottom-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-linear-45 opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:scale-105"
-                            aria-label="Play"
+                            aria-label={$vocabulary.PLAY}
                         >
                             <Play className="fill-on-media ml-0.5 h-6 w-6" />
                         </button>
@@ -103,7 +103,7 @@ export default function RenderList({
                             >
                                 <button
                                     type="button"
-                                    aria-label="More options"
+                                    aria-label={$vocabulary.MORE_OPTIONS}
                                     className="text-muted-foreground hover:bg-muted hover:text-foreground-strong flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors"
                                 >
                                     <MoreHorizontal className="h-5 w-5" />

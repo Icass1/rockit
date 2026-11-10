@@ -64,3 +64,76 @@ export type { AutoplayRecommendation } from "@/models/types/autoplayRecommendati
 export { mixHomeRecommendations } from "@/lib/homeRecommendations";
 
 export * from "@/utils/lyricsTiming";
+
+export {
+    completeVocabulary,
+    fallbackVocabulary,
+    preferredLanguage,
+    vocabularyText,
+} from "./i18n/vocabulary";
+export type {
+    PagedSearchRequest,
+    PagedSearchResult,
+    PagedSearchState,
+} from "@/models/interfaces/pagedSearch";
+export { validateUsername } from "@/auth/validation";
+export {
+    OFFLINE_METADATA_POLICY,
+    isOfflineMetadataPath,
+} from "@/utils/offlineMetadataPolicy";
+
+export type {
+    ArtworkResolver,
+    RecommendationArtworkCacheEntry,
+} from "@/models/interfaces/artworkResolver";
+export { RecommendationArtworkManager } from "@/managers/recommendationArtworkManager";
+
+export { buildRecommendationQueue } from "@/audio/recommendationQueue";
+
+export type { CollectionPageState } from "@/models/interfaces/collectionPageState";
+export type { FeaturedCollectionKey } from "@/models/interfaces/featuredCollection";
+export {
+    loadFeaturedCollection,
+    featuredCollectionSeed,
+    getRockitListName,
+} from "@/managers/featuredCollections";
+
+export { StationManager } from "@/managers/stationManager";
+
+export { FriendManager } from "@/managers/friendManager";
+export { ListenTogetherManager } from "@/managers/listenTogetherManager";
+export type { ListenTogetherQueueSnapshot } from "@/models/interfaces/listeningQueueSnapshot";
+
+export { SharingManager } from "@/managers/sharingManager";
+
+export { NavigationPinsManager } from "@/managers/navigationPinsManager";
+
+export type {
+    StatsRange,
+    StatsRangeOption,
+} from "@/models/interfaces/statsPresentation";
+export {
+    statsRangeOptions,
+    formatStatsRange,
+    statsDateBoundary,
+    formatListeningDuration,
+    statsInsightMetrics,
+} from "@/utils/statsPresentation";
+
+export { NotificationInbox } from "@/managers/notificationInbox";
+export {
+    notificationVocabularyText,
+    replaceNotificationGaps,
+    notificationPageHref,
+    unreadNotifications,
+} from "@/utils/notifications";
+
+export { redownloadMedia } from "@/utils/redownloadMedia";
+
+export {
+    CONTENT_RATING_OPTIONS,
+    getContentRatingValue,
+    type ContentRatingValue,
+} from "@/models/contentRating";
+
+export { shouldKeepVinyl } from "@/utils/vinylIdentity";

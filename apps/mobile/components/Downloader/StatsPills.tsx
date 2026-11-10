@@ -1,5 +1,7 @@
-import { COLORS } from "@/constants/theme";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 
 interface StatsPillsProps {
     total: number;
@@ -15,9 +17,12 @@ interface PillProps {
 }
 
 function Pill({ count, color, label }: PillProps) {
+    const styles = useThemedStyles(createStyles);
     if (count === 0) return null;
     return (
-        <View style={[styles.pill, { backgroundColor: `${color}15` }]}>
+        <View
+            style={[styles.pill, { backgroundColor: withAlpha(color, 0.08) }]}
+        >
             <Text style={[styles.pillText, { color }]}>
                 {count} {label}
             </Text>
@@ -31,31 +36,51 @@ export default function StatsPills({
     done,
     failed,
 }: StatsPillsProps) {
+    const theme = useDesignTheme();
+    const { vocabulary } = useVocabulary();
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.container}>
-            <Pill count={total} color={COLORS.white} label="total" />
-            <Pill count={active} color={COLORS.accent} label="active" />
-            <Pill count={done} color="#1cad60" label="done" />
-            <Pill count={failed} color="#c72e2e" label="failed" />
+            <Pill
+                count={total}
+                color={theme.legacy.white}
+                label={vocabulary.UI_TOTAL}
+            />
+            <Pill
+                count={active}
+                color={theme.legacy.accent}
+                label={vocabulary.ACTIVE}
+            />
+            <Pill
+                count={done}
+                color={theme.colors["success"]}
+                label={vocabulary.COMPLETED}
+            />
+            <Pill
+                count={failed}
+                color={theme.colors["destructive"]}
+                label={vocabulary.FAILED}
+            />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 8,
-        paddingHorizontal: 16,
-        marginBottom: 16,
-    },
-    pill: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 14,
-    },
-    pillText: {
-        fontSize: 12,
-        fontWeight: "700",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: theme.spacing.sm,
+            paddingHorizontal: theme.spacing.lg,
+            marginBottom: theme.spacing.lg,
+        },
+        pill: {
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: theme.spacing.xs,
+            borderRadius: 14,
+        },
+        pillText: {
+            fontSize: theme.typography.caption,
+            fontWeight: "700",
+        },
+    });

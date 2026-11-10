@@ -60,6 +60,9 @@ function setup({
     initialize = true,
     sessionSnapshot = { username: "fixture" },
     resumeKeepalive,
+    userAgent = "iPhone",
+    platform = "iPhone",
+    maxTouchPoints = 1,
 } = {}) {
     const currentMedia = atom(noMedia ? undefined : song("first"));
     const playingAtom = atom(playing);
@@ -149,7 +152,7 @@ function setup({
         window: {},
         document,
         navigator: supported
-            ? { userAgent: "iPhone", mediaSession: session }
+            ? { userAgent, platform, maxTouchPoints, mediaSession: session }
             : { userAgent: "iPhone" },
         MediaMetadata: class {
             constructor(value) {
@@ -473,3 +476,24 @@ test("playback synchronization retains metadata updates and replaces ownership o
     e.lifecycle.stop();
     assert.equal(e.activation.syncStops, 2);
 });
+
+for (const device of [
+    { userAgent: "iPhone", platform: "iPhone", maxTouchPoints: 1 },
+    {
+        userAgent: "Mozilla/5.0 Macintosh",
+        platform: "MacIntel",
+        maxTouchPoints: 5,
+    },
+    { userAgent: "Chrome", platform: "Linux", maxTouchPoints: 0 },
+])
+    test(`system controls retain track navigation without relative seeking: ${device.platform}`, () => {
+        const e = setup(device);
+        assert.equal(e.handlers.get("seekbackward"), null);
+        assert.equal(e.handlers.get("seekforward"), null);
+        e.handlers.get("nexttrack")();
+        e.handlers.get("previoustrack")();
+        assert.equal(e.transport.next, 1);
+        assert.equal(e.transport.previous, 1);
+        assert.equal(e.transport.seek, 0);
+        e.manager.destroy();
+    });

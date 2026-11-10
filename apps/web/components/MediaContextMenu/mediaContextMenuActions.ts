@@ -269,18 +269,22 @@ const ACTION_REGISTRY: ActionDef[] = [
         type: "action",
         icon: HardDriveDownload,
         labelKey: "REDOWNLOAD",
-        mediaTypes: [EMediaType.Song, EMediaType.Video],
+        mediaTypes: [EMediaType.Song, EMediaType.Video, EMediaType.Album],
         condition: (m) =>
-            !isSearchResult(m) && isDownloadable(m) && Boolean(m.downloaded),
+            !isSearchResult(m) &&
+            (m.type === "album" ||
+                (isDownloadable(m) && Boolean(m.downloaded))),
     },
     {
         id: EMediaContextAction.DeleteMediaFile,
         type: "action",
         icon: Trash2,
         labelKey: "DELETE",
-        mediaTypes: [EMediaType.Song, EMediaType.Video],
+        mediaTypes: [EMediaType.Song, EMediaType.Video, EMediaType.Album],
         condition: (m) =>
-            !isSearchResult(m) && isDownloadable(m) && Boolean(m.downloaded),
+            !isSearchResult(m) &&
+            (m.type === "album" ||
+                (isDownloadable(m) && Boolean(m.downloaded))),
     },
     {
         id: EMediaContextAction.RemoveFromPlaylist,
@@ -426,6 +430,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddToQueueBottom,
         "---",
         EMediaContextAction.DownloadList,
+        EMediaContextAction.Redownload,
         EMediaContextAction.DownloadOfflineList,
         EMediaContextAction.DownloadZip,
         EMediaContextAction.RemoveFromPlaylist,

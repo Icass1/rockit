@@ -41,3 +41,14 @@ export function toLocalHHMM(isoString: string): string {
     const d = new Date(isoString);
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
+
+/** Monday-first labels follow the selected vocabulary language, including accents. */
+export function localizedWeekdays(lang: string): string[] {
+    const formatter = new Intl.DateTimeFormat(lang, {
+        weekday: "short",
+        timeZone: "UTC",
+    });
+    return Array.from({ length: 7 }, (_, index) =>
+        formatter.format(new Date(Date.UTC(2024, 0, 1 + index)))
+    );
+}

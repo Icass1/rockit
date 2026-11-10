@@ -12,14 +12,14 @@ export default function WorkInProgress(): JSX.Element {
         <div className="relative flex h-screen w-full flex-col items-center justify-center bg-linear-to-r from-(--color-gradient-start) to-(--color-gradient-end) select-none">
             <div className="flex h-auto flex-col items-center gap-40 md:flex-row">
                 <Image
-                    alt="crane"
+                    alt=""
                     src="/crane2.gif"
                     width={200}
                     height={200}
                     className=""
                 />
                 <Image
-                    alt="crane"
+                    alt=""
                     src="/work-in-progress-icon.png"
                     width={200}
                     style={{ transformOrigin: "50% 5.85%" }}

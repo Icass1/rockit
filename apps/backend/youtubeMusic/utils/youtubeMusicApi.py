@@ -46,6 +46,7 @@ class YoutubeMusicTrack:
     release_year: int | None = None
     track_number: int = 1
     disc_number: int = 1
+    explicit: bool | None = None
 
 
 @dataclass
@@ -637,16 +638,14 @@ class YoutubeMusicApi:
                     if thumb_url is not None:
                         thumbnail = thumb_url
 
-                artists: list[str] = []
-                artists_val = entry_dict.get("artists")
-                if artists_val is not None:
-                    artists = [str(a.get("name", "")) for a in artists_val]
+                artists = _artist_names(info=entry_dict)
 
                 track_number_val = entry_dict.get("trackNumber")
                 track_number = int(track_number_val) if track_number_val is not None else i
 
                 track = YoutubeMusicTrack(
                     youtube_id=video_id,
+                    explicit=True if entry_dict.get("isExplicit") is True else None,
                     title=str(entry_dict.get("title", "")),
                     artists=artists,
                     album=album_title,
@@ -723,10 +722,7 @@ class YoutubeMusicApi:
                     if thumb_url is not None:
                         thumbnail = thumb_url
 
-                artists: list[str] = []
-                artists_val = entry_dict.get("artists")
-                if artists_val is not None:
-                    artists = [str(a.get("name", "")) for a in artists_val]
+                artists = _artist_names(info=entry_dict)
 
                 album = ""
                 album_val = entry_dict.get("album")

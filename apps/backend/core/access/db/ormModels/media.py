@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Integer
+from sqlalchemy import Boolean, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.access.db.base import CoreBase
@@ -21,6 +21,12 @@ if TYPE_CHECKING:
 class CoreMediaRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
     __tablename__ = "media"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
+
+    is_explicit: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    explicit_source: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    explicit_manual: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
 
     provider_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.provider.id"), nullable=False
@@ -47,13 +53,19 @@ class CoreMediaRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdat
         provider_id: int,
         media_type_key: int,
         public_id: str | None = None,
+        is_explicit: bool | None = None,
+        explicit_source: str | None = None,
+        explicit_manual: bool = False,
         id: int | None = None,
     ) -> None:
-        kwargs: dict[str, None | int | str] = {}
+        kwargs: dict[str, None | bool | int | str] = {}
         kwargs["provider_id"] = provider_id
         kwargs["media_type_key"] = media_type_key
         if public_id is not None:
             kwargs["public_id"] = public_id
+        kwargs["is_explicit"] = is_explicit
+        kwargs["explicit_source"] = explicit_source
+        kwargs["explicit_manual"] = explicit_manual
         if id is not None:
             kwargs["id"] = id
         for k, v in kwargs.items():

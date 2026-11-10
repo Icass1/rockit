@@ -1,6 +1,6 @@
-import { COLORS } from "@/constants/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { ArrowLeft, ChevronRight } from "@rockit/ui/icons";
 import { Image } from "expo-image";
-import { ArrowLeft, ChevronRight } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { ContextMenuConfig } from "@/lib/ContextMenuContext";
 
@@ -9,6 +9,8 @@ export function ContextMenuSheetContent({
 }: {
     config: ContextMenuConfig;
 }) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     return (
         <View style={styles.content}>
             {config.backAction && (
@@ -18,7 +20,7 @@ export function ContextMenuSheetContent({
                         style={styles.backButton}
                         hitSlop={12}
                     >
-                        <ArrowLeft size={22} color={COLORS.white} />
+                        <ArrowLeft size={22} color={theme.legacy.white} />
                     </Pressable>
                 </View>
             )}
@@ -45,6 +47,8 @@ export function ContextMenuSheetContent({
             {config.options.map((option, index) => (
                 <Pressable
                     key={`${option.label}-${index}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={option.label}
                     style={({ pressed }) => [
                         styles.option,
                         pressed && styles.optionPressed,
@@ -54,7 +58,9 @@ export function ContextMenuSheetContent({
                     <option.icon
                         size={20}
                         color={
-                            option.destructive ? COLORS.accent : COLORS.white
+                            option.destructive
+                                ? theme.legacy.accent
+                                : theme.legacy.white
                         }
                     />
                     <Text
@@ -68,7 +74,7 @@ export function ContextMenuSheetContent({
                     {option.showArrow && (
                         <ChevronRight
                             size={16}
-                            color={COLORS.gray600}
+                            color={theme.legacy.gray600}
                             style={styles.optionChevron}
                         />
                     )}
@@ -78,46 +84,59 @@ export function ContextMenuSheetContent({
     );
 }
 
-const styles = StyleSheet.create({
-    content: { paddingBottom: 40 },
-    headerRow: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 },
-    backButton: { alignSelf: "flex-start", padding: 4 },
-    hero: {
-        alignItems: "center",
-        paddingHorizontal: 24,
-        paddingTop: 20,
-        paddingBottom: 24,
-        gap: 12,
-    },
-    image: {
-        width: 160,
-        height: 160,
-        borderRadius: 12,
-        backgroundColor: COLORS.bgCardLight,
-    },
-    imagePlaceholder: { backgroundColor: COLORS.bgCardLight },
-    title: {
-        color: COLORS.white,
-        fontSize: 20,
-        fontWeight: "700",
-        textAlign: "center",
-    },
-    subtitle: { color: COLORS.gray400, fontSize: 14, textAlign: "center" },
-    separator: {
-        height: StyleSheet.hairlineWidth,
-        backgroundColor: COLORS.gray800,
-        marginHorizontal: 16,
-        marginBottom: 8,
-    },
-    option: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 16,
-        paddingHorizontal: 24,
-        gap: 16,
-    },
-    optionPressed: { backgroundColor: COLORS.bgCardLight },
-    optionLabel: { flex: 1, color: COLORS.white, fontSize: 16 },
-    optionLabelDestructive: { color: COLORS.accent },
-    optionChevron: { marginLeft: "auto" },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        content: { paddingBottom: theme.spacing.page },
+        headerRow: {
+            paddingHorizontal: 20,
+            paddingTop: theme.spacing.sm,
+            paddingBottom: theme.spacing.xs,
+        },
+        backButton: { alignSelf: "flex-start", padding: theme.spacing.xs },
+        hero: {
+            alignItems: "center",
+            paddingHorizontal: theme.spacing.xl,
+            paddingTop: 20,
+            paddingBottom: theme.spacing.xl,
+            gap: theme.spacing.md,
+        },
+        image: {
+            width: 160,
+            height: 160,
+            borderRadius: theme.radius.lg,
+            backgroundColor: theme.legacy.bgCardLight,
+        },
+        imagePlaceholder: { backgroundColor: theme.legacy.bgCardLight },
+        title: {
+            color: theme.legacy.white,
+            fontSize: 20,
+            fontWeight: "700",
+            textAlign: "center",
+        },
+        subtitle: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.body,
+            textAlign: "center",
+        },
+        separator: {
+            height: StyleSheet.hairlineWidth,
+            backgroundColor: theme.legacy.gray800,
+            marginHorizontal: theme.spacing.lg,
+            marginBottom: theme.spacing.sm,
+        },
+        option: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: theme.spacing.lg,
+            paddingHorizontal: theme.spacing.xl,
+            gap: theme.spacing.lg,
+        },
+        optionPressed: { backgroundColor: theme.legacy.bgCardLight },
+        optionLabel: {
+            flex: 1,
+            color: theme.legacy.white,
+            fontSize: theme.typography.label,
+        },
+        optionLabelDestructive: { color: theme.legacy.accent },
+        optionChevron: { marginLeft: "auto" },
+    });

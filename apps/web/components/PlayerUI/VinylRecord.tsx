@@ -10,11 +10,13 @@ export default function VinylRecord({
     name,
     artists,
     isPlaying,
+    eager = false,
 }: {
     imageUrl: string;
     name: string;
     artists: BaseArtistResponse[];
     isPlaying: boolean;
+    eager?: boolean;
 }): JSX.Element {
     const artistText = artists.map((a) => a.name).join(", ");
     const discRef = useRef<HTMLDivElement>(null);
@@ -37,6 +39,7 @@ export default function VinylRecord({
                 <div className="vinyl-cover-circle">
                     <Image
                         src={imageUrl}
+                        loading={eager ? "eager" : "lazy"}
                         fill
                         alt={name}
                         className="object-cover"

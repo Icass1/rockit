@@ -1,15 +1,6 @@
-import { getMediaAlbum, type TPlayableMedia } from "@rockit/shared";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
 
-export function shouldKeepVinyl(
-    previous: TPlayableMedia,
-    next: TPlayableMedia
-): boolean {
-    if (previous.publicId === next.publicId) return true;
-    if (previous.imageUrl && previous.imageUrl === next.imageUrl) return true;
-    const albumId = getMediaAlbum(previous)?.publicId;
-    return !!albumId && albumId === getMediaAlbum(next)?.publicId;
-}
+export { shouldKeepVinyl } from "@rockit/shared";
 
 export class PlayerUIManager {
     // #region: Atoms

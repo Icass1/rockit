@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 import Image from "next/image";
+import { useArtworkCandidate } from "@rockit/ui/headless/useArtworkCandidate";
 import { useRecommendationArtwork } from "@/components/providers/RecommendationArtworkProvider";
 
 /** Resolve missing album artwork lazily; failures keep a bundled public asset. */
@@ -25,18 +26,16 @@ export default function RecommendationArtwork({
     const artwork = useRecommendationArtwork();
     const imageRef = useRef<HTMLImageElement>(null);
     const [visible, setVisible] = useState(false);
-    const [failedImages, setFailedImages] = useState<string[]>([]);
-    const [resolvedImages, setResolvedImages] = useState<
-        Record<string, string>
-    >({});
-    const source = src.trim();
     const identity = JSON.stringify([provider, artist, track]);
-    const needsLookup = !source || failedImages.includes(source);
-    const candidate = needsLookup ? resolvedImages[identity] : source;
-    const image =
-        candidate && !failedImages.includes(candidate)
-            ? candidate
-            : "/song-placeholder.png";
+    const candidate = useArtworkCandidate(
+        artwork,
+        src,
+        provider,
+        artist,
+        track,
+        visible
+    );
+    const image = candidate.uri ?? "/song-placeholder.png";
 
     useEffect(() => {
         const element = imageRef.current;
@@ -55,21 +54,6 @@ export default function RecommendationArtwork({
         return (): void => observer.disconnect();
     }, [identity]);
 
-    useEffect(() => {
-        if (!visible || !needsLookup || !provider || !artist || !track) return;
-        let active = true;
-        void artwork.resolveAsync(provider, artist, track).then((url) => {
-            if (active && url)
-                setResolvedImages((images) => ({
-                    ...images,
-                    [identity]: url,
-                }));
-        });
-        return (): void => {
-            active = false;
-        };
-    }, [visible, needsLookup, provider, artist, track, identity, artwork]);
-
     return (
         <Image
             ref={imageRef}
@@ -81,11 +65,7 @@ export default function RecommendationArtwork({
                 if (typeof IntersectionObserver === "undefined")
                     setVisible(true);
             }}
-            onError={(): void =>
-                setFailedImages((failed) =>
-                    failed.includes(image) ? failed : [...failed, image]
-                )
-            }
+            onError={(): void => candidate.reportFailure(image)}
             className={className}
         />
     );

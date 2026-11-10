@@ -22,7 +22,7 @@ import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function Navigation(): JSX.Element {
     const [open, setOpen] = useState(false);
-    const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
+    const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const $vocabulary = useVocabulary();
     const activePage = usePathname();
     const $admin = useStore(rockIt.userManager.admin);

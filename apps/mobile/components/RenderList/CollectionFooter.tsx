@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import { CollectionPager } from "@rockit/shared";
+import { useDesignTheme } from "@rockit/ui";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -12,6 +12,7 @@ export default function CollectionFooter({
     pager: CollectionPager;
     visible?: boolean;
 }) {
+    const theme = useDesignTheme();
     const state = useStore(pager.state);
     const { vocabulary } = useVocabulary();
     useEffect(() => {
@@ -30,13 +31,13 @@ export default function CollectionFooter({
                 alignItems: "center",
             }}
         >
-            {state.loading && <ActivityIndicator color={COLORS.accent} />}
+            {state.loading && <ActivityIndicator color={theme.legacy.accent} />}
             {state.error && (
                 <Pressable
                     accessibilityRole="button"
                     onPress={() => void pager.retry()}
                 >
-                    <Text style={{ color: COLORS.white }}>
+                    <Text style={{ color: theme.legacy.white }}>
                         {vocabulary.RETRY}
                     </Text>
                 </Pressable>

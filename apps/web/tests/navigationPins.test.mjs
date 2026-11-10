@@ -33,13 +33,16 @@ function atom(initial) {
 const rockIt = {};
 const fixture = { atom, rockIt, Http: {} };
 globalThis.__pinsFixture = fixture;
+const shared = fileURLToPath(
+    new URL("../../../packages/shared/src", import.meta.url)
+);
 const code = {
     "@/lib/http": "export const Http=globalThis.__pinsFixture.Http;",
     "@/lib/rockit/rockIt":
         "export const rockIt=globalThis.__pinsFixture.rockIt;",
     "@/lib/store":
         "export const createAtom=globalThis.__pinsFixture.atom;export const createArrayAtom=createAtom;",
-    "@rockit/shared": "export const isSearchResult=m=>m.searchResult===true;",
+    "@rockit/shared": `export const isSearchResult=m=>m.searchResult===true;export {getRockitListName} from '${shared}/managers/featuredCollections.ts';`,
 };
 async function load(entry) {
     const result = await build({
@@ -60,7 +63,11 @@ async function load(entry) {
                     );
                     builder.onLoad(
                         { filter: /.*/, namespace: "fixtures" },
-                        (args) => ({ contents: code[args.path], loader: "js" })
+                        (args) => ({
+                            contents: code[args.path],
+                            loader: "js",
+                            resolveDir: web,
+                        })
                     );
                 },
             },

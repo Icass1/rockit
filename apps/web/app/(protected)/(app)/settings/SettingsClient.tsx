@@ -6,6 +6,7 @@ import { type VocabularyResponse } from "@rockit/shared";
 import { Check, Globe } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface SettingsClientProps {
     vocabulary: VocabularyResponse;
@@ -17,8 +18,10 @@ interface Language {
 }
 
 export default function SettingsClient({
-    vocabulary,
+    vocabulary: initialVocabulary,
 }: SettingsClientProps): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $username = useStore(rockIt.userManager.usernameAtom);
     const $lang = useStore(rockIt.vocabularyManager.langAtom);
@@ -27,8 +30,8 @@ export default function SettingsClient({
     const [loading, setLoading] = useState(true);
 
     useEffect((): void => {
-        rockIt.vocabularyManager.setVocabulary(vocabulary);
-    }, [vocabulary]);
+        rockIt.vocabularyManager.setVocabulary(initialVocabulary);
+    }, [initialVocabulary]);
 
     useEffect((): void => {
         async function fetchLanguages(): Promise<void> {
@@ -36,18 +39,18 @@ export default function SettingsClient({
             if (result.isOk()) {
                 setLanguages(result.result.languages);
             } else {
-                console.warn("Failed to fetch languages:", result.detail);
+                rockIt.notificationManager.notifyError(vocabulary.ERROR);
             }
             setLoading(false);
         }
         fetchLanguages();
-    }, []);
+    }, [vocabulary.ERROR]);
 
     const handleLanguageChange = async (langCode: string): Promise<void> => {
         const success = await rockIt.userManager.setLangAsync(langCode);
         if (success) {
             rockIt.notificationManager.notifySuccess(
-                $vocabulary.LANGUAGE + " updated"
+                $vocabulary.LANGUAGE_CHANGED
             );
         }
     };
@@ -65,7 +68,9 @@ export default function SettingsClient({
                 </h2>
 
                 {loading ? (
-                    <p className="text-muted-foreground">Loading...</p>
+                    <p className="text-muted-foreground">
+                        {vocabulary.MOBILE_LOADING}
+                    </p>
                 ) : (
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {languages.map((lang): JSX.Element => (

@@ -36,6 +36,12 @@ logger: Logger = getLogger(__name__)
 class BaseMediaProvider(BaseProvider):
     """Shared contract for media providers."""
 
+    async def get_content_rating_evidence_async(
+        self, session: AsyncSession, public_ids: list[str], allow_remote: bool = False
+    ) -> Result[dict[str, bool | None]]:
+        """Structured recording evidence; False is reserved for confirmed clean metadata."""
+        return Result(code=ResultCode.OK, message="OK", result={})
+
     async def find_local_songs_async(
         self, session: AsyncSession, titles: list[str]
     ) -> Result[list[LocalSong]]:

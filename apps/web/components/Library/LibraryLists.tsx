@@ -708,7 +708,7 @@ export function LibraryLists({
                             rightElement={
                                 <SectionPlayButton
                                     onClick={handlePlayAlbums}
-                                    label="Play all albums"
+                                    label={$vocabulary.LIBRARY_PLAY_ALL_ALBUMS}
                                 />
                             }
                         />
@@ -745,7 +745,9 @@ export function LibraryLists({
                             rightElement={
                                 <SectionPlayButton
                                     onClick={handlePlayPlaylists}
-                                    label="Play all playlists"
+                                    label={
+                                        $vocabulary.LIBRARY_PLAY_ALL_PLAYLISTS
+                                    }
                                 />
                             }
                         />
@@ -795,7 +797,7 @@ export function LibraryLists({
                             rightElement={
                                 <SectionPlayButton
                                     onClick={handlePlaySongs}
-                                    label="Play all songs"
+                                    label={$vocabulary.LIBRARY_PLAY_ALL_SONGS}
                                 />
                             }
                         />
@@ -833,7 +835,7 @@ export function LibraryLists({
                             rightElement={
                                 <SectionPlayButton
                                     onClick={handlePlayVideos}
-                                    label="Play all videos"
+                                    label={$vocabulary.LIBRARY_PLAY_ALL_VIDEOS}
                                 />
                             }
                         />

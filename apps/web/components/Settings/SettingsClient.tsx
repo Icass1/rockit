@@ -36,6 +36,8 @@ function SettingsSection({
 }
 
 function ProfileSidebar(): JSX.Element {
+    const vocabulary = useVocabulary();
+
     const { username, image } = useSettingsUser();
 
     return (
@@ -56,14 +58,14 @@ function ProfileSidebar(): JSX.Element {
                     className="bg-muted text-foreground-strong hover:bg-info-hover hover:text-primary-foreground flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors md:hidden"
                 >
                     <ChartLine className="h-4 w-4" />
-                    Stats
+                    {vocabulary.STATS}
                 </Link>
                 <Link
                     href="/downloader"
                     className="bg-muted text-foreground-strong hover:bg-info-hover hover:text-primary-foreground flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors md:hidden"
                 >
                     <Download className="h-4 w-4" />
-                    Downloads
+                    {vocabulary.DOWNLOADS}
                 </Link>
             </div>
         </div>
@@ -97,7 +99,7 @@ function PasswordSection({
                     htmlFor="repeat-password"
                     className="text-muted-foreground text-sm font-medium"
                 >
-                    {vocabulary.REPEAT_PASSWORD ?? "Repeat password"}
+                    {vocabulary.REPEAT_PASSWORD}
                 </label>
                 <input
                     id="repeat-password"
@@ -170,7 +172,7 @@ function SettingsContent(): JSX.Element {
                         <div className="mb-1 flex items-center gap-2">
                             <Lock className="text-subtle-foreground h-3.5 w-3.5" />
                             <span className="text-subtle-foreground text-xs">
-                                Leave blank to keep current password
+                                {$vocabulary.MOBILE_PASSWORD_HINT}
                             </span>
                         </div>
                         <PasswordSection vocabulary={$vocabulary} />
@@ -180,11 +182,11 @@ function SettingsContent(): JSX.Element {
                         <DownloadLibrarySetting />
                     </SettingsSection>
 
-                    <SettingsSection title="Player">
+                    <SettingsSection title={$vocabulary.SETTINGS_PLAYER}>
                         <ListeningHistorySetting />
                     </SettingsSection>
 
-                    <SettingsSection title="Audio">
+                    <SettingsSection title={$vocabulary.SETTINGS_AUDIO}>
                         <CrossFadeInput />
                     </SettingsSection>
 

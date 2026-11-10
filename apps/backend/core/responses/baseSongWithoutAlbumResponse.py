@@ -10,6 +10,8 @@ class BaseSongWithoutAlbumResponse(BaseModel):
     """Base response model for an album's song information."""
 
     type: Literal["song"] = "song"
+    explicit: bool | None = None
+    explicitSource: str | None = None
     provider: str
     publicId: str
     providerUrl: str

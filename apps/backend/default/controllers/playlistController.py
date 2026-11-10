@@ -1,6 +1,6 @@
 from logging import Logger
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
@@ -20,6 +20,7 @@ from default.framework.models.playlist import (
     PlaylistModel,
 )
 from default.framework.playlist import Playlist
+from default.framework.playlistImage import MAX_PLAYLIST_IMAGE_BYTES, PlaylistImage
 from default.requests.addContributorRequest import AddContributorRequest
 from default.requests.addMediaToPlaylistRequest import AddMediaToPlaylistRequest
 from default.requests.createPlaylistRequest import CreatePlaylistRequest
@@ -208,6 +209,43 @@ async def get_default_playlist_async(
         logger.error(f"Error loading default playlist. {result.info()}")
         raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return result.result()
+
+
+@router.post("/{playlist_public_id}/image", response_model=OkResponse)
+async def upload_playlist_image_async(
+    request: Request, playlist_public_id: str, file: UploadFile = File(...)
+) -> OkResponse:
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error("Cannot identify playlist image owner: %s", user.info())
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await PlaylistImage.set_playlist_image_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        playlist_public_id=playlist_public_id,
+        user_id=user.result().id,
+        data=await file.read(MAX_PLAYLIST_IMAGE_BYTES + 1),
+    )
+    if result.is_not_ok():
+        logger.error("Cannot upload playlist image: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
+
+
+@router.post("/{playlist_public_id}/image/generate", response_model=OkResponse)
+async def generate_playlist_image_async(request: Request, playlist_public_id: str) -> OkResponse:
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error("Cannot identify playlist image owner: %s", user.info())
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await PlaylistImage.set_playlist_image_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        playlist_public_id=playlist_public_id,
+        user_id=user.result().id,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot generate playlist image: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
 
 
 @router.patch("/{playlist_public_id}", response_model=BasePlaylistWithMediasResponse)

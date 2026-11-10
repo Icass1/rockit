@@ -3,10 +3,13 @@
 import { useState, type JSX } from "react";
 import Image from "next/image";
 import {
+    CONTENT_RATING_OPTIONS,
+    getContentRatingValue,
     getMediaArtistsString,
     getMediaSubtitle,
     isSearchResult,
     isSongWithAlbum,
+    type ContentRatingValue,
     type TMediaWithSearch,
 } from "@rockit/shared";
 import { Loader2, X } from "lucide-react";
@@ -22,7 +25,7 @@ interface EditMetadataModalProps {
 
 interface FieldDef {
     key: string;
-    label: string;
+    label: keyof import("@rockit/shared").Vocabulary;
     value: string;
     type: "text" | "textarea";
 }
@@ -33,76 +36,96 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
             return [
                 {
                     key: "title",
-                    label: "Title",
+                    label: "EDIT_METADATA_FIELD_TITLE",
                     value: media.name,
                     type: "text",
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: "EDIT_METADATA_FIELD_ARTIST",
                     value: getMediaArtistsString(media),
                     type: "text",
                 },
                 {
                     key: "album",
-                    label: "Album",
+                    label: "EDIT_METADATA_FIELD_ALBUM",
                     value:
                         !isSearchResult(media) && isSongWithAlbum(media)
                             ? media.album.name
                             : "",
                     type: "text",
                 },
-                { key: "genre", label: "Genre", value: "", type: "text" },
+                {
+                    key: "genre",
+                    label: "EDIT_METADATA_FIELD_GENRE",
+                    value: "",
+                    type: "text",
+                },
             ];
         case "video":
             return [
                 {
                     key: "title",
-                    label: "Title",
+                    label: "EDIT_METADATA_FIELD_TITLE",
                     value: media.name,
                     type: "text",
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: "EDIT_METADATA_FIELD_ARTIST",
                     value: getMediaArtistsString(media),
                     type: "text",
                 },
-                { key: "genre", label: "Genre", value: "", type: "text" },
+                {
+                    key: "genre",
+                    label: "EDIT_METADATA_FIELD_GENRE",
+                    value: "",
+                    type: "text",
+                },
             ];
         case "album":
             return [
                 {
                     key: "title",
-                    label: "Name",
+                    label: "NAME",
                     value: media.name,
                     type: "text",
                 },
                 {
                     key: "artist",
-                    label: "Artist",
+                    label: "EDIT_METADATA_FIELD_ARTIST",
                     value: getMediaArtistsString(media),
                     type: "text",
                 },
                 {
                     key: "releaseDate",
-                    label: "Release date",
+                    label: "EDIT_METADATA_FIELD_RELEASE_DATE",
                     value: isSearchResult(media)
                         ? ""
                         : (media.releaseDate ?? ""),
                     type: "text",
                 },
-                { key: "genre", label: "Genre", value: "", type: "text" },
+                {
+                    key: "genre",
+                    label: "EDIT_METADATA_FIELD_GENRE",
+                    value: "",
+                    type: "text",
+                },
             ];
         case "artist":
             return [
                 {
                     key: "title",
-                    label: "Name",
+                    label: "NAME",
                     value: media.name,
                     type: "text",
                 },
-                { key: "genre", label: "Genre", value: "", type: "text" },
+                {
+                    key: "genre",
+                    label: "EDIT_METADATA_FIELD_GENRE",
+                    value: "",
+                    type: "text",
+                },
             ];
         default:
             return [];
@@ -116,6 +139,10 @@ export default function EditMetadataModal({
     const $vocabulary = useVocabulary();
     const [fields, setFields] = useState<FieldDef[]>(() =>
         getOtherFields(media)
+    );
+    const [rating, setRating] = useState<ContentRatingValue | null>(null);
+    const initialRating = getContentRatingValue(
+        media.type === "song" && !isSearchResult(media) ? media : {}
     );
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -142,7 +169,11 @@ export default function EditMetadataModal({
             }
         }
 
-        if (!mediaPublicId) return;
+        if (rating !== null && isSong) changes.explicit = rating;
+        if (!mediaPublicId) {
+            setSubmitting(false);
+            return;
+        }
 
         const result = await Http.createRequest({
             mediaPublicId,
@@ -170,12 +201,12 @@ export default function EditMetadataModal({
 
     return createPortal(
         <div
-            className="bg-backdrop/80 fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="overlay-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e): void => {
                 if (e.target === e.currentTarget) handleClose();
             }}
         >
-            <div className="bg-secondary flex max-h-[90vh] w-full flex-col rounded-2xl p-5 md:max-h-[85vh] md:max-w-lg md:p-6">
+            <div className="overlay-surface flex max-h-[90vh] w-full flex-col p-5 md:max-h-[85vh] md:max-w-lg md:p-6">
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
                     <div>
@@ -190,7 +221,7 @@ export default function EditMetadataModal({
                         onClick={handleClose}
                         disabled={submitting}
                         className="text-muted-foreground hover:bg-muted hover:text-foreground-strong rounded-full p-2 transition disabled:opacity-50"
-                        aria-label="Close"
+                        aria-label={$vocabulary.CANCEL}
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -240,13 +271,13 @@ export default function EditMetadataModal({
                             {$vocabulary.EDIT_METADATA_SUCCESS}
                         </p>
                         <p className="text-muted-foreground mt-1 text-sm">
-                            An admin will review your changes.
+                            {$vocabulary.MOBILE_METADATA_REVIEW}
                         </p>
                         <button
                             onClick={onClose}
                             className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground mt-6 rounded-lg px-6 py-2 text-sm font-semibold transition"
                         >
-                            Close
+                            {$vocabulary.CANCEL}
                         </button>
                     </div>
                 ) : (
@@ -254,11 +285,15 @@ export default function EditMetadataModal({
                     <div className="flex-1 space-y-3 overflow-y-auto">
                         {fields.map((field) => (
                             <div key={field.key}>
-                                <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
-                                    {field.label}
+                                <label
+                                    htmlFor={`metadata-${field.key}`}
+                                    className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase"
+                                >
+                                    {$vocabulary[field.label]}
                                 </label>
                                 {field.type === "textarea" ? (
                                     <textarea
+                                        id={`metadata-${field.key}`}
                                         value={field.value}
                                         onChange={(e): void =>
                                             handleFieldChange(
@@ -271,6 +306,7 @@ export default function EditMetadataModal({
                                     />
                                 ) : (
                                     <input
+                                        id={`metadata-${field.key}`}
                                         type="text"
                                         value={field.value}
                                         onChange={(e): void =>
@@ -286,6 +322,38 @@ export default function EditMetadataModal({
                         ))}
 
                         {isSong && mediaPublicId && (
+                            <div>
+                                <label
+                                    htmlFor="metadata-content-rating"
+                                    className="text-muted-foreground mb-1 block text-xs font-medium"
+                                >
+                                    {$vocabulary.CONTENT_RATING_LABEL}
+                                </label>
+                                <select
+                                    id="metadata-content-rating"
+                                    value={rating ?? initialRating}
+                                    onChange={(e): void =>
+                                        setRating(
+                                            e.target.value as ContentRatingValue
+                                        )
+                                    }
+                                    className="border-border bg-muted text-foreground-strong focus:ring-primary w-full rounded-lg border px-3 py-2.5 text-sm"
+                                >
+                                    {CONTENT_RATING_OPTIONS.map((option) => (
+                                        <option
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {$vocabulary[option.label]}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-muted-foreground mt-1 text-xs">
+                                    {$vocabulary.CONTENT_RATING_REVIEW_HINT}
+                                </p>
+                            </div>
+                        )}
+                        {isSong && mediaPublicId && (
                             <LyricsCorrectionEditor
                                 key={mediaPublicId}
                                 mediaPublicId={mediaPublicId}
@@ -294,10 +362,14 @@ export default function EditMetadataModal({
 
                         {/* Comment */}
                         <div>
-                            <label className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase">
+                            <label
+                                htmlFor="metadata-comment"
+                                className="text-muted-foreground mb-1 block text-xs font-medium tracking-wider uppercase"
+                            >
                                 {$vocabulary.EDIT_METADATA_COMMENT}
                             </label>
                             <textarea
+                                id="metadata-comment"
                                 value={comment}
                                 onChange={(e): void =>
                                     setComment(e.target.value)
@@ -327,7 +399,7 @@ export default function EditMetadataModal({
                             disabled={submitting}
                             className="border-border-strong text-foreground hover:border-border-strong hover:text-foreground-strong rounded-md border px-3 py-2 text-sm whitespace-nowrap transition disabled:opacity-50"
                         >
-                            Cancel
+                            {$vocabulary.CANCEL}
                         </button>
                         <button
                             onClick={handleSubmit}
@@ -337,7 +409,7 @@ export default function EditMetadataModal({
                             {submitting ? (
                                 <>
                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                    Submitting...
+                                    {$vocabulary.METADATA_SUBMITTING}
                                 </>
                             ) : (
                                 $vocabulary.EDIT_METADATA_SUBMIT

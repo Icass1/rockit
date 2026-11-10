@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { StyleSheet, Text, View } from "react-native";
 import { Http } from "@/lib/http";
 import { usePlayer } from "@/lib/PlayerContext";
+import { toasterManager } from "@/lib/toasterManager";
+import { useVocabulary } from "@/lib/vocabulary";
 
-/**
- * Crossfade settings UI used inside the Settings page.
- * - Continuous slider (0‑40 s) that updates PlayerContext instantly.
- * - Persists the value to the backend when sliding stops.
- * - Allows selecting the cross‑fade curve (linear, equal_power, instant).
- */
+/** Browser transitions use the shared transport; unsupported native controls are hidden. */
 export default function CrossfadeSettings() {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
+    const { vocabulary } = useVocabulary();
     const { crossfadeSettings, updateCrossfadeSettings } = usePlayer();
     const durationSec = crossfadeSettings.durationMs / 1000;
     const [isSaving, setIsSaving] = useState(false);
@@ -26,16 +27,10 @@ export default function CrossfadeSettings() {
         setIsSaving(true);
         const response = await Http.updateCrossfade({ crossfade: seconds });
 
-        if (response.isOk()) {
-        } else {
-            Alert.alert("Error", "Failed to save crossfade");
-
-            setIsSaving(false);
+        if (!response.isOk()) {
+            toasterManager.notifyError(vocabulary.MOBILE_TRANSITIONS_ERROR);
         }
-    };
-
-    const handleEffectPress = (effect: typeof crossfadeSettings.effect) => {
-        updateCrossfadeSettings({ effect });
+        setIsSaving(false);
     };
 
     return (
@@ -50,85 +45,62 @@ export default function CrossfadeSettings() {
                     value={durationSec}
                     onValueChange={handleSliderChange}
                     onSlidingComplete={handleSliderComplete}
-                    minimumTrackTintColor={COLORS.accent}
-                    maximumTrackTintColor="rgba(255,255,255,0.2)"
-                    thumbTintColor={COLORS.white}
+                    minimumTrackTintColor={theme.legacy.accent}
+                    maximumTrackTintColor={withAlpha(
+                        theme.colors["foreground-strong"],
+                        0.2
+                    )}
+                    thumbTintColor={theme.legacy.white}
                 />
                 <Text style={styles.suffix}>{durationSec}s</Text>
             </View>
 
-            {/* Curve selector */}
-            <View style={styles.effectRow}>
-                {(["linear", "equal_power", "instant"] as const).map((eff) => (
-                    <Pressable
-                        key={eff}
-                        style={[
-                            styles.effectButton,
-                            crossfadeSettings.effect === eff &&
-                                styles.effectButtonActive,
-                        ]}
-                        onPress={() => handleEffectPress(eff)}
-                    >
-                        <Text
-                            style={[
-                                styles.effectButtonText,
-                                crossfadeSettings.effect === eff &&
-                                    styles.effectButtonTextActive,
-                            ]}
-                        >
-                            {eff === "equal_power"
-                                ? "Equal Power"
-                                : eff.charAt(0).toUpperCase() + eff.slice(1)}
-                        </Text>
-                    </Pressable>
-                ))}
-            </View>
-
-            {isSaving && <Text style={styles.saving}>Saving...</Text>}
+            {isSaving && <Text style={styles.saving}>{vocabulary.SAVING}</Text>}
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    sliderContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-    },
-    slider: {
-        flex: 1,
-        height: 40,
-    },
-    suffix: {
-        color: COLORS.gray600,
-        fontSize: 14,
-    },
-    effectRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        marginTop: 8,
-    },
-    effectButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-        backgroundColor: "rgba(255,255,255,0.08)",
-    },
-    effectButtonActive: {
-        backgroundColor: COLORS.accent,
-    },
-    effectButtonText: {
-        fontSize: 12,
-        color: COLORS.gray400,
-        fontWeight: "500",
-    },
-    effectButtonTextActive: {
-        color: COLORS.white,
-    },
-    saving: {
-        color: COLORS.accent,
-        fontSize: 12,
-        marginTop: 8,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        sliderContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+        },
+        slider: {
+            flex: 1,
+            height: 40,
+        },
+        suffix: {
+            color: theme.legacy.gray600,
+            fontSize: theme.typography.body,
+        },
+        effectRow: {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            marginTop: theme.spacing.sm,
+        },
+        effectButton: {
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: 6,
+            borderRadius: 20,
+            backgroundColor: withAlpha(theme.colors["foreground-strong"], 0.08),
+        },
+        effectButtonActive: {
+            backgroundColor: theme.legacy.accent,
+        },
+        effectButtonText: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray400,
+            fontWeight: "500",
+        },
+        effectButtonTextActive: {
+            color: theme.legacy.white,
+        },
+        saving: {
+            color: theme.legacy.accent,
+            fontSize: theme.typography.caption,
+            marginTop: theme.spacing.sm,
+        },
+    });

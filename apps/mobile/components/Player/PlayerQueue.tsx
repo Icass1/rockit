@@ -1,118 +1,125 @@
-import { useEffect, useRef } from "react";
-import { COLORS } from "@/constants/theme";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { EQueueType, ERepeatMode, type TQueueMedia } from "@rockit/shared";
-import { FlatList, StyleSheet, Text, View } from "react-native";
-import { usePlayer } from "@/lib/PlayerContext";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { ERepeatMode, type QueueMediaItem } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { usePlayer, usePlayerServices } from "@/lib/PlayerContext";
 import QueueItem from "@/components/Player/QueueItem";
 import { RecommendationRow } from "@/components/Recommendations/AutoplayDiscovery";
 
-/** Fixed height of a QueueItem row (46px image + 2×10 vertical padding). */
 const ITEM_HEIGHT = 66;
 
-/**
- * PlayerQueue — inline queue list rendered inside the tabs panel.
- * Replaces the old BottomSheet + DraggableFlatList implementation.
- * Swipe-to-delete still works via the Swipeable in QueueItem.
- * Drag-to-reorder is a TODO once DraggableFlatList is re-integrated.
- */
+/** Queue identity survives duplicate songs, loaded pages and row selection. */
 export default function PlayerQueue() {
+    const styles = useThemedStyles(createStyles);
+    const services = usePlayerServices();
     const {
-        queue,
+        queueItems,
         currentMedia,
+        currentQueueMediaId,
         removeFromQueue,
-        playMedia,
-        queueType,
-        originalQueue,
+        playQueueItem,
+        currentIndex,
     } = usePlayer();
-
-    const $autoplay = useStore(rockIt.queueManager.autoplayRecommendationsAtom);
-    const repeat = useStore(rockIt.userManager.repeatModeAtom);
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-
-    const listRef = useRef<FlatList<TQueueMedia>>(null);
-    const currentIndex =
-        queue?.findIndex((m) => m.publicId === currentMedia?.publicId) ?? -1;
-
+    const autoplay = useStore(
+        services.queueManager.autoplayRecommendationsAtom
+    );
+    const repeat = useStore(services.userManager.repeatModeAtom);
+    const vocabulary = useStore(services.vocabularyManager.vocabularyAtom);
+    const listRef = useRef<FlatList<QueueMediaItem>>(null);
+    const [initialIndex] = useState(currentIndex);
     useEffect(() => {
-        void rockIt.queueManager.loadAutoplaySuggestionsAsync();
-    }, [currentMedia?.publicId]);
-
-    // On open (the panel remounts this component each time the queue tab shows),
-    // center the currently-playing item so the user lands on it.
+        void services.queueManager.loadAutoplaySuggestionsAsync();
+    }, [currentMedia?.publicId, services]);
     useEffect(() => {
-        if (currentIndex <= 0) return;
-        const id = setTimeout(() => {
-            listRef.current?.scrollToIndex({
-                index: currentIndex,
-                viewPosition: 0.5,
-                animated: false,
-            });
-        }, 0);
-        return () => clearTimeout(id);
-        // Only run on mount — we intentionally scroll once when the queue opens.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    if (!queue || queue.length === 0) {
+        if (initialIndex <= 0) return;
+        const timer = setTimeout(
+            () =>
+                listRef.current?.scrollToIndex({
+                    index: initialIndex,
+                    viewPosition: 0.5,
+                    animated: false,
+                }),
+            0
+        );
+        return () => clearTimeout(timer);
+    }, [initialIndex]);
+    if (!queueItems.length)
         return (
             <View style={styles.empty}>
-                <Text style={styles.emptyText}>Your queue is empty</Text>
+                <Text style={styles.emptyText}>
+                    {vocabulary.MOBILE_QUEUE_EMPTY}
+                </Text>
             </View>
         );
-    }
-
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Queue</Text>
-                <Text style={styles.headerCount}>{queue.length} songs</Text>
+                <Text style={styles.headerTitle}>{vocabulary.QUEUE}</Text>
+                <Text style={styles.headerCount}>
+                    {services.queueManager.queueTotalCount} {vocabulary.SONGS}
+                </Text>
             </View>
-
             <FlatList
                 ref={listRef}
-                data={queue}
-                keyExtractor={(item, index) => `${item.publicId}-${index}`}
+                data={queueItems}
+                keyExtractor={(item) => String(item.queueMediaId)}
                 getItemLayout={(_, index) => ({
                     length: ITEM_HEIGHT,
                     offset: ITEM_HEIGHT * index,
                     index,
                 })}
-                onScrollToIndexFailed={({ index }) => {
-                    // Fallback if layout isn't ready — approximate by offset.
+                onScrollToIndexFailed={({ index }) =>
                     listRef.current?.scrollToOffset({
                         offset: ITEM_HEIGHT * index,
                         animated: false,
-                    });
+                    })
+                }
+                onEndReached={() => {
+                    if (services.queueManager.hasNextQueuePage)
+                        void services.queueManager.loadNextQueuePageAsync();
                 }}
+                onEndReachedThreshold={0.5}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
                 renderItem={({ item, index }) => (
                     <QueueItem
-                        media={item}
+                        media={item.media}
                         index={index}
-                        isActive={item.publicId === currentMedia?.publicId}
-                        onDelete={(idx) => removeFromQueue(idx)}
-                        onPlay={(media: TQueueMedia) => {
-                            const sortedQueue =
-                                queueType === EQueueType.RANDOM &&
-                                originalQueue.length > 0
-                                    ? originalQueue
-                                    : queue;
-                            playMedia(media, sortedQueue);
-                        }}
+                        isActive={item.queueMediaId === currentQueueMediaId}
+                        onDelete={removeFromQueue}
+                        onPlay={() => playQueueItem(item.queueMediaId)}
                     />
                 )}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
+                ListHeaderComponent={
+                    services.queueManager.hasPreviousQueuePage ? (
+                        <Pressable
+                            accessibilityRole="button"
+                            onPress={() =>
+                                void services.queueManager.loadPreviousQueuePageAsync()
+                            }
+                        >
+                            <Text style={styles.autoplayHeader}>
+                                {vocabulary.QUEUE_LOAD_PREVIOUS}
+                            </Text>
+                        </Pressable>
+                    ) : null
+                }
                 ListFooterComponent={
-                    $autoplay.length > 0 ? (
+                    !services.queueManager.hasNextQueuePage &&
+                    autoplay.length ? (
                         <View>
                             <Text style={styles.autoplayHeader}>
                                 {repeat === ERepeatMode.OFF
-                                    ? $vocabulary.AUTOPLAY_ON
-                                    : $vocabulary.RECOMMENDED_SONGS}
+                                    ? vocabulary.AUTOPLAY_ON
+                                    : vocabulary.RECOMMENDED_SONGS}
                             </Text>
-                            {$autoplay.map((entry, index) => (
+                            {autoplay.map((entry, index) => (
                                 <RecommendationRow
                                     key={
                                         entry.kind === "song"
@@ -130,49 +137,53 @@ export default function PlayerQueue() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: "rgba(255,255,255,0.1)",
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-    },
-    headerCount: {
-        fontSize: 14,
-        color: COLORS.gray400,
-    },
-    list: {
-        paddingBottom: 40,
-    },
-    autoplayHeader: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.gray400,
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 8,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: "rgba(255,255,255,0.1)",
-        marginTop: 8,
-    },
-    empty: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    emptyText: {
-        fontSize: 16,
-        color: COLORS.gray400,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+        },
+        header: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 20,
+            paddingVertical: theme.spacing.md,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: withAlpha(
+                theme.colors["foreground-strong"],
+                0.1
+            ),
+        },
+        headerTitle: {
+            fontSize: theme.typography.subtitle,
+            fontWeight: "700",
+            color: theme.legacy.white,
+        },
+        headerCount: {
+            fontSize: theme.typography.body,
+            color: theme.legacy.gray400,
+        },
+        list: {
+            paddingBottom: theme.spacing.page,
+        },
+        autoplayHeader: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.gray400,
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: theme.spacing.lg,
+            paddingBottom: theme.spacing.sm,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: withAlpha(theme.colors["foreground-strong"], 0.1),
+            marginTop: theme.spacing.sm,
+        },
+        empty: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        emptyText: {
+            fontSize: theme.typography.label,
+            color: theme.legacy.gray400,
+        },
+    });

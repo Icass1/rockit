@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { COLORS } from "@/constants/theme";
+import { capabilities } from "@/platform/capabilities";
+import { validateUsername } from "@rockit/shared";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -17,16 +19,9 @@ import { saveSessionCookieValue } from "@/lib/api";
 import { Http } from "@/lib/http";
 import { useVocabulary } from "@/lib/vocabulary";
 
-function validateUsername(value: string): string | null {
-    if (value === "") return null;
-    if (value.length < 3 || value.length > 30)
-        return "Username must be between 3 and 30 characters";
-    if (!/^[a-zA-Z0-9_-]+$/.test(value))
-        return "Only letters, numbers, _ and - are allowed";
-    return null;
-}
-
 export default function RegisterScreen() {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const router = useRouter();
     const { vocabulary, refreshVocabulary } = useVocabulary();
     const [username, setUsername] = useState("");
@@ -39,7 +34,11 @@ export default function RegisterScreen() {
     function handleUsernameChange(value: string) {
         setUsername(value);
         if (value) {
-            setUsernameError(validateUsername(value));
+            setUsernameError(
+                validateUsername(value)
+                    ? vocabulary[validateUsername(value)!]
+                    : null
+            );
         } else {
             setUsernameError(null);
         }
@@ -53,7 +52,7 @@ export default function RegisterScreen() {
 
         const validationError = validateUsername(username);
         if (validationError) {
-            setUsernameError(validationError);
+            setUsernameError(vocabulary[validationError]);
             return;
         }
 
@@ -70,7 +69,7 @@ export default function RegisterScreen() {
                 username,
                 password,
                 repeatPassword,
-                platform: "MOBILE",
+                platform: capabilities.sessionPlatform,
                 rememberMe: false,
             });
 
@@ -118,7 +117,7 @@ export default function RegisterScreen() {
                             usernameError ? styles.inputError : null,
                         ]}
                         placeholder={vocabulary.USERNAME}
-                        placeholderTextColor={COLORS.gray400}
+                        placeholderTextColor={theme.legacy.gray400}
                         value={username}
                         onChangeText={handleUsernameChange}
                         autoCapitalize="none"
@@ -131,7 +130,7 @@ export default function RegisterScreen() {
                     <TextInput
                         style={styles.input}
                         placeholder={vocabulary.PASSWORD}
-                        placeholderTextColor={COLORS.gray400}
+                        placeholderTextColor={theme.legacy.gray400}
                         value={password}
                         onChangeText={setPassword}
                         secureTextEntry
@@ -142,7 +141,7 @@ export default function RegisterScreen() {
                     <TextInput
                         style={styles.input}
                         placeholder={vocabulary.REPEAT_PASSWORD}
-                        placeholderTextColor={COLORS.gray400}
+                        placeholderTextColor={theme.legacy.gray400}
                         value={repeatPassword}
                         onChangeText={setRepeatPassword}
                         secureTextEntry
@@ -161,7 +160,7 @@ export default function RegisterScreen() {
                         disabled={loading}
                     >
                         {loading ? (
-                            <ActivityIndicator color={COLORS.white} />
+                            <ActivityIndicator color={theme.legacy.white} />
                         ) : (
                             <Text style={styles.buttonText}>
                                 {vocabulary.SIGN_UP}
@@ -183,80 +182,81 @@ export default function RegisterScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.bg,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        justifyContent: "center",
-        padding: 24,
-    },
-    logoContainer: {
-        alignItems: "center",
-        marginBottom: 40,
-    },
-    logo: {
-        width: 250,
-        height: 80,
-    },
-    form: {
-        width: "100%",
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 28,
-        fontWeight: "bold",
-        marginBottom: 24,
-        textAlign: "center",
-    },
-    input: {
-        backgroundColor: "#202020",
-        borderRadius: 999,
-        color: COLORS.white,
-        fontSize: 16,
-        height: 44,
-        marginBottom: 16,
-        paddingHorizontal: 20,
-    },
-    inputError: {
-        borderWidth: 1,
-        borderColor: COLORS.accent,
-    },
-    fieldError: {
-        color: COLORS.accent,
-        fontSize: 12,
-        marginTop: -12,
-        marginBottom: 16,
-    },
-    error: {
-        color: COLORS.accentLight,
-        fontSize: 14,
-        marginBottom: 16,
-        textAlign: "center",
-    },
-    button: {
-        backgroundColor: COLORS.accent,
-        borderRadius: 999,
-        height: 44,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    buttonDisabled: {
-        opacity: 0.6,
-    },
-    buttonText: {
-        color: COLORS.white,
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    linkButton: {
-        marginTop: 20,
-        alignItems: "center",
-    },
-    linkText: {
-        color: COLORS.accent,
-        fontSize: 14,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.legacy.bg,
+        },
+        scrollContent: {
+            flexGrow: 1,
+            justifyContent: "center",
+            padding: theme.spacing.xl,
+        },
+        logoContainer: {
+            alignItems: "center",
+            marginBottom: theme.spacing.page,
+        },
+        logo: {
+            width: 250,
+            height: 80,
+        },
+        form: {
+            width: "100%",
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: 28,
+            fontWeight: "bold",
+            marginBottom: theme.spacing.xl,
+            textAlign: "center",
+        },
+        input: {
+            backgroundColor: theme.colors["muted"],
+            borderRadius: theme.radius.full,
+            color: theme.legacy.white,
+            fontSize: theme.typography.label,
+            height: 44,
+            marginBottom: theme.spacing.lg,
+            paddingHorizontal: 20,
+        },
+        inputError: {
+            borderWidth: 1,
+            borderColor: theme.legacy.accent,
+        },
+        fieldError: {
+            color: theme.legacy.accent,
+            fontSize: theme.typography.caption,
+            marginTop: -12,
+            marginBottom: theme.spacing.lg,
+        },
+        error: {
+            color: theme.legacy.accentLight,
+            fontSize: theme.typography.body,
+            marginBottom: theme.spacing.lg,
+            textAlign: "center",
+        },
+        button: {
+            backgroundColor: theme.legacy.accent,
+            borderRadius: theme.radius.full,
+            height: 44,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        buttonDisabled: {
+            opacity: 0.6,
+        },
+        buttonText: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.label,
+            fontWeight: "600",
+        },
+        linkButton: {
+            marginTop: 20,
+            alignItems: "center",
+        },
+        linkText: {
+            color: theme.legacy.accent,
+            fontSize: theme.typography.body,
+        },
+    });

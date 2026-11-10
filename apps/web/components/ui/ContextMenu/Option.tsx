@@ -32,7 +32,7 @@ export default function ContextMenuOption({
             }}
             className={[
                 className ?? "",
-                "hover:bg-accent focus-visible:outline-ring flex min-h-11 w-full items-center gap-2 rounded-md p-2 text-left text-sm font-semibold transition-colors focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-50",
+                "context-menu-option overlay-action overlay-menu-item text-left",
                 disable || !onClick ? "pointer-events-none opacity-50" : "",
             ]
                 .filter(Boolean)

@@ -295,6 +295,7 @@ class Spotify:
 
         for raw_track in api_tracks:
             await SpotifyAccess.get_or_create_track(
+                is_explicit=True if raw_track.explicit is True else None,
                 raw=raw_track,
                 artist_map=artist_map,
                 album_row=album_row,
@@ -439,6 +440,7 @@ class Spotify:
             a_result_create_track: Result[
                 tuple[TrackRow, CoreMediaRow]
             ] = await SpotifyAccess.get_or_create_track(
+                is_explicit=True if t.explicit is True else None,
                 raw=t,
                 artist_map=artist_map,
                 album_row=album_row,
@@ -692,6 +694,7 @@ class Spotify:
             a_result_track: Result[
                 tuple[TrackRow, CoreMediaRow]
             ] = await SpotifyAccess.get_or_create_track(
+                is_explicit=True if raw_track.explicit is True else None,
                 raw=raw_track,
                 artist_map=artist_map,
                 album_row=album_row,
@@ -931,6 +934,7 @@ class Spotify:
             if not album_row:
                 continue
             await SpotifyAccess.get_or_create_track(
+                is_explicit=True if raw_track.explicit is True else None,
                 session=session,
                 raw=raw_track,
                 artist_map=artist_map,

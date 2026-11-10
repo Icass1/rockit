@@ -1,17 +1,24 @@
 import { useRef } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import {
     getMediaArtistsString,
     isDownloadable,
     type TQueueMedia,
 } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import {
+    ExplicitBadge,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
+import { Menu, Trash2 } from "@rockit/ui/icons";
 import { Image } from "expo-image";
-import { Menu, Trash2 } from "lucide-react-native";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useMediaOffline } from "@/hooks/useMediaOffline";
 import { syncManager } from "@/lib/syncManager";
+import { useVocabulary } from "@/lib/vocabulary";
 
 /** Width of the swipe-to-delete action revealed behind a queue row. */
 const DELETE_WIDTH = 80;
@@ -36,6 +43,9 @@ export default function QueueItem({
     onDelete,
     onPlay,
 }: QueueItemProps) {
+    const { vocabulary } = useVocabulary();
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     const swipeableRef = useRef<Swipeable>(null);
     const isSavedOffline = useMediaOffline(media.publicId);
     const isOnline = useStore(syncManager.isOnlineAtom);
@@ -60,7 +70,10 @@ export default function QueueItem({
             <View style={styles.deleteAction}>
                 <Animated.View style={{ transform: [{ translateX }] }}>
                     <View style={styles.trashIconContainer}>
-                        <Trash2 size={22} color="#fff" />
+                        <Trash2
+                            size={22}
+                            color={theme.colors["foreground-strong"]}
+                        />
                     </View>
                 </Animated.View>
             </View>
@@ -104,22 +117,36 @@ export default function QueueItem({
                     <Text
                         style={[
                             styles.title,
-                            isActive && { color: COLORS.accent },
+                            isActive && { color: theme.legacy.accent },
                             isNotDownloaded && styles.titleNotDownloaded,
                         ]}
                         numberOfLines={1}
                     >
                         {media.name}
                     </Text>
-                    <Text
-                        style={[
-                            styles.artist,
-                            isNotDownloaded && styles.artistNotDownloaded,
-                        ]}
-                        numberOfLines={1}
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: theme.spacing.xs,
+                        }}
                     >
-                        {getMediaArtistsString(media)}
-                    </Text>
+                        <ExplicitBadge
+                            explicit={
+                                media.type === "song" ? media.explicit : null
+                            }
+                            label={vocabulary.CONTENT_RATING_EXPLICIT}
+                        />
+                        <Text
+                            style={[
+                                styles.artist,
+                                isNotDownloaded && styles.artistNotDownloaded,
+                            ]}
+                            numberOfLines={1}
+                        >
+                            {getMediaArtistsString(media)}
+                        </Text>
+                    </View>
                 </View>
 
                 {/* Drag handle — only active when drag prop is provided */}
@@ -130,7 +157,13 @@ export default function QueueItem({
                         delayLongPress={150}
                         hitSlop={8}
                     >
-                        <Menu size={18} color="rgba(255,255,255,0.35)" />
+                        <Menu
+                            size={18}
+                            color={withAlpha(
+                                theme.colors["foreground-strong"],
+                                0.35
+                            )}
+                        />
                     </Pressable>
                 )}
             </Pressable>
@@ -138,79 +171,80 @@ export default function QueueItem({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        gap: 12,
-        backgroundColor: "transparent",
-    },
-    containerActive: {
-        backgroundColor: "rgba(238, 16, 134, 0.08)",
-    },
-    containerDragging: {
-        backgroundColor: "rgba(255,255,255,0.06)",
-        borderRadius: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    image: {
-        width: 46,
-        height: 46,
-        borderRadius: 6,
-        backgroundColor: COLORS.bgCard,
-    },
-    imageActive: {
-        opacity: 0.6,
-    },
-    containerNotDownloaded: {
-        opacity: 0.4,
-    },
-    imageNotDownloaded: {
-        opacity: 0.5,
-    },
-    titleNotDownloaded: {
-        color: COLORS.gray600,
-    },
-    artistNotDownloaded: {
-        color: COLORS.gray800,
-    },
-    info: {
-        flex: 1,
-        minWidth: 0,
-    },
-    title: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.white,
-        marginBottom: 2,
-    },
-    artist: {
-        fontSize: 12,
-        color: COLORS.gray400,
-    },
-    dragHandle: {
-        width: 36,
-        height: 36,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    deleteAction: {
-        width: DELETE_WIDTH,
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-    },
-    trashIconContainer: {
-        width: DELETE_WIDTH,
-        height: DELETE_WIDTH,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#c72e2e",
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: 10,
+            gap: theme.spacing.md,
+            backgroundColor: "transparent",
+        },
+        containerActive: {
+            backgroundColor: withAlpha(theme.colors["primary"], 0.08),
+        },
+        containerDragging: {
+            backgroundColor: withAlpha(theme.colors["foreground-strong"], 0.06),
+            borderRadius: theme.radius.lg,
+            shadowColor: theme.colors["backdrop"],
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 8,
+        },
+        image: {
+            width: 46,
+            height: 46,
+            borderRadius: 6,
+            backgroundColor: theme.legacy.bgCard,
+        },
+        imageActive: {
+            opacity: 0.6,
+        },
+        containerNotDownloaded: {
+            opacity: 0.4,
+        },
+        imageNotDownloaded: {
+            opacity: 0.5,
+        },
+        titleNotDownloaded: {
+            color: theme.legacy.gray600,
+        },
+        artistNotDownloaded: {
+            color: theme.legacy.gray800,
+        },
+        info: {
+            flex: 1,
+            minWidth: 0,
+        },
+        title: {
+            fontSize: theme.typography.body,
+            fontWeight: "600",
+            color: theme.legacy.white,
+            marginBottom: 2,
+        },
+        artist: {
+            fontSize: theme.typography.caption,
+            color: theme.legacy.gray400,
+        },
+        dragHandle: {
+            width: 36,
+            height: 36,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        deleteAction: {
+            width: DELETE_WIDTH,
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+        },
+        trashIconContainer: {
+            width: DELETE_WIDTH,
+            height: DELETE_WIDTH,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: theme.colors["destructive"],
+        },
+    });

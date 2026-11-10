@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Animated, StyleSheet, View } from "react-native";
 
 interface MediaCardSkeletonProps {
@@ -9,6 +9,7 @@ interface MediaCardSkeletonProps {
 export default function MediaCardSkeleton({
     width = 140,
 }: MediaCardSkeletonProps) {
+    const styles = useThemedStyles(createStyles);
     const [opacity] = useState(() => new Animated.Value(0.3));
 
     useEffect(() => {
@@ -49,24 +50,25 @@ export default function MediaCardSkeleton({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        paddingHorizontal: 8,
-    },
-    image: {
-        backgroundColor: COLORS.bgCardLight,
-        borderRadius: 8,
-    },
-    title: {
-        height: 14,
-        backgroundColor: COLORS.bgCardLight,
-        borderRadius: 4,
-        marginTop: 8,
-    },
-    subtitle: {
-        height: 12,
-        backgroundColor: COLORS.bgCardLight,
-        borderRadius: 4,
-        marginTop: 4,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            paddingHorizontal: theme.spacing.sm,
+        },
+        image: {
+            backgroundColor: theme.legacy.bgCardLight,
+            borderRadius: theme.radius.md,
+        },
+        title: {
+            height: 14,
+            backgroundColor: theme.legacy.bgCardLight,
+            borderRadius: theme.radius.sm,
+            marginTop: theme.spacing.sm,
+        },
+        subtitle: {
+            height: 12,
+            backgroundColor: theme.legacy.bgCardLight,
+            borderRadius: theme.radius.sm,
+            marginTop: theme.spacing.xs,
+        },
+    });

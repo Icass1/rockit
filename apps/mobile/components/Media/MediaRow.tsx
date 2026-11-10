@@ -1,13 +1,13 @@
 import { memo, ReactNode } from "react";
-import { COLORS } from "@/constants/theme";
 import {
     BaseSearchResultsItem,
     getMediaSubtitle,
     isSearchResult,
     TMedia,
 } from "@rockit/shared";
-import { Image } from "expo-image";
-import { StyleSheet, Text, View } from "react-native";
+import { MediaIdentity, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { StyleSheet, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 interface MediaRowProps {
@@ -16,25 +16,26 @@ interface MediaRowProps {
 }
 
 function MediaRow({ media, rightElement }: MediaRowProps) {
+    const { vocabulary } = useVocabulary();
+    const styles = useThemedStyles(createStyles);
     return (
         <MediaPressableWrapper
             media={media}
             allMedia={!isSearchResult(media) ? [media] : []}
         >
             <View style={styles.container}>
-                <Image
-                    source={media.imageUrl}
-                    style={[styles.image]}
-                    contentFit="cover"
+                <MediaIdentity
+                    title={media.name}
+                    explicit={
+                        media.type === "song" && !isSearchResult(media)
+                            ? media.explicit
+                            : null
+                    }
+                    explicitLabel={vocabulary.CONTENT_RATING_EXPLICIT}
+                    subtitle={getMediaSubtitle(media)}
+                    imageUrl={media.imageUrl}
+                    round={media.type === "artist"}
                 />
-                <View style={styles.info}>
-                    <Text style={styles.title} numberOfLines={1}>
-                        {media.name}
-                    </Text>
-                    <Text style={styles.subtitle} numberOfLines={1}>
-                        {getMediaSubtitle(media)}
-                    </Text>
-                </View>
                 {rightElement && (
                     <View style={styles.rightElement}>{rightElement}</View>
                 )}
@@ -43,39 +44,40 @@ function MediaRow({ media, rightElement }: MediaRowProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 6,
-        paddingHorizontal: 16,
-        gap: 12,
-    },
-    image: {
-        backgroundColor: COLORS.bgCard,
-        width: 48,
-        height: 48,
-    },
-    info: {
-        flex: 1,
-        minWidth: 0,
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 14,
-        fontWeight: "500",
-    },
-    subtitle: {
-        color: COLORS.gray400,
-        fontSize: 12,
-        marginTop: 2,
-    },
-    rightElement: {
-        marginLeft: 8,
-    },
-    pressed: {
-        opacity: 0.7,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 6,
+            paddingHorizontal: theme.spacing.lg,
+            gap: theme.spacing.md,
+        },
+        image: {
+            backgroundColor: theme.legacy.bgCard,
+            width: 48,
+            height: 48,
+        },
+        info: {
+            flex: 1,
+            minWidth: 0,
+        },
+        title: {
+            color: theme.legacy.white,
+            fontSize: theme.typography.body,
+            fontWeight: "500",
+        },
+        subtitle: {
+            color: theme.legacy.gray400,
+            fontSize: theme.typography.caption,
+            marginTop: 2,
+        },
+        rightElement: {
+            marginLeft: theme.spacing.sm,
+        },
+        pressed: {
+            opacity: 0.7,
+        },
+    });
 
 export default memo(MediaRow);

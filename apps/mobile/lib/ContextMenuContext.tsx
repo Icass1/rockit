@@ -5,7 +5,7 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import type { LucideIcon } from "lucide-react-native";
+import type { LucideIcon } from "@rockit/ui/icons";
 import { useSheet } from "@/lib/SheetContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
 import { ContextMenuSheetContent } from "@/components/ContextMenu/ContextMenuSheet";

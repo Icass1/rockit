@@ -1,5 +1,5 @@
 import { PLACEHOLDER } from "@/constants/assets";
-import { COLORS } from "@/constants/theme";
+import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -19,6 +19,7 @@ export default function ArtistAvatar({
     href,
     onPress,
 }: ArtistAvatarProps) {
+    const styles = useThemedStyles(createStyles);
     const imageSource = imageUrl || PLACEHOLDER.user;
 
     const content = (
@@ -54,19 +55,20 @@ export default function ArtistAvatar({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        alignItems: "center",
-    },
-    image: {
-        backgroundColor: COLORS.bgCard,
-    },
-    name: {
-        color: COLORS.white,
-        marginTop: 6,
-        textAlign: "center",
-    },
-    pressed: {
-        opacity: 0.7,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: {
+            alignItems: "center",
+        },
+        image: {
+            backgroundColor: theme.legacy.bgCard,
+        },
+        name: {
+            color: theme.legacy.white,
+            marginTop: 6,
+            textAlign: "center",
+        },
+        pressed: {
+            opacity: 0.7,
+        },
+    });

@@ -223,7 +223,7 @@ function OpenPopup({
                 tabIndex={-1}
                 aria-label={label ?? vocabulary.MORE_OPTIONS}
                 aria-modal={sheet || undefined}
-                className={`border-border bg-popover text-popover-foreground z-50 overflow-y-auto border shadow-xl ${sheet ? "fixed inset-x-0 bottom-16 max-h-[calc(100dvh-6rem)] rounded-t-2xl p-3 pb-[max(.75rem,env(safe-area-inset-bottom))]" : inline ? "absolute top-full right-0 mt-3 max-h-[calc(100dvh-8rem)] rounded-xl" : "fixed top-0 left-0 max-h-[calc(100dvh-7rem)] w-max max-w-[calc(100vw-1rem)] rounded-xl p-2"} ${className}`}
+                className={`overlay-surface border-border bg-popover text-popover-foreground z-50 overflow-y-auto border shadow-xl ${sheet ? "fixed inset-x-0 bottom-16 max-h-[calc(100dvh-6rem)] rounded-t-2xl p-3 pb-[max(.75rem,env(safe-area-inset-bottom))]" : inline ? "absolute top-full right-0 mt-3 max-h-[calc(100dvh-8rem)] rounded-xl" : "fixed top-0 left-0 max-h-[calc(100dvh-7rem)] w-max max-w-[calc(100vw-1rem)] rounded-xl p-2"} ${className}`}
             >
                 {sheet && (
                     <div className="mb-2 flex justify-end">

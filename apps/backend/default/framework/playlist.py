@@ -139,10 +139,18 @@ class Playlist:
             logger.error(f"Error getting provider id. {a_result_provider_id.info()}")
             return Result(code=a_result_provider_id.code(), message=a_result_provider_id.message())
 
+        a_result_image = await Image.ensure_default_image_async(
+            session=session, filename="playlist-placeholder.png"
+        )
+        if a_result_image.is_not_ok():
+            logger.error(f"Error preparing playlist placeholder. {a_result_image.info()}")
+            return Result(code=a_result_image.code(), message=a_result_image.message())
+
         a_result_playlist = await PlaylistAccess.create_playlist_async(
             session=session,
             name=name,
             provider_id=a_result_provider_id.result(),
+            image_id=a_result_image.result().id,
             owner_id=owner_id,
             description=description,
             is_public=is_public,

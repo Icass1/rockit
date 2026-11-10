@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "customConditions": ["browser"],
+        "moduleSuffixes": [".web", ""]
+    },
+    "exclude": ["node_modules", "**/*.native.ts", "**/*.native.tsx"]
+}

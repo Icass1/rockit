@@ -116,6 +116,78 @@ export class PlaylistManager {
         }
     }
 
+    async renamePlaylist(publicId: string, name: string): Promise<boolean> {
+        try {
+            const result = await Http.updatePlaylistAsync(publicId, {
+                name: name.trim(),
+                description: null,
+                isPublic: null,
+            });
+            if (!result.isOk()) {
+                rockIt.notificationManager.notifyError(
+                    rockIt.vocabularyManager.vocabulary.PLAYLIST_RENAME_ERROR
+                );
+                return false;
+            }
+            const updatedPlaylist = result.result;
+            this._playlistsAtom.set(
+                this._playlistsAtom
+                    .get()
+                    .map((playlist) =>
+                        playlist.publicId === publicId
+                            ? updatedPlaylist
+                            : playlist
+                    )
+            );
+            rockIt.eventManager.dispatchEvent(EEvent.PlaylistRenamed, {
+                publicId,
+                name: updatedPlaylist.name,
+            });
+            return true;
+        } catch {
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.PLAYLIST_RENAME_ERROR
+            );
+            return false;
+        }
+    }
+
+    async changePlaylistImage(publicId: string, file?: File): Promise<boolean> {
+        const vocabulary = rockIt.vocabularyManager.vocabulary;
+        if (
+            file &&
+            (!file.size ||
+                file.size > 5 * 1024 * 1024 ||
+                !["image/jpeg", "image/png", "image/webp"].includes(file.type))
+        ) {
+            rockIt.notificationManager.notifyError(
+                vocabulary.PLAYLIST_IMAGE_INVALID
+            );
+            return false;
+        }
+        try {
+            const result = file
+                ? await Http.uploadPlaylistImageAsync(publicId, file, file.name)
+                : await Http.generatePlaylistImageAsync(publicId);
+            if (result.isNotOk()) {
+                rockIt.notificationManager.notifyError(
+                    vocabulary.PLAYLIST_IMAGE_ERROR
+                );
+                return false;
+            }
+            await this.refreshPlaylistsAsync();
+            rockIt.notificationManager.notifySuccess(
+                vocabulary.PLAYLIST_IMAGE_SAVED
+            );
+            return true;
+        } catch {
+            rockIt.notificationManager.notifyError(
+                vocabulary.PLAYLIST_IMAGE_ERROR
+            );
+            return false;
+        }
+    }
+
     async playPlaylist(
         _songs: BaseSongWithAlbumResponse[],
         listPublicId: string,

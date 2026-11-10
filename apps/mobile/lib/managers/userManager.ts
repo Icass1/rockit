@@ -5,3 +5,5 @@ import { BaseUserManager } from "@rockit/shared";
  * the shared BaseUserManager. Language switching stays in the VocabularyProvider.
  */
 export class UserManager extends BaseUserManager {}
+
+export const userManager = new UserManager();

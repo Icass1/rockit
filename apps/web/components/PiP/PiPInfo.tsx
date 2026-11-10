@@ -16,12 +16,7 @@ export function PiPInfo({ children }: { children?: ReactNode }): JSX.Element {
     return (
         <div className="pip-info">
             <p className="pip-info-song-name" title={media?.name}>
-                {media?.name ??
-                    text(
-                        "PIP_EMPTY",
-                        "No media playing",
-                        "Nada en reproducción"
-                    )}
+                {media?.name ?? text("PIP_EMPTY")}
             </p>
             <p className="pip-info-artist-name" title={artists}>
                 {artists}

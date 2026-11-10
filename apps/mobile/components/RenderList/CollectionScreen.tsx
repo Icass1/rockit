@@ -1,24 +1,35 @@
 import { useEffect, useMemo } from "react";
-import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import {
     CollectionPager,
     EEvent,
     EventManager,
+    type CollectionPageState,
     type IMediaAddedToPlaylistEvent,
     type IMediaRemovedFromPlaylistEvent,
 } from "@rockit/shared";
+import { useDesignTheme } from "@rockit/ui";
 import { View } from "react-native";
 import RecommendationsList from "@/components/Recommendations/RecommendationsList";
 import CollectionControls from "@/components/RenderList/CollectionControls";
 import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import RenderList from "@/components/RenderList/RenderList";
 
-export default function CollectionScreen({ publicId }: { publicId: string }) {
-    const pager = useMemo(() => new CollectionPager(publicId), [publicId]);
+export default function CollectionScreen({
+    publicId,
+    initial,
+}: {
+    publicId: string;
+    initial?: Partial<CollectionPageState>;
+}) {
+    const theme = useDesignTheme();
+    const pager = useMemo(
+        () => new CollectionPager(publicId, initial),
+        [publicId, initial]
+    );
     const state = useStore(pager.state);
     useEffect(() => {
-        void pager.load();
+        if (!pager.state.get().collection) void pager.load();
         const events = EventManager.getInstance();
         const refresh = (
             event: IMediaAddedToPlaylistEvent | IMediaRemovedFromPlaylistEvent
@@ -39,7 +50,7 @@ export default function CollectionScreen({ publicId }: { publicId: string }) {
     const collection = state.collection;
     if (!collection)
         return (
-            <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
+            <View style={{ flex: 1, backgroundColor: theme.legacy.bg }}>
                 <CollectionControls pager={pager} />
                 <CollectionFooter pager={pager} />
             </View>

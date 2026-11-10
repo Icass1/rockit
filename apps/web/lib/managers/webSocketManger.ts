@@ -6,6 +6,7 @@ import {
     CurrentTimeMessageRequest,
     CurrentTimeMessageSchema,
     EWebSocketMessage,
+    FriendActivityItemSchema,
     FriendsPresenceChangedMessageSchema,
     ListenTogetherSyncMessageSchema,
     MediaClickedMessageRequest,
@@ -15,6 +16,7 @@ import {
     QueueTypeRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
+    SocialSnapshotMessageSchema,
     TWebSocketIncomingMessage,
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
@@ -69,6 +71,14 @@ export class WebSocketManager {
                 if (!this._latestPlaybackId)
                     this._latestPlaybackId = data.playbackId;
             }
+
+            if (data.type === EWebSocketMessage.SocialChanged)
+                data = SocialSnapshotMessageSchema.parse(data);
+            else if (data.type === EWebSocketMessage.FriendActivity)
+                data = {
+                    type: "friend_activity",
+                    ...FriendActivityItemSchema.parse(data),
+                };
 
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);

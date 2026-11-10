@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -28,6 +29,8 @@ const FeaturedCarouselCard = memo(function FeaturedCarouselCard({
     song,
     onPress,
 }: FeaturedCarouselCardProps) {
+    const theme = useDesignTheme();
+    const styles = useThemedStyles(createStyles);
     return (
         <TouchableOpacity
             activeOpacity={0.9}
@@ -41,7 +44,10 @@ const FeaturedCarouselCard = memo(function FeaturedCarouselCard({
                 transition={200}
             />
             <LinearGradient
-                colors={["transparent", "rgba(0,0,0,0.85)"]}
+                colors={[
+                    "transparent",
+                    withAlpha(theme.colors["backdrop"], 0.85),
+                ]}
                 style={styles.gradient}
             />
             <View style={styles.info}>
@@ -49,7 +55,7 @@ const FeaturedCarouselCard = memo(function FeaturedCarouselCard({
                     {song.name}
                 </Text>
                 <Text style={styles.artistName} numberOfLines={1}>
-                    {song.artists[0]?.name}
+                    {song.artists.map((artist) => artist.name).join(", ")}
                 </Text>
             </View>
         </TouchableOpacity>
@@ -70,6 +76,7 @@ export default function FeaturedCarousel({
     title,
     onSongPress,
 }: FeaturedCarouselProps) {
+    const styles = useThemedStyles(createStyles);
     const flatListRef = useRef<FlatList>(null);
     const [activeIndex, setActiveIndex] = useState(0);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -201,70 +208,71 @@ export default function FeaturedCarousel({
     );
 }
 
-const styles = StyleSheet.create({
-    container: { marginBottom: 8 },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: COLORS.white,
-        paddingHorizontal: 20,
-        marginBottom: 12,
-    },
-    listContent: {
-        paddingHorizontal: 20,
-        gap: 12,
-    },
-    card: {
-        width: CARD_WIDTH,
-        height: CARD_HEIGHT,
-        borderRadius: 14,
-        overflow: "hidden",
-        backgroundColor: COLORS.bgCard,
-    },
-    image: {
-        width: "100%",
-        height: "100%",
-        position: "absolute",
-    },
-    gradient: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: "65%",
-    },
-    info: {
-        position: "absolute",
-        bottom: 16,
-        left: 16,
-        right: 16,
-    },
-    songName: {
-        fontSize: 17,
-        fontWeight: "700",
-        color: COLORS.white,
-        marginBottom: 3,
-    },
-    artistName: {
-        fontSize: 13,
-        color: "rgba(255,255,255,0.75)",
-        fontWeight: "500",
-    },
-    dotsContainer: {
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 5,
-        marginTop: 10,
-    },
-    dot: {
-        width: 5,
-        height: 5,
-        borderRadius: 3,
-        backgroundColor: "rgba(255,255,255,0.3)",
-    },
-    dotActive: {
-        width: 16,
-        backgroundColor: COLORS.accent,
-    },
-});
+const createStyles = (theme: DesignTheme) =>
+    StyleSheet.create({
+        container: { marginBottom: theme.spacing.sm },
+        sectionTitle: {
+            fontSize: 20,
+            fontWeight: "700",
+            color: theme.legacy.white,
+            paddingHorizontal: 20,
+            marginBottom: theme.spacing.md,
+        },
+        listContent: {
+            paddingHorizontal: 20,
+            gap: theme.spacing.md,
+        },
+        card: {
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT,
+            borderRadius: 14,
+            overflow: "hidden",
+            backgroundColor: theme.legacy.bgCard,
+        },
+        image: {
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+        },
+        gradient: {
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "65%",
+        },
+        info: {
+            position: "absolute",
+            bottom: 16,
+            left: 16,
+            right: 16,
+        },
+        songName: {
+            fontSize: 17,
+            fontWeight: "700",
+            color: theme.legacy.white,
+            marginBottom: 3,
+        },
+        artistName: {
+            fontSize: 13,
+            color: withAlpha(theme.colors["foreground-strong"], 0.75),
+            fontWeight: "500",
+        },
+        dotsContainer: {
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 5,
+            marginTop: 10,
+        },
+        dot: {
+            width: 5,
+            height: 5,
+            borderRadius: 3,
+            backgroundColor: withAlpha(theme.colors["foreground-strong"], 0.3),
+        },
+        dotActive: {
+            width: 16,
+            backgroundColor: theme.legacy.accent,
+        },
+    });

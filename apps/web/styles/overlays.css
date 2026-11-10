@@ -1,0 +1,101 @@
+/* Shared surfaces and controls for menus, popovers, and modal dialogs. */
+:root {
+    --overlay-surface: var(--theme-secondary);
+    --overlay-border: var(--theme-border);
+    --overlay-hover: var(--theme-hover);
+    --overlay-muted: var(--theme-muted-foreground);
+    --overlay-radius: 12px;
+    --overlay-shadow:
+        0 16px 48px var(--theme-scrim), 0 2px 8px var(--theme-scrim);
+    --overlay-backdrop: var(--theme-scrim);
+}
+
+.overlay-surface {
+    border: 1px solid var(--overlay-border);
+    border-radius: var(--overlay-radius);
+    background: var(--overlay-surface);
+    color: var(--theme-foreground);
+    box-shadow: var(--overlay-shadow);
+}
+
+.overlay-surface::backdrop,
+.overlay-backdrop {
+    background: var(--overlay-backdrop);
+}
+
+.overlay-action,
+.overlay-icon-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 120ms;
+}
+
+.overlay-icon-button {
+    width: 44px;
+    flex-shrink: 0;
+    padding: 10px;
+}
+
+.overlay-action:hover:not(:disabled),
+.overlay-icon-button:hover:not(:disabled) {
+    background: var(--overlay-hover);
+}
+
+.overlay-action:disabled,
+.overlay-icon-button:disabled {
+    cursor: default;
+    opacity: 0.4;
+}
+
+.overlay-surface :is(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--theme-ring);
+    outline-offset: -2px;
+}
+
+.overlay-divider {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--overlay-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .overlay-action,
+    .overlay-icon-button {
+        transition: none;
+    }
+}
+
+.overlay-menu-item {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.overlay-action.overlay-primary {
+    background: var(--theme-primary);
+    color: var(--theme-primary-foreground);
+}
+
+.overlay-action.overlay-primary:hover:not(:disabled) {
+    background: var(--theme-primary-hover);
+}
+
+@media (max-width: 767px), (max-height: 499px) {
+    .notification-panel {
+        position: fixed;
+        top: 4.5rem;
+        right: 1rem;
+        left: 1rem;
+        margin-top: 0;
+        width: auto;
+        max-height: min(36rem, calc(100dvh - 6rem));
+    }
+}

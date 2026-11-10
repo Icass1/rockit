@@ -345,18 +345,17 @@ test("late local/external recommendation responses do not alter a restarted queu
         await e.queue.init();
         const first = e.queue.loadAutoplaySuggestionsAsync(),
             old = e.take("getRelatedSongs");
-        let externalRead;
-        if (external) {
-            old.resolve(ok({ songs: [song("old-local")], discover: [] }));
-            await first;
-            externalRead = e.take("getRelatedSongs");
-        }
+        assert.equal(old.args[2], true);
         e.queue.stop();
         await e.queue.init();
         const second = e.queue.loadAutoplaySuggestionsAsync(),
             fresh = e.take("getRelatedSongs");
-        (externalRead ?? old).resolve(
-            ok({ songs: [song("stale")], discover: [] })
+        old.resolve(
+            ok(
+                external
+                    ? { songs: [], discover: [{ publicId: "stale" }] }
+                    : { songs: [song("stale")], discover: [] }
+            )
         );
         await first;
         await flush();
@@ -378,7 +377,11 @@ test("old preparation finally cannot unlock a new preparation or resurrect retry
     );
     await flush();
     const old = e.take("prepareRecommendations");
-    e.take("getRelatedSongs").resolve(fail());
+    assert.equal(
+        e.requests.filter((request) => request.name === "getRelatedSongs")
+            .length,
+        0
+    );
     e.queue.stop();
     await e.queue.init();
     const second = e.queue.prepareAutoplayAsync();
@@ -761,4 +764,73 @@ test("section playback replaces smaller or paged queues before selecting the cli
             e.queue.stop();
         }
     }
+});
+
+test("redownload refresh patches every mixed-queue occurrence without replaying or changing selection", async () => {
+    const seed = page({ ids: [1, 2, 3], current: 2 });
+    seed.queue[0].media = { ...song("shared"), provider: "First" };
+    seed.queue[1].media = { ...song("shared"), provider: "First" };
+    seed.queue[2].media = { ...song("other"), provider: "Other" };
+    const e = setup({ seed });
+    await e.queue.init();
+    const loads = e.calls.loads;
+    const refresh = e.queue.refreshDownloadedMediaAsync("shared");
+    e.take("getMediaAsync").resolve(
+        ok({
+            media: {
+                ...song("shared"),
+                provider: "Refreshed",
+                audioUrl: "new",
+            },
+        })
+    );
+    assert.equal(await refresh, true);
+    assert.deepEqual(
+        Array.from(e.queue.queueAtom.get(), (item) => item.queueMediaId),
+        [1, 2, 3]
+    );
+    assert.deepEqual(
+        Array.from(e.queue.queueAtom.get(), (item) => item.media.provider),
+        ["Refreshed", "Refreshed", "Other"]
+    );
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    assert.equal(e.queue.currentMedia.provider, "Refreshed");
+    assert.equal(e.calls.loads, loads);
+    e.queue.stop();
+});
+
+test("a stopped lifecycle cannot install late redownload metadata", async () => {
+    const e = setup();
+    await e.queue.init();
+    const refresh = e.queue.refreshDownloadedMediaAsync("song0");
+    const pending = e.take("getMediaAsync");
+    e.queue.stop();
+    pending.resolve(ok({ media: { ...song("song0"), provider: "Obsolete" } }));
+    assert.equal(await refresh, false);
+    assert.notEqual(e.queue.currentMedia.provider, "Obsolete");
+});
+
+test("concurrent redownload refresh keeps the newest metadata and rejects unrelated identities", async () => {
+    const e = setup();
+    await e.queue.init();
+    const first = e.queue.refreshDownloadedMediaAsync("song0");
+    const old = e.take("getMediaAsync");
+    const second = e.queue.refreshDownloadedMediaAsync("song0");
+    const fresh = e.take("getMediaAsync");
+    fresh.resolve(ok({ media: { ...song("song0"), provider: "New" } }));
+    assert.equal(await second, true);
+    old.resolve(ok({ media: { ...song("song0"), provider: "Old" } }));
+    assert.equal(await first, false);
+    assert.equal(e.queue.currentMedia.provider, "New");
+    for (const invalid of [
+        song("wrong"),
+        { type: "album", publicId: "song0" },
+        { type: "video", publicId: "song0" },
+    ]) {
+        const pending = e.queue.refreshDownloadedMediaAsync("song0");
+        e.take("getMediaAsync").resolve(ok({ media: invalid }));
+        assert.equal(await pending, false);
+        assert.equal(e.queue.currentMedia.provider, "New");
+    }
+    e.queue.stop();
 });

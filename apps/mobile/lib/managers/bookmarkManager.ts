@@ -8,39 +8,39 @@ import { atom } from "nanostores";
 import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
 
-export const BOOKMARK_MODE_COLORS: Record<string, string> = {
-    NOTHING: "#ffffff",
-    AUTOSKIP: "#00ff00",
-    REPEAT_FROM_BEGINNING: "#00ffff",
-    PREVIOUS_BOOKMARK: "#ff8000",
-};
-
-export const BOOKMARK_MODE_MUTED_COLORS: Record<string, string> = {
-    NOTHING: "#999999",
-    AUTOSKIP: "#006600",
-    REPEAT_FROM_BEGINNING: "#006666",
-    PREVIOUS_BOOKMARK: "#b35900",
-};
-
 export class BookmarkManager {
     currentMediaBookmarksAtom = atom<BookmarkResponse[]>([]);
     showPopupAtom = atom<boolean>(false);
     editingBookmarkAtom = atom<BookmarkResponse | null>(null);
     private _initialized = false;
+    private _unsubscribe?: () => void;
+    private _request = 0;
 
     init(): void {
         if (this._initialized) return;
         this._initialized = true;
 
         // Load bookmarks whenever the current media changes.
-        getRockIt().queueManager.currentMediaAtom.subscribe((): void => {
-            const media = getRockIt().queueManager.currentMedia;
-            if (media?.publicId) {
-                this.fetchBookmarksForMediaAsync(media.publicId);
-            } else {
-                this.setBookmarks([]);
+        this._unsubscribe = getRockIt().queueManager.currentMediaAtom.subscribe(
+            (): void => {
+                const media = getRockIt().queueManager.currentMedia;
+                if (media?.publicId) {
+                    this.fetchBookmarksForMediaAsync(media.publicId);
+                } else {
+                    this.setBookmarks([]);
+                }
             }
-        });
+        );
+    }
+
+    stop(): void {
+        this._request++;
+        this._unsubscribe?.();
+        this._unsubscribe = undefined;
+        this._initialized = false;
+        this.setBookmarks([]);
+        this.showPopupAtom.set(false);
+        this.editingBookmarkAtom.set(null);
     }
 
     skipToNextBookmark(): boolean {
@@ -86,7 +86,9 @@ export class BookmarkManager {
     }
 
     async fetchBookmarksForMediaAsync(mediaPublicId: string): Promise<void> {
+        const request = ++this._request;
         const response = await Http.getBookmarks({ mediaPublicId });
+        if (request !== this._request) return;
 
         if (response.isOk() && response.result) {
             this.currentMediaBookmarksAtom.set(response.result.bookmarks);
@@ -105,6 +107,7 @@ export class BookmarkManager {
         description: string | null,
         mode: string
     ): Promise<BookmarkResponse | null> {
+        const request = this._request;
         const response = await Http.createBookmark({
             mediaPublicId,
             timestamp,
@@ -112,14 +115,19 @@ export class BookmarkManager {
             mode,
         } as CreateBookmarkRequest);
 
+        if (request !== this._request) return null;
         if (response.isOk() && response.result) {
             const current = this.currentMediaBookmarksAtom.get();
             this.currentMediaBookmarksAtom.set([...current, response.result]);
-            toasterManager.notifySuccess("Bookmark saved");
+            toasterManager.notifySuccess(
+                getRockIt().vocabularyManager.vocabulary.MOBILE_BOOKMARK_SAVED
+            );
             return response.result;
         }
 
-        toasterManager.notifyError("Failed to save bookmark");
+        toasterManager.notifyError(
+            getRockIt().vocabularyManager.vocabulary.MOBILE_BOOKMARK_SAVE_ERROR
+        );
         return null;
     }
 
@@ -129,12 +137,14 @@ export class BookmarkManager {
         description: string | null,
         mode: string | null
     ): Promise<BookmarkResponse | null> {
+        const request = this._request;
         const response = await Http.updateBookmark(publicId, {
             timestamp,
             description,
             mode,
         } as UpdateBookmarkRequest);
 
+        if (request !== this._request) return null;
         if (response.isOk() && response.result) {
             const bookmarks = this.currentMediaBookmarksAtom.get();
             const index = bookmarks.findIndex((b) => b.publicId === publicId);
@@ -143,26 +153,38 @@ export class BookmarkManager {
                 updated[index] = response.result;
                 this.currentMediaBookmarksAtom.set(updated);
             }
-            toasterManager.notifySuccess("Bookmark updated");
+            toasterManager.notifySuccess(
+                getRockIt().vocabularyManager.vocabulary.MOBILE_BOOKMARK_UPDATED
+            );
             return response.result;
         }
 
-        toasterManager.notifyError("Failed to update bookmark");
+        toasterManager.notifyError(
+            getRockIt().vocabularyManager.vocabulary
+                .MOBILE_BOOKMARK_UPDATE_ERROR
+        );
         return null;
     }
 
     async deleteBookmarkAsync(publicId: string): Promise<boolean> {
+        const request = this._request;
         const response = await Http.deleteBookmark(publicId);
 
+        if (request !== this._request) return false;
         if (response.isOk()) {
             const bookmarks = this.currentMediaBookmarksAtom.get();
             const updated = bookmarks.filter((b) => b.publicId !== publicId);
             this.currentMediaBookmarksAtom.set(updated);
-            toasterManager.notifySuccess("Bookmark deleted");
+            toasterManager.notifySuccess(
+                getRockIt().vocabularyManager.vocabulary.MOBILE_BOOKMARK_DELETED
+            );
             return true;
         }
 
-        toasterManager.notifyError("Failed to delete bookmark");
+        toasterManager.notifyError(
+            getRockIt().vocabularyManager.vocabulary
+                .MOBILE_BOOKMARK_DELETE_ERROR
+        );
         return false;
     }
 

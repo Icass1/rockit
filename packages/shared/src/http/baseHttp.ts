@@ -337,6 +337,38 @@ export class BaseHttp {
         );
     }
 
+    static async backfillContentRatings(
+        payload: dto.ContentRatingBackfillRequest
+    ) {
+        return this.apiPostAsync(
+            `/content-rating/backfill`,
+            dto.ContentRatingBackfillRequestSchema,
+            dto.ContentRatingBackfillResponseSchema,
+            payload
+        );
+    }
+
+    static async lookupContentRatings(payload: dto.ContentRatingLookupRequest) {
+        return this.apiPostAsync(
+            `/content-rating/lookup`,
+            dto.ContentRatingLookupRequestSchema,
+            dto.ContentRatingLookupResponseSchema,
+            payload
+        );
+    }
+
+    static async updateContentRating(
+        publicId: string,
+        payload: dto.UpdateContentRatingRequest
+    ) {
+        return this.apiPostAsync(
+            `/content-rating/${encodeURIComponent(publicId)}`,
+            dto.UpdateContentRatingRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
     static async getUserPlaylistsAsync() {
         return this.apiGetAsync(
             `/default/playlist`,
@@ -408,6 +440,27 @@ export class BaseHttp {
         return this.apiDeleteAsync(
             `/default/playlist/${encodeURIComponent(playlistPublicId)}/contributor/${encodeURIComponent(targetUserPublicId)}`,
             dto.OkResponseSchema
+        );
+    }
+
+    static async uploadPlaylistImageAsync(
+        playlistPublicId: string,
+        file: Blob,
+        filename: string
+    ) {
+        return this.apiPostFileAsync(
+            `/default/playlist/${encodeURIComponent(playlistPublicId)}/image`,
+            dto.OkResponseSchema,
+            file,
+            filename
+        );
+    }
+
+    static async generatePlaylistImageAsync(playlistPublicId: string) {
+        return this.apiFetchAsync(
+            `/default/playlist/${encodeURIComponent(playlistPublicId)}/image/generate`,
+            dto.OkResponseSchema,
+            { method: "POST" }
         );
     }
 
@@ -1155,6 +1208,13 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/notifications${queryString ? `?${queryString}` : ""}`,
             dto.NotificationPageResponseSchema
+        );
+    }
+
+    static async markAllNotificationsRead() {
+        return this.apiPatchAsync(
+            `/notifications/read-all`,
+            dto.OkResponseSchema
         );
     }
 

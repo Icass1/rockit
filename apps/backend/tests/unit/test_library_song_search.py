@@ -438,10 +438,15 @@ async def test_hydration_is_batched_per_provider_and_preserves_page_order(
         return first if provider_id == 1 else second
 
     monkeypatch.setattr(providers, "find_media_provider", lookup)
+    from core.access.contentRatingAccess import ContentRatingAccess
+
+    ratings = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result={}))
+    monkeypatch.setattr(ContentRatingAccess, "get_batch_async", ratings)
     session = AsyncMock(spec=AsyncSession)
     found = await LibrarySearch.songs_async(
         session=session, user_id=1, query="song", offset=3, limit=3
     )
+    ratings.assert_awaited_once_with(session=session, public_ids=["song-1", "song-2", "song-3"])
     assert found.is_ok(), found.info()
     page = found.result()
     assert [song.publicId for song in page.songs] == ["song-1", "song-2", "song-3"]

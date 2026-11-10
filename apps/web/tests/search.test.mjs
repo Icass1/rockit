@@ -1,6 +1,7 @@
 /* eslint @typescript-eslint/explicit-function-return-type: "off" */
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -18,6 +19,7 @@ const { outputFiles } = await build({
     write: false,
     format: "iife",
     globalName: "module",
+    external: ["react", "react/jsx-runtime"],
     tsconfig: new URL("../tsconfig.json", import.meta.url).pathname,
     plugins: [
         {
@@ -81,6 +83,7 @@ function setup(count = 1, demand = false) {
         },
     };
     const context = vm.createContext({
+        require: createRequire(import.meta.url),
         rockIt,
         console,
         process: { env: { NODE_ENV: "test" } },
@@ -366,6 +369,30 @@ test("unknown providers keep their name when no icon exists", () => {
     assert.ok(unknown.includes("Custom Provider"));
     assert.ok(!unknown.includes("<svg"));
     assert.ok(spotify.includes("<svg"));
+});
+
+test("RockIt provider tags support an accessible icon and a named variant", () => {
+    const { ProviderTag } = setup();
+    for (const iconOnly of [true, false]) {
+        const markup = renderToStaticMarkup(
+            createElement(ProviderTag, { name: "RockIt", iconOnly })
+        );
+        assert.ok(markup.includes('src="/rockit-logo.svg"'));
+        assert.ok(markup.includes(`alt="${iconOnly ? "RockIt" : ""}"`));
+        assert.equal(markup.includes("<span>RockIt</span>"), !iconOnly);
+    }
+});
+
+test("SpotifyScrapper uses Spotify artwork in both provider tag variants", () => {
+    const { ProviderTag } = setup();
+    for (const iconOnly of [true, false]) {
+        const render = (name) =>
+            renderToStaticMarkup(
+                createElement(ProviderTag, { name, iconOnly })
+            );
+        assert.equal(render("SpotifyScrapper"), render("Spotify"));
+        assert.ok(render("SpotifyScrapper").includes("<svg"));
+    }
 });
 
 test("downloaded search songs resolve their existing media before playback", async () => {

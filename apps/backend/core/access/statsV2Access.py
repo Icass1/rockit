@@ -394,12 +394,14 @@ class StatsV2Access:
         )
 
     @staticmethod
+    @safe_async
     async def get_minutes_by_period_async(
         session: AsyncSession,
         user_id: int,
         start_date: datetime,
         end_date: datetime,
         group_by: str,
+        timezone_offset_minutes: int = 0,
     ) -> Result[list[StatsMinutesEntryResponse]]:
         pg_period = {
             "hour": "hour",
@@ -420,7 +422,10 @@ class StatsV2Access:
               AND  umli.date_added <  :end_date
               AND  cm.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
         )
-        SELECT DATE_TRUNC('{pg_period}', l.date_added AT TIME ZONE 'UTC') AS period_start,
+        SELECT DATE_TRUNC('{pg_period}',
+                         (l.date_added AT TIME ZONE 'UTC')
+                         - (:timezone_offset_minutes * INTERVAL '1 minute'))
+                         AS period_start,
                SUM(COALESCE(l.interval_ms, 0))::float / 60000.0 AS minutes
         FROM   interval_listens l
         GROUP BY period_start
@@ -431,8 +436,9 @@ class StatsV2Access:
                 sql,
                 {
                     "user_id": user_id,
-                    "start_date": start_date.astimezone(UTC),
-                    "end_date": end_date.astimezone(UTC),
+                    "start_date": _utc(start_date),
+                    "end_date": _utc(end_date),
+                    "timezone_offset_minutes": timezone_offset_minutes,
                 },
             )
         ).fetchall()
@@ -445,8 +451,9 @@ class StatsV2Access:
             db_data[key] = float(row.minutes)
 
         entries: list[StatsMinutesEntryResponse] = []
-        start = _naive_utc(start_date)
-        end = _naive_utc(end_date)
+        offset = timedelta(minutes=timezone_offset_minutes)
+        start = _naive_utc(start_date) - offset
+        end = _naive_utc(end_date) - offset
 
         if group_by == "hour":
             cur = start.replace(minute=0, second=0, microsecond=0)
@@ -455,8 +462,8 @@ class StatsV2Access:
                 entries.append(
                     StatsMinutesEntryResponse(
                         minutes=round(db_data.get(cur, 0.0), 1),
-                        start=_utc(cur),
-                        end=_utc(nxt),
+                        start=_utc(cur + offset),
+                        end=_utc(nxt + offset),
                         label=f"{cur.hour:02d}:00",
                     )
                 )
@@ -469,8 +476,8 @@ class StatsV2Access:
                 entries.append(
                     StatsMinutesEntryResponse(
                         minutes=round(db_data.get(cur, 0.0), 1),
-                        start=_utc(cur),
-                        end=_utc(nxt),
+                        start=_utc(cur + offset),
+                        end=_utc(nxt + offset),
                         label=DAY_NAMES[cur.weekday()],
                     )
                 )
@@ -486,8 +493,8 @@ class StatsV2Access:
                 entries.append(
                     StatsMinutesEntryResponse(
                         minutes=round(db_data.get(cur, 0.0), 1),
-                        start=_utc(cur),
-                        end=_utc(nxt),
+                        start=_utc(cur + offset),
+                        end=_utc(nxt + offset),
                         label=f"W{week_num}",
                     )
                 )
@@ -504,8 +511,8 @@ class StatsV2Access:
                 entries.append(
                     StatsMinutesEntryResponse(
                         minutes=round(db_data.get(cur, 0.0), 1),
-                        start=_utc(cur),
-                        end=_utc(nxt),
+                        start=_utc(cur + offset),
+                        end=_utc(nxt + offset),
                         label=MONTH_NAMES[cur.month - 1],
                     )
                 )

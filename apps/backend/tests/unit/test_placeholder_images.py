@@ -4,11 +4,13 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from botocore.stub import Stubber
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.access.imageAccess import ImageAccess
+from core.framework import storage
 from core.framework.media.image import Image
 from core.framework.storage import Storage
 from default.access.playlistAccess import PlaylistAccess
@@ -73,11 +75,69 @@ async def test_existing_placeholder_is_repaired_or_reports_failure(
     )
 
     assert result.is_ok() is restore_ok
+    assert restore.call_args.kwargs["bucket"] == stored.bucket
     assert restore.call_args.kwargs["key"] == stored.key
     assert restore.call_args.kwargs["data"].startswith(b"RIFF")
     upload.assert_not_awaited()
     if result.is_ok():
         assert result.result() is image
+
+
+@pytest.mark.parametrize("exists,upload_fails", [(True, False), (False, False), (False, True)])
+async def test_existing_image_checks_and_repairs_its_recorded_s3_location(
+    monkeypatch: pytest.MonkeyPatch, exists: bool, upload_fails: bool
+) -> None:
+    """S3 verification and repair use the same bucket even after configuration changes."""
+    stored = StorageObjectRow(id=7, bucket="original-bucket", key="playlist-placeholder.png")
+    image = ImageRow(id=9, storage_object_id=7)
+    image.storage_object = stored
+    monkeypatch.setattr(
+        Image,
+        "get_image_from_key_async",
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=image)),
+    )
+    monkeypatch.setattr(storage.settings, "S3_BUCKET", "new-bucket")
+    monkeypatch.setattr(Storage, "ensure_bucket_async", AsyncMock())
+    upload = AsyncMock()
+    monkeypatch.setattr(Storage, "upload_bytes_async", upload)
+    client = storage.get_s3_client()
+    data = b"placeholder-bytes"
+    location = {"Bucket": stored.bucket, "Key": stored.key}
+    with Stubber(client) as stubber:
+        if exists:
+            stubber.add_response("head_object", {}, location)
+        else:
+            stubber.add_client_error(
+                "head_object",
+                service_error_code="404",
+                http_status_code=404,
+                expected_params=location,
+            )
+            params = {**location, "Body": data, "ContentType": "image/png"}
+            if upload_fails:
+                stubber.add_client_error(
+                    "put_object",
+                    service_error_code="AccessDenied",
+                    http_status_code=403,
+                    expected_params=params,
+                )
+            else:
+                stubber.add_response("put_object", {}, params)
+
+        result = await Image.ensure_image_from_bytes_async(
+            session=MagicMock(spec=AsyncSession),
+            key=stored.key,
+            data=data,
+            filename=stored.key,
+            content_type="image/png",
+            target_format=None,
+        )
+
+        assert result.is_ok() is not upload_fails
+        if result.is_ok():
+            assert result.result() is image
+        stubber.assert_no_pending_responses()
+    upload.assert_not_awaited()
 
 
 async def test_playlist_persists_prepared_image_reference() -> None:

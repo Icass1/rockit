@@ -26,7 +26,12 @@ class StatsV2:
         custom_end: datetime | None = None,
         timezone_offset_minutes: int = 0,
     ) -> Result[UserStatsV2Response]:
-        start_date, end_date = parse_range(range_value, custom_start, custom_end)
+        start_date, end_date = parse_range(
+            range_value=range_value,
+            custom_start=custom_start,
+            custom_end=custom_end,
+            timezone_offset_minutes=timezone_offset_minutes,
+        )
         group_by: str = get_group_by(range_value, start_date, end_date)
 
         if range_value == "all":
@@ -59,6 +64,7 @@ class StatsV2:
                 start_date=start_date,
                 end_date=end_date,
                 group_by=group_by,
+                timezone_offset_minutes=timezone_offset_minutes,
             )
             top_songs_result: Result[
                 list[StatsRankedItemResponse]

@@ -1437,10 +1437,10 @@ export class BaseHttp {
         );
     }
 
-    static async getUserStatsV2(payload: dto.UserStatsRequest) {
+    static async getUserStatsV2(payload: dto.UserStatsV2Request) {
         return this.apiPostAsync(
             `/stats/v2/user`,
-            dto.UserStatsRequestSchema,
+            dto.UserStatsV2RequestSchema,
             dto.UserStatsV2ResponseSchema,
             payload
         );

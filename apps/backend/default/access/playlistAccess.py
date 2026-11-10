@@ -6,11 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql.dml import Delete
 
-from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.enums.mediaTypeEnum import MediaTypeEnum
-from core.framework.media.image import Image
 from core.utils.createId import create_id
+from core.utils.safeAsyncCall import safe_async
 from default.access.db.ormModels.playlist import PlaylistRow
 from default.access.db.ormModels.playlist_contributor import (
     PlaylistContributorRow,
@@ -30,53 +29,39 @@ logger: Logger = getLogger(__name__)
 
 class PlaylistAccess:
     @staticmethod
+    @safe_async
     async def create_playlist_async(
         session: AsyncSession,
         name: str,
         owner_id: int,
         provider_id: int,
+        image_id: int,
         description: str | None = None,
         is_public: bool = True,
     ) -> Result[PlaylistRow]:
-        try:
-            a_result_image: Result[ImageRow] = await Image.get_image_from_key_async(
-                session=session, key="playlist-placeholder.png"
-            )
-            if a_result_image.is_not_ok():
-                logger.error(f"Error getting placeholder image: {a_result_image.info()}")
-                return Result(
-                    code=ResultCode.GENERAL_ERROR,
-                    message="Failed to get placeholder image",
-                )
+        """Create a playlist referencing a prepared persistent image."""
 
-            core_media: CoreMediaRow = CoreMediaRow(
-                public_id=create_id(32),
-                provider_id=provider_id,
-                media_type_key=MediaTypeEnum.PLAYLIST.value,
-            )
-            session.add(instance=core_media)
-            await session.flush()
-            await session.refresh(instance=core_media)
+        core_media: CoreMediaRow = CoreMediaRow(
+            public_id=create_id(32),
+            provider_id=provider_id,
+            media_type_key=MediaTypeEnum.PLAYLIST.value,
+        )
+        session.add(instance=core_media)
+        await session.flush()
+        await session.refresh(instance=core_media)
 
-            playlist: PlaylistRow = PlaylistRow(
-                id=core_media.id,
-                name=name,
-                image_id=a_result_image.result().id,
-                owner_id=owner_id,
-                description=description,
-                is_public=is_public,
-            )
-            session.add(instance=playlist)
-            await session.commit()
-            await session.refresh(instance=playlist)
-            return Result(code=ResultCode.OK, message="OK", result=playlist)
-        except Exception as e:
-            logger.error(f"Error in create_playlist_async: {e}", exc_info=True)
-            await session.rollback()
-            return Result(
-                code=ResultCode.GENERAL_ERROR,
-                message=f"Failed to create playlist: {e}",
-            )
+        playlist: PlaylistRow = PlaylistRow(
+            id=core_media.id,
+            name=name,
+            image_id=image_id,
+            owner_id=owner_id,
+            description=description,
+            is_public=is_public,
+        )
+        session.add(instance=playlist)
+        await session.commit()
+        await session.refresh(instance=playlist)
+        return Result(code=ResultCode.OK, message="OK", result=playlist)
 
     @staticmethod
     async def get_playlist_by_id_async(

@@ -555,7 +555,11 @@ export async function createFixtureBackend(port = 0) {
                         topVideos: [],
                         topAlbums: [],
                         topArtists: [],
-                        heatmap: [],
+                        heatmap: [
+                            { day: 0, hour: 0, value: 34 },
+                            { day: 0, hour: 1, value: 1122 },
+                            { day: 0, hour: 2, value: 2245 },
+                        ],
                         insights: {
                             activeDays: 2,
                             longestStreak: 2,

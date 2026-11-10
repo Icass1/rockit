@@ -15,13 +15,10 @@ interface ListeningHeatmapProps {
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 function cellColor(value: number, maxValue: number): string {
-    if (value <= 0) return "bg-foreground-strong/4";
-    const intensity = value / maxValue;
-    if (intensity < 0.2) return "bg-primary-hover";
-    if (intensity < 0.4) return "bg-primary-hover";
-    if (intensity < 0.6) return "bg-primary-hover";
-    if (intensity < 0.8) return "bg-primary";
-    return "bg-primary";
+    if (value <= 0)
+        return "color-mix(in srgb, var(--theme-foreground-strong) 4%, transparent)";
+    const intensity = 10 + (value / maxValue) * 90;
+    return `color-mix(in srgb, var(--theme-primary) ${intensity}%, transparent)`;
 }
 
 export default function ListeningHeatmap({
@@ -83,7 +80,13 @@ export default function ListeningHeatmap({
                                                 "{minutes}",
                                                 value.toLocaleString(lang)
                                             )}
-                                        className={`hover:ring-foreground-strong/40 aspect-square rounded-[5px] transition-transform hover:scale-125 hover:ring-2 ${cellColor(value, maxValue)}`}
+                                        className="hover:ring-foreground-strong/40 aspect-square rounded-[5px] transition-transform hover:scale-125 hover:ring-2"
+                                        style={{
+                                            backgroundColor: cellColor(
+                                                value,
+                                                maxValue
+                                            ),
+                                        }}
                                     />
                                 );
                             })}
@@ -92,15 +95,11 @@ export default function ListeningHeatmap({
                 </div>
                 <div className="text-disabled-foreground mt-5 flex items-center justify-end gap-2 text-[10px] font-medium">
                     <span>{vocabulary.LISTENING_HEATMAP_LESS}</span>
-                    {[
-                        "bg-foreground-strong/4",
-                        "bg-primary-hover",
-                        "bg-primary-hover",
-                        "bg-primary",
-                    ].map((color) => (
+                    {[0, 0.25, 0.5, 0.75, 1].map((intensity) => (
                         <span
-                            key={color}
-                            className={`h-3 w-3 rounded-sm ${color}`}
+                            key={intensity}
+                            className="h-3 w-3 rounded-sm"
+                            style={{ backgroundColor: cellColor(intensity, 1) }}
                         />
                     ))}
                     <span>{vocabulary.LISTENING_HEATMAP_MORE}</span>

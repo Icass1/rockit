@@ -111,3 +111,34 @@ test("monthly timelines keep every month label and identify multi-year tooltip d
         }
     }
 });
+
+test("weekly heatmap distinguishes quiet, moderate and busy listening hours", async ({
+    page,
+    request,
+    context,
+}) => {
+    await request.post("http://127.0.0.1:18899/__fixture/reset");
+    await context.addCookies([
+        {
+            name: "session_id",
+            value: "fixture",
+            url: "http://127.0.0.1:18899",
+            httpOnly: true,
+        },
+    ]);
+    await page.goto("http://127.0.0.1:13000/stats/v2");
+    const colors = [];
+    for (const minutes of [34, 1122, 2245]) {
+        const cell = page
+            .locator("div[title]")
+            .filter({ hasNot: page.locator("*") })
+            .and(page.locator(`[title*="${minutes.toLocaleString("en")}"]`));
+        await expect(cell).toHaveCount(1);
+        colors.push(
+            await cell.evaluate(
+                (element) => getComputedStyle(element).backgroundColor
+            )
+        );
+    }
+    expect(new Set(colors).size).toBe(3);
+});

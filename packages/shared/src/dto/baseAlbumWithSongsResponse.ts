@@ -22,6 +22,7 @@ export const BaseAlbumWithSongsResponseSchema = z.object({
     limit: z.number().default(100),
     total: z.number().default(0),
     hasMore: z.boolean().default(false),
+    playableCount: z.number().default(0),
 });
 
 export type BaseAlbumWithSongsResponse = z.infer<

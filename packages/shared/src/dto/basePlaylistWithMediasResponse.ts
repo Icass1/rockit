@@ -22,6 +22,7 @@ export const BasePlaylistWithMediasResponseSchema = z.object({
     contributors: z.array(z.lazy(() => PlaylistContributorSchema)),
     imageUrl: z.string(),
     owner: z.lazy(() => BaseArtistResponseSchema),
+    playableCount: z.number().default(0),
     medias: z.array(
         z.union([
             z

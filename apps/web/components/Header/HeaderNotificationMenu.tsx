@@ -54,7 +54,7 @@ export default function NotificationMenu({
     const pending = useStore(manager.actionPendingAtom);
     const vocabulary = useVocabulary();
     const lang = useLanguage();
-    const [unreadOnly, setUnreadOnly] = useState(false);
+    const [unreadOnly, setUnreadOnly] = useState(true);
     const [openingId, setOpeningId] = useState<string | null>(null);
     const listRef = useRef<HTMLUListElement>(null);
     const router = useRouter();

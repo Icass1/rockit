@@ -1113,4 +1113,6 @@ export interface Vocabulary {
     PLAYLIST_IMAGE_SAVED: string;
     PLAYLIST_IMAGE_SAVING: string;
     STATS_RANGE_TODAY: string;
+    HOME_MEDIA_COUNT_ONE: string;
+    HOME_MEDIA_COUNT_OTHER: string;
 }

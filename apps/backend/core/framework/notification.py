@@ -165,7 +165,7 @@ class Notification:
 
     @staticmethod
     async def list_async(
-        session: AsyncSession, user_id: int, limit: int, offset: int, unread_only: bool = False
+        session: AsyncSession, user_id: int, limit: int, offset: int, unread_only: bool = True
     ) -> Result[tuple[list[NotificationRow], int, int]]:
         """List a user's paginated notification history."""
         return await NotificationAccess.list_async(session, user_id, limit, offset, unread_only)

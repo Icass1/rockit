@@ -211,7 +211,7 @@ class WebSocketManager:
         try:
             async with db_context.session_scope_async() as session:
                 result = await NotificationAccess.list_async(
-                    session=session, user_id=user_id, limit=1, offset=0
+                    session=session, user_id=user_id, limit=1, offset=0, unread_only=False
                 )
                 if result.is_not_ok():
                     logger.error("Cannot load notification state: %s", result.info())

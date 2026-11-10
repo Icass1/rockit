@@ -23,6 +23,7 @@ export const SpotifyAlbumResponseSchema = z.object({
     limit: z.number().default(100),
     total: z.number().default(0),
     hasMore: z.boolean().default(false),
+    playableCount: z.number().default(0),
     spotifyId: z.string(),
     externalImages: z.array(z.lazy(() => SpotifyExternalImageResponseSchema)),
 });

@@ -491,16 +491,31 @@ export async function createFixtureBackend(port = 0) {
                         minutes: Array.from(
                             {
                                 length:
-                                    range === "today"
-                                        ? 24
-                                        : range === "30d"
-                                          ? 5
-                                          : 7,
+                                    range === "all"
+                                        ? 30
+                                        : range === "1y"
+                                          ? 12
+                                          : range === "today"
+                                            ? 24
+                                            : range === "30d"
+                                              ? 5
+                                              : 7,
                             },
                             (_, index) => {
                                 const start = new Date(Date.UTC(2026, 10, 2));
                                 const end = new Date(start);
-                                if (range === "today") {
+                                if (range === "all" || range === "1y") {
+                                    start.setUTCFullYear(
+                                        range === "all" ? 2024 : 2026,
+                                        index,
+                                        1
+                                    );
+                                    end.setUTCFullYear(
+                                        range === "all" ? 2024 : 2026,
+                                        index + 1,
+                                        1
+                                    );
+                                } else if (range === "today") {
                                     start.setUTCHours(index);
                                     end.setUTCHours(index + 1);
                                 } else {
@@ -513,19 +528,26 @@ export async function createFixtureBackend(port = 0) {
                                     start: start.toISOString(),
                                     end: end.toISOString(),
                                     label:
-                                        range === "today"
-                                            ? `${String(index).padStart(2, "0")}:00`
-                                            : range === "30d"
-                                              ? `W${index + 1}`
-                                              : [
-                                                    "MONDAY",
-                                                    "TUESDAY",
-                                                    "WEDNESDAY",
-                                                    "THURSDAY",
-                                                    "FRIDAY",
-                                                    "SATURDAY",
-                                                    "SUNDAY",
-                                                ][index],
+                                        range === "all" || range === "1y"
+                                            ? new Intl.DateTimeFormat("en", {
+                                                  month: "long",
+                                                  timeZone: "UTC",
+                                              })
+                                                  .format(start)
+                                                  .toUpperCase()
+                                            : range === "today"
+                                              ? `${String(index).padStart(2, "0")}:00`
+                                              : range === "30d"
+                                                ? `W${index + 1}`
+                                                : [
+                                                      "MONDAY",
+                                                      "TUESDAY",
+                                                      "WEDNESDAY",
+                                                      "THURSDAY",
+                                                      "FRIDAY",
+                                                      "SATURDAY",
+                                                      "SUNDAY",
+                                                  ][index],
                                 };
                             }
                         ),
@@ -533,7 +555,11 @@ export async function createFixtureBackend(port = 0) {
                         topVideos: [],
                         topAlbums: [],
                         topArtists: [],
-                        heatmap: [],
+                        heatmap: [
+                            { day: 0, hour: 0, value: 34 },
+                            { day: 0, hour: 1, value: 1122 },
+                            { day: 0, hour: 2, value: 2245 },
+                        ],
                         insights: {
                             activeDays: 2,
                             longestStreak: 2,
@@ -787,7 +813,26 @@ export async function createFixtureBackend(port = 0) {
                         communityTop: [],
                         monthlyTop: [],
                         moodSongs: [],
-                        recentlyClickedMedia: [],
+                        recentlyClickedMedia: [
+                            {
+                                media: {
+                                    ...playlist,
+                                    medias: [],
+                                    total: 3,
+                                    playableCount: 7,
+                                    imageUrl: "/rockit.svg",
+                                },
+                            },
+                            {
+                                media: {
+                                    ...album,
+                                    songs: [],
+                                    total: 1,
+                                    playableCount: 1,
+                                    imageUrl: "/rockit.svg",
+                                },
+                            },
+                        ],
                     },
                     dto.HomeStatsResponseSchema
                 );

@@ -62,7 +62,11 @@ export default function ListeningHeatmapCurve({
                         stopColor="var(--rockit-pink)"
                         stopOpacity="0.6"
                     />
-                    <stop offset="100%" stopColor="var(--theme-backdrop)" />
+                    <stop
+                        offset="100%"
+                        stopColor="var(--rockit-pink)"
+                        stopOpacity="0"
+                    />
                 </linearGradient>
             </defs>
             {line && (

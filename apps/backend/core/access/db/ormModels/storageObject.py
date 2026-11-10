@@ -18,7 +18,7 @@ class StorageObjectRow(
 
     bucket: Mapped[str] = mapped_column(String, nullable=False)
     key: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    original_key: Mapped[str | None] = mapped_column(String, nullable=True)
+    original_key: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
     content_type: Mapped[str | None] = mapped_column(String, nullable=True)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     etag: Mapped[str | None] = mapped_column(String, nullable=True)

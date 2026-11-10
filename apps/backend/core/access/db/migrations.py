@@ -70,6 +70,21 @@ MIGRATIONS: tuple[Migration, ...] = (
             "explicit_manual BOOLEAN NOT NULL DEFAULT FALSE",
         ),
     ),
+    Migration(
+        version=6,
+        name="unique_storage_object_original_key",
+        statements=(
+            "DO $$ BEGIN "
+            "IF NOT EXISTS (SELECT 1 FROM pg_constraint "
+            "WHERE conrelid = 'core.storage_object'::regclass AND contype = 'u' "
+            "AND conkey = ARRAY[(SELECT attnum FROM pg_attribute "
+            "WHERE attrelid = 'core.storage_object'::regclass "
+            "AND attname = 'original_key')]) THEN "
+            "ALTER TABLE core.storage_object "
+            "ADD CONSTRAINT storage_object_original_key_key UNIQUE (original_key); "
+            "END IF; END $$",
+        ),
+    ),
 )
 
 

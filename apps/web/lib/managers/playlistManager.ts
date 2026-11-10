@@ -152,6 +152,42 @@ export class PlaylistManager {
         }
     }
 
+    async changePlaylistImage(publicId: string, file?: File): Promise<boolean> {
+        const vocabulary = rockIt.vocabularyManager.vocabulary;
+        if (
+            file &&
+            (!file.size ||
+                file.size > 5 * 1024 * 1024 ||
+                !["image/jpeg", "image/png", "image/webp"].includes(file.type))
+        ) {
+            rockIt.notificationManager.notifyError(
+                vocabulary.PLAYLIST_IMAGE_INVALID
+            );
+            return false;
+        }
+        try {
+            const result = file
+                ? await Http.uploadPlaylistImageAsync(publicId, file, file.name)
+                : await Http.generatePlaylistImageAsync(publicId);
+            if (result.isNotOk()) {
+                rockIt.notificationManager.notifyError(
+                    vocabulary.PLAYLIST_IMAGE_ERROR
+                );
+                return false;
+            }
+            await this.refreshPlaylistsAsync();
+            rockIt.notificationManager.notifySuccess(
+                vocabulary.PLAYLIST_IMAGE_SAVED
+            );
+            return true;
+        } catch {
+            rockIt.notificationManager.notifyError(
+                vocabulary.PLAYLIST_IMAGE_ERROR
+            );
+            return false;
+        }
+    }
+
     async playPlaylist(
         _songs: BaseSongWithAlbumResponse[],
         listPublicId: string,

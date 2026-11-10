@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export default function LoginModal(): JSX.Element {
     const router = useRouter();
@@ -78,9 +79,8 @@ export default function LoginModal(): JSX.Element {
                     />
                 </Field>
                 <Field id="login-password" label={vocabulary.PASSWORD}>
-                    <Input
+                    <PasswordInput
                         id="login-password"
-                        type="password"
                         autoComplete="current-password"
                         required
                         value={password}

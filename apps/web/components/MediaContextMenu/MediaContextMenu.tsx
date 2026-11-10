@@ -11,7 +11,7 @@ import {
     TMediaWithSearch,
     type BaseSearchResultsItem,
 } from "@rockit/shared";
-import { Pencil } from "lucide-react";
+import { ImagePlus, Pencil } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
@@ -58,6 +58,7 @@ import {
     getActionsForMedia,
     type ActionDef,
 } from "@/components/MediaContextMenu/mediaContextMenuActions";
+import PlaylistImageDialog from "@/components/Playlist/PlaylistImageDialog";
 import RenamePlaylistDialog from "@/components/Playlist/RenamePlaylistDialog";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import SearchSourcePicker from "@/components/Search/SearchSourcePicker";
@@ -133,6 +134,7 @@ export default function MediaContextMenu({
     const [loading, setLoading] = useState(false);
     const [showEditMetadata, setShowEditMetadata] = useState(false);
     const [showRenamePlaylist, setShowRenamePlaylist] = useState(false);
+    const [showPlaylistImage, setShowPlaylistImage] = useState(false);
     const $playlists = useStore(rockIt.playlistManager.playlistsAtom);
 
     const [selectedSource, setSelectedSource] = useState(
@@ -221,6 +223,14 @@ export default function MediaContextMenu({
                         </ContextMenuOption>
                     )}
                     {!isSearchResult(media) && <ShareAction {...actionProps} />}
+                    {ownedPlaylist && (
+                        <ContextMenuOption
+                            onClick={(): void => setShowPlaylistImage(true)}
+                        >
+                            <ImagePlus className="h-5 w-5" />
+                            {$vocabulary.PLAYLIST_IMAGE_CHANGE}
+                        </ContextMenuOption>
+                    )}
                 </ContextMenuContent>
             </ContextMenu>
             {showEditMetadata && (
@@ -233,6 +243,12 @@ export default function MediaContextMenu({
                 <RenamePlaylistDialog
                     playlist={ownedPlaylist}
                     onClose={(): void => setShowRenamePlaylist(false)}
+                />
+            )}
+            {showPlaylistImage && ownedPlaylist && (
+                <PlaylistImageDialog
+                    playlist={ownedPlaylist}
+                    onClose={(): void => setShowPlaylistImage(false)}
                 />
             )}
         </>

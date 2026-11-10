@@ -6,6 +6,7 @@ import type { BasePlaylistWithoutMediasResponse } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import { Dialog } from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
 
 export default function RenamePlaylistDialog({
     playlist,
@@ -58,7 +59,7 @@ export default function RenamePlaylistDialog({
                 <label htmlFor={nameId} className="text-sm font-medium">
                     {vocabulary.NEW_PLAYLIST_NAME}
                 </label>
-                <input
+                <Input
                     id={nameId}
                     className="border-border-strong text-foreground-strong focus:border-foreground w-full border-b bg-transparent text-xl font-bold outline-none"
                     value={name}

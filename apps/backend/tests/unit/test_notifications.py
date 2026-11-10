@@ -126,7 +126,9 @@ def test_retried_downloads_keep_the_same_recipient() -> None:
     assert emit.await_args.kwargs["recipient_user_id"] == 7
 
 
-async def test_mark_all_read_failure_does_not_schedule_counts(monkeypatch):
+async def test_mark_all_read_failure_does_not_schedule_counts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     session = MagicMock(spec=AsyncSession)
     failed = Result[bool](ResultCode.GENERAL_ERROR, "Update failed")
     monkeypatch.setattr(NotificationAccess, "mark_all_read_async", AsyncMock(return_value=failed))

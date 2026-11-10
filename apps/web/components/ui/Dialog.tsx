@@ -31,7 +31,7 @@ export function Dialog({
             aria-labelledby={titleId}
             onCancel={onClose}
             onClose={onClose}
-            className={`border-border bg-popover text-popover-foreground backdrop:bg-scrim m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-2xl border p-6 shadow-xl ${className}`}
+            className={`overlay-surface border-border bg-popover text-popover-foreground backdrop:bg-scrim m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-2xl border p-6 shadow-xl ${className}`}
         >
             {children}
         </dialog>

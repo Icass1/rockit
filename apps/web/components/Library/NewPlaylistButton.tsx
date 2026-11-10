@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Http } from "@/lib/http";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
-import Dialog from "@/components/Dialog";
+import { Dialog } from "@/components/ui/Dialog";
 
 export default function NewPlaylistButton({
     variant = "card",
@@ -115,8 +115,15 @@ export default function NewPlaylistButton({
             <Dialog
                 open={showModal}
                 onClose={closeModal}
-                title={$vocabulary.NEW_PLAYLIST}
+                titleId={`${nameId}-title`}
+                className="max-w-sm"
             >
+                <h2
+                    id={`${nameId}-title`}
+                    className="mb-4 text-base font-semibold"
+                >
+                    {$vocabulary.NEW_PLAYLIST}
+                </h2>
                 <form
                     className="flex flex-col gap-4"
                     onSubmit={(event): void => {
@@ -131,10 +138,10 @@ export default function NewPlaylistButton({
                         id={nameId}
                         aria-invalid={!!error}
                         aria-describedby={error ? `${nameId}-error` : undefined}
-                        className={`w-full border-b border-solid bg-transparent text-xl font-bold outline-none ${
+                        className={`w-full border-b border-solid bg-transparent text-xl font-bold outline-none focus-visible:outline-none! ${
                             error
                                 ? "border-destructive text-destructive-soft"
-                                : "border-border-strong text-foreground-strong"
+                                : "border-border-strong text-foreground-strong focus:border-foreground"
                         }`}
                         value={name}
                         type="text"
@@ -148,7 +155,7 @@ export default function NewPlaylistButton({
                         <p
                             id={`${nameId}-error`}
                             role="alert"
-                            className="text-sm text-destructive-soft"
+                            className="text-destructive-soft text-sm"
                         >
                             {error}
                         </p>

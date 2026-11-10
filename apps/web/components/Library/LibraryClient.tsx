@@ -19,6 +19,7 @@ import { EContentType } from "@/models/enums/contentType";
 import { EFilterMode } from "@/models/enums/filterMode";
 import { EViewMode } from "@/models/enums/viewMode";
 import type { ILibraryInitialData } from "@/models/interfaces/library";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { downloadMediaAsZip } from "@/lib/services/downloadZip";
 import { cycleEnum } from "@/lib/utils/cycleEnum";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";

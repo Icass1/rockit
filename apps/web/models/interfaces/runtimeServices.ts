@@ -30,6 +30,10 @@ export interface RuntimeServices {
         | "errorAtom"
         | "offset"
         | "setPage"
+        | "loadingAtom"
+        | "actionPendingAtom"
+        | "markAllReadAsync"
+        | "refreshAsync"
         | "markRead"
         | "destinationAsync"
     >;

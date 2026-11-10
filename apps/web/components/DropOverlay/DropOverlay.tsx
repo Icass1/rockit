@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import { createPortal } from "react-dom";
 import { droppedUrl, isLinkDrag } from "@/lib/utils/droppedUrl";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export default function DropOverlay({
     onDropLink,
@@ -66,10 +66,10 @@ export default function DropOverlay({
     if (!show || !enabled || typeof document === "undefined") return null;
 
     return createPortal(
-        <div className="pointer-events-none fixed inset-0 z-999 flex items-center justify-center bg-backdrop/70">
+        <div className="bg-backdrop/70 pointer-events-none fixed inset-0 z-999 flex items-center justify-center">
             <div
                 role="status"
-                className="rounded-md border border-border bg-secondary p-6 text-2xl text-foreground-strong shadow-xl"
+                className="border-border bg-secondary text-foreground-strong rounded-md border p-6 text-2xl shadow-xl"
             >
                 {label ?? vocabulary.ADD_MEDIA_TO_PLAYLIST}
             </div>

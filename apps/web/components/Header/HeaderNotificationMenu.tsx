@@ -78,7 +78,7 @@ export default function NotificationMenu({
                     {vocabulary.NOTIFICATIONS_TITLE}
                 </h2>
                 {unread > 0 && (
-                    <span className="rounded-full bg-pink-500/15 px-2.5 py-1 text-xs font-semibold text-pink-300">
+                    <span className="bg-primary/15 text-primary rounded-full px-2.5 py-1 text-xs font-semibold">
                         {unread}
                     </span>
                 )}
@@ -96,7 +96,6 @@ export default function NotificationMenu({
                     className="flex gap-1"
                     role="group"
                     aria-label={vocabulary.NOTIFICATIONS_TITLE}
-            onClose={onClose}
                 >
                     {[false, true].map((only) => (
                         <button
@@ -104,7 +103,7 @@ export default function NotificationMenu({
                             type="button"
                             aria-pressed={unreadOnly === only}
                             onClick={() => setUnreadOnly(only)}
-                            className={`overlay-action ${unreadOnly === only ? "bg-white/10" : "text-neutral-400"}`}
+                            className={`overlay-action ${unreadOnly === only ? "bg-accent" : "text-muted-foreground"}`}
                         >
                             {only
                                 ? vocabulary.NOTIFICATIONS_UNREAD
@@ -116,7 +115,7 @@ export default function NotificationMenu({
                     type="button"
                     disabled={!unread || pending || loading}
                     onClick={() => void manager.markAllReadAsync()}
-                    className="overlay-action text-pink-300"
+                    className="overlay-action text-primary"
                     aria-busy={pending}
                 >
                     {pending ? (
@@ -133,7 +132,7 @@ export default function NotificationMenu({
             {error && (
                 <div
                     role="alert"
-                    className="flex shrink-0 items-center gap-2 border-b border-(--overlay-border) px-4 py-2 text-sm text-red-300"
+                    className="text-destructive-soft flex shrink-0 items-center gap-2 border-b border-(--overlay-border) px-4 py-2 text-sm"
                 >
                     <CircleAlert size={16} className="shrink-0" />
                     <span className="flex-1">
@@ -175,7 +174,7 @@ export default function NotificationMenu({
                     <li className="flex flex-col items-center gap-2 px-6 py-10 text-center">
                         <Bell
                             size={28}
-                            className="mb-1 text-neutral-500"
+                            className="text-subtle-foreground mb-1"
                             aria-hidden="true"
                         />
                         <p className="text-sm font-medium">
@@ -183,7 +182,7 @@ export default function NotificationMenu({
                                 ? vocabulary.NOTIFICATIONS_NO_UNREAD
                                 : vocabulary.NOTIFICATIONS_EMPTY}
                         </p>
-                        <p className="max-w-64 text-sm text-neutral-400">
+                        <p className="text-muted-foreground max-w-64 text-sm">
                             {vocabulary.NOTIFICATIONS_EMPTY_DETAIL}
                         </p>
                     </li>
@@ -200,7 +199,7 @@ export default function NotificationMenu({
                         return (
                             <li
                                 key={item.publicId}
-                                className={`group mb-1 flex items-start rounded-lg last:mb-0 ${unreadItem ? "bg-pink-500/5" : ""}`}
+                                className={`group mb-1 flex items-start rounded-lg last:mb-0 ${unreadItem ? "bg-primary/5" : ""}`}
                             >
                                 <button
                                     type="button"
@@ -214,7 +213,7 @@ export default function NotificationMenu({
                                             ? `${vocabulary.NOTIFICATIONS_OPEN}: ${message}`
                                             : message
                                     }
-                                    className="notification-row flex min-w-0 flex-1 items-start gap-3 rounded-lg p-3 text-left enabled:cursor-pointer enabled:hover:bg-white/5"
+                                    className="notification-row enabled:hover:bg-accent/50 flex min-w-0 flex-1 items-start gap-3 rounded-lg p-3 text-left enabled:cursor-pointer"
                                     onClick={() => {
                                         setOpeningId(item.publicId);
                                         void manager
@@ -234,7 +233,7 @@ export default function NotificationMenu({
                                     }}
                                 >
                                     <span
-                                        className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg ${item.eventKey.endsWith("FAILED") ? "bg-red-500/10 text-red-300" : "bg-white/5 text-neutral-300"}`}
+                                        className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg ${item.eventKey.endsWith("FAILED") ? "bg-destructive/10 text-destructive-soft" : "bg-accent/50 text-foreground"}`}
                                     >
                                         {openingId === item.publicId ? (
                                             <LoaderCircle
@@ -248,12 +247,12 @@ export default function NotificationMenu({
                                     <span className="min-w-0 flex-1">
                                         <span
                                             title={message}
-                                            className={`line-clamp-3 text-sm leading-5 [overflow-wrap:anywhere] break-words ${unreadItem ? "font-medium text-white" : "text-neutral-300"}`}
+                                            className={`line-clamp-3 text-sm leading-5 [overflow-wrap:anywhere] break-words ${unreadItem ? "text-foreground-strong font-medium" : "text-foreground"}`}
                                         >
                                             {message}
                                         </span>
                                         <time
-                                            className="mt-1 block text-xs text-neutral-400"
+                                            className="text-muted-foreground mt-1 block text-xs"
                                             dateTime={item.dateAdded}
                                             title={new Date(
                                                 item.dateAdded
@@ -279,7 +278,7 @@ export default function NotificationMenu({
                                     {item.destination && (
                                         <ChevronRight
                                             size={16}
-                                            className="mt-2 shrink-0 text-neutral-500"
+                                            className="text-subtle-foreground mt-2 shrink-0"
                                             aria-hidden="true"
                                         />
                                     )}
@@ -288,7 +287,7 @@ export default function NotificationMenu({
                                     <button
                                         type="button"
                                         disabled={pending || !!openingId}
-                                        className="overlay-icon-button relative mt-2 mr-1 text-neutral-300"
+                                        className="overlay-icon-button text-foreground relative mt-2 mr-1"
                                         aria-label={`${vocabulary.NOTIFICATIONS_MARK_READ}: ${message}`}
                                         title={
                                             vocabulary.NOTIFICATIONS_MARK_READ
@@ -299,7 +298,7 @@ export default function NotificationMenu({
                                     >
                                         <span
                                             aria-hidden="true"
-                                            className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-pink-400"
+                                            className="bg-primary absolute top-1 right-1 h-1.5 w-1.5 rounded-full"
                                         />
                                         <Check size={16} />
                                     </button>
@@ -321,7 +320,7 @@ export default function NotificationMenu({
                         {vocabulary.NOTIFICATIONS_PREVIOUS}
                     </button>
                     <span
-                        className="text-xs text-neutral-400"
+                        className="text-muted-foreground text-xs"
                         aria-live="polite"
                     >
                         {offset + 1}–{Math.min(offset + 20, total)} / {total}

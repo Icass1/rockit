@@ -1,21 +1,23 @@
 """Bundled placeholders must have uploaded bytes and persistent image references."""
 
 from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.framework.media.image import Image
-from core.framework.storage import Storage
-from core.access.imageAccess import ImageAccess
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.storageObject import StorageObjectRow
+from core.access.imageAccess import ImageAccess
+from core.framework.media.image import Image
+from core.framework.storage import Storage
 from default.access.playlistAccess import PlaylistAccess
 from result import Result, ResultCode
 
 
-async def test_bundled_playlist_placeholder_uploads_converted_bytes(monkeypatch):
+async def test_bundled_playlist_placeholder_uploads_converted_bytes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     stored = StorageObjectRow(id=7, bucket="test", key="playlist-placeholder.webp")
     image = ImageRow(id=9, storage_object_id=7)
     monkeypatch.setattr(
@@ -27,7 +29,7 @@ async def test_bundled_playlist_placeholder_uploads_converted_bytes(monkeypatch)
     insert = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=image))
     monkeypatch.setattr(Storage, "upload_bytes_async", upload)
     monkeypatch.setattr(ImageAccess, "insert_image_async", insert)
-    session = SimpleNamespace()
+    session = MagicMock(spec=AsyncSession)
 
     result = await Image.ensure_default_image_async(
         session=session, filename="playlist-placeholder.png"
@@ -44,7 +46,9 @@ async def test_bundled_playlist_placeholder_uploads_converted_bytes(monkeypatch)
 
 
 @pytest.mark.parametrize("restore_ok", [True, False])
-async def test_existing_placeholder_is_repaired_or_reports_failure(monkeypatch, restore_ok):
+async def test_existing_placeholder_is_repaired_or_reports_failure(
+    monkeypatch: pytest.MonkeyPatch, restore_ok: bool
+) -> None:
     stored = StorageObjectRow(
         id=7,
         bucket="test",
@@ -65,7 +69,7 @@ async def test_existing_placeholder_is_repaired_or_reports_failure(monkeypatch, 
     monkeypatch.setattr(Storage, "upload_bytes_async", upload)
 
     result = await Image.ensure_default_image_async(
-        session=SimpleNamespace(), filename="playlist-placeholder.png"
+        session=MagicMock(spec=AsyncSession), filename="playlist-placeholder.png"
     )
 
     assert result.is_ok() is restore_ok
@@ -76,24 +80,17 @@ async def test_existing_placeholder_is_repaired_or_reports_failure(monkeypatch, 
         assert result.result() is image
 
 
-async def test_playlist_persists_prepared_image_reference():
-    rows = []
-    session = SimpleNamespace(
-        add=lambda **kwargs: rows.append(kwargs["instance"]),
-        flush=AsyncMock(),
-        refresh=AsyncMock(),
-        commit=AsyncMock(),
-        rollback=AsyncMock(),
-    )
+async def test_playlist_persists_prepared_image_reference() -> None:
+    session = MagicMock(spec=AsyncSession)
     result = await PlaylistAccess.create_playlist_async(
         session=session, name="New playlist", owner_id=1, provider_id=2, image_id=9
     )
     assert result.is_ok()
     assert result.result().image_id == 9
-    assert len(rows) == 2
+    assert session.add.call_count == 2
 
 
-def test_all_placeholder_assets_are_bundled():
+def test_all_placeholder_assets_are_bundled() -> None:
     assets = Path(__file__).resolve().parents[2] / "assets" / "placeholders"
     for kind in ("playlist", "song", "user", "video", "radio"):
         assert (assets / f"{kind}-placeholder.png").read_bytes().startswith(b"\x89PNG")

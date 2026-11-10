@@ -56,9 +56,28 @@ const { NotificationManager } = await import(
     `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`
 );
 
+const sessions = new WeakMap();
+function createManager() {
+    let onSession;
+    const manager = new NotificationManager({
+        userManager: {
+            sessionAtom: {
+                subscribe(listener) {
+                    onSession = listener;
+                    listener({ username: "alice" });
+                    return () => {};
+                },
+            },
+        },
+        webSocketManager: { onMessage() {}, offMessage() {} },
+    });
+    manager.start();
+    sessions.set(manager, (username) => onSession({ username }));
+    return manager;
+}
+
 test("mark all updates every page and refreshes the active unread filter", async () => {
-    const manager = new NotificationManager();
-    manager.setUser("alice");
+    const manager = createManager();
     manager.setPage(20, true);
     await manager.refreshAsync();
     assert.equal(manager.unreadCountAtom.get(), 45);
@@ -72,8 +91,7 @@ test("mark all updates every page and refreshes the active unread filter", async
 });
 
 test("failed updates preserve counts and release the busy state", async () => {
-    const manager = new NotificationManager();
-    manager.setUser("alice");
+    const manager = createManager();
     state.unread = 5;
     state.fail = true;
     await manager.refreshAsync();
@@ -89,8 +107,7 @@ test("failed updates preserve counts and release the busy state", async () => {
 });
 
 test("pending bulk updates suppress duplicates and cannot update a different account", async () => {
-    const manager = new NotificationManager();
-    manager.setUser("alice");
+    const manager = createManager();
     let release;
     state.wait = new Promise((resolve) => {
         release = resolve;
@@ -98,7 +115,7 @@ test("pending bulk updates suppress duplicates and cannot update a different acc
     const pending = manager.markAllReadAsync();
     assert.equal(manager.actionPendingAtom.get(), true);
     assert.equal(await manager.markAllReadAsync(), false);
-    manager.setUser("bob");
+    sessions.get(manager)("bob");
     release();
     assert.equal(await pending, false);
     assert.equal(manager.unreadCountAtom.get(), 0);

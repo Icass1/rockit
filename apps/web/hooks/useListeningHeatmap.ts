@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ListeningHeatmapState } from "@/models/types/listeningHeatmap";
 import { listeningHeatmapManager } from "@/lib/managers/listeningHeatmapManager";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export function useListeningHeatmap(
     publicId: string | undefined
@@ -14,20 +15,46 @@ export function useListeningHeatmap(
     useEffect(() => {
         if (!publicId) return;
         let active = true;
-        const refresh = async (): Promise<void> => {
+        const player = rockIt.mediaPlayerManager;
+        let baseline: ListeningHeatmapState["segments"] | undefined;
+        let playedUntil = 0;
+        const publish = (): void => {
+            if (active && baseline)
+                setState({
+                    publicId,
+                    segments: listeningHeatmapManager.withPlayback(
+                        baseline,
+                        playedUntil
+                    ),
+                    status: "ready",
+                });
+        };
+        const onPlayback = (): void => {
+            if (
+                player.playingAtom.get() &&
+                rockIt.queueManager.currentMedia?.publicId === publicId
+            ) {
+                playedUntil = player.currentTimeAtom.get();
+                publish();
+            }
+        };
+        const unsubscribeTime = player.currentTimeAtom.listen(onPlayback);
+        const unsubscribePlaying = player.playingAtom.listen(onPlayback);
+        onPlayback();
+        const load = async (): Promise<void> => {
             try {
-                const segments = await listeningHeatmapManager.load(publicId);
-                if (active) setState({ publicId, segments, status: "ready" });
+                baseline = await listeningHeatmapManager.load(publicId);
+                publish();
             } catch {
                 if (active)
                     setState({ publicId, segments: [], status: "error" });
             }
         };
-        void refresh();
-        const interval = setInterval(() => void refresh(), 30_000);
+        void load();
         return () => {
             active = false;
-            clearInterval(interval);
+            unsubscribeTime();
+            unsubscribePlaying();
         };
     }, [publicId]);
     return state.publicId === publicId

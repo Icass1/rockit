@@ -146,6 +146,7 @@ export function useDownloads() {
             const publicId = addResponse.result.data.publicId;
 
             await Http.startDownload({
+                replaceExisting: false,
                 ids: [publicId],
                 title: vocabulary.DOWNLOADS,
             });

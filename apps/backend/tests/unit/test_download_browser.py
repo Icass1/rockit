@@ -14,6 +14,7 @@ from core.framework.downloader import downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
 from core.framework.downloader.downloadBrowser import DownloadBrowser
 from core.framework.media.image import Image
+from core.framework.objectFiles import ObjectFiles
 from core.framework.user.user import User
 from result import Result, ResultCode
 from tests.fake_object_store import FakeObjectStore
@@ -185,14 +186,16 @@ async def test_group_actions_are_atomic_batches_and_preserve_source_context(
         session=session, user_id=1, public_id="playlist-group", action=action
     )
     assert result.is_ok()
-    fixture.clear.assert_awaited_once_with(session=session, media_ids=[20])
-    assert "song.mp3" not in fixture.store.objects
-    assert list(fixture.store.objects.values()) == [b"audio"]
     session.commit.assert_awaited_once()
     if action == "delete":
+        fixture.clear.assert_awaited_once_with(session=session, media_ids=[20])
+        assert "song.mp3" not in fixture.store.objects
+        assert list(fixture.store.objects.values()) == [b"audio"]
         fixture.hide.assert_awaited_once_with(session=session, group=fixture.group)
         fixture.queue.assert_not_called()
     else:
+        fixture.clear.assert_not_awaited()
+        assert fixture.store.objects == {"song.mp3": b"audio"}
         fixture.reset.assert_awaited_once_with(
             session=session, group=fixture.group, download_ids=[12]
         )
@@ -200,6 +203,7 @@ async def test_group_actions_are_atomic_batches_and_preserve_source_context(
         assert isinstance(queued, DeferredDownload)
         assert queued.public_id == "song" and queued.download_group_id == 10
         assert queued.provider_id == 2 and queued.user_id == 1
+        assert queued.replace_existing is True
 
 
 @pytest.mark.parametrize("status", [1, 2, 5, 6, 7])
@@ -259,10 +263,14 @@ async def test_deferred_download_prepares_only_inside_worker(
         DownloadReuseAccess,
         "candidates_async",
         AsyncMock(
-            return_value=ok([DownloadCandidate(id=1, public_id="song", provider_id=4, path=None)])
+            side_effect=[
+                ok([DownloadCandidate(id=1, public_id="song", provider_id=4, path=None)]),
+                ok([DownloadCandidate(id=1, public_id="song", provider_id=4, path="song.mp3")]),
+            ]
         ),
     )
     monkeypatch.setattr(DownloadFiles, "existing_ids_async", AsyncMock(return_value=set()))
+    monkeypatch.setattr(ObjectFiles, "exists_async", AsyncMock(return_value=True))
     provider = Mock()
     task = SimpleNamespace(
         title="Song title",

@@ -99,6 +99,7 @@ export default function RecommendationsList({
         setDownloadingKeys((prev) => new Set(prev).add(song.publicId));
         toasterManager.notifyInfo($vocabulary.DOWNLOAD_STARTED);
         const response = await Http.startDownload({
+            replaceExisting: false,
             ids: [song.publicId],
             title: song.name,
         });

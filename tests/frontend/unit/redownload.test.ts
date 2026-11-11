@@ -28,11 +28,22 @@ function fixture() {
     };
     return { http, calls, client: http as unknown as typeof BaseHttp };
 }
-it("resolves every page before replacing each file and queues one checked job at a time", async () => {
+it("resolves every page and queues replacements without deleting existing files", async () => {
     const f = fixture();
     expect(await redownloadMedia(f.client, album, () => true)).toBe(2);
     expect(f.http.getCollectionItems).toHaveBeenCalledTimes(2);
-    expect(f.calls).toEqual(["delete:a", "start:a", "delete:b", "start:b"]);
+    expect(f.http.deleteMediaFileAsync).not.toHaveBeenCalled();
+    expect(f.http.startDownload).toHaveBeenNthCalledWith(1, {
+        ids: ["a"],
+        title: "Album",
+        replaceExisting: true,
+    });
+    expect(f.http.startDownload).toHaveBeenNthCalledWith(2, {
+        ids: ["b"],
+        title: "Album",
+        replaceExisting: true,
+    });
+    expect(f.calls).toEqual(["start:a", "start:b"]);
 });
 it("does not delete any files after a failed listing", async () => {
     const f = fixture();
@@ -42,15 +53,16 @@ it("does not delete any files after a failed listing", async () => {
     );
     expect(f.calls).toEqual([]);
 });
-it("stops after failed enqueue rather than deleting the rest of the album", async () => {
+it("stops after failed enqueue and preserves every existing file", async () => {
     const f = fixture();
     f.http.startDownload.mockRejectedValueOnce(new Error("503"));
     await expect(redownloadMedia(f.client, album, () => true)).rejects.toThrow(
         "503"
     );
-    expect(f.calls).toEqual(["delete:a"]);
+    expect(f.calls).toEqual([]);
+    expect(f.http.deleteMediaFileAsync).not.toHaveBeenCalled();
 });
-it("rejects obsolete account work before making a destructive request", async () => {
+it("rejects obsolete account work before queuing a replacement", async () => {
     const f = fixture();
     await expect(redownloadMedia(f.client, album, () => false)).rejects.toThrow(
         "Obsolete"

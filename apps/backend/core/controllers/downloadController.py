@@ -52,6 +52,7 @@ async def start_download(request: Request, payload: StartDownloadRequest) -> Sta
         title=payload.title,
         public_ids=payload.ids,
         add_to_library=user.auto_add_downloads_to_library,
+        replace_existing=payload.replaceExisting,
     )
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())

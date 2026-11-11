@@ -34,7 +34,6 @@ class VideoAccess:
         video.storage_object_id = storage_object_id
 
         await session.flush()
-        await session.commit()
 
         return ResultCode(code=ResultCode.OK, message="OK")
 
@@ -56,7 +55,6 @@ class VideoAccess:
         video.real_duration_ms = real_duration_ms
 
         await session.flush()
-        await session.commit()
 
         return ResultCode(code=ResultCode.OK, message="OK")
 

@@ -1432,6 +1432,7 @@ export class BaseQueueManager {
         }
         if (!fresh.result.downloaded) {
             const started = await getRockIt().http.startDownload({
+                replaceExisting: false,
                 ids: [song.publicId],
                 title: song.name,
             });
@@ -1469,6 +1470,7 @@ export class BaseQueueManager {
             }
             if (!fresh.result.downloaded) {
                 const started = await getRockIt().http.startDownload({
+                    replaceExisting: false,
                     ids: [media.publicId],
                     title: media.name,
                 });

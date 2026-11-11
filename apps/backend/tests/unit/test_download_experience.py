@@ -24,8 +24,10 @@ def ok[T](value: T) -> Result[T]:
     return Result(code=ResultCode.OK, message="OK", result=value)
 
 
+@pytest.mark.parametrize("replace_existing", [False, True])
 async def test_playlist_download_preserves_root_and_saves_root_once(
     monkeypatch: pytest.MonkeyPatch,
+    replace_existing: bool,
 ) -> None:
     group = SimpleNamespace(id=1, public_id="group")
     create = AsyncMock(return_value=ok(group))
@@ -51,12 +53,17 @@ async def test_playlist_download_preserves_root_and_saves_root_once(
         title="Playlist",
         public_ids=["playlist"],
         add_to_library=True,
+        replace_existing=replace_existing,
     )
     assert result.is_ok()
     assert create.call_args.kwargs["source_public_id"] == "playlist"
     save.assert_awaited_once_with(session=session, user_id=7, public_ids=["playlist"])
     queue.assert_awaited_once_with(
-        session=session, public_ids=["song-a", "song-b"], group=group, user_id=7
+        session=session,
+        public_ids=["song-a", "song-b"],
+        group=group,
+        user_id=7,
+        replace_existing=replace_existing,
     )
 
 

@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
+from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
 from result import Result, ResultCode
 from spotify.access.db.ormModels.track import TrackRow
@@ -105,35 +106,28 @@ class TrackAccess:
             )
 
     @staticmethod
+    @safe_async
     async def update_track_path_async(
         session: AsyncSession,
         track_id: int,
         storage_object_id: int | None,
         download_url: str | None,
     ) -> ResultCode:
-        try:
-            # Fetch the track
-            stmt = select(TrackRow).where(TrackRow.id == track_id)
-            result = await session.execute(stmt)
-            track: TrackRow | None = result.scalar_one_or_none()
+        """Flush download metadata; the caller owns the transaction."""
+        # Fetch the track
+        stmt = select(TrackRow).where(TrackRow.id == track_id)
+        result = await session.execute(stmt)
+        track: TrackRow | None = result.scalar_one_or_none()
 
-            if not track:
-                logger.error(f"Track with id {track_id} not found.")
-                return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
+        if not track:
+            logger.error(f"Track with id {track_id} not found.")
+            return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
 
-            # Update fields
-            track.storage_object_id = storage_object_id
-            track.download_url = download_url
+        # Update fields
+        track.storage_object_id = storage_object_id
+        track.download_url = download_url
 
-            # Commit changes
-            await session.commit()
+        # The worker publishes the reference after validating the uploaded object.
+        await session.flush()
 
-            # Refresh and detach
-            await session.refresh(track)
-            session.expunge(track)
-
-            return ResultCode(code=ResultCode.OK, message="Track updated.")
-
-        except Exception as e:
-            logger.error(f"Failed to update track path: {e}")
-            return ResultCode(code=ResultCode.GENERAL_ERROR, message=f"Failed to update track: {e}")
+        return ResultCode(code=ResultCode.OK, message="Track updated.")

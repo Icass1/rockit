@@ -1121,4 +1121,5 @@ export interface Vocabulary {
     MOBILE_PHOTO_PERMISSION: string;
     MOBILE_PHOTO_INVALID: string;
     MOBILE_PHOTO_ERROR: string;
+    MOBILE_RADIO_EXPLORE: string;
 }

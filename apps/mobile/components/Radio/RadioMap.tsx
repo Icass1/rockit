@@ -24,14 +24,15 @@ export default memo(function RadioMap({
         <View
             style={{
                 width: "100%",
-                aspectRatio: 2,
+                height: theme.layout.radioMapHeight,
                 minHeight: theme.layout.artistArtwork,
             }}
         >
             <Svg
                 width="100%"
                 height="100%"
-                viewBox="0 0 720 360"
+                viewBox="0 10 720 290"
+                preserveAspectRatio="none"
                 accessibilityLabel={vocabulary.RADIO}
             >
                 {countries.map((country) => (
@@ -41,7 +42,7 @@ export default memo(function RadioMap({
                         fill={
                             country.name === selected
                                 ? theme.colors.primary
-                                : theme.colors.secondary
+                                : theme.colors["surface-raised"]
                         }
                         stroke={theme.colors["border-subtle"]}
                         strokeWidth={0.7}

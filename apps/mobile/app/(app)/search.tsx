@@ -1,4 +1,10 @@
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    IconButton,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
+import { Radio } from "@rockit/ui/icons";
 import {
     ScrollView,
     StyleSheet,
@@ -6,10 +12,10 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
+import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
 import { Header, PageContainer } from "@/components/layout";
 import { MediaCardSkeleton } from "@/components/Media";
-import LibraryShortcuts from "@/components/Navigation/LibraryShortcuts";
 import {
     EmptyState,
     SearchBar,
@@ -44,6 +50,8 @@ function SearchSkeletons() {
 
 export default function SearchScreen() {
     const styles = useThemedStyles(createStyles);
+    const theme = useDesignTheme();
+    const router = useTypedRouter();
     const { height } = useWindowDimensions();
     const { vocabulary } = useVocabulary();
     const { results, searching, error, query, search, clearResults } =
@@ -53,6 +61,7 @@ export default function SearchScreen() {
     const albums = results.filter((r) => r.type === "album");
     const artists = results.filter((r) => r.type === "artist");
     const playlists = results.filter((r) => r.type === "playlist");
+    const radios = results.filter((r) => r.type === "radio");
     const videos = results.filter((r) => r.type === "video");
 
     const centeredStyle = {
@@ -65,7 +74,6 @@ export default function SearchScreen() {
         <>
             <Header />
             <PageContainer>
-                <LibraryShortcuts discovery />
                 <SearchBar
                     value={query}
                     onChangeText={search}
@@ -108,8 +116,31 @@ export default function SearchScreen() {
                             items={videos}
                             layout="grid"
                         />
+                        <SearchSection
+                            title={vocabulary.RADIO}
+                            items={radios}
+                            layout="row"
+                        />
                     </View>
                 )}
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: theme.spacing.sm,
+                        paddingVertical: theme.spacing.lg,
+                    }}
+                >
+                    <Text style={{ flex: 1, color: styles.exploreText.color }}>
+                        {vocabulary.MOBILE_RADIO_EXPLORE}
+                    </Text>
+                    <IconButton
+                        label={vocabulary.MOBILE_RADIO_EXPLORE}
+                        onPress={() => router.push("/radio")}
+                    >
+                        <Radio />
+                    </IconButton>
+                </View>
             </PageContainer>
         </>
     );
@@ -117,6 +148,7 @@ export default function SearchScreen() {
 
 const createStyles = (theme: DesignTheme) =>
     StyleSheet.create({
+        exploreText: { color: theme.colors.foreground },
         errorText: {
             color: theme.legacy.accent,
             fontSize: theme.typography.body,

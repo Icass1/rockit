@@ -113,27 +113,36 @@ export default function RadioScreen() {
                             </IconButton>
                         </View>
                     )}
-                    <TextInput
-                        placeholder={vocabulary.RADIO_SEARCH}
-                        accessibilityLabel={vocabulary.RADIO_SEARCH}
-                        value={query}
-                        onChangeText={setQuery}
-                        onSubmitEditing={() => setSubmitted(query.trim())}
-                        returnKeyType="search"
+                    <View
                         style={{
-                            minHeight: theme.layout.touchTarget,
-                            color: theme.colors.foreground,
-                            backgroundColor: theme.colors.secondary,
-                            borderRadius: theme.radius.md,
-                            padding: theme.spacing.md,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: theme.spacing.sm,
                         }}
-                    />
-                    <IconButton
-                        label={vocabulary.SEARCH}
-                        onPress={() => setSubmitted(query.trim())}
                     >
-                        <Search color={theme.colors.primary} />
-                    </IconButton>
+                        <TextInput
+                            placeholder={vocabulary.RADIO_SEARCH}
+                            accessibilityLabel={vocabulary.RADIO_SEARCH}
+                            value={query}
+                            onChangeText={setQuery}
+                            onSubmitEditing={() => setSubmitted(query.trim())}
+                            returnKeyType="search"
+                            style={{
+                                flex: 1,
+                                minHeight: theme.layout.touchTarget,
+                                color: theme.colors.foreground,
+                                backgroundColor: theme.colors.secondary,
+                                borderRadius: theme.radius.md,
+                                padding: theme.spacing.md,
+                            }}
+                        />
+                        <IconButton
+                            label={vocabulary.SEARCH}
+                            onPress={() => setSubmitted(query.trim())}
+                        >
+                            <Search color={theme.colors.primary} />
+                        </IconButton>
+                    </View>
                     {submitted && (
                         <Pressable
                             accessibilityRole="button"

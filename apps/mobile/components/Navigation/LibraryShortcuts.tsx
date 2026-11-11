@@ -47,6 +47,7 @@ export default function LibraryShortcuts({
           ];
     return (
         <ScrollView
+            style={{ flexGrow: 0, flexShrink: 0 }}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{

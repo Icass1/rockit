@@ -59,6 +59,21 @@ test("Library and Search expose moved destinations and featured lists without lo
     await expect(
         page.getByRole("button", { name: "Liked Songs", exact: true }).first()
     ).toBeVisible();
+    const shortcut = page
+        .getByRole("button", { name: "Liked Songs", exact: true })
+        .first();
+    expect(
+        await shortcut.evaluate((element) => {
+            const bounds = element.getBoundingClientRect();
+            return [0.1, 0.5, 0.9].every((fraction) => {
+                const hit = document.elementFromPoint(
+                    bounds.x + bounds.width / 2,
+                    bounds.y + bounds.height * fraction
+                );
+                return !!hit && element.contains(hit);
+            });
+        })
+    ).toBe(true);
     const calls = await (
         await request.get(backend + "/__fixture/calls")
     ).json();

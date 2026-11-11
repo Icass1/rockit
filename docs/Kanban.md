@@ -59,7 +59,7 @@
 - workload: Normal
     ```md
     Integrar listas propias en Home y Library con navegación y reproducción coherentes.
-    Accesos a las cinco listas propias en Home y Library, con etiquetas de vocabulary y sin descargar sus canciones al mostrar accesos. Verificado en navegador.
+    Accesos a las cinco listas propias en Home y Library, con etiquetas de vocabulary y sin descargar sus canciones al mostrar accesos. Verificado en navegador. Revisión visual ampliada: corregida la compresión vertical que recortaba la fila de accesos en Library; la regresión comprueba que sus zonas superior, central e inferior reciben interacción.
     ```
 
 ### [MOBILE] Simplificar la navegación principal

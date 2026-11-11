@@ -10,7 +10,8 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const { outputFiles } = await build({
     stdin: {
         contents: `export { useListeningHeatmap } from '@/hooks/useListeningHeatmap';
-export { listeningHeatmapManager } from '@/lib/managers/listeningHeatmapManager';`,
+export { listeningHeatmapManager } from '@/lib/managers/listeningHeatmapManager';
+export { listeningHeatmapCurve } from '@/lib/utils/listeningHeatmapCurve';`,
         resolveDir: new URL("../", import.meta.url).pathname,
     },
     bundle: true,
@@ -160,4 +161,66 @@ test("a response for the previous media cannot replace the current heatmap", asy
     assert.equal(snapshot.publicId, "two");
     assert.equal(snapshot.segments[0].count, 2);
     await act(() => root.unmount());
+});
+
+test("equal listening counts form a flat plateau with the actual values at both edges", () => {
+    const { listeningHeatmapCurve: curve } = setup();
+    assert.equal(
+        curve([{ startMs: 0, endMs: 171000, count: 3 }], 171, 3),
+        "M 0,4 L 1000,4"
+    );
+    const stepped = curve(
+        [
+            { startMs: 0, endMs: 133000, count: 3 },
+            { startMs: 133000, endMs: 171000, count: 2 },
+        ],
+        171,
+        3
+    );
+    assert.ok(stepped.startsWith("M 0,4 L 767."));
+    assert.ok(stepped.endsWith(` L 1000,${98 - (2 / 3) * 94}`));
+    // Adjacent backend intervals with equal counts do not introduce a new bend.
+    assert.equal(
+        curve(
+            [
+                { startMs: 0, endMs: 500, count: 3 },
+                { startMs: 500, endMs: 1000, count: 3 },
+            ],
+            1,
+            3
+        ),
+        "M 0,4 L 1000,4"
+    );
+});
+
+test("rounded transitions preserve unheard gaps, short segments and real timeline edges", () => {
+    const { listeningHeatmapCurve: curve } = setup();
+    const line = curve(
+        [
+            { startMs: 1000, endMs: 2000, count: 3 },
+            { startMs: 2001, endMs: 3000, count: 2 },
+        ],
+        4,
+        3
+    );
+    assert.ok(line.startsWith("M 0,98 L 240,98 C"));
+    assert.ok(line.endsWith(" L 1000,98"));
+    assert.ok(!line.includes("NaN"));
+    const coordinates = [...line.matchAll(/(?:M|L|C) ([^MLC]+)/g)].flatMap(
+        (match) =>
+            match[1]
+                .trim()
+                .split(/\s+/)
+                .map((pair) => pair.split(",").map(Number))
+    );
+    assert.ok(
+        coordinates.every(([x, y]) => x >= 0 && x <= 1000 && y >= 4 && y <= 98)
+    );
+    assert.ok(
+        coordinates.every(
+            ([x], index) => index === 0 || x >= coordinates[index - 1][0]
+        )
+    );
+    assert.equal(curve([], 0, 0), "");
+    assert.equal(curve([], 4, 0), "");
 });

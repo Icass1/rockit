@@ -25,6 +25,7 @@ const manifest = {
     start_url: "/",
     scope: "/",
     display: "standalone",
+    orientation: "portrait",
     background_color: tokens.themes.dark.background,
     theme_color: tokens.themes.dark.background,
     icons: [
@@ -44,9 +45,11 @@ html = html.replace(
     /<!-- rockit-mobile-pwa:start -->[\s\S]*?<!-- rockit-mobile-pwa:end -->/g,
     ""
 );
+html = html.replace(/<meta\s+name="viewport"[^>]*>/gi, "");
+html = html.replace(/<meta\s+name="theme-color"[^>]*>/gi, "");
 html = html.replace(
     "</head>",
-    '<!-- rockit-mobile-pwa:start --><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- rockit-mobile-pwa:end --></head>'
+    `<!-- rockit-mobile-pwa:start --><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="${tokens.themes.dark.background}"><style>html,body,#root{background:${tokens.themes.dark.background};color-scheme:dark;}html,body{margin:0;height:100%;}</style><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- rockit-mobile-pwa:end --></head>`
 );
 await writeFile(htmlPath, html);
 const shell = [

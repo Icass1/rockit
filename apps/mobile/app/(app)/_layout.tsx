@@ -237,7 +237,7 @@ function AppLayoutInner({
     const { hidePlayer, currentMedia } = usePlayer();
     const theme = useDesignTheme();
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
             <View
                 style={{
                     flex: 1,
@@ -252,7 +252,12 @@ function AppLayoutInner({
             >
                 <Tabs
                     tabBar={() => null}
-                    screenOptions={{ headerShown: false }}
+                    screenOptions={{
+                        headerShown: false,
+                        sceneStyle: {
+                            backgroundColor: theme.colors.background,
+                        },
+                    }}
                 >
                     <Tabs.Screen
                         name="index"

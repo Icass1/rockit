@@ -102,6 +102,7 @@ export default function FriendsScreen() {
     };
     return (
         <FlatList
+            style={{ flex: 1, backgroundColor: theme.colors.background }}
             data={rows}
             keyExtractor={(item) =>
                 `${item.kind}:${"publicId" in item.value ? item.value.publicId : "userId" in item.value ? item.value.userId : `${item.value.userPublicId}:${item.value.listenedAt}`}`

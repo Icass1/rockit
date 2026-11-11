@@ -49,6 +49,7 @@ export default function RadioScreen() {
     };
     return (
         <FlatList<BaseStationResponse | BaseSearchResultsItem>
+            style={{ flex: 1, backgroundColor: theme.colors.background }}
             data={resource.data ?? []}
             keyExtractor={(item) =>
                 isSearchResult(item) ? item.providerUrl : item.publicId

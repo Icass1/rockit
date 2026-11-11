@@ -6,7 +6,8 @@ import { designTokens } from "@rockit/theme";
 /** Each lyric view owns its clock and cancellation, including a separate PiP window. */
 export function useLyricAutoScroll(
     ref: RefObject<HTMLDivElement | null>,
-    selector: string | null
+    selector: string | null,
+    duration: number = designTokens.motion.lyricsScroll
 ): void {
     useEffect(() => {
         const container = ref.current;
@@ -41,10 +42,7 @@ export function useLyricAutoScroll(
             const tick = (now: number): void => {
                 const progress = Math.min(
                     1,
-                    Math.max(
-                        0,
-                        (now - began) / designTokens.motion.lyricsScroll
-                    )
+                    Math.max(0, (now - began) / duration)
                 );
                 const eased = progress * progress * (3 - 2 * progress);
                 container.scrollTop = from + (target() - from) * eased;
@@ -68,5 +66,5 @@ export function useLyricAutoScroll(
             resize.disconnect();
             motion.removeEventListener("change", changedMotion);
         };
-    }, [ref, selector]);
+    }, [ref, selector, duration]);
 }

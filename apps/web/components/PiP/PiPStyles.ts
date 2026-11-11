@@ -9,7 +9,7 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-root, .rockit-pip-document .pip-root * { box-sizing: border-box; }
 .rockit-pip-document .pip-root {
     --lyrics-emphasis-scale: ${designTokens.layout.lyricsActiveScale};
-    --lyrics-transition: ${designTokens.motion.lyricsHighlight}ms;
+    --lyrics-transition: ${designTokens.motion.fast}ms;
     --pip-cover-color: var(--theme-media-accent);
     --pip-accent: color-mix(in srgb, var(--pip-cover-color) 40%, var(--theme-foreground-strong));
     --pip-hover: color-mix(in srgb, var(--pip-accent) 16%, transparent);

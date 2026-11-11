@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, type JSX } from "react";
+import { designTokens } from "@rockit/theme";
 import type { PiPLyricsState } from "@/models/types/pip";
 import { useActiveLyricIndex } from "@/hooks/useActiveLyricIndex";
 import { useLyricAutoScroll } from "@/hooks/useLyricAutoScroll";
@@ -30,7 +31,8 @@ export function PiPLyrics({
         scrollRef,
         glance || currentLineIndex < 0
             ? null
-            : `[data-lyric-index="${currentLineIndex}"]`
+            : `[data-lyric-index="${currentLineIndex}"]`,
+        designTokens.motion.normal
     );
 
     const goToLine = (index: number): void => {

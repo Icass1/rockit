@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [PIP] Agilizar el cambio de letras
+
+- tags: [frontend, pip, lyrics]
+- priority: medium
+- workload: Easy
+    ```md
+    Ajuste solicitado tras la revisión de PR206: scroll del PiP con motion.normal (250 ms) y realce con motion.fast (150 ms), reutilizando tokens globales. El Player UI conserva sus tiempos. Se mantienen el reloj del documento PiP, la cancelación y el movimiento reducido.
+    ```
+
 ### [MOBILE] Corregir el header blanco de la PWA iOS
 - tags: [frontend, migration, bug]
 - priority: high

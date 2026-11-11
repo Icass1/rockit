@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { useRef } from "react";
+import { designTokens } from "@rockit/theme";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { useLyricAutoScroll } from "../../../apps/web/hooks/useLyricAutoScroll";
@@ -33,9 +34,15 @@ afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
 });
-function Probe({ active = true }: { active?: boolean }) {
+function Probe({
+    active = true,
+    duration,
+}: {
+    active?: boolean;
+    duration?: number;
+}) {
     const ref = useRef<HTMLDivElement>(null);
-    useLyricAutoScroll(ref, active ? "[data-line]" : null);
+    useLyricAutoScroll(ref, active ? "[data-line]" : null, duration);
     return (
         <div
             data-testid="scroll"
@@ -71,4 +78,16 @@ it("centers immediately without scheduling animation for reduced motion", () => 
     const view = render(<Probe />);
     expect(view.getByTestId("scroll").scrollTop).toBe(300);
     expect(frames.size).toBe(0);
+});
+
+it("finishes the fast PiP scroll without changing the default player clock", () => {
+    vi.spyOn(window.performance, "now").mockReturnValue(0);
+    const player = render(<Probe />);
+    const pip = render(<Probe duration={designTokens.motion.normal} />);
+    const pending = [...frames.values()];
+    frames.clear();
+    pending.forEach((frame) => frame(designTokens.motion.normal));
+    expect(pip.container.firstElementChild!.scrollTop).toBe(300);
+    expect(player.container.firstElementChild!.scrollTop).toBeLessThan(300);
+    expect(frames.size).toBe(1);
 });

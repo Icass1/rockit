@@ -17,7 +17,9 @@ export function PiPRetro({
     lyrics,
     showLyrics,
     onToggleLyrics,
+    onExitRetro,
 }: {
+    onExitRetro: () => void;
     lyrics: PiPLyricsState;
     showLyrics: boolean;
     onToggleLyrics: () => void;
@@ -45,6 +47,8 @@ export function PiPRetro({
                     <div className="pip-retro-menu">
                         <PiPControls
                             layout="narrow"
+                            retro
+                            onToggleRetro={onExitRetro}
                             showLyrics={showLyrics}
                             onToggleLyrics={onToggleLyrics}
                         />

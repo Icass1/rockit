@@ -8,7 +8,6 @@ import { getPiPLayout } from "@/lib/utils/pipLayout";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import { PiPControls } from "@/components/PiP/PiPControls";
 import { PiPCover } from "@/components/PiP/PiPCover";
-import { PiPHeader } from "@/components/PiP/PiPHeader";
 import { PiPInfo } from "@/components/PiP/PiPInfo";
 import { PiPLyrics } from "@/components/PiP/PiPLyrics";
 import { PiPProgress } from "@/components/PiP/PiPProgress";
@@ -105,17 +104,9 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
             style={theme}
             data-pip-layout={layout}
         >
-            <PiPHeader
-                pipWindow={pipWindow}
-                retro={retroVisible}
-                onToggleRetro={
-                    retroEligible
-                        ? () => setRetro((value) => !value)
-                        : undefined
-                }
-            />
             {retroVisible ? (
                 <PiPRetro
+                    onExitRetro={() => setRetro(false)}
                     lyrics={lyrics}
                     showLyrics={lyricsVisible}
                     onToggleLyrics={() => setShowLyrics((value) => !value)}
@@ -133,6 +124,9 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
                             {glanceLyrics && <PiPLyrics {...lyrics} glance />}
                         </PiPInfo>
                         <PiPControls
+                            onToggleRetro={
+                                retroEligible ? () => setRetro(true) : undefined
+                            }
                             layout={layout}
                             showLyrics={showLyrics && media?.type === "song"}
                             onToggleLyrics={(): void =>

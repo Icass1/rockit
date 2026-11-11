@@ -1,6 +1,5 @@
-import { type FeaturedCollectionKey } from "@rockit/shared";
 import { useDesignTheme } from "@rockit/ui";
-import { Download, Heart, ListMusic, Radio } from "@rockit/ui/icons";
+import { Download, Radio } from "@rockit/ui/icons";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";

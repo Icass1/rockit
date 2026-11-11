@@ -24,7 +24,9 @@ export class Http extends BaseHttp {
         const generation = sessionGeneration();
         const cookie = await getSessionCookie();
         const headers = new Headers(options.headers);
-        headers.set("Content-Type", "application/json");
+        if (options.body instanceof FormData) headers.delete("Content-Type");
+        else if (!headers.has("Content-Type"))
+            headers.set("Content-Type", "application/json");
         if (cookie) headers.set("Cookie", `session_id=${cookie}`);
         const response = await fetch(`${BACKEND_URL}${path}`, {
             ...options,

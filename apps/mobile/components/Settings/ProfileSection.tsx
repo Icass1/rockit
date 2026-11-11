@@ -1,9 +1,21 @@
+import { useState } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
+import { pickProfilePhoto } from "@/platform/pickProfilePhoto";
 import { withAlpha } from "@rockit/theme";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Camera } from "@rockit/ui/icons";
 import { Image } from "expo-image";
-import { StyleSheet, Text, View } from "react-native";
+import {
+    ActivityIndicator,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
+import { Http } from "@/lib/http";
+import { userManager } from "@/lib/managers/userManager";
+import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 import LogoutButton from "@/components/Settings/LogoutButton";
 import StatsButton from "@/components/Settings/StatsButton";
@@ -13,15 +25,72 @@ export default function ProfileSection() {
     const styles = useThemedStyles(createStyles);
     const { username, image, admin, isLoading } = useSettingsUser();
 
+    const [uploading, setUploading] = useState(false);
+    const upload = async () => {
+        if (uploading) return;
+        const session = userManager.sessionAtom.get();
+        const current = () =>
+            !!session && userManager.sessionAtom.get() === session;
+        setUploading(true);
+        try {
+            const photo = await pickProfilePhoto();
+            if (!current() || photo.status === "cancelled") return;
+            if (photo.status !== "selected") {
+                toasterManager.notifyError(
+                    photo.status === "denied"
+                        ? vocabulary.MOBILE_PHOTO_PERMISSION
+                        : vocabulary.MOBILE_PHOTO_INVALID
+                );
+                return;
+            }
+            const response = await Http.uploadProfileImage(
+                photo.file,
+                photo.filename
+            );
+            if (!current()) return;
+            if (!response.isOk()) throw new Error(response.message);
+            const fresh = await Http.getSession();
+            if (!current()) return;
+            if (!fresh.isOk()) throw new Error(fresh.message);
+            userManager.seedSession(fresh.result);
+        } catch {
+            if (current())
+                toasterManager.notifyError(vocabulary.MOBILE_PHOTO_ERROR);
+        } finally {
+            setUploading(false);
+        }
+    };
     return (
         <View style={styles.container}>
-            <View style={styles.avatarContainer}>
+            <Pressable
+                style={styles.avatarContainer}
+                accessibilityRole="button"
+                accessibilityLabel={vocabulary.MOBILE_PHOTO_CHANGE}
+                disabled={uploading}
+                onPress={() => void upload()}
+            >
                 <Image
                     source={image || PLACEHOLDER.user}
                     style={styles.avatar}
                     contentFit="cover"
                 />
-            </View>
+                <View
+                    style={{
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        padding: 10,
+                        borderRadius: 24,
+                        backgroundColor: styles.avatar.backgroundColor,
+                    }}
+                >
+                    {uploading ? (
+                        <ActivityIndicator />
+                    ) : (
+                        <Camera size={22} color={styles.username.color} />
+                    )}
+                </View>
+            </Pressable>
 
             {isLoading ? (
                 <View style={styles.skeleton}>
@@ -69,6 +138,7 @@ const createStyles = (theme: DesignTheme) =>
             width: 150,
             height: 150,
             borderRadius: 750,
+            backgroundColor: theme.colors.secondary,
             borderWidth: 2,
             borderColor: theme.legacy.gray800,
         },

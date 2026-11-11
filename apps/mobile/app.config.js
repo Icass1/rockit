@@ -14,7 +14,19 @@ module.exports = {
             backgroundColor: tokens.themes.dark.background,
         },
     },
-    plugins: baseConfig.plugins.map((plugin) =>
+    plugins: [
+        ...baseConfig.plugins,
+        [
+            "expo-image-picker",
+            {
+                photosPermission:
+                    require("../../packages/shared/src/i18n/en.json")
+                        .MOBILE_PHOTO_PERMISSION,
+                cameraPermission: false,
+                microphonePermission: false,
+            },
+        ],
+    ].map((plugin) =>
         Array.isArray(plugin) && plugin[0] === "expo-splash-screen"
             ? [
                   plugin[0],

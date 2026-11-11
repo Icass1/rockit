@@ -4,6 +4,69 @@
 
 ## In Progress
 
+### [LIBRARY] Unificar scroll móvil y mostrar listas RockIt! con portadas
+
+- tags: [frontend, mobile, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Búsqueda y filtros arriba; featured antes de anclados; un único scroll vertical virtualizado.
+    ```
+
+### [SEARCH] Recuperar búsqueda móvil por carruseles
+
+- tags: [frontend, mobile, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Eliminar scrolls verticales anidados y mostrar canciones, álbumes, artistas y playlists en filas horizontales.
+    ```
+
+### [RADIO] Recuperar mapa explorable en móvil
+
+- tags: [frontend, mobile, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Mapa ligero con selección de país y emisoras, compartido entre Android y PWA.
+    ```
+
+### [PLAYER] Simplificar controles y pestañas móviles
+
+- tags: [frontend, mobile, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Iconos de transporte rellenos, botones de reproducción sin texto y pestañas discretas Queue/Lyrics/Related.
+    ```
+
+### [LIKE] Compartir animación RockIt! entre web y móvil
+
+- tags: [frontend, mobile, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Componente único para mano y llama; integrar estado y acciones existentes.
+    ```
+
+### [PROFILE] Subir avatar desde galería móvil
+
+- tags: [frontend, mobile, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Selector web/nativo, validación, subida y actualización de sesión; no confundir username con display name.
+    ```
+
+### [FRIENDS] Rediseñar recorridos sociales móviles
+
+- tags: [frontend, mobile, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Priorizar amigos, invitación a escuchar juntos, búsqueda y actividad; acciones secundarias en menú, sin parrilla de botones.
+    ```
+
 ## Idle
 
 ## To Review

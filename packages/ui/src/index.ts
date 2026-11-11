@@ -16,3 +16,5 @@ export { ActionButton } from "@rockit/ui/primitives/ActionButton";
 
 export { ExplicitBadge } from "@rockit/ui/primitives/ExplicitBadge";
 export { FeaturedArtwork } from "@rockit/ui/primitives/FeaturedArtwork";
+
+export { RockitLikeButton } from "@rockit/ui/primitives/RockitLikeButton";

@@ -11,7 +11,7 @@ const TABS: {
 }[] = [
     { key: "queue", label: "QUEUE" },
     { key: "lyrics", label: "LYRICS" },
-    { key: "related", label: "PLAYER_RELATED_TITLE" },
+    { key: "related", label: "MOBILE_PLAYER_RELATED" },
 ];
 
 interface PlayerTabsBarProps {
@@ -41,6 +41,8 @@ export default function PlayerTabsBar({
                         onPress={() => onTabPress(tab.key)}
                     >
                         <Text
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: isActive }}
                             style={[
                                 styles.tabLabel,
                                 isActive && styles.tabLabelActive,
@@ -61,7 +63,7 @@ const createStyles = (theme: DesignTheme) =>
             flexDirection: "row",
             justifyContent: "space-around",
             paddingHorizontal: theme.spacing.lg,
-            paddingTop: 20,
+            paddingTop: theme.spacing.sm,
         },
         tabButton: {
             alignItems: "center",
@@ -74,9 +76,9 @@ const createStyles = (theme: DesignTheme) =>
             backgroundColor: withAlpha(theme.colors["primary"], 0.15),
         },
         tabLabel: {
-            fontSize: 20,
-            fontWeight: "700",
-            color: theme.legacy.white,
+            fontSize: theme.typography.caption,
+            fontWeight: "500",
+            color: theme.colors["muted-foreground"],
         },
         tabLabelActive: {
             color: theme.legacy.accent,

@@ -6,6 +6,7 @@ import type {
     TMedia,
 } from "@rockit/shared";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Play } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -106,6 +107,7 @@ export default memo(function RenderList({
                         {listPublicId && (
                             <Pressable
                                 accessibilityRole="button"
+                                accessibilityLabel={vocabulary.PLAY}
                                 onPress={() =>
                                     void rockIt.queueManager.playCollection(
                                         listPublicId
@@ -116,9 +118,11 @@ export default memo(function RenderList({
                                     alignItems: "center",
                                 }}
                             >
-                                <Text style={{ color: theme.legacy.accent }}>
-                                    {vocabulary.PLAY}
-                                </Text>
+                                <Play
+                                    size={theme.layout.touchTarget}
+                                    color={theme.colors.primary}
+                                    fill="currentColor"
+                                />
                             </Pressable>
                         )}
                     </>

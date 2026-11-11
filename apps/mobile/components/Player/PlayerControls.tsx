@@ -76,7 +76,11 @@ export default function PlayerControls() {
                 onPress={skipBack}
                 hitSlop={12}
             >
-                <SkipBack size={24} color={theme.legacy.white} />
+                <SkipBack
+                    fill="currentColor"
+                    size={24}
+                    color={theme.legacy.white}
+                />
             </Pressable>
 
             {/* Play / Pause – larger solid button */}
@@ -93,11 +97,13 @@ export default function PlayerControls() {
             >
                 {isPlaying ? (
                     <Pause
+                        fill="currentColor"
                         size={34}
                         color={theme.colors["primary-foreground"]}
                     />
                 ) : (
                     <Play
+                        fill="currentColor"
                         size={34}
                         color={theme.colors["primary-foreground"]}
                     />
@@ -112,7 +118,11 @@ export default function PlayerControls() {
                 onPress={skipForward}
                 hitSlop={12}
             >
-                <SkipForward size={24} color={theme.legacy.white} />
+                <SkipForward
+                    fill="currentColor"
+                    size={24}
+                    color={theme.legacy.white}
+                />
             </Pressable>
 
             {/* Repeat */}

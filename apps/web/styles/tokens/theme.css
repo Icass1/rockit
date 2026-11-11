@@ -120,6 +120,7 @@
     --motion-slow: 400ms;
     --motion-lyricsHighlight: 650ms;
     --motion-lyricsScroll: 900ms;
+    --motion-likeHold: 1000ms;
 }
 
 @theme inline {

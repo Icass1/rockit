@@ -1,11 +1,11 @@
 "use client";
 
-import { withAlpha } from "@rockit/theme";
+import { featuredArtworkSource } from "@rockit/ui/featuredAssets";
 import { CalendarDays, Disc3, Heart, History } from "@rockit/ui/icons";
-import { Text, View } from "@rockit/ui/runtime";
+import { Image, Text, View } from "@rockit/ui/runtime";
 import { useDesignTheme } from "@rockit/ui/theme";
 
-/** Procedural artwork is available on every origin and offline, without image URLs. */
+/** Official RockIt artwork, bundled on native and hosted locally on each web origin. */
 export function FeaturedArtwork({
     kind,
     label,
@@ -39,48 +39,43 @@ export function FeaturedArtwork({
                 justifyContent: "center",
             }}
         >
-            <View
-                style={{
-                    position: "absolute",
-                    width: length * 1.5,
-                    height: length * 1.5,
-                    borderRadius: length,
-                    backgroundColor: withAlpha(theme.colors.primary, 0.35),
-                    left: -length * 0.65,
-                    top: -length * 0.45,
-                }}
+            <Image
+                source={featuredArtworkSource(kind)}
+                resizeMode="cover"
+                style={{ position: "absolute", width: length, height: length }}
             />
             <View
+                pointerEvents="none"
                 style={{
                     position: "absolute",
-                    width: length,
-                    height: length,
-                    borderRadius: length,
-                    backgroundColor: withAlpha(
-                        theme.colors["brand-light"],
-                        0.3
-                    ),
-                    right: -length * 0.45,
-                    bottom: -length * 0.5,
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    alignItems: "center",
+                    justifyContent: "center",
                 }}
-            />
-            {kind === "year-recap" ? (
-                <Text
-                    style={{
-                        color: theme.colors.foreground,
-                        fontSize: length * 0.23,
-                        fontWeight: "700",
-                    }}
-                >
-                    {new Date().getFullYear() - 1}
-                </Text>
-            ) : (
-                <Icon
-                    color={theme.colors.foreground}
-                    size={length * 0.45}
-                    fill={kind === "liked" ? theme.colors.foreground : "none"}
-                />
-            )}
+            >
+                {kind === "year-recap" ? (
+                    <Text
+                        style={{
+                            color: theme.colors["on-media"],
+                            fontSize: length * 0.23,
+                            fontWeight: "700",
+                        }}
+                    >
+                        {new Date().getFullYear() - 1}
+                    </Text>
+                ) : kind !== "last-month" ? (
+                    <Icon
+                        color={theme.colors["on-media"]}
+                        size={length * 0.45}
+                        fill={
+                            kind === "liked" ? theme.colors["on-media"] : "none"
+                        }
+                    />
+                ) : null}
+            </View>
         </View>
     );
 }

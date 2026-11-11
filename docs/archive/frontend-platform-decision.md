@@ -9,7 +9,7 @@ in the earlier [PR #188 pilot](https://github.com/Icass1/rockit/pull/188). That 
 demonstrates web shell isolation, not the architecture or native capabilities below.
 
 For the resulting code, concrete consumers and diagrams, see
-[implemented frontend architecture](../frontend/FRONTEND_IMPLEMENTATION.md). The baseline and
+[implemented frontend architecture](../frontend/architecture.md). The baseline and
 alternative comparisons below preserve the reasoning behind the migration.
 
 ## Decision
@@ -33,7 +33,7 @@ native interface as the finished replacement.
 
 Do not replace the maintained PWA or the Android package until an end-to-end
 mobile slice and real-device playback/offline acceptance pass. Implementation and verification are tracked in
-[the progress record](FRONTEND_MIGRATION_PROGRESS.md); production activation remains
+[the progress record](frontend-migration-progress.md); production activation remains
 subject to these gates. Browser/component checks do not establish full installed-device
 parity.
 

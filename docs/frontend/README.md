@@ -9,13 +9,13 @@ IPA; browser storage and background playback have platform-specific limits.
 
 | Task | Reference |
 | --- | --- |
-| Understand application boundaries and shared components | [Architecture and diagrams](FRONTEND_IMPLEMENTATION.md) |
-| Deploy desktop and mobile independently | [Deployment, authentication and offline behavior](FRONTEND_DEPLOYMENT.md) |
-| Build native mobile targets | [Android APK and EAS builds](BUILDINGAPKIPA.md) |
-| Run contracts, component checks or browser acceptance | [Verification](FRONTEND_TESTING.md) |
-| Diagnose iOS audio and system controls | [iOS playback](IOS_MEDIA_PLAYBACK.md) |
-| Work on transitions | [Browser song transitions](web-transitions.md) |
-| Work on Library interactions | [Track search](LIBRARY_SONG_SEARCH.md), [drag and drop](LIBRARY_DRAG_DROP.md), [navigation anchors](NAVIGATION_PINS.md) |
+| Understand application boundaries and shared components | [Architecture and diagrams](architecture.md) |
+| Deploy desktop and mobile independently | [Deployment, authentication and offline behavior](deployment.md) |
+| Build native mobile targets | [Android APK and EAS builds](native-builds.md) |
+| Run contracts, component checks or browser acceptance | [Verification](testing.md) |
+| Diagnose iOS audio and system controls | [iOS playback](ios-playback.md) |
+| Work on transitions | [Browser song transitions](browser-song-transitions.md) |
+| Work on Library interactions | [Track search](library-song-search.md), [drag and drop](library-drag-drop.md), [navigation anchors](navigation-anchors.md) |
 
 ## Development
 

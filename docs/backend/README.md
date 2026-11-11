@@ -18,12 +18,12 @@ registry. See [provider boundaries](provider-boundaries.md) and the current
 
 | Area | Reference |
 | --- | --- |
-| Playback and cross-client state | [Synchronization](PLAYBACK_SYNC.md) |
-| Source recording selection | [Catalog matching](SONG_RECORDING_SELECTION.md) |
-| Lyrics and reviewed timing | [Lyrics matching](LYRICS_MATCHING.md) |
-| Explicit, clean and unknown metadata | [Content ratings and backfill](CONTENT_RATINGS.md) |
-| Discovery and source fallback | [Recommendations](RECOMMENDATIONS.md) |
-| Download operations | [YouTube downloads](YOUTUBE_DOWNLOADS.md) |
+| Playback and cross-client state | [Synchronization](playback-synchronization.md) |
+| Source recording selection | [Catalog matching](recording-selection.md) |
+| Lyrics and reviewed timing | [Lyrics matching](lyrics-matching.md) |
+| Explicit, clean and unknown metadata | [Content ratings and backfill](content-ratings.md) |
+| Discovery and source fallback | [Recommendations](recommendations.md) |
+| Download operations | [YouTube downloads](youtube-downloads.md) |
 | Audio boundary metadata | [Silence analysis](audio-silence-analysis.md) |
 | Large collections and search | [Pagination](collection-pagination.md), [search performance](search-performance.md) |
 | Collection export | [ZIP export](zip-export.md) |
@@ -45,6 +45,6 @@ when changing contracts. Follow [the test guide](tests.md) for focused checks an
 optional PostgreSQL persistence tests; controlled controller fixtures do not prove
 middleware or real database behavior.
 
-Use [container operations](../operations/DOCKER.md) for deployment. Backfills and
+Use [container operations](../operations/container-deployment.md) for deployment. Backfills and
 other maintenance operations have their own documented scope; a merged feature
 or a successful unit test does not establish that production data was migrated.

@@ -1,4 +1,4 @@
-# Building APK/IPA with EAS
+# Native mobile builds
 
 ## Prerequisites
 
@@ -148,7 +148,7 @@ via ADB and install through OPPO's **My Files**, while Google Files abandoned
 installation of the identical APK. Use **My Files → Downloads**, extract the
 artifact, and open `app-release.apk` there. Switching to EAS, adding a v1
 signature, or removing the manifest's `<queries>` is unnecessary for this case.
-See [the investigation](../archive/ANDROID_PREVIEW_INVESTIGATION.md) for the baseline,
+See [the investigation](../archive/android-preview-investigation.md) for the baseline,
 artifact checks, and reproduction results.
 
 ## Troubleshooting

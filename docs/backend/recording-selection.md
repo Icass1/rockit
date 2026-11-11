@@ -1,4 +1,4 @@
-# Song recording selection after the S3 migration
+# Song recording selection
 
 ## Storage and ownership
 

@@ -78,4 +78,4 @@ Android APK: offline audio/restart, screen lock and queue progression, media con
 interruptions/resume, downloads, storage-pressure handling and upgrade/logout.
 Native component tests do not run Android services, and WebKit automation is not
 an installed iPhone PWA. No physical-device result is inferred from either.
-See [deployment and origin migration](FRONTEND_DEPLOYMENT.md) before rollout.
+See [deployment and origin migration](deployment.md) before rollout.

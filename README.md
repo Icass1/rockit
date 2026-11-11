@@ -200,7 +200,7 @@ The Compose stack includes a YouTube proof-of-origin token provider. Backend vol
 | --- | --- |
 | Desktop, mobile and shared UI | [Frontend](docs/frontend/README.md) |
 | API, providers, metadata and storage | [Backend](docs/backend/README.md) |
-| Deployment | [Desktop/mobile delivery](docs/frontend/FRONTEND_DEPLOYMENT.md) · [Containers](docs/operations/DOCKER.md) |
+| Deployment | [Desktop/mobile delivery](docs/frontend/deployment.md) · [Containers](docs/operations/container-deployment.md) |
 | Product behavior | [Feature references](docs/features/README.md) |
 | Contributing and work tracking | [Contribution guide](CONTRIBUTING.md) · [Project board](docs/Kanban.md) |
 

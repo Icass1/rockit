@@ -1,7 +1,7 @@
-# Docker Compose Guide
+# Container deployment
 
 > Downloads also run a `pot-provider` sidecar that mints YouTube
-> proof-of-origin tokens. See [YOUTUBE_DOWNLOADS.md](../backend/YOUTUBE_DOWNLOADS.md).
+> proof-of-origin tokens. See [YOUTUBE_DOWNLOADS.md](../backend/youtube-downloads.md).
 
 ## Prerequisites
 
@@ -60,7 +60,7 @@ Set in .env.production:
 | DB_NAME            | DB name              | rockit                |
 
 Optional — external recommendation suggestions (local recommendations need
-none of these; see [RECOMMENDATIONS.md](../backend/RECOMMENDATIONS.md)):
+none of these; see [RECOMMENDATIONS.md](../backend/recommendations.md)):
 
 | Var                                     | Desc                                     | Default                       |
 | --------------------------------------- | ---------------------------------------- | ----------------------------- |

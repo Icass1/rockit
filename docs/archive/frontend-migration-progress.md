@@ -4,7 +4,7 @@
 
 Tracking branch: `docs/frontend-platform-architecture`, [PR #189](https://github.com/Icass1/rockit/pull/189).
 Starting point: `develop` at `62958ed7bec53bf4843c8ac7b70946b28c36e0f1`.
-Target: [desktop and universal mobile architecture](FRONTEND_PLATFORM_ARCHITECTURE.md).
+Target: [desktop and universal mobile architecture](frontend-platform-decision.md).
 
 ## Delivery rules
 
@@ -49,7 +49,7 @@ background policy. Native component tests and Metro exports do not establish APK
 installation, Android services or lock-screen behavior. Record each separately.
 
 Architecture overview, actual component reuse and a Library search flow:
-[implemented frontend diagrams](../frontend/FRONTEND_IMPLEMENTATION.md).
+[implemented frontend diagrams](../frontend/architecture.md).
 
 ## Current verification and release status
 
@@ -82,9 +82,9 @@ restart and storage pressure still require installed-device acceptance before ro
 The migration task stays in To Review until the user validates it.
 
 Commands, fixture contracts, timing evidence and platform limits:
-[frontend verification](../frontend/FRONTEND_TESTING.md). Production origins, credentials,
+[frontend verification](../frontend/testing.md). Production origins, credentials,
 backend persistence and existing S3 objects are unchanged. Follow
-[deployment](../frontend/FRONTEND_DEPLOYMENT.md) to coordinate mobile origin activation with
+[deployment](../frontend/deployment.md) to coordinate mobile origin activation with
 the desktop shell change.
 
 ## Work log (incremental evidence)

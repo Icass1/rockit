@@ -1,3 +1,5 @@
+# Historical model conversation
+
 > **Historical document — not current instructions.** This document is preserved for reference. Start with the [documentation index](../README.md) and follow the current [repository engineering instructions](../../AGENTS.md).
 
 I'll explore the docs/ directory to understand what documentation is available.
@@ -450,7 +452,7 @@ HomeClient.tsx ("use client")
    Create components/Home/index.ts
    Key Decisions to Make
 
-# Questions
+## Questions
 
 The backend provides 7 song arrays but the old frontend only used 5 (skipped nostalgicMix and moodSongs). Should we display all 7 sections including Nostalgic Mix and Mood Songs?
 Yes, all 7 (Recommended)

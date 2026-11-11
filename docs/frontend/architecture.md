@@ -1,8 +1,8 @@
-# Implemented frontend architecture
+# Frontend architecture and shared components
 
 This guide maps the frontend applications to their shared packages and platform
-adapters. Use [verification](FRONTEND_TESTING.md) for test coverage and
-[deployment](FRONTEND_DEPLOYMENT.md) for rollout and installed-device acceptance.
+adapters. Use [verification](testing.md) for test coverage and
+[deployment](deployment.md) for rollout and installed-device acceptance.
 
 ![Desktop, universal mobile, shared foundations and platform adapters](../diagrams/frontend-implementation.svg)
 
@@ -144,6 +144,6 @@ or local scheduling service has been installed.
   applications use it; desktop-only PiP stays in `apps/web`.
 - A native integration belongs in the mobile platform adapter, not in portable logic.
 
-[Migration progress](../archive/FRONTEND_MIGRATION_PROGRESS.md) records the implementation and
-open device gates. The [original architecture research](../archive/FRONTEND_PLATFORM_ARCHITECTURE.md)
+[Migration progress](../archive/frontend-migration-progress.md) records the implementation and
+open device gates. The [original architecture research](../archive/frontend-platform-decision.md)
 explains the alternatives and platform limitations behind these choices.

@@ -1,4 +1,4 @@
-# Anclados en navegación
+# Navigation anchors
 
 Se pueden anclar álbumes, playlists y artistas existentes en el catálogo mediante el menú contextual (clic derecho, pulsación larga o Mayús+F10). No se fijan canciones, vídeos, emisoras ni perfiles de usuario. La página de artista ofrece ahora un menú de opciones cuando tiene una identidad de catálogo real; un perfil sintético por nombre sin ID no se convierte automáticamente en un artista ni se importa para anclarlo.
 

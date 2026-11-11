@@ -1,4 +1,4 @@
-# Independent desktop and mobile deployment
+# Desktop and mobile deployment
 
 The desktop application is `apps/web` (Next.js). The mobile product is
 `apps/mobile`: Expo/React Native for Android and Expo/React Native Web for the iOS

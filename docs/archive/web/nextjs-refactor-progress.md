@@ -896,8 +896,8 @@ GitHub Actions, including boundary and fixture types. Seven production Chromium
 flows also pass. All required jobs are green at the verified implementation commit
 `44ec20a7`; documentation-only commits retain the same implementation.
 
-The [migration progress](../FRONTEND_MIGRATION_PROGRESS.md),
-[test guide](../../frontend/FRONTEND_TESTING.md) and [deployment guide](../../frontend/FRONTEND_DEPLOYMENT.md)
+The [migration progress](../frontend-migration-progress.md),
+[test guide](../../frontend/testing.md) and [deployment guide](../../frontend/deployment.md)
 record the final scope and remaining installed iPhone/Android gates. Heavy browser/
 APK acceptance is manually dispatched, not required on every PR. No physical-device
 acceptance or production routing change is claimed. The current user instruction

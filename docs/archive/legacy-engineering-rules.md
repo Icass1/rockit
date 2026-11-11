@@ -1,3 +1,5 @@
+# Historical engineering rules
+
 > **Historical document — not current instructions.** This document is preserved for reference. Start with the [documentation index](../README.md) and follow the current [repository engineering instructions](../../AGENTS.md).
 
 create claude.md file:

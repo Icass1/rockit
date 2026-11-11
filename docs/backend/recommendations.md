@@ -186,4 +186,4 @@ external covers are resolved near the viewport through authenticated
 uses `track.getInfo` album artwork with identity checks, pacing, caching and bounded
 concurrency. Missing images do not block discovery or playback; a bundled
 placeholder remains when no valid cover is available. See
-[the artwork and scrolling notes](../archive/PIP_RECOMMENDATION_SCROLL.md).
+[the artwork and scrolling notes](../archive/pip-and-recommendation-scroll-investigation.md).

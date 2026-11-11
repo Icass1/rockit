@@ -865,6 +865,8 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (
             kind === "audio" &&
             this._preloadAudio &&
+            (this._transitionSettings.get().enabled ||
+                !this._mixer.has(this._preloadAudio)) &&
             this._preloadedUri === uri &&
             this._preloadedForQueueMediaId ===
                 getRockIt().queueManager.currentQueueMediaId &&

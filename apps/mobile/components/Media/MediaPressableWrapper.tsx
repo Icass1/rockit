@@ -284,7 +284,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                             if (isCurrent()) {
                                 if (count)
                                     toasterManager.notifySuccess(
-                                        vocabulary.MEDIA_ADDED_TO_LIBRARY
+                                        `${count} ${vocabulary.OFFLINE_DOWNLOAD_SUMMARY}`
                                     );
                                 else
                                     toasterManager.notifyWarn(

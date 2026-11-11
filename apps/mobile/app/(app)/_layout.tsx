@@ -47,7 +47,15 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
     const router = useRouter();
     const segments = useSegments();
 
-    const activeTab = segments.at(1) || "index";
+    const route = segments.at(1) || "index";
+    const activeTab =
+        route === "downloader"
+            ? "library"
+            : route === "radio"
+              ? "search"
+              : route === "stats"
+                ? "settings"
+                : route;
 
     const tabs = [
         {
@@ -141,7 +149,7 @@ const createStyles = (theme: DesignTheme) =>
         },
         tabItem: {
             flex: 1,
-            height: theme.layout.tabBar,
+            minHeight: theme.layout.touchTarget,
             alignItems: "center",
             justifyContent: "center",
         },

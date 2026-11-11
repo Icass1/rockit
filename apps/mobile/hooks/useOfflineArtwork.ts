@@ -34,5 +34,7 @@ export function useOfflineArtwork(
             events.removeEventListener(EEvent.MediaDownloaded, onDownload);
         };
     }, [publicId]);
-    return local?.publicId === publicId ? local.uri : (remote ?? undefined);
+    return local && local.publicId === publicId
+        ? local.uri
+        : (remote ?? undefined);
 }

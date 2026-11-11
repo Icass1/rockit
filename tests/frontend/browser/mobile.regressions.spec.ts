@@ -160,3 +160,72 @@ test("album context menu saves audio and cover for the device's offline catalog"
         )
     ).toBe(true);
 });
+
+test("search shelves remain horizontally browsable inside one vertically scrollable page", async ({
+    page,
+    request,
+}) => {
+    const results = ["song", "album", "artist", "playlist"].flatMap((type) =>
+        Array.from({ length: 8 }, (_, i) => ({
+            type,
+            searchResult: true,
+            name: `Shelf ${type} ${i}`,
+            providerUrl: `https://fixture.invalid/${type}/${i}`,
+            imageUrl: "",
+            artists: [],
+            provider: "Fixture",
+            downloaded: false,
+            url: null,
+            publicId: null,
+        }))
+    );
+    await request.post(backend + "/__fixture/fault", {
+        data: { path: "/media/search", body: { results } },
+    });
+    await page.goto(mobile + "/search");
+    await page.getByRole("textbox").first().fill("Shelf");
+    await expect(page.getByText("Shelf song 0", { exact: true })).toBeVisible();
+    await page
+        .getByText("Shelf playlist 0", { exact: true })
+        .scrollIntoViewIfNeeded();
+    await expect(
+        page.getByText("Shelf playlist 0", { exact: true })
+    ).toBeVisible();
+    expect(
+        await page.evaluate(
+            () =>
+                [...document.querySelectorAll("div")].filter(
+                    (e) =>
+                        getComputedStyle(e).overflowX === "auto" &&
+                        e.scrollWidth > e.clientWidth
+                ).length
+        )
+    ).toBeGreaterThanOrEqual(4);
+});
+
+test("Radio country selection and friend secondary actions use existing flows", async ({
+    page,
+    request,
+}) => {
+    await request.post(backend + "/__fixture/fault", {
+        data: { path: "/radio/stations/by-country/Spain", body: [] },
+    });
+    await page.goto(mobile + "/radio");
+    await page.locator('path[aria-label="Spain"]').click({ force: true });
+    await expect
+        .poll(async () => {
+            const calls = await (
+                await request.get(backend + "/__fixture/calls")
+            ).json();
+            return calls.calls.some(
+                (call: { path: string }) =>
+                    call.path === "/radio/stations/by-country/Spain"
+            );
+        })
+        .toBe(true);
+    await page.goto(mobile + "/friends");
+    await expect(
+        page.getByText("Fixture Friend", { exact: true })
+    ).toBeVisible();
+    await expect(page.getByRole("tab")).toHaveCount(4);
+});

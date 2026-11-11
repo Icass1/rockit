@@ -2,7 +2,7 @@ import { memo } from "react";
 import countries from "@/assets/data/radio-world.json";
 import type { BaseStationResponse } from "@rockit/shared";
 import { useDesignTheme } from "@rockit/ui";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -50,6 +50,25 @@ export default memo(function RadioMap({
                             return event;
                         }}
                         accessibilityLabel={country.name}
+                        {...(Platform.OS === "web"
+                            ? {
+                                  "aria-label": country.name,
+                                  role: "button",
+                                  tabIndex: 0,
+                                  onKeyDown: (event: {
+                                      key: string;
+                                      preventDefault: () => void;
+                                  }) => {
+                                      if (
+                                          event.key === "Enter" ||
+                                          event.key === " "
+                                      ) {
+                                          event.preventDefault();
+                                          onCountry(country.name);
+                                      }
+                                  },
+                              }
+                            : {})}
                     />
                 ))}
                 {stations
@@ -71,6 +90,25 @@ export default memo(function RadioMap({
                                 return event;
                             }}
                             accessibilityLabel={station.name}
+                            {...(Platform.OS === "web"
+                                ? {
+                                      "aria-label": station.name,
+                                      role: "button",
+                                      tabIndex: 0,
+                                      onKeyDown: (event: {
+                                          key: string;
+                                          preventDefault: () => void;
+                                      }) => {
+                                          if (
+                                              event.key === "Enter" ||
+                                              event.key === " "
+                                          ) {
+                                              event.preventDefault();
+                                              onStation(station);
+                                          }
+                                      },
+                                  }
+                                : {})}
                         />
                     ))}
             </Svg>

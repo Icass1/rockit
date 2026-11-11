@@ -166,15 +166,17 @@ it("lets the native transport supply the multipart boundary while preserving aut
     } as unknown as Blob;
     const original = global.FormData;
     // Exercise RN's URI-descriptor transport, rather than Node's Blob-only polyfill.
-    global.FormData = require("react-native/Libraries/Network/FormData").default;
+    global.FormData =
+        require("react-native/Libraries/Network/FormData").default;
     try {
         await Http.uploadProfileImage(photo, "photo.jpg");
         const [, request] = transport.mock.calls.at(-1)!;
         expect(request.body).toBeInstanceOf(FormData);
         expect(new Headers(request.headers).has("content-type")).toBe(false);
-        expect(new Headers(request.headers).get("cookie")).toContain("photo-account");
+        expect(new Headers(request.headers).get("cookie")).toContain(
+            "photo-account"
+        );
     } finally {
         global.FormData = original;
     }
-
 });

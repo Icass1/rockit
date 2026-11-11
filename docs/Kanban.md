@@ -4,6 +4,10 @@
 
 ## In Progress
 
+## Idle
+
+## To Review
+
 ### [LIBRARY] Unificar scroll móvil y mostrar listas RockIt! con portadas
 
 - tags: [frontend, mobile, ux]
@@ -67,9 +71,6 @@
     Priorizar amigos, invitación a escuchar juntos, búsqueda y actividad; acciones secundarias en menú, sin parrilla de botones.
     ```
 
-## Idle
-
-## To Review
 
 ### [PIP] Agilizar el cambio de letras
 

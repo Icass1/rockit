@@ -2,155 +2,156 @@
 
 ## To Do
 
-### [MOBILE] Corregir el header blanco de la PWA iOS
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Usar el fondo y la barra de estado del tema también en el área segura superior.
-    ```
-
-### [MOBILE] Respetar el área segura inferior de navegación
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Reservar espacio para la interfaz del sistema en iOS y Android sin tapar navegación ni contenido.
-    ```
-
-### [MOBILE] Corregir la página de Radio
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Revisar tema, búsqueda, estados vacíos y reproducción.
-    ```
-
-### [MOBILE] Corregir la página de Friends
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Revisar tema, pestañas, acciones y estados de carga/error.
-    ```
-
-### [QUEUE] Restaurar drag and drop de la cola en escritorio
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Verificar reordenación, identidad de elementos y conservación de la reproducción.
-    ```
-
-### [MOBILE] Mostrar playlists destacadas de RockIt!
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Integrar listas propias en Home y Library con navegación y reproducción coherentes.
-    ```
-
-### [MOBILE] Simplificar la navegación principal
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Reducir destinos principales y mantener acceso claro a Downloads y Radio desde Library/Search.
-    ```
-
-### [PLAYER] Corregir transiciones de canciones en la PWA iOS
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Investigar la pausa de unos siete segundos; preservar precarga, mezcla y reproducción en segundo plano.
-    ```
-
-### [PLAYER] Eliminar controles relativos de diez segundos en móvil
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    No registrar seekbackward/seekforward; conservar nexttrack/previoustrack y posición absoluta.
-    ```
-
-### [MOBILE] Mantener navegación en Statistics
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Integrar estadísticas en el shell móvil sin perder la navegación inferior.
-    ```
-
-### [MOBILE] Corregir tamaño del icono instalado en iOS
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Revisar apple-touch-icon y proporciones del logo en la PWA.
-    ```
-
-### [OFFLINE] Mostrar portadas en medios sin conexión
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Guardar y resolver carátulas con la caché offline por cuenta.
-    ```
-
-### [OFFLINE] Descargar álbumes y playlists desde el menú contextual
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Añadir Download offline con estados, errores y descarga acotada de colecciones.
-    ```
-
-### [MOBILE] Corregir la página de Artist
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Revisar fondo, imagen, subtítulos, discografía y navegación a canciones/álbumes.
-    ```
-
-### [MOBILE] Gestionar orientación vertical y modo apaisado
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Verificar capacidades reales de bloqueo por plataforma; cuando no sea posible, adaptar vistas y controles al paisaje.
-    ```
-
-### [PIP] Eliminar la cabecera decorativa de escritorio
-
-- tags: [frontend, migration, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Retirar botón rojo, agarre y hueco de cabecera tanto del modo retro como de los modos normales; conservar los controles funcionales.
-    ```
-
 ## In Progress
 
 ## Idle
 
 ## To Review
+
+### [MOBILE] Corregir el header blanco de la PWA iOS
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Usar el fondo y la barra de estado del tema también en el área segura superior.
+    Tema del documento, meta theme-color y viewport-fit=cover; fondo común del shell. Verificación de producción en Chromium; barra de estado física iOS pendiente.
+    ```
+
+### [MOBILE] Respetar el área segura inferior de navegación
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Reservar espacio para la interfaz del sistema en iOS y Android sin tapar navegación ni contenido.
+    Viewport edge-to-edge y safe area inferior compartida con minirreproductor y contenido. Sin desbordamiento en paisaje corto; validación de home indicator en iPhone pendiente.
+    ```
+
+### [MOBILE] Corregir la página de Radio
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Revisar tema, búsqueda, estados vacíos y reproducción.
+    Fondo explícito del tema en la lista virtualizada; búsqueda, estados y navegación preservados. Ruta compilada verificada con backend simulado.
+    ```
+
+### [MOBILE] Corregir la página de Friends
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Revisar tema, pestañas, acciones y estados de carga/error.
+    Fondo explícito del tema en la lista virtualizada; pestañas desplazables y acciones preservadas. Ruta y contenido verificados con backend simulado.
+    ```
+
+### [QUEUE] Restaurar drag and drop de la cola en escritorio
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Verificar reordenación, identidad de elementos y conservación de la reproducción.
+    Reordenación por identidad de ocurrencia, orden aleatorio correcto, imágenes sin drag nativo y carga de páginas pendientes al soltar. Regresiones para colas completas y paginadas; no reinicia la canción.
+    ```
+
+### [MOBILE] Mostrar playlists destacadas de RockIt!
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Integrar listas propias en Home y Library con navegación y reproducción coherentes.
+    Accesos a las cinco listas propias en Home y Library, con etiquetas de vocabulary y sin descargar sus canciones al mostrar accesos. Verificado en navegador.
+    ```
+
+### [MOBILE] Simplificar la navegación principal
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Reducir destinos principales y mantener acceso claro a Downloads y Radio desde Library/Search.
+    Cinco destinos principales; Downloads desde Library/Home y Radio desde Buscar. Destino principal seleccionado coherente y rutas profundas preservadas. Verificado en navegador.
+    ```
+
+### [PLAYER] Corregir transiciones de canciones en la PWA iOS
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Investigar la pausa de unos siete segundos; preservar precarga, mezcla y reproducción en segundo plano.
+    Recuperación de crossfade guardado si no hay preferencia local y promoción del elemento precargado en vez de descartar su buffer. Precarga también en segundo plano. Regresiones de transporte y concesión de reproducción correctas; latencia real y mezcla con iOS bloqueado pendientes de aceptación física.
+    ```
+
+### [PLAYER] Eliminar controles relativos de diez segundos en móvil
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    No registrar seekbackward/seekforward; conservar nexttrack/previoustrack y posición absoluta.
+    Web mantiene seekbackward/seekforward a null; Android deja de anunciar comandos de salto relativo y opciones de diez segundos. Next/previous y seek absoluto conservados. MediaSession verificada con agentes iPhone, Mac y Linux; controles físicos pendientes.
+    ```
+
+### [MOBILE] Mantener navegación en Statistics
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Integrar estadísticas en el shell móvil sin perder la navegación inferior.
+    Ruta /stats integrada en el grupo autenticado del shell; conserva navegación, minirreproductor y sesión. Verificada en navegador.
+    ```
+
+### [MOBILE] Corregir tamaño del icono instalado en iOS
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Revisar apple-touch-icon y proporciones del logo en la PWA.
+    Apple touch icon utiliza el logo existente de 512 px, con menos margen interno, en lugar del icono de 1024 px excesivamente acolchado. Prueba del shell y manifest correcta; reinstalación en iOS pendiente.
+    ```
+
+### [OFFLINE] Mostrar portadas en medios sin conexión
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Guardar y resolver carátulas con la caché offline por cuenta.
+    Portadas persistidas resueltas en catálogo offline, filas y reproductores; respuestas antiguas de otra canción descartadas. Descarga y visualización sin red verificadas con backend simulado.
+    ```
+
+### [OFFLINE] Descargar álbumes y playlists desde el menú contextual
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Añadir Download offline con estados, errores y descarga acotada de colecciones.
+    Menú de álbumes/playlists con descarga secuencial, páginas de cien, deduplicación y protección frente a ciclos y cambios de sesión. Cuota/error detiene el proceso sin afirmar éxito completo. Flujo de álbum con audio y portada verificado en navegador.
+    ```
+
+### [MOBILE] Corregir la página de Artist
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Revisar fondo, imagen, subtítulos, discografía y navegación a canciones/álbumes.
+    Fondo coherente y créditos reales para álbumes sin canciones embebidas, eliminando Not supported subtitle. Ruta compilada y contenido verificados con backend simulado. Una imagen ausente en origen no se inventa.
+    ```
+
+### [MOBILE] Gestionar orientación vertical y modo apaisado
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Verificar capacidades reales de bloqueo por plataforma; cuando no sea posible, adaptar vistas y controles al paisaje.
+    Android configurado en vertical y manifiesto PWA con preferencia portrait; intento de lock solo si existe la capacidad. WebKit no ofrece bloqueo fiable en PWA iOS: reproductor usa dimensiones reactivas, arte acotado y contenido desplazable. Paisaje corto verificado en Chromium; dispositivo físico pendiente.
+    ```
+
+### [PIP] Eliminar la cabecera decorativa de escritorio
+- tags: [frontend, migration, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Retirar botón rojo, agarre y hueco de cabecera tanto del modo retro como de los modos normales; conservar los controles funcionales.
+    PR206: Cabecera, botón rojo, agarre y padding reservados eliminados en todos los modos. Modo retro y retorno al normal accesibles desde Opciones; animación de vinilo y controles preservados. Pendiente de validación del usuario.
+    ```
+
 
 ### [PIP] Actualizar carátula del vinilo con la ventana principal en segundo plano
 

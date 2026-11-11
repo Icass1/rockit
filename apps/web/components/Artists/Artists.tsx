@@ -9,21 +9,20 @@ export default function Artists({
     artists,
     className,
     linkable = true,
+    multiline = false,
 }: {
     artists: BaseArtistResponse[];
     className?: string;
     linkable?: boolean;
+    multiline?: boolean;
 }): JSX.Element {
     return (
         <div
             title={artists.map((artist) => artist.name).join(", ")}
-            className={`flex flex-row flex-nowrap justify-start gap-1 ${className || ""}`}
+            className={`max-w-full min-w-0 leading-normal ${multiline ? "line-clamp-5 text-center" : "truncate"} ${className || ""}`}
         >
             {artists.map((artist, index): JSX.Element => (
-                <div
-                    key={artist.publicId || artist.name}
-                    className="flex shrink-0 flex-nowrap"
-                >
+                <span key={artist.publicId || artist.name}>
                     {linkable ? (
                         <Link
                             data-artist-link
@@ -40,15 +39,15 @@ export default function Artists({
                             onContextMenu={(event): void =>
                                 event.stopPropagation()
                             }
-                            className="focus-visible:outline-foreground-strong truncate hover:underline focus-visible:underline focus-visible:outline-2"
+                            className="focus-visible:outline-foreground-strong hover:underline focus-visible:underline focus-visible:outline-2"
                         >
                             {artist.name}
                         </Link>
                     ) : (
-                        <span className="truncate">{artist.name}</span>
+                        <span>{artist.name}</span>
                     )}
-                    {index !== artists.length - 1 && <span>,</span>}
-                </div>
+                    {index !== artists.length - 1 && <span>, </span>}
+                </span>
             ))}
         </div>
     );

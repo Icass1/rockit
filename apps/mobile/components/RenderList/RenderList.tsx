@@ -77,13 +77,13 @@ export default memo(function RenderList({
                                 />
                             </View>
                             <View style={styles.titleContainer}>
-                                <Text style={styles.title} numberOfLines={2}>
+                                <Text style={styles.title} numberOfLines={5}>
                                     {title}
                                 </Text>
                                 {artistNames && (
                                     <Text
                                         style={styles.artistText}
-                                        numberOfLines={1}
+                                        numberOfLines={5}
                                     >
                                         {artistNames}
                                     </Text>
@@ -168,6 +168,7 @@ const createStyles = (theme: DesignTheme) =>
             backgroundColor: theme.legacy.bgCard,
         },
         titleContainer: {
+            width: "100%",
             alignItems: "center",
             marginTop: 20,
         },
@@ -178,6 +179,8 @@ const createStyles = (theme: DesignTheme) =>
             textAlign: "center",
         },
         artistText: {
+            textAlign: "center",
+            maxWidth: "100%",
             color: theme.legacy.gray400,
             fontSize: theme.typography.body,
             marginTop: theme.spacing.xs,

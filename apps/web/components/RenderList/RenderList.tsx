@@ -113,6 +113,7 @@ export default function RenderList({
                     </div>
                     <Artists
                         artists={artists}
+                        multiline
                         className="text-muted-foreground text-lg font-semibold text-balance"
                     />
                     <p className="text-muted-foreground flex items-center justify-center gap-2 text-center font-semibold text-balance">

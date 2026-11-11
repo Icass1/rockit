@@ -1,5 +1,8 @@
 import type { ListeningHeatmapSegment } from "@/dto";
-import type { ListeningHeatmapSummary } from "@/models/types/listeningHeatmap";
+import type {
+    ListeningHeatmapInterval,
+    ListeningHeatmapSummary,
+} from "@/models/types/listeningHeatmap";
 import { Http } from "@/lib/http";
 
 export class ListeningHeatmapManager {
@@ -13,7 +16,8 @@ export class ListeningHeatmapManager {
     countAt(
         segments: ListeningHeatmapSegment[],
         currentTime: number,
-        playedUntil?: number
+        completed: ListeningHeatmapInterval[] = [],
+        active?: ListeningHeatmapInterval
     ): number {
         if (!Number.isFinite(currentTime) || currentTime < 0) return 0;
         const ms = currentTime * 1000;
@@ -22,38 +26,42 @@ export class ListeningHeatmapManager {
             segments.find(
                 (segment) => segment.startMs <= ms && segment.endMs > ms
             )?.count ?? (last?.endMs === ms ? last.count : 0);
-        // The cursor belongs to the live pass even at its half-open chart edge.
-        return (
-            baseline +
-            (playedUntil !== undefined && currentTime <= playedUntil ? 1 : 0)
-        );
+        const closedCount = completed.filter(
+            (interval) => interval.startMs <= ms && interval.endMs > ms
+        ).length;
+        // Include the active pass at the cursor without sampling a rounded chart edge.
+        const activeCount =
+            active && active.startMs <= ms && active.endMs >= ms ? 1 : 0;
+        return baseline + closedCount + activeCount;
     }
 
     withPlayback(
         segments: ListeningHeatmapSegment[],
-        currentTime: number
+        intervals: ListeningHeatmapInterval[]
     ): ListeningHeatmapSegment[] {
-        const cursor = Math.max(0, Math.round(currentTime * 1000));
-        if (!Number.isFinite(cursor) || cursor === 0) return segments;
-        const boundaries = Array.from(
-            new Set([
-                0,
-                cursor,
-                ...segments.flatMap(({ startMs, endMs }) => [startMs, endMs]),
-            ])
-        ).sort((a, b) => a - b);
+        const events = new Map<number, number>();
+        for (const segment of [
+            ...segments,
+            ...intervals.map((interval) => ({ ...interval, count: 1 })),
+        ]) {
+            if (segment.endMs <= segment.startMs) continue;
+            events.set(
+                segment.startMs,
+                (events.get(segment.startMs) ?? 0) + segment.count
+            );
+            events.set(
+                segment.endMs,
+                (events.get(segment.endMs) ?? 0) - segment.count
+            );
+        }
+        const boundaries = Array.from(events.keys()).sort((a, b) => a - b);
         const result: ListeningHeatmapSegment[] = [];
-        let index = 0;
-        for (let i = 0; i < boundaries.length - 1; i++) {
-            const startMs = boundaries[i];
-            const endMs = boundaries[i + 1];
-            while (index < segments.length && segments[index].endMs <= startMs)
-                index++;
-            const segment = segments[index];
-            const count =
-                (segment && segment.startMs <= startMs ? segment.count : 0) +
-                (startMs < cursor ? 1 : 0);
-            if (count === 0) continue;
+        let count = 0;
+        for (let index = 0; index < boundaries.length - 1; index++) {
+            const startMs = boundaries[index];
+            const endMs = boundaries[index + 1];
+            count += events.get(startMs) ?? 0;
+            if (count <= 0) continue;
             const previous = result.at(-1);
             if (previous?.endMs === startMs && previous.count === count)
                 previous.endMs = endMs;

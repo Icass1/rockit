@@ -2,6 +2,7 @@ import { resolveNextOnEnd, resolveOnMediaError } from "@/audio/queueLogic";
 import { getRockIt } from "@/rockit/rockitRef";
 import { EQueueAction } from "@/models/enums/queueAction";
 import { ERepeatMode } from "@/models/enums/repeatMode";
+import type { PlaybackPosition } from "@/models/interfaces/playbackPosition";
 import {
     getMediaAudioUrl,
     getMediaDuration,
@@ -40,6 +41,9 @@ export abstract class BaseMediaPlayerManager {
     protected _playingAtom = createAtom<boolean>(false);
     protected _loadingAtom = createAtom<boolean>(false);
     protected _currentTimeAtom = createAtom<number>(0);
+    private _playbackPositionAtom = createAtom<PlaybackPosition | undefined>(
+        undefined
+    );
     protected _volumeAtom = createAtom<number>(1);
     protected _crossFadeAtom = createAtom<number>(0);
     protected _triggeredBookmarkPublicIdsAtom = createArrayAtom<string>([]);
@@ -496,6 +500,7 @@ export abstract class BaseMediaPlayerManager {
         this._seekFrom = this.getNativePosition(
             this._effectiveKind(currentMedia)
         );
+        this._publishPlaybackPosition("seek", this._seekFrom, this._seekFrom);
     }
 
     setCurrentTime(time: number, sendMessage: boolean = true): void {
@@ -504,6 +509,7 @@ export abstract class BaseMediaPlayerManager {
 
         const kind: TMediaKind = this._effectiveKind(currentMedia);
         const timeFrom = this.getNativePosition(kind);
+        this._publishPlaybackPosition("seek", timeFrom, time);
         this.seekNative(kind, time);
         if (sendMessage) {
             this._sendSeek(currentMedia.publicId, timeFrom, time);
@@ -517,6 +523,7 @@ export abstract class BaseMediaPlayerManager {
         if (!currentMedia) return;
 
         const kind: TMediaKind = this._effectiveKind(currentMedia);
+        this._publishPlaybackPosition("seek", this._seekFrom, time);
         this.seekNative(kind, time);
         this._currentTimeAtom.set(time);
         this._sendSeek(currentMedia.publicId, this._seekFrom, time);
@@ -722,6 +729,8 @@ export abstract class BaseMediaPlayerManager {
                 kind,
                 this._syncOwner ? startAt : this._currentTimeAtom.get()
             );
+            const position = this.getNativePosition(kind);
+            this._publishPlaybackPosition("seek", position, position);
             await this.afterMediaLoadedAsync(media, kind, uri);
         } finally {
             if (isCurrent()) {
@@ -758,6 +767,28 @@ export abstract class BaseMediaPlayerManager {
         });
     }
 
+    private _publishPlaybackPosition(
+        kind: PlaybackPosition["kind"],
+        timeFrom: number,
+        timeTo: number
+    ): void {
+        const media = getRockIt().queueManager.currentMedia;
+        if (!media || !Number.isFinite(timeFrom) || !Number.isFinite(timeTo))
+            return;
+        this._playbackPositionAtom.set({
+            mediaPublicId: media.publicId,
+            playbackId: this._playbackId,
+            kind,
+            timeFrom,
+            timeTo,
+            seeking: this._isSeeking,
+        });
+    }
+
+    get playbackPositionAtom(): ReadonlyAtom<PlaybackPosition | undefined> {
+        return this._playbackPositionAtom.getReadonlyAtom();
+    }
+
     protected _handleTimeUpdate(time: number): void {
         if (this._isSeeking || this._loadingPlayback || !this._syncOwner)
             return;
@@ -774,6 +805,11 @@ export abstract class BaseMediaPlayerManager {
         const duration = this.getPlaybackDuration(currentMedia);
         if (!Number.isFinite(time) || time < 0 || (duration && time > duration))
             return;
+        this._publishPlaybackPosition(
+            "progress",
+            this._currentTimeAtom.get(),
+            time
+        );
         this._currentTimeAtom.set(time);
 
         // Check bookmarks we've crossed since last update.

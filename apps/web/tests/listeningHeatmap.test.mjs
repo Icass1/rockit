@@ -11,6 +11,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const { outputFiles } = await build({
     stdin: {
         contents: `export { useListeningHeatmap } from '@/hooks/useListeningHeatmap';
+export { ListeningHeatmapPlayback } from '@/lib/managers/listeningHeatmapPlayback';
 export { listeningHeatmapManager } from '@/lib/managers/listeningHeatmapManager';
 export { listeningHeatmapCurve } from '@/lib/utils/listeningHeatmapCurve';
 export { default as ListeningHeatmap } from '@/components/ListeningHeatmap/ListeningHeatmap';`,
@@ -50,6 +51,29 @@ function setup() {
         mediaPlayerManager: {
             playingAtom: atom(true),
             currentTimeAtom: atom(0),
+            playbackPositionAtom: atom(undefined),
+            advance(time) {
+                this.playbackPositionAtom.set({
+                    mediaPublicId: runtime.queueManager.currentMedia.publicId,
+                    playbackId: "pass-one",
+                    kind: "progress",
+                    timeFrom: this.currentTimeAtom.get(),
+                    timeTo: time,
+                    seeking: false,
+                });
+                this.currentTimeAtom.set(time);
+            },
+            seek(time, seeking = false) {
+                this.playbackPositionAtom.set({
+                    mediaPublicId: runtime.queueManager.currentMedia.publicId,
+                    playbackId: "pass-one",
+                    kind: "seek",
+                    timeFrom: this.currentTimeAtom.get(),
+                    timeTo: time,
+                    seeking,
+                });
+                this.currentTimeAtom.set(time);
+            },
         },
         queueManager: { currentMedia: { publicId: "one" } },
     };
@@ -91,18 +115,20 @@ test("playback adds exactly one listen before the cursor, including gaps, withou
         { startMs: 0, endMs: 1000, count: 3 },
         { startMs: 2000, endMs: 4000, count: 2 },
     ];
-    assert.deepEqual(manager.withPlayback(baseline, 3), [
-        { startMs: 0, endMs: 1000, count: 4 },
-        { startMs: 1000, endMs: 2000, count: 1 },
-        { startMs: 2000, endMs: 3000, count: 3 },
-        { startMs: 3000, endMs: 4000, count: 2 },
-    ]);
+    assert.deepEqual(
+        manager.withPlayback(baseline, [{ startMs: 0, endMs: 3000 }]),
+        [
+            { startMs: 0, endMs: 1000, count: 4 },
+            { startMs: 1000, endMs: 2000, count: 1 },
+            { startMs: 2000, endMs: 3000, count: 3 },
+            { startMs: 3000, endMs: 4000, count: 2 },
+        ]
+    );
     assert.equal(baseline[0].count, 3);
-    assert.deepEqual(manager.withPlayback([], 2), [
+    assert.deepEqual(manager.withPlayback([], [{ startMs: 0, endMs: 2000 }]), [
         { startMs: 0, endMs: 2000, count: 1 },
     ]);
-    assert.equal(manager.withPlayback(baseline, 0), baseline);
-    assert.equal(manager.withPlayback(baseline, NaN), baseline);
+    assert.deepEqual(manager.withPlayback(baseline, []), baseline);
 });
 
 test("the heatmap loads once per media and projects the live cursor while preserving paused history", async (t) => {
@@ -116,7 +142,7 @@ test("the heatmap loads once per media and projects the live cursor while preser
     }
     const root = createRoot();
     await act(() => root.render(createElement(Probe, { publicId: "one" })));
-    await act(() => player.currentTimeAtom.set(2));
+    await act(() => player.advance(2));
     await act(() =>
         requests[0].resolve([{ startMs: 0, endMs: 10000, count: 3 }])
     );
@@ -126,28 +152,31 @@ test("the heatmap loads once per media and projects the live cursor while preser
     ]);
     await act(() => {
         t.mock.timers.tick(120000);
-        player.currentTimeAtom.set(4);
+        player.advance(4);
     });
     assert.equal(requests.length, 1);
     assert.equal(snapshot.segments[0].endMs, 4000);
     await act(() => player.playingAtom.set(false));
-    await act(() => player.currentTimeAtom.set(8));
+    await act(() => player.seek(8));
     assert.equal(snapshot.segments[0].endMs, 4000);
     await act(() => player.playingAtom.set(true));
-    assert.equal(snapshot.segments[0].endMs, 8000);
-    await act(() => player.currentTimeAtom.set(1));
-    assert.equal(snapshot.segments[0].endMs, 1000);
+    assert.equal(snapshot.segments[0].endMs, 4000);
+    await act(() => player.seek(1));
+    assert.equal(snapshot.segments[0].endMs, 4000);
     runtime.queueManager.currentMedia = { publicId: "two" };
     await act(() => root.render(createElement(Probe, { publicId: "two" })));
     assert.equal(snapshot.status, "loading");
     assert.equal(requests.length, 2);
     await act(() => requests[1].resolve([]));
+    assert.deepEqual(snapshot.segments, []);
+    await act(async () => player.advance(1.5));
     assert.deepEqual(snapshot.segments, [
-        { startMs: 0, endMs: 1000, count: 1 },
+        { startMs: 1000, endMs: 1500, count: 1 },
     ]);
     await act(() => root.unmount());
     assert.equal(player.currentTimeAtom.lc, 0);
     assert.equal(player.playingAtom.lc, 0);
+    assert.equal(player.playbackPositionAtom.lc, 0);
 });
 
 test("a response for the previous media cannot replace the current heatmap", async () => {
@@ -269,18 +298,18 @@ test("the current listen count stays on the third listen across fractional clock
         for (const time of [
             1, 1.0001, 1.0006, 1.001, 1.0014, 1.0018, 2, 2.9999, 3.0001,
         ]) {
-            await act(async () => player.currentTimeAtom.set(time));
+            await act(async () => player.advance(time));
             assert.equal(count(), "3", `count at ${time}s`);
         }
         await act(async () => player.playingAtom.set(false));
         assert.equal(count(), "3");
-        await act(async () => player.currentTimeAtom.set(8));
+        await act(async () => player.seek(8));
         assert.equal(count(), "2");
-        await act(async () => player.currentTimeAtom.set(1));
+        await act(async () => player.seek(1));
         assert.equal(count(), "3");
         await act(async () => player.playingAtom.set(true));
-        assert.equal(count(), "3");
-        await act(async () => player.currentTimeAtom.set(10));
+        assert.equal(count(), "4");
+        await act(async () => player.advance(10));
         assert.equal(count(), "3");
         assert.equal(requests.length, 1);
     } finally {
@@ -296,12 +325,212 @@ test("cursor counts preserve backend boundaries and unheard gaps while including
         { startMs: 3000, endMs: 4000, count: 3 },
     ];
     assert.equal(manager.countAt(baseline, 0), 2);
-    assert.equal(manager.countAt(baseline, 0, 0), 3);
-    assert.equal(manager.countAt(baseline, 0.9999, 0.9999), 3);
-    assert.equal(manager.countAt(baseline, 1, 1), 5);
-    assert.equal(manager.countAt(baseline, 2.5, 2.5), 1);
-    assert.equal(manager.countAt(baseline, 3.5, 1), 3);
-    assert.equal(manager.countAt(baseline, 4, 4), 4);
-    assert.equal(manager.countAt([], 1, 1), 1);
-    assert.equal(manager.countAt(baseline, NaN, 1), 0);
+    assert.equal(manager.countAt(baseline, 0, [], { startMs: 0, endMs: 0 }), 3);
+    assert.equal(
+        manager.countAt(baseline, 0.9999, [], { startMs: 0, endMs: 999.9 }),
+        3
+    );
+    assert.equal(
+        manager.countAt(baseline, 1, [], { startMs: 0, endMs: 1000 }),
+        5
+    );
+    assert.equal(
+        manager.countAt(baseline, 2.5, [], { startMs: 0, endMs: 2500 }),
+        1
+    );
+    assert.equal(
+        manager.countAt(baseline, 3.5, [], { startMs: 0, endMs: 1000 }),
+        3
+    );
+    assert.equal(
+        manager.countAt(baseline, 4, [], { startMs: 0, endMs: 4000 }),
+        4
+    );
+    assert.equal(manager.countAt([], 1, [], { startMs: 0, endMs: 1000 }), 1);
+    assert.equal(manager.countAt(baseline, NaN), 0);
+});
+
+test("forward seeks preserve played sections and leave the skipped middle unchanged without refetching", async () => {
+    const { useListeningHeatmap, runtime, requests } = setup();
+    const player = runtime.mediaPlayerManager;
+    let snapshot;
+    function Probe() {
+        snapshot = useListeningHeatmap("one");
+        return null;
+    }
+    const root = createRoot();
+    try {
+        await act(async () => root.render(createElement(Probe)));
+        await act(async () =>
+            requests[0].resolve([{ startMs: 0, endMs: 180000, count: 2 }])
+        );
+        await act(async () => player.advance(10));
+        await act(async () => player.seek(120));
+        assert.deepEqual(snapshot.segments, [
+            { startMs: 0, endMs: 10000, count: 3 },
+            { startMs: 10000, endMs: 180000, count: 2 },
+        ]);
+        await act(async () => player.advance(130));
+        assert.deepEqual(snapshot.segments, [
+            { startMs: 0, endMs: 10000, count: 3 },
+            { startMs: 10000, endMs: 120000, count: 2 },
+            { startMs: 120000, endMs: 130000, count: 3 },
+            { startMs: 130000, endMs: 180000, count: 2 },
+        ]);
+        // Replay part of the first interval; both earlier intervals survive.
+        await act(async () => player.seek(5));
+        await act(async () => player.advance(8));
+        assert.deepEqual(snapshot.segments, [
+            { startMs: 0, endMs: 5000, count: 3 },
+            { startMs: 5000, endMs: 8000, count: 4 },
+            { startMs: 8000, endMs: 10000, count: 3 },
+            { startMs: 10000, endMs: 120000, count: 2 },
+            { startMs: 120000, endMs: 130000, count: 3 },
+            { startMs: 130000, endMs: 180000, count: 2 },
+        ]);
+        assert.equal(snapshot.currentCount, 4);
+        assert.equal(requests.length, 1);
+    } finally {
+        await act(async () => root.unmount());
+    }
+});
+
+test("drag previews and paused seeks never become listening intervals", async () => {
+    const { useListeningHeatmap, runtime, requests } = setup();
+    const player = runtime.mediaPlayerManager;
+    let snapshot;
+    function Probe() {
+        snapshot = useListeningHeatmap("one");
+        return null;
+    }
+    const root = createRoot();
+    try {
+        await act(async () => root.render(createElement(Probe)));
+        await act(async () => requests[0].resolve([]));
+        await act(async () => player.advance(2));
+        for (const time of [2, 15, 30, 90])
+            await act(async () => player.seek(time, true));
+        assert.deepEqual(snapshot.segments, [
+            { startMs: 0, endMs: 2000, count: 1 },
+        ]);
+        await act(async () => player.seek(90));
+        await act(async () => player.advance(92));
+        await act(async () => player.playingAtom.set(false));
+        await act(async () => player.seek(50));
+        await act(async () => player.seek(70));
+        assert.deepEqual(snapshot.segments, [
+            { startMs: 0, endMs: 2000, count: 1 },
+            { startMs: 90000, endMs: 92000, count: 1 },
+        ]);
+        assert.equal(snapshot.currentCount, 0);
+        await act(async () => player.playingAtom.set(true));
+        await act(async () => player.advance(71));
+        assert.deepEqual(snapshot.segments, [
+            { startMs: 0, endMs: 2000, count: 1 },
+            { startMs: 70000, endMs: 71000, count: 1 },
+            { startMs: 90000, endMs: 92000, count: 1 },
+        ]);
+        assert.equal(requests.length, 1);
+    } finally {
+        await act(async () => root.unmount());
+    }
+});
+
+test("joining playback midway starts at the observed position and ignores remote media samples", async () => {
+    const { useListeningHeatmap, runtime, requests } = setup();
+    const player = runtime.mediaPlayerManager;
+    player.currentTimeAtom.set(60);
+    let snapshot;
+    function Probe() {
+        snapshot = useListeningHeatmap("one");
+        return null;
+    }
+    const root = createRoot();
+    try {
+        await act(async () => root.render(createElement(Probe)));
+        await act(async () => player.advance(61));
+        await act(async () => requests[0].resolve([]));
+        assert.deepEqual(snapshot.segments, [
+            { startMs: 60000, endMs: 61000, count: 1 },
+        ]);
+        await act(async () =>
+            player.playbackPositionAtom.set({
+                mediaPublicId: "other",
+                playbackId: "other",
+                kind: "progress",
+                timeFrom: 0,
+                timeTo: 100,
+                seeking: false,
+            })
+        );
+        assert.deepEqual(snapshot.segments, [
+            { startMs: 60000, endMs: 61000, count: 1 },
+        ]);
+    } finally {
+        await act(async () => root.unmount());
+    }
+});
+
+test("resource start offsets and repeated playbacks preserve distinct real intervals", () => {
+    const { ListeningHeatmapPlayback, listeningHeatmapManager: manager } =
+        setup();
+    const playback = new ListeningHeatmapPlayback(false, 0);
+    playback.observe({
+        kind: "seek",
+        mediaPublicId: "one",
+        playbackId: "first",
+        timeFrom: 5,
+        timeTo: 5,
+        seeking: false,
+    });
+    playback.setPlaying(true, 0);
+    playback.observe({
+        kind: "progress",
+        mediaPublicId: "one",
+        playbackId: "first",
+        timeFrom: 0,
+        timeTo: 10,
+        seeking: false,
+    });
+    assert.deepEqual(manager.withPlayback([], playback.intervals), [
+        { startMs: 5000, endMs: 10000, count: 1 },
+    ]);
+    playback.observe({
+        kind: "progress",
+        mediaPublicId: "one",
+        playbackId: "second",
+        timeFrom: 5,
+        timeTo: 7,
+        seeking: false,
+    });
+    assert.deepEqual(manager.withPlayback([], playback.intervals), [
+        { startMs: 5000, endMs: 7000, count: 2 },
+        { startMs: 7000, endMs: 10000, count: 1 },
+    ]);
+});
+
+test("a seek after pausing closes at the native pause position without adding the skipped range", () => {
+    const { ListeningHeatmapPlayback, listeningHeatmapManager: manager } =
+        setup();
+    const playback = new ListeningHeatmapPlayback(true, 0);
+    playback.observe({
+        kind: "progress",
+        mediaPublicId: "one",
+        playbackId: "first",
+        timeFrom: 0,
+        timeTo: 2,
+        seeking: false,
+    });
+    playback.setPlaying(false, 2);
+    playback.observe({
+        kind: "seek",
+        mediaPublicId: "one",
+        playbackId: "first",
+        timeFrom: 2.1,
+        timeTo: 50,
+        seeking: false,
+    });
+    assert.deepEqual(manager.withPlayback([], playback.intervals), [
+        { startMs: 0, endMs: 2100, count: 1 },
+    ]);
 });

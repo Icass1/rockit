@@ -222,3 +222,86 @@ test("playback keeps heatmap requests local and refreshes stats without a skelet
         await expect(page.locator(".skeleton")).toHaveCount(0);
     }
 });
+
+test("seeking preserves listened sections and does not count the skipped middle", async ({
+    page,
+    request,
+    context,
+}) => {
+    await request.post("http://127.0.0.1:18899/__fixture/reset");
+    await context.addCookies([
+        {
+            name: "session_id",
+            value: "fixture",
+            url: "http://127.0.0.1:18899",
+            httpOnly: true,
+        },
+    ]);
+    let heatmapRequests = 0;
+    await page.route("**/listening-heatmap", async (route) => {
+        heatmapRequests++;
+        await route.fulfill({
+            json: { segments: [{ startMs: 0, endMs: 30000, count: 2 }] },
+        });
+    });
+    await page.goto("http://127.0.0.1:13000/library");
+    await page
+        .getByPlaceholder("Search in Library")
+        .filter({ visible: true })
+        .fill("Playlist exclusive");
+    await page.getByText("Playlist exclusive", { exact: true }).first().click();
+    const pause = page
+        .getByRole("button", { name: "Pause", exact: true })
+        .filter({ visible: true });
+    await expect(pause).toBeVisible();
+    const slider = page.locator('#default-slider[max="30"]');
+    await expect
+        .poll(async () => Number(await slider.inputValue()))
+        .toBeGreaterThan(3);
+    const seekTo = async (fraction: number): Promise<void> => {
+        const box = await slider.boundingBox();
+        if (!box) throw new Error("Missing playback slider");
+        await page.mouse.click(
+            box.x + box.width * fraction,
+            box.y + box.height / 2
+        );
+    };
+    await seekTo(0.8);
+    await expect
+        .poll(async () => Number(await slider.inputValue()))
+        .toBeGreaterThan(24.5);
+    await pause.click();
+    const trigger = page.getByRole("button", {
+        name: "Listening history",
+        exact: true,
+    });
+    await trigger.click();
+    const history = page.getByRole("region", {
+        name: "Listening history",
+        exact: true,
+    });
+    await expect(
+        history.getByRole("button", { name: /heard 3 times/ })
+    ).toHaveCount(2);
+    await expect(
+        history.getByRole("button", { name: /heard 2 times/ })
+    ).toHaveCount(2);
+    expect(heatmapRequests).toBe(1);
+    await history
+        .getByRole("button", { name: "Close listening history" })
+        .click();
+    await seekTo(0.04);
+    await page
+        .getByRole("button", { name: "Play", exact: true })
+        .filter({ visible: true })
+        .click();
+    await expect
+        .poll(async () => Number(await slider.inputValue()))
+        .toBeGreaterThan(2);
+    await pause.click();
+    await trigger.click();
+    await expect(
+        history.getByRole("button", { name: /heard 4 times/ })
+    ).toHaveCount(1);
+    expect(heatmapRequests).toBe(1);
+});

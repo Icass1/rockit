@@ -12,3 +12,8 @@ export interface ListeningHeatmapSummary {
     peak: number;
     coverage: number;
 }
+
+export interface ListeningHeatmapInterval {
+    startMs: number;
+    endMs: number;
+}

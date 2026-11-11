@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ListeningHeatmapState } from "@/models/types/listeningHeatmap";
 import { listeningHeatmapManager } from "@/lib/managers/listeningHeatmapManager";
+import { ListeningHeatmapPlayback } from "@/lib/managers/listeningHeatmapPlayback";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export function useListeningHeatmap(
@@ -18,32 +19,40 @@ export function useListeningHeatmap(
         let active = true;
         const player = rockIt.mediaPlayerManager;
         let baseline: ListeningHeatmapState["segments"] | undefined;
-        let playedUntil: number | undefined;
-        const publish = (): void => {
+        const playback = new ListeningHeatmapPlayback(
+            player.playingAtom.get(),
+            player.currentTimeAtom.get()
+        );
+        const publish = (currentTime = player.currentTimeAtom.get()): void => {
             if (active && baseline)
                 setState({
                     publicId,
                     segments: listeningHeatmapManager.withPlayback(
                         baseline,
-                        playedUntil ?? 0
+                        playback.intervals
                     ),
                     currentCount: listeningHeatmapManager.countAt(
                         baseline,
-                        player.currentTimeAtom.get(),
-                        playedUntil
+                        currentTime,
+                        playback.completed,
+                        playback.active
                     ),
                     status: "ready",
                 });
         };
-        const onPlayback = (): void => {
+        const unsubscribeTime = player.currentTimeAtom.listen(() => publish());
+        const unsubscribePlaying = player.playingAtom.listen((playing) => {
             if (rockIt.queueManager.currentMedia?.publicId !== publicId) return;
-            if (player.playingAtom.get())
-                playedUntil = player.currentTimeAtom.get();
+            playback.setPlaying(playing, player.currentTimeAtom.get());
             publish();
-        };
-        const unsubscribeTime = player.currentTimeAtom.listen(onPlayback);
-        const unsubscribePlaying = player.playingAtom.listen(onPlayback);
-        onPlayback();
+        });
+        const unsubscribePosition = player.playbackPositionAtom.listen(
+            (position) => {
+                if (position?.mediaPublicId !== publicId) return;
+                playback.observe(position);
+                publish(position.timeTo);
+            }
+        );
         const load = async (): Promise<void> => {
             try {
                 baseline = await listeningHeatmapManager.load(publicId);
@@ -63,6 +72,7 @@ export function useListeningHeatmap(
             active = false;
             unsubscribeTime();
             unsubscribePlaying();
+            unsubscribePosition();
         };
     }, [publicId]);
     return state.publicId === publicId

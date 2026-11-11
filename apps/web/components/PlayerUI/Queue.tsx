@@ -21,7 +21,8 @@ export default function PlayerUIQueue({
         rockIt.queueManager.currentQueueMediaIdAtom
     );
     const $playerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
-    const queueFullyLoaded = rockIt.queueManager.isQueueFullyLoaded;
+    const [reordering, setReordering] = useState(false);
+    const draggedId = useRef<number | null>(null);
 
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     const {
@@ -101,7 +102,7 @@ export default function PlayerUIQueue({
     };
 
     const handleDragStart = (e: React.DragEvent, index: number): void => {
-        if (!queueFullyLoaded) {
+        if (reordering) {
             e.preventDefault();
             return;
         }
@@ -109,11 +110,16 @@ export default function PlayerUIQueue({
             e.preventDefault();
             return;
         }
-        e.dataTransfer.setData("text/plain", String(index));
+        draggedId.current = $queue[index]?.queueMediaId ?? null;
+        e.dataTransfer.setData(
+            "application/x-rockit-queue",
+            String(draggedId.current)
+        );
         e.dataTransfer.effectAllowed = "move";
     };
 
     const handleDragOver = (e: React.DragEvent, index: number): void => {
+        if (draggedId.current === null) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
         setDragOverIndex(index);
@@ -125,10 +131,19 @@ export default function PlayerUIQueue({
 
     const handleDrop = (e: React.DragEvent, toIndex: number): void => {
         e.preventDefault();
-        if (!queueFullyLoaded) return;
-        const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
-        if (!isNaN(fromIndex) && fromIndex !== toIndex) {
-            rockIt.queueManager.reorderQueue(fromIndex, toIndex);
+        const fromId = draggedId.current;
+        const toId = $queue[toIndex]?.queueMediaId;
+        draggedId.current = null;
+        if (
+            fromId !== null &&
+            toId !== undefined &&
+            fromId !== toId &&
+            !reordering
+        ) {
+            setReordering(true);
+            void rockIt.queueManager
+                .reorderQueueItemsAsync(fromId, toId)
+                .finally(() => setReordering(false));
         }
         setDragOverIndex(null);
     };
@@ -140,6 +155,7 @@ export default function PlayerUIQueue({
 
     return (
         <div
+            aria-busy={reordering}
             data-queue-scroll
             ref={setQueueContainer}
             onScroll={(event): void => {
@@ -196,12 +212,15 @@ export default function PlayerUIQueue({
                         <div
                             key={queueItem.queueMediaId}
                             data-queue-media-id={queueItem.queueMediaId}
-                            draggable={queueFullyLoaded}
+                            draggable={!reordering}
                             onDragStart={(e): void => handleDragStart(e, index)}
                             onDragOver={(e): void => handleDragOver(e, index)}
                             onDragLeave={handleDragLeave}
                             onDrop={(e): void => handleDrop(e, index)}
-                            onDragEnd={handleDragLeave}
+                            onDragEnd={() => {
+                                draggedId.current = null;
+                                handleDragLeave();
+                            }}
                             className={`shrink-0 border-t-2 select-none [-webkit-touch-callout:none] ${
                                 dragOverIndex === index
                                     ? "border-primary"

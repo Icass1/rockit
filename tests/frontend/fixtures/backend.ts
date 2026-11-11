@@ -743,6 +743,19 @@ export async function createFixtureBackend(port = 0) {
                     { ...session(), lang, crossfade: 0 },
                     dto.UserSettingsResponseSchema
                 );
+            if (path === "/downloader/download-zip") {
+                dto.DownloadZipRequestSchema.parse(body);
+                const archive = Buffer.from(
+                    "UEsDBBQAAAAAAFW1a12gkUEDFgAAABYAAAALAAAAZml4dHVyZS50eHRSb2NrSXQgYXJjaGl2ZSBmaXh0dXJlUEsBAhQDFAAAAAAAVbVrXaCRQQMWAAAAFgAAAAsAAAAAAAAAAAAAAIABAAAAAGZpeHR1cmUudHh0UEsFBgAAAAABAAEAOQAAAD8AAAAAAA==",
+                    "base64"
+                );
+                response.writeHead(200, {
+                    "content-type": "application/zip",
+                    "content-disposition": "attachment; filename=RockIt.zip",
+                });
+                response.end(archive);
+                return;
+            }
             if (path === "/user/library/medias")
                 return send(
                     {
@@ -914,6 +927,9 @@ export async function createFixtureBackend(port = 0) {
     });
     const sockets = new WebSocketServer({ server, path: "/ws" });
     sockets.on("connection", (socket) => {
+        socket.send(
+            JSON.stringify(dto.OnlineUsersMessageSchema.parse({ count: 12 }))
+        );
         socket.send(
             JSON.stringify(
                 dto.NotificationStateMessageSchema.parse({

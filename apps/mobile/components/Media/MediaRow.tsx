@@ -7,6 +7,7 @@ import {
 } from "@rockit/shared";
 import { MediaIdentity, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, View } from "react-native";
+import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { useVocabulary } from "@/lib/vocabulary";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
@@ -16,6 +17,10 @@ interface MediaRowProps {
 }
 
 function MediaRow({ media, rightElement }: MediaRowProps) {
+    const imageUrl = useOfflineArtwork(
+        isSearchResult(media) ? undefined : media.publicId,
+        media.imageUrl
+    );
     const { vocabulary } = useVocabulary();
     const styles = useThemedStyles(createStyles);
     return (
@@ -33,7 +38,7 @@ function MediaRow({ media, rightElement }: MediaRowProps) {
                     }
                     explicitLabel={vocabulary.CONTENT_RATING_EXPLICIT}
                     subtitle={getMediaSubtitle(media)}
-                    imageUrl={media.imageUrl}
+                    imageUrl={imageUrl}
                     round={media.type === "artist"}
                 />
                 {rightElement && (

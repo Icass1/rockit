@@ -5,6 +5,12 @@ export default defineConfig({
     resolve: {
         alias: [
             {
+                find: "@/lib/storage/mediaStorage",
+                replacement: path.resolve(
+                    "apps/mobile/lib/storage/mediaStorage.web.ts"
+                ),
+            },
+            {
                 find: "@/platform/socket",
                 replacement: path.resolve("apps/mobile/platform/socket.web.ts"),
             },

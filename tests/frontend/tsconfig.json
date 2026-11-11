@@ -10,6 +10,9 @@
         "skipLibCheck": true,
         "baseUrl": "../..",
         "paths": {
+            "@/lib/storage/mediaStorage": [
+                "apps/mobile/lib/storage/mediaStorage.web.ts"
+            ],
             "@/*": ["packages/shared/src/*"],
             "@rockit/shared": ["packages/shared/src/index.ts"],
             "@rockit/theme": ["packages/theme/src/index.ts"],

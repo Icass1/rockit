@@ -35,7 +35,8 @@ export class Http extends BaseHttp {
 
     static async downloadBinary(
         path: string,
-        payload: DownloadZipRequest
+        payload: DownloadZipRequest,
+        signal?: AbortSignal
     ): Promise<HttpResult<Blob>> {
         const parsed = DownloadZipRequestSchema.safeParse(payload);
         if (!parsed.success) {
@@ -52,6 +53,7 @@ export class Http extends BaseHttp {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(parsed.data),
+                signal,
             });
             if (!response.ok) {
                 const errorSchema = z.object({

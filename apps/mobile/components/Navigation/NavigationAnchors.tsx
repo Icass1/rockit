@@ -1,6 +1,11 @@
 import { useStore } from "@nanostores/react";
 import { getRockitListName } from "@rockit/shared";
-import { ActionButton, MediaArtwork, useDesignTheme } from "@rockit/ui";
+import {
+    ActionButton,
+    FeaturedArtwork,
+    MediaArtwork,
+    useDesignTheme,
+} from "@rockit/ui";
 import { Pin, PinOff } from "@rockit/ui/icons";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { useContextMenu } from "@/lib/ContextMenuContext";
@@ -96,12 +101,19 @@ export default function NavigationAnchors() {
                                 gap: theme.spacing.xs,
                             }}
                         >
-                            <MediaArtwork
-                                uri={pin.imageUrl}
-                                label={name}
-                                size={theme.layout.artistArtwork}
-                                round={pin.type === "artist"}
-                            />
+                            {pin.builtinKey ? (
+                                <FeaturedArtwork
+                                    kind={pin.builtinKey}
+                                    label={name}
+                                />
+                            ) : (
+                                <MediaArtwork
+                                    uri={pin.imageUrl}
+                                    label={name}
+                                    size={theme.layout.artistArtwork}
+                                    round={pin.type === "artist"}
+                                />
+                            )}
                             <Text
                                 numberOfLines={1}
                                 style={{

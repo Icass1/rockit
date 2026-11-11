@@ -44,12 +44,34 @@
             "webRoot": "${workspaceFolder}/apps/web"
         },
         {
-            "name": "Mobile (Expo)",
-            "type": "reactnative",
+            "name": "Mobile Web (Expo)",
+            "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}/apps/mobile",
-            "platform": "expo",
-            "sourceMaps": true
+            "runtimeExecutable": "node",
+            "program": "${workspaceFolder}/apps/mobile/node_modules/expo/bin/cli",
+            "args": [
+                "start",
+                "--web",
+                "--localhost",
+                "--port",
+                "8081",
+                "--max-workers",
+                "2"
+            ],
+            "env": {
+                "BROWSER": "none",
+                "FORCE_COLOR": "0"
+            },
+            "console": "integratedTerminal",
+            "autoAttachChildProcesses": true,
+            "skipFiles": ["<node_internals>/**"],
+            "serverReadyAction": {
+                "pattern": "(https?://localhost:[0-9]+)",
+                "uriFormat": "%s",
+                "action": "debugWithChrome",
+                "webRoot": "${workspaceFolder}"
+            }
         }
     ],
     "compounds": [
@@ -58,13 +80,18 @@
             "configurations": [
                 "Backend (uvicorn)",
                 "Web (Next.js)",
-                "Mobile (Expo)"
+                "Mobile Web (Expo)"
             ],
             "stopAll": true
         },
         {
             "name": "Backend + Web",
             "configurations": ["Backend (uvicorn)", "Web (Next.js)"],
+            "stopAll": true
+        },
+        {
+            "name": "Backend + Mobile Web",
+            "configurations": ["Backend (uvicorn)", "Mobile Web (Expo)"],
             "stopAll": true
         }
     ]

@@ -1178,3 +1178,36 @@ test("playback observations distinguish native progress, programmatic seeks and 
         e.player.stopBrowserLifecycle();
     }
 });
+
+test("normal handoff promotes the buffered deck instead of reloading its URL", async () => {
+    const e = setup();
+    await e.player.setMedia();
+    e.player.play();
+    await flush();
+    await e.player.preloadNextTrack();
+    const incoming = e.player._preloadAudio;
+    const previous = e.player.audioElement;
+    const source = incoming.src;
+    assert.equal(incoming.preload, "auto");
+    e.queue.setQueueMediaId(2);
+    await e.player.setMedia();
+    assert.equal(e.player.audioElement, incoming);
+    assert.equal(incoming.src, source);
+    assert.equal(incoming.muted, false);
+    assert.equal(e.player._preloadAudio, previous);
+    assert.equal(previous.src, "");
+    e.player.stopBrowserLifecycle();
+});
+
+test("background playback still prepares the next song when mixing is disabled", async () => {
+    const e = setup();
+    await start(e);
+    e.player.configureTransitions({ enabled: false });
+    e.document.hidden = true;
+    e.player._preloadedUri = undefined;
+    e.player._onPlayingStarted();
+    await flush();
+    assert.equal(e.player._preloadedUri, "https://test/b");
+    assert.equal(e.player._preloadAudio.preload, "auto");
+    e.player.stopBrowserLifecycle();
+});

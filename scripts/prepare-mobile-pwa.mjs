@@ -15,9 +15,11 @@ const tokens = JSON.parse(
 const htmlPath = path.join(output, "index.html");
 let html = await readFile(htmlPath, "utf8");
 await cp(
-    path.join(root, "assets/images/icon.png"),
+    path.join(root, "assets/images/logo-512.png"),
     path.join(output, "icon.png")
 );
+await cp(path.resolve(root, "../../packages/ui/assets/rockit-background.png"), path.join(output, "rockit-background.png"));
+await cp(path.resolve(root, "../../packages/ui/assets/recap-covers"), path.join(output, "recap-covers"), { recursive: true });
 const manifest = {
     id: "/",
     name: "RockIt!",
@@ -25,12 +27,13 @@ const manifest = {
     start_url: "/",
     scope: "/",
     display: "standalone",
+    orientation: "portrait",
     background_color: tokens.themes.dark.background,
     theme_color: tokens.themes.dark.background,
     icons: [
         {
             src: "/icon.png",
-            sizes: "1024x1024",
+            sizes: "512x512",
             type: "image/png",
             purpose: "any",
         },
@@ -44,9 +47,11 @@ html = html.replace(
     /<!-- rockit-mobile-pwa:start -->[\s\S]*?<!-- rockit-mobile-pwa:end -->/g,
     ""
 );
+html = html.replace(/<meta\s+name="viewport"[^>]*>/gi, "");
+html = html.replace(/<meta\s+name="theme-color"[^>]*>/gi, "");
 html = html.replace(
     "</head>",
-    '<!-- rockit-mobile-pwa:start --><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- rockit-mobile-pwa:end --></head>'
+    `<!-- rockit-mobile-pwa:start --><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="${tokens.themes.dark.background}"><style>html,body,#root{background:${tokens.themes.dark.background};color-scheme:dark;}html,body{margin:0;height:100%;}</style><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- rockit-mobile-pwa:end --></head>`
 );
 await writeFile(htmlPath, html);
 const shell = [
@@ -63,9 +68,10 @@ const files = (await readdir(output, { recursive: true }))
     .filter(
         (file) =>
             file !== "sw.js" &&
-            (/\.(?:js|css|html|webmanifest)$/.test(file) || file === "icon.png")
+            (/\.(?:js|css|html|webmanifest)$/.test(file) || file === "icon.png" || file === "rockit-background.png" || file.startsWith("recap-covers/"))
     )
     .sort();
+const artwork = files.filter(file => file === "rockit-background.png" || file.startsWith("recap-covers/")).map(file => "/" + file);
 const hash = createHash("sha256");
 for (const file of files) hash.update(await readFile(path.join(output, file)));
 const cache = `rockit-mobile-shell-${hash.digest("hex").slice(0, 16)}`;
@@ -74,6 +80,7 @@ await writeFile(
     `
 const CACHE = ${JSON.stringify(cache)};
 const SHELL = ${JSON.stringify(shell)};
+const ARTWORK = ${JSON.stringify(artwork)};
 self.addEventListener("install", event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL))));
 self.addEventListener("activate", event => {
     event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("rockit-mobile-shell-") && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
@@ -93,7 +100,7 @@ self.addEventListener("fetch", event => {
         return;
     }
     // Only public build assets: never API responses, media or signed URLs.
-    if (!url.pathname.startsWith("/_expo/static/") && !SHELL.includes(url.pathname)) return;
+    if (!url.pathname.startsWith("/_expo/static/") && !SHELL.includes(url.pathname) && !ARTWORK.includes(url.pathname)) return;
     event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
         if (response.ok && response.type !== "opaque") {
             const copy = response.clone();

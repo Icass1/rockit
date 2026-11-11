@@ -26,6 +26,7 @@
     --color-destructive-subtle: var(--theme-destructive-subtle);
     --color-destructive-foreground: var(--theme-destructive-foreground);
     --color-destructive-soft: var(--theme-destructive-soft);
+    --color-online: var(--theme-online);
     --color-success: var(--theme-success);
     --color-success-hover: var(--theme-success-hover);
     --color-success-subtle: var(--theme-success-subtle);

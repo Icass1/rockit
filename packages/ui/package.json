@@ -21,6 +21,11 @@
             "browser": "./src/icons.web.ts",
             "react-native": "./src/icons.native.ts",
             "default": "./src/icons.web.ts"
+        },
+        "./featuredAssets": {
+            "browser": "./src/featuredAssets.ts",
+            "react-native": "./src/featuredAssets.native.ts",
+            "default": "./src/featuredAssets.ts"
         }
     },
     "scripts": {

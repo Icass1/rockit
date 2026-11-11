@@ -2,86 +2,46 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
-import { CalendarDays, Disc3, Download, Heart, History } from "lucide-react";
+import { FeaturedArtwork } from "@rockit/ui";
 import type { RockitListKey } from "@/models/types/navigationPins";
 import { getRockitListName } from "@/lib/utils/navigationPins";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
-/** Rockit's dynamic personal lists: right-click, long press or Shift+F10 to anchor. */
 export default function RockitFeaturedLists(): JSX.Element {
     const vocabulary = useVocabulary();
     const keys: RockitListKey[] = [
         "liked",
-        "latest-downloads",
         "most-listened",
         "recent-mix",
+        "latest-downloads",
         "year-recap",
         "last-month",
     ];
-    const previousMonth = new Date();
-    previousMonth.setDate(1);
-    previousMonth.setMonth(previousMonth.getMonth() - 1);
-    const month = previousMonth
-        .toLocaleDateString("en", { month: "long" })
-        .toLowerCase();
-    const year = new Date().getFullYear() - 1;
     return (
         <>
             {keys.map((key) => {
                 const name = getRockitListName(key, vocabulary);
-                const image =
-                    key === "last-month"
-                        ? `/recap-covers/${month}.png`
-                        : "/rockit-background.png";
-                const Icon =
-                    key === "liked"
-                        ? Heart
-                        : key === "most-listened"
-                          ? Disc3
-                          : key === "recent-mix"
-                            ? History
-                            : key === "latest-downloads"
-                              ? Download
-                              : CalendarDays;
                 return (
                     <NavigationPinMenu
                         key={key}
                         publicId={key}
                         title={name}
-                        cover={image}
                         className="w-40 shrink-0"
                     >
                         <Link
                             href={`/playlist/${key}`}
-                            className="focus-visible:outline-foreground-strong block w-40 flex-none rounded-lg transition duration-75 select-none [-webkit-touch-callout:none] focus-visible:outline-2 focus-visible:outline-offset-4 md:hover:scale-105"
+                            className="focus-visible:outline-foreground-strong block w-40 rounded-lg focus-visible:outline-2"
                         >
-                            <div
-                                className="relative aspect-square w-full rounded-lg bg-cover"
-                                style={{ backgroundImage: `url(${image})` }}
-                            >
-                                {key === "year-recap" ? (
-                                    <span className="text-on-media absolute inset-0 flex items-center justify-center text-3xl font-black tracking-tight">
-                                        {year}
-                                    </span>
-                                ) : (
-                                    key !== "last-month" && (
-                                        <Icon
-                                            className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
-                                            aria-hidden
-                                            fill={
-                                                key === "liked"
-                                                    ? "var(--theme-on-media)"
-                                                    : "none"
-                                            }
-                                        />
-                                    )
-                                )}
-                            </div>
-                            <p className="mt-2 block truncate text-center font-semibold">
+                            <FeaturedArtwork
+                                kind={key}
+                                label={name}
+                                size={160}
+                            />
+                            <p className="mt-2 truncate text-center font-semibold">
                                 {name}
                             </p>
-                            <p className="text-muted-foreground block truncate text-center text-sm">
+                            <p className="text-muted-foreground truncate text-center text-sm">
                                 {vocabulary.BY} RockIt!
                             </p>
                         </Link>

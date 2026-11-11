@@ -46,6 +46,7 @@ export default function ArtistScreen({
     const artist = result.metadata?.artist;
     return (
         <FlatList
+            style={{ flex: 1, backgroundColor: theme.colors.background }}
             data={result.items}
             keyExtractor={(item) => `${item.type}:${item.publicId}`}
             renderItem={({ item }) => <MediaRow media={item} />}

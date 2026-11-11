@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { listOfflineSongRecords } from "@rockit/platform-browser/offline/db";
 import { removeOfflineSong } from "@rockit/platform-browser/offline/store";
-import { IconButton, useDesignTheme } from "@rockit/ui";
+import { IconButton, MediaArtwork, useDesignTheme } from "@rockit/ui";
 import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
 import { ArrowLeft, Trash2 } from "@rockit/ui/icons";
 import { useRouter } from "expo-router";
 import { FlatList, Pressable, Text, View } from "react-native";
+import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { useVocabulary } from "@/lib/vocabulary";
+
+function OfflineCover({ publicId, name }: { publicId: string; name: string }) {
+    const uri = useOfflineArtwork(publicId);
+    return <MediaArtwork uri={uri} label={name} />;
+}
 
 /** Browser storage is an offline catalog, never a native filesystem browser. */
 export default function StorageScreen() {
@@ -67,8 +73,13 @@ export default function StorageScreen() {
                                 flexDirection: "row",
                                 alignItems: "center",
                                 paddingVertical: theme.spacing.md,
+                                gap: theme.spacing.md,
                             }}
                         >
+                            <OfflineCover
+                                publicId={item.publicId}
+                                name={item.name ?? item.publicId}
+                            />
                             <Text
                                 style={{
                                     flex: 1,

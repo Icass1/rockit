@@ -31,12 +31,39 @@ class MediaManager {
         return Http.getMediaAsync(publicId);
     }
 
-    toggleLikeMedia(publicId: string) {
-        const current = this.likedMediaAtom.get();
-        if (current.includes(publicId)) {
-            this.likedMediaAtom.set(current.filter((id) => id !== publicId));
-        } else {
-            this.likedMediaAtom.set([...current, publicId]);
+    async fetchLikedMedia(): Promise<void> {
+        const session = userManager.sessionAtom.get();
+        if (!session) return;
+        const result = await Http.getLikedMedia();
+        if (userManager.sessionAtom.get() === session && result.isOk())
+            this.likedMediaAtom.set(result.result.media);
+    }
+    private readonly liking = new Set<string>();
+    async toggleLikeMedia(publicId: string): Promise<void> {
+        if (this.liking.has(publicId)) return;
+        const session = userManager.sessionAtom.get();
+        if (!session) return;
+        this.liking.add(publicId);
+        try {
+            const response = await Http.likeMediaAsync({
+                publicIds: [publicId],
+            });
+            if (userManager.sessionAtom.get() !== session) return;
+            if (!response.isOk()) {
+                toasterManager.notifyError(vocabularyManager.vocabulary.ERROR);
+                return;
+            }
+            const current = this.likedMediaAtom.get();
+            this.likedMediaAtom.set(
+                current.includes(publicId)
+                    ? current.filter((id) => id !== publicId)
+                    : [...current, publicId]
+            );
+        } catch {
+            if (userManager.sessionAtom.get() === session)
+                toasterManager.notifyError(vocabularyManager.vocabulary.ERROR);
+        } finally {
+            this.liking.delete(publicId);
         }
     }
 }
@@ -99,6 +126,7 @@ class RockIt {
             this.bookmarkManager.init();
             await this.userManager.init();
             if (generation !== this._generation) return;
+            void this.mediaManager.fetchLikedMedia();
             await this.queueManager.init();
             if (generation !== this._generation) return;
             this.lockScreenManager.init();
@@ -132,6 +160,7 @@ class RockIt {
         this.queueManager.reset();
         this.lockScreenManager.destroy();
         this.userManager.stop();
+        this.mediaManager.likedMediaAtom.set([]);
         this._initialized = false;
         this._username = undefined;
     }

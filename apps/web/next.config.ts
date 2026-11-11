@@ -1,10 +1,22 @@
 import { execFileSync } from "node:child_process";
+import { cpSync, mkdirSync } from "node:fs";
 import path from "path";
 import type { NextConfig } from "next";
 import { withSerwist } from "@serwist/turbopack";
 
 const isDev = process.env.NODE_ENV === "development";
 const workspaceRoot = path.join(__dirname, "../..");
+// Preserve public URLs while native and web use one canonical artwork source.
+mkdirSync(path.join(__dirname, "public/recap-covers"), { recursive: true });
+cpSync(
+    path.join(workspaceRoot, "packages/ui/assets/rockit-background.png"),
+    path.join(__dirname, "public/rockit-background.png")
+);
+cpSync(
+    path.join(workspaceRoot, "packages/ui/assets/recap-covers"),
+    path.join(__dirname, "public/recap-covers"),
+    { recursive: true }
+);
 const s3PublicEndpoint = process.env.NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL;
 const s3PublicPattern = s3PublicEndpoint
     ? (() => {

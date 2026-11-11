@@ -57,7 +57,7 @@ export default function RenderList({
     return (
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 md:h-[calc(100vh-12rem)] md:grid-cols-[1fr_2fr] md:gap-20 md:px-8">
             <div className="z-1 flex items-center justify-center">
-                <div className="flex flex-col gap-1">
+                <div className="flex w-full min-w-0 flex-col gap-1">
                     {/* Blurred glow layer */}
                     <div className="group relative w-full max-w-64 md:max-w-none">
                         <Image
@@ -113,6 +113,8 @@ export default function RenderList({
                     </div>
                     <Artists
                         artists={artists}
+                        align="center"
+                        multiline
                         className="text-muted-foreground text-lg font-semibold text-balance"
                     />
                     <p className="text-muted-foreground flex items-center justify-center gap-2 text-center font-semibold text-balance">

@@ -22,6 +22,8 @@ import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 interface PiPControlsProps {
+    retro?: boolean;
+    onToggleRetro?: () => void;
     layout: PiPLayout;
     showLyrics: boolean;
     onToggleLyrics: () => void;
@@ -29,6 +31,8 @@ interface PiPControlsProps {
 
 export function PiPControls({
     layout,
+    retro = false,
+    onToggleRetro,
     showLyrics,
     onToggleLyrics,
 }: PiPControlsProps): JSX.Element {
@@ -182,6 +186,18 @@ export function PiPControls({
                     <Ellipsis className="pip-icon" />
                 </summary>
                 <div className="pip-menu">
+                    {onToggleRetro && (
+                        <button
+                            type="button"
+                            aria-pressed={retro}
+                            onClick={() => action(onToggleRetro)}
+                        >
+                            <DiscAlbum />{" "}
+                            {text(
+                                retro ? "PIP_STANDARD_MODE" : "PIP_RETRO_MODE"
+                            )}
+                        </button>
+                    )}
                     <button
                         type="button"
                         aria-label={labels.shuffle}

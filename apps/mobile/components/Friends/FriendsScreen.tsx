@@ -1,20 +1,49 @@
 import { useCallback, useState } from "react";
 import { confirmAction } from "@/platform/confirmAction";
 import { useStore } from "@nanostores/react";
-import { ActionButton, MediaIdentity, useDesignTheme } from "@rockit/ui";
+import {
+    ActionButton,
+    IconButton,
+    MediaIdentity,
+    useDesignTheme,
+} from "@rockit/ui";
 import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
+import {
+    Activity,
+    Ban,
+    Headphones,
+    Inbox,
+    MoreHorizontal,
+    Search,
+    Send,
+    Trophy,
+    UserMinus,
+    UserPlus,
+    Users,
+} from "@rockit/ui/icons";
 import { useFocusEffect } from "expo-router";
-import { FlatList, ScrollView, Text, TextInput, View } from "react-native";
+import {
+    FlatList,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
 import type {
     MobileSocialRow,
     MobileSocialTab,
 } from "@/models/interfaces/socialTab";
+import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayerServices } from "@/lib/PlayerContext";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
+import { webSocketManager } from "@/lib/webSocketManager";
 
 export default function FriendsScreen() {
     const theme = useDesignTheme();
+    const onlineUsers = useStore(webSocketManager.onlineUsersAtom);
+    const menu = useContextMenu();
     const { vocabulary: v } = useVocabulary();
     const services = usePlayerServices();
     const manager = services.friendManager;
@@ -52,15 +81,16 @@ export default function FriendsScreen() {
         }, [manager, sharing, tab])
     );
     const tabs = [
-        { key: "friends", label: v.FRIENDS_LIST },
-        { key: "requests", label: v.FRIENDS_FRIEND_REQUESTS },
-        { key: "search", label: v.SEARCH },
-        { key: "activity", label: v.FRIENDS_ACTIVITY },
-        { key: "sessions", label: v.FRIENDS_PARTY },
-        { key: "leaderboard", label: v.FRIENDS_LEADERBOARD },
-        { key: "inbox", label: v.FRIENDS_SHARE_RECEIVED },
-        { key: "sent", label: v.FRIENDS_SHARE_SENT },
-        { key: "blocked", label: v.FRIENDS_BLOCKED },
+        { key: "friends", label: v.FRIENDS_LIST, icon: Users },
+        { key: "requests", label: v.FRIENDS_FRIEND_REQUESTS, icon: UserPlus },
+        { key: "activity", label: v.FRIENDS_ACTIVITY, icon: Activity },
+        { key: "sessions", label: v.FRIENDS_PARTY, icon: Headphones },
+    ] as const;
+    const moreTabs = [
+        { key: "leaderboard", label: v.FRIENDS_LEADERBOARD, icon: Trophy },
+        { key: "inbox", label: v.FRIENDS_SHARE_RECEIVED, icon: Inbox },
+        { key: "sent", label: v.FRIENDS_SHARE_SENT, icon: Send },
+        { key: "blocked", label: v.FRIENDS_BLOCKED, icon: Ban },
     ] as const;
     const rows: MobileSocialRow[] =
         tab === "friends"
@@ -102,6 +132,7 @@ export default function FriendsScreen() {
     };
     return (
         <FlatList
+            style={{ flex: 1, backgroundColor: theme.colors.background }}
             data={rows}
             keyExtractor={(item) =>
                 `${item.kind}:${"publicId" in item.value ? item.value.publicId : "userId" in item.value ? item.value.userId : `${item.value.userPublicId}:${item.value.listenedAt}`}`
@@ -117,24 +148,112 @@ export default function FriendsScreen() {
             }}
             ListHeaderComponent={
                 <View style={{ gap: theme.spacing.lg }}>
-                    <Text
-                        style={{ ...copy, fontSize: theme.typography.heading }}
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: theme.spacing.sm,
+                        }}
                     >
-                        {v.FRIENDS}
-                    </Text>
+                        <Text
+                            style={{
+                                ...copy,
+                                fontSize: theme.typography.heading,
+                            }}
+                        >
+                            {v.FRIENDS}
+                        </Text>
+                        <Text
+                            accessibilityRole="text"
+                            accessibilityLabel={`${onlineUsers ?? "—"} · ${v.ONLINE_LABEL}`}
+                            style={{
+                                color: theme.colors.online,
+                                fontSize: theme.typography.label,
+                                fontWeight: "600",
+                                flex: 1,
+                            }}
+                        >
+                            {onlineUsers ?? "—"}
+                        </Text>
+                        <IconButton
+                            label={v.FRIENDS_SEARCH_PLACEHOLDER}
+                            onPress={() => setTab("search")}
+                        >
+                            <UserPlus color={theme.colors.foreground} />
+                        </IconButton>
+                        <IconButton
+                            label={v.PIP_OPTIONS}
+                            onPress={() =>
+                                menu.show({
+                                    title: v.FRIENDS,
+                                    options: moreTabs.map((item) => ({
+                                        label: item.label,
+                                        icon: item.icon,
+                                        onPress: () => {
+                                            menu.hide();
+                                            setTab(item.key);
+                                        },
+                                    })),
+                                })
+                            }
+                        >
+                            <MoreHorizontal color={theme.colors.foreground} />
+                        </IconButton>
+                    </View>
                     <ScrollView
                         horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={{ flexGrow: 0, flexShrink: 0 }}
                         contentContainerStyle={{ gap: theme.spacing.sm }}
                     >
                         {tabs.map((item) => (
-                            <ActionButton
+                            <Pressable
                                 key={item.key}
-                                label={item.label}
-                                selected={tab === item.key}
+                                accessibilityRole="tab"
+                                accessibilityLabel={item.label}
+                                accessibilityState={{
+                                    selected: tab === item.key,
+                                }}
                                 onPress={() => setTab(item.key)}
-                            />
+                                style={{
+                                    minHeight: theme.layout.touchTarget,
+                                    paddingHorizontal: theme.spacing.sm,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: theme.spacing.xs,
+                                    borderBottomWidth: tab === item.key ? 2 : 0,
+                                    borderBottomColor: theme.colors.primary,
+                                }}
+                            >
+                                <item.icon
+                                    size={theme.typography.title}
+                                    color={
+                                        tab === item.key
+                                            ? theme.colors.primary
+                                            : theme.colors["muted-foreground"]
+                                    }
+                                />
+                                {tab === item.key && (
+                                    <Text
+                                        style={{
+                                            ...copy,
+                                            fontSize: theme.typography.caption,
+                                        }}
+                                    >
+                                        {item.label}
+                                    </Text>
+                                )}
+                            </Pressable>
                         ))}
                     </ScrollView>
+                    {!tabs.some((item) => item.key === tab) && (
+                        <Text style={copy}>
+                            {tab === "search"
+                                ? v.SEARCH
+                                : moreTabs.find((item) => item.key === tab)
+                                      ?.label}
+                        </Text>
+                    )}
                     {(loading || ranks.loading) && (
                         <Text style={copy}>{v.MOBILE_LOADING}</Text>
                     )}
@@ -173,10 +292,12 @@ export default function FriendsScreen() {
                                     padding: theme.spacing.md,
                                 }}
                             />
-                            <ActionButton
+                            <IconButton
                                 label={v.SEARCH}
                                 onPress={() => void manager.searchUsers(query)}
-                            />
+                            >
+                                <Search color={theme.colors.primary} />
+                            </IconButton>
                         </>
                     )}
                 </View>
@@ -194,78 +315,132 @@ export default function FriendsScreen() {
                             case "blocked": {
                                 const user = item.value;
                                 return (
-                                    <>
-                                        <MediaIdentity
-                                            title={user.username}
-                                            subtitle={
-                                                user.nowPlaying ??
-                                                (user.isOnline
-                                                    ? v.FRIENDS_ONLINE
-                                                    : v.FRIENDS_OFFLINE)
-                                            }
-                                            imageUrl={user.imageUrl}
-                                            round
-                                        />
-                                        <View
-                                            style={{
-                                                flexDirection: "row",
-                                                flexWrap: "wrap",
-                                                gap: theme.spacing.sm,
-                                            }}
-                                        >
-                                            {item.kind === "blocked" ? (
-                                                <ActionButton
-                                                    label={v.FRIENDS_UNBLOCK}
-                                                    onPress={() =>
-                                                        void manager.unblockUser(
-                                                            user.publicId
-                                                        )
-                                                    }
-                                                />
-                                            ) : (
-                                                <>
-                                                    <ActionButton
-                                                        label={v.FRIENDS_INVITE}
-                                                        disabled={busy}
-                                                        onPress={() => {
-                                                            void listening.invite(
-                                                                user.publicId
-                                                            );
-                                                            setTab("sessions");
-                                                        }}
-                                                    />
-                                                    <ActionButton
-                                                        label={v.FRIENDS_REMOVE}
-                                                        destructive
-                                                        onPress={() =>
-                                                            void confirm(
-                                                                v.FRIENDS_REMOVE,
-                                                                () =>
-                                                                    manager.removeFriend(
-                                                                        user.publicId
-                                                                    )
-                                                            )
-                                                        }
-                                                    />
-                                                    <ActionButton
-                                                        label={v.FRIENDS_BLOCK}
-                                                        destructive
-                                                        onPress={() =>
-                                                            void confirm(
-                                                                v.FRIENDS_BLOCK,
-                                                                () =>
-                                                                    manager.blockUser(
-                                                                        user.publicId
-                                                                    )
-                                                            )
-                                                        }
-                                                    />
-                                                </>
+                                    <View
+                                        style={{
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            gap: theme.spacing.sm,
+                                            paddingVertical: theme.spacing.sm,
+                                        }}
+                                    >
+                                        <View style={{ flex: 1 }}>
+                                            <MediaIdentity
+                                                title={user.username}
+                                                subtitle={
+                                                    user.nowPlaying ??
+                                                    (user.isOnline
+                                                        ? v.FRIENDS_ONLINE
+                                                        : v.FRIENDS_OFFLINE)
+                                                }
+                                                imageUrl={user.imageUrl}
+                                                round
+                                            />
+                                            {user.levelTitle && (
+                                                <Text
+                                                    style={{
+                                                        color: theme.colors[
+                                                            "muted-foreground"
+                                                        ],
+                                                        fontSize:
+                                                            theme.typography
+                                                                .caption,
+                                                    }}
+                                                >
+                                                    {user.level} ·{" "}
+                                                    {user.levelTitle}
+                                                </Text>
                                             )}
                                         </View>
-                                    </>
+                                        {item.kind === "blocked" ? (
+                                            <IconButton
+                                                label={v.FRIENDS_UNBLOCK}
+                                                onPress={() =>
+                                                    void manager.unblockUser(
+                                                        user.publicId
+                                                    )
+                                                }
+                                            >
+                                                <UserPlus
+                                                    color={theme.colors.primary}
+                                                />
+                                            </IconButton>
+                                        ) : (
+                                            <>
+                                                <IconButton
+                                                    label={v.FRIENDS_INVITE}
+                                                    disabled={busy}
+                                                    onPress={() => {
+                                                        void listening.invite(
+                                                            user.publicId
+                                                        );
+                                                        setTab("sessions");
+                                                    }}
+                                                >
+                                                    <Headphones
+                                                        color={
+                                                            theme.colors.primary
+                                                        }
+                                                    />
+                                                </IconButton>
+                                                <IconButton
+                                                    label={v.PIP_OPTIONS}
+                                                    onPress={() =>
+                                                        menu.show({
+                                                            title: user.username,
+                                                            imageUrl:
+                                                                user.imageUrl ??
+                                                                undefined,
+                                                            options: [
+                                                                {
+                                                                    label: v.FRIENDS_REMOVE,
+                                                                    icon: UserMinus,
+                                                                    destructive: true,
+                                                                    onPress:
+                                                                        () => {
+                                                                            menu.hide();
+                                                                            void confirm(
+                                                                                v.FRIENDS_REMOVE,
+                                                                                () =>
+                                                                                    manager.removeFriend(
+                                                                                        user.publicId
+                                                                                    )
+                                                                            );
+                                                                        },
+                                                                },
+                                                                {
+                                                                    label: v.FRIENDS_BLOCK,
+                                                                    icon: Ban,
+                                                                    destructive: true,
+                                                                    onPress:
+                                                                        () => {
+                                                                            menu.hide();
+                                                                            void confirm(
+                                                                                v.FRIENDS_BLOCK,
+                                                                                () =>
+                                                                                    manager.blockUser(
+                                                                                        user.publicId
+                                                                                    )
+                                                                            );
+                                                                        },
+                                                                },
+                                                            ],
+                                                        })
+                                                    }
+                                                >
+                                                    <MoreHorizontal
+                                                        color={
+                                                            theme.colors[
+                                                                "muted-foreground"
+                                                            ]
+                                                        }
+                                                    />
+                                                </IconButton>
+                                            </>
+                                        )}
+                                    </View>
                                 );
                             }
+
                             case "request":
                             case "pending": {
                                 const request = item.value;

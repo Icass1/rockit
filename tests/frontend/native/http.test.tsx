@@ -87,6 +87,13 @@ jest.mock(
     },
     { virtual: true }
 );
+jest.mock(
+    "expo/fetch",
+    () => ({
+        fetch: (...args: Parameters<typeof fetch>) => global.fetch(...args),
+    }),
+    { virtual: true }
+);
 const transport = jest.fn();
 const online = (value: unknown, status = 200, headers?: HeadersInit) =>
     transport.mockResolvedValue(
@@ -154,4 +161,29 @@ it("does not restore an obsolete session cookie when a previous account request 
     );
     await pending;
     expect(await getSessionCookie()).toBe("new-account");
+});
+
+it("lets the native transport supply the multipart boundary while preserving authentication", async () => {
+    await saveSessionCookieValue("photo-account");
+    online({});
+    const photo = {
+        uri: "file:///gallery/photo.jpg",
+        name: "photo.jpg",
+        type: "image/jpeg",
+    } as unknown as Blob;
+    const original = global.FormData;
+    // Exercise RN's URI-descriptor transport, rather than Node's Blob-only polyfill.
+    global.FormData =
+        require("react-native/Libraries/Network/FormData").default;
+    try {
+        await Http.uploadProfileImage(photo, "photo.jpg");
+        const [, request] = transport.mock.calls.at(-1)!;
+        expect(request.body).toBeInstanceOf(FormData);
+        expect(new Headers(request.headers).has("content-type")).toBe(false);
+        expect(new Headers(request.headers).get("cookie")).toContain(
+            "photo-account"
+        );
+    } finally {
+        global.FormData = original;
+    }
 });

@@ -8,6 +8,7 @@ module.exports = {
     moduleNameMapper: {
         ...preset.moduleNameMapper,
         "^@mobile/(.*)$": "<rootDir>/apps/mobile/$1",
+        "^@/lib/http$": "<rootDir>/apps/mobile/lib/http.native.ts",
         "^@/lib/api$": "<rootDir>/apps/mobile/lib/api.native.ts",
         "^@/(.*)$": "<rootDir>/packages/shared/src/$1",
         "^@rockit/ui/runtime$": "<rootDir>/packages/ui/src/runtime.native.ts",

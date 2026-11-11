@@ -27,6 +27,14 @@ pnpm dev:web
 pnpm dev:mobile
 ```
 
+To run the mobile UI in a browser from VS Code, choose **Mobile Web (Expo)**
+in Run and Debug and press F5, or **Backend + Mobile Web** to start both.
+This launches the workspace Expo CLI on `http://localhost:8081` and opens Chrome
+with debugging. It uses VS Code's built-in JavaScript debugger; the legacy
+React Native Tools `platform: expo` launcher is not used. Metro keeps hot reload
+enabled. Configure `EXPO_PUBLIC_BACKEND_URL` in `apps/mobile/.env` when the API
+is not at its default `http://localhost:8000`.
+
 For a completed frontend change, use `pnpm typecheck` and the relevant application
 lint command. `pnpm test:frontend` runs the portable, DOM/native contract and
 manager checks; production builds and device acceptance are separate. See the

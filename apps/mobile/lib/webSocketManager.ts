@@ -18,6 +18,7 @@ import {
     MediaEndedMessageRequest,
     MediaExpandedMessageRequest,
     NotificationStateMessageSchema,
+    OnlineUsersMessageSchema,
     QueueTypeMessageSchema,
     QueueTypeRequest,
     SeekMessageRequest,
@@ -29,6 +30,7 @@ import {
     type MediaRemovedFromPlaylistMessage,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
+import { atom } from "nanostores";
 
 function getWsUrl(): string {
     const url = BACKEND_URL.replace(/^http:\/\//, "ws://").replace(
@@ -39,6 +41,7 @@ function getWsUrl(): string {
 }
 
 export class WebSocketManager {
+    readonly onlineUsersAtom = atom<number | undefined>(undefined);
     private static _instance: WebSocketManager;
 
     private _webSocket?: WebSocket;
@@ -56,7 +59,11 @@ export class WebSocketManager {
     private _onMessageHandler = (event: MessageEvent) => {
         try {
             let data = JSON.parse(event.data) as TWebSocketIncomingMessage;
-            if (data.type === EWebSocketMessage.CurrentMedia) {
+            if (data.type === EWebSocketMessage.OnlineUsers) {
+                data = OnlineUsersMessageSchema.parse(data);
+                if (!Number.isInteger(data.count) || data.count < 0) return;
+                this.onlineUsersAtom.set(data.count);
+            } else if (data.type === EWebSocketMessage.CurrentMedia) {
                 data = CurrentMediaMessageSchema.parse(data);
                 if (this._outgoingPlayback?.playbackId !== data.playbackId) {
                     this._outgoingPlayback = undefined;
@@ -161,6 +168,7 @@ export class WebSocketManager {
     }
 
     stop(): void {
+        this.onlineUsersAtom.set(undefined);
         this._enabled = false;
         this._generation++;
         this._connecting = false;
@@ -212,6 +220,7 @@ export class WebSocketManager {
             socket.onmessage = this._onMessageHandler;
             socket.onclose = () => {
                 if (generation !== this._generation) return;
+                this.onlineUsersAtom.set(undefined);
                 this._connecting = false;
                 this._webSocket = undefined;
                 this._retry(generation);

@@ -322,15 +322,7 @@ class YoutubeProvider(BaseMediaProvider):
     JOIN   core.image    ci ON ci.id = v.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
-        return """    SELECT v.id               AS media_id,
-           cm_ch.public_id    AS artist_public_id,
-           ch.name            AS artist_name,
-           ci.id AS artist_image_id
-    FROM   youtube.video         v
-    JOIN   youtube.video_channel vc    ON vc.video_id   = v.id
-    JOIN   youtube.channel       ch    ON ch.id         = vc.channel_id
-    JOIN   core.media            cm_ch ON cm_ch.id      = ch.id
-    JOIN   core.image            ci    ON ci.id         = ch.image_id"""
+        return YouTubeAccess.get_stats_artist_info_cte_fragment()
 
     def get_collection_provider_url(self, metadata: dict[str, Any], media_type_key: int) -> str:
         """Build a source link without loading collection contents."""

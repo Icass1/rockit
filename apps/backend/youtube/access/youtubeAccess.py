@@ -37,6 +37,22 @@ def parse_duration_to_seconds(duration: str) -> int:
 
 class YouTubeAccess:
     @staticmethod
+    def get_stats_artist_info_cte_fragment() -> str:
+        """Credit each video's uploader using its authoritative channel relationship."""
+        statement: Select[tuple[int, str, str, int]] = (
+            select(
+                VideoRow.id.label("media_id"),
+                CoreMediaRow.public_id.label("artist_public_id"),
+                ChannelRow.name.label("artist_name"),
+                ChannelRow.image_id.label("artist_image_id"),
+            )
+            .select_from(VideoRow)
+            .join(ChannelRow, ChannelRow.id == VideoRow.channel_id)
+            .join(CoreMediaRow, CoreMediaRow.id == ChannelRow.id)
+        )
+        return str(statement)
+
+    @staticmethod
     async def get_videos_by_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],

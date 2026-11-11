@@ -1027,6 +1027,7 @@ export class BaseQueueManager {
             "recent-mix",
             "last-month",
             "year-recap",
+            "latest-downloads",
         ];
         const response = featuredIds.includes(publicId)
             ? await getRockIt().http.createFeaturedQueue(publicId, payload)

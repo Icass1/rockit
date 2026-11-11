@@ -126,6 +126,25 @@ try {
     ).json();
     assert.equal(libraryState.calls["/user/library/medias"], 1);
     assert.equal(libraryState.calls["/stats/user"], 1);
+    assert.match(libraryHtml, /href="\/playlist\/latest-downloads"/);
+    assert.match(libraryHtml, /Últimas descargas/);
+    for (const [session, expected, absent] of [
+        ["fixture", "Latest viewer download", "Other viewer download"],
+        ["fixture-other", "Other viewer download", "Latest viewer download"],
+        ["fixture-empty", "Últimas descargas", "Latest viewer download"],
+    ]) {
+        const latestResponse = await fetch(
+            `http://127.0.0.1:${frontend}/playlist/latest-downloads`,
+            {
+                headers: { cookie: `session_id=${session}` },
+                signal: AbortSignal.timeout(15000),
+            }
+        );
+        assert.equal(latestResponse.status, 200);
+        const latestHtml = await latestResponse.text();
+        assert.match(latestHtml, new RegExp(expected));
+        assert.doesNotMatch(latestHtml, new RegExp(absent));
+    }
     const emptyLibraryResponse = await fetch(
         `http://127.0.0.1:${frontend}/library`,
         {

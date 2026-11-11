@@ -40,6 +40,15 @@ export class PlaylistManager {
 
         await this.refreshPlaylistsAsync();
 
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaAddedToLibrary,
+            this.refreshLibraryPlaylists
+        );
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaRemovedFromLibrary,
+            this.refreshLibraryPlaylists
+        );
+
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.PlaylistCreated,
             this.handlePlaylistCreated
@@ -107,6 +116,10 @@ export class PlaylistManager {
             publicId: data.publicId,
             playlistPublicId: data.playlistPublicId,
         });
+    };
+
+    private refreshLibraryPlaylists = (): void => {
+        void this.refreshPlaylistsAsync();
     };
 
     async refreshPlaylistsAsync(): Promise<void> {
@@ -228,16 +241,14 @@ export class PlaylistManager {
         this.libraryDropsPending.add(playlistPublicId);
         const vocabulary = rockIt.vocabularyManager.vocabulary;
         try {
-            // The owned-list endpoint filters by owner_id on the server. Recheck at
-            // drop time instead of comparing display names or trusting a stale card.
-            const owned = await Http.getUserPlaylistsAsync();
+            // Request the owner-only subset of library playlists at drop time.
+            const owned = await Http.getUserPlaylistsAsync(true);
             if (!owned.isOk()) {
                 rockIt.notificationManager.notifyError(
                     vocabulary.LIBRARY_DROP_ERROR
                 );
                 return false;
             }
-            this._playlistsAtom.set(owned.result.playlists);
             const target = owned.result.playlists.find(
                 (item) => item.publicId === playlistPublicId
             );

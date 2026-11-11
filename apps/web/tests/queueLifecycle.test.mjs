@@ -482,12 +482,14 @@ test("cleanup detaches handlers from the socket used for setup", async () => {
 });
 
 test("collection playback keeps the returned total, offset and selected occurrence", async () => {
-    for (const id of ["collection", "liked"]) {
+    for (const id of ["collection", "liked", "latest-downloads"]) {
         const e = setup({ web: true });
         await e.queue.init();
         const selected = e.queue.playCollection(id, "chosen51");
         const read = e.take(
-            id === "liked" ? "createFeaturedQueue" : "createCollectionQueue"
+            id === "collection"
+                ? "createCollectionQueue"
+                : "createFeaturedQueue"
         );
         assert.equal(read.args[1].startPublicId, "chosen51");
         read.resolve(

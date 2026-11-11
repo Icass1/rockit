@@ -156,6 +156,7 @@ async def create_playlist_async(
 @router.get("")
 async def get_user_playlists_async(
     request: Request,
+    owned_only: bool = Query(default=False),
 ) -> UserPlaylistsResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -164,7 +165,7 @@ async def get_user_playlists_async(
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
     a_result: Result[list[PlaylistModel]] = await Playlist.get_user_playlists_async(
-        session=session, user_id=user.result().id
+        session=session, user_id=user.result().id, owned_only=owned_only
     )
     if a_result.is_not_ok():
         logger.error(f"Error getting playlists. {a_result.info()}")

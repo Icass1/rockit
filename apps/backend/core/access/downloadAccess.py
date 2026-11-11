@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from logging import Logger
 
-from sqlalchemy import or_, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -10,6 +10,7 @@ from core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.enums.downloadStatusEnum import DownloadStatusEnum
+from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
@@ -19,6 +20,31 @@ logger: Logger = getLogger(__name__)
 
 
 class DownloadAccess:
+    @staticmethod
+    @safe_async
+    async def get_latest_downloaded_media_public_ids_async(
+        session: AsyncSession, user_id: int, limit: int = 50
+    ) -> Result[list[str]]:
+        """Get distinct playable media from this user's completed download history."""
+        statement = (
+            select(CoreMediaRow.public_id)
+            .join(DownloadRow, DownloadRow.media_id == CoreMediaRow.id)
+            .join(DownloadGroupRow, DownloadGroupRow.id == DownloadRow.download_group_id)
+            .where(
+                DownloadGroupRow.user_id == user_id,
+                DownloadRow.status_key == DownloadStatusEnum.COMPLETED.value,
+                DownloadRow.date_ended.is_not(None),
+                CoreMediaRow.media_type_key.in_(
+                    [MediaTypeEnum.SONG.value, MediaTypeEnum.VIDEO.value]
+                ),
+            )
+            .group_by(CoreMediaRow.id, CoreMediaRow.public_id)
+            .order_by(func.max(DownloadRow.date_ended).desc(), func.max(DownloadRow.id).desc())
+            .limit(limit)
+        )
+        rows = await session.execute(statement=statement)
+        return Result(code=ResultCode.OK, message="OK", result=list(rows.scalars().all()))
+
     @staticmethod
     @safe_async
     async def create_download_group(

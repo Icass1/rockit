@@ -7,6 +7,7 @@ from sqlalchemy.future import select
 from sqlalchemy.sql.dml import Delete
 
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
@@ -106,22 +107,21 @@ class PlaylistAccess:
             )
 
     @staticmethod
+    @safe_async
     async def get_user_playlists_async(
-        session: AsyncSession, user_id: int
+        session: AsyncSession, user_id: int, owned_only: bool = False
     ) -> Result[list[PlaylistRow]]:
-        try:
-            stmt: Select[tuple[PlaylistRow]] = select(PlaylistRow).where(
-                PlaylistRow.owner_id == user_id
-            )
-            result: DBResult[tuple[PlaylistRow]] = await session.execute(statement=stmt)
-            playlists: list[PlaylistRow] = list(result.scalars().all())
-            return Result(code=ResultCode.OK, message="OK", result=playlists)
-        except Exception as e:
-            logger.error(f"Error in get_user_playlists_async: {e}", exc_info=True)
-            return Result(
-                code=ResultCode.GENERAL_ERROR,
-                message=f"Failed to get playlists: {e}",
-            )
+        """List library playlists, optionally restricting owner-only interactions."""
+        stmt = (
+            select(PlaylistRow)
+            .join(UserLibraryMediaRow, UserLibraryMediaRow.media_id == PlaylistRow.id)
+            .where(UserLibraryMediaRow.user_id == user_id)
+            .order_by(UserLibraryMediaRow.date_added.desc(), UserLibraryMediaRow.id.desc())
+        )
+        if owned_only:
+            stmt = stmt.where(PlaylistRow.owner_id == user_id)
+        rows = await session.execute(statement=stmt)
+        return Result(code=ResultCode.OK, message="OK", result=list(rows.scalars().all()))
 
     @staticmethod
     async def update_playlist_async(

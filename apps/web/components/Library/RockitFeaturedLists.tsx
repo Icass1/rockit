@@ -2,7 +2,7 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
-import { CalendarDays, Disc3, Heart, History } from "lucide-react";
+import { CalendarDays, Disc3, Download, Heart, History } from "lucide-react";
 import type { RockitListKey } from "@/models/types/navigationPins";
 import { getRockitListName } from "@/lib/utils/navigationPins";
 import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
@@ -13,6 +13,7 @@ export default function RockitFeaturedLists(): JSX.Element {
     const vocabulary = useVocabulary();
     const keys: RockitListKey[] = [
         "liked",
+        "latest-downloads",
         "most-listened",
         "recent-mix",
         "year-recap",
@@ -40,7 +41,9 @@ export default function RockitFeaturedLists(): JSX.Element {
                           ? Disc3
                           : key === "recent-mix"
                             ? History
-                            : CalendarDays;
+                            : key === "latest-downloads"
+                              ? Download
+                              : CalendarDays;
                 return (
                     <NavigationPinMenu
                         key={key}

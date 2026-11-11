@@ -57,11 +57,6 @@ export default function ListeningHeatmap({
             document.removeEventListener("keydown", escape);
         };
     }, [open]);
-    const currentCount =
-        segments.find(
-            (s) =>
-                s.startMs <= currentTime * 1000 && s.endMs > currentTime * 1000
-        )?.count ?? 0;
     const time = (ms: number): string => getTime(ms / 1000);
 
     return (
@@ -145,7 +140,7 @@ export default function ListeningHeatmap({
                                 </div>
                                 <div>
                                     <p className="text-base font-semibold tabular-nums">
-                                        {currentCount}
+                                        {history.currentCount}
                                         <span className="text-xs">×</span>
                                     </p>
                                     <p className="text-muted-foreground text-xs">

@@ -1128,3 +1128,53 @@ test("browser cleanup cancels the outgoing blend and timers while the active dec
     e.player.pause();
     e.player.stopBrowserLifecycle();
 });
+
+test("playback observations distinguish native progress, programmatic seeks and slider previews", async () => {
+    const e = setup();
+    await start(e);
+    const positions = [];
+    const unsubscribe = e.player.playbackPositionAtom.listen((position) =>
+        positions.push({ ...position })
+    );
+    try {
+        e.player.audioElement.currentTime = 2;
+        e.player.audioElement.ontimeupdate();
+        assert.equal(positions.at(-1).kind, "progress");
+        assert.equal(positions.at(-1).timeTo, 2);
+        assert.equal(positions.at(-1).mediaPublicId, "a");
+        e.player.setCurrentTime(20);
+        assert.equal(positions.at(-1).kind, "seek");
+        assert.equal(positions.at(-1).timeFrom, 2);
+        assert.equal(positions.at(-1).timeTo, 20);
+        assert.equal(positions.at(-1).seeking, false);
+        e.player.beginSeek();
+        assert.equal(positions.at(-1).seeking, true);
+        e.player.setCurrentTime(30, false);
+        assert.equal(positions.at(-1).kind, "seek");
+        assert.equal(positions.at(-1).seeking, true);
+        const duringDrag = positions.length;
+        e.player.audioElement.ontimeupdate();
+        assert.equal(positions.length, duringDrag);
+        e.player.endSeek(40);
+        assert.equal(positions.at(-1).kind, "seek");
+        assert.equal(positions.at(-1).timeFrom, 20);
+        assert.equal(positions.at(-1).timeTo, 40);
+        assert.equal(positions.at(-1).seeking, false);
+        e.player.audioElement.currentTime = 41;
+        e.player.audioElement.ontimeupdate();
+        assert.equal(positions.at(-1).kind, "progress");
+        assert.equal(positions.at(-1).timeFrom, 40);
+        assert.equal(positions.at(-1).timeTo, 41);
+        e.player.audioElement.currentTime = NaN;
+        const beforeInvalid = positions.length;
+        e.player.audioElement.ontimeupdate();
+        assert.equal(positions.length, beforeInvalid);
+        e.queue.setQueueMediaId(2);
+        await e.player.setMedia();
+        assert.equal(positions.at(-1).mediaPublicId, "b");
+        assert.equal(positions.at(-1).kind, "seek");
+    } finally {
+        unsubscribe();
+        e.player.stopBrowserLifecycle();
+    }
+});

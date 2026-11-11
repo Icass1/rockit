@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import test from "node:test";
 import { act, createElement } from "react";
+import { useStore } from "@nanostores/react";
 import { build } from "esbuild";
 import { atom } from "nanostores";
 import { createRoot } from "test-renderer";
@@ -11,7 +12,8 @@ const { outputFiles } = await build({
     stdin: {
         contents: `export { useListeningHeatmap } from '@/hooks/useListeningHeatmap';
 export { listeningHeatmapManager } from '@/lib/managers/listeningHeatmapManager';
-export { listeningHeatmapCurve } from '@/lib/utils/listeningHeatmapCurve';`,
+export { listeningHeatmapCurve } from '@/lib/utils/listeningHeatmapCurve';
+export { default as ListeningHeatmap } from '@/components/ListeningHeatmap/ListeningHeatmap';`,
         resolveDir: new URL("../", import.meta.url).pathname,
     },
     bundle: true,
@@ -25,6 +27,8 @@ export { listeningHeatmapCurve } from '@/lib/utils/listeningHeatmapCurve';`,
             name: "playback-fixture",
             setup(builder) {
                 const mocks = {
+                    "@/components/providers/VocabularyProvider":
+                        "export const useVocabulary = () => ({});",
                     "@/lib/http": "export const Http = fixture.http;",
                     "@/lib/rockit/rockIt":
                         "export const rockIt = fixture.runtime;",
@@ -72,8 +76,12 @@ function setup() {
         "module",
         "exports",
         "fixture",
+        "document",
         outputFiles[0].text
-    )(createRequire(import.meta.url), module, module.exports, fixture);
+    )(createRequire(import.meta.url), module, module.exports, fixture, {
+        addEventListener() {},
+        removeEventListener() {},
+    });
     return { ...module.exports, runtime, requests };
 }
 
@@ -223,4 +231,77 @@ test("rounded transitions preserve unheard gaps, short segments and real timelin
     );
     assert.equal(curve([], 0, 0), "");
     assert.equal(curve([], 4, 0), "");
+});
+
+test("the current listen count stays on the third listen across fractional clock updates and paused seeks", async () => {
+    const { ListeningHeatmap, runtime, requests } = setup();
+    const player = runtime.mediaPlayerManager;
+    function Probe() {
+        const currentTime = useStore(player.currentTimeAtom);
+        return createElement(ListeningHeatmap, {
+            publicId: "one",
+            duration: 10,
+            currentTime,
+        });
+    }
+    const root = createRoot();
+    try {
+        await act(async () => root.render(createElement(Probe)));
+        await act(async () =>
+            requests[0].resolve([{ startMs: 0, endMs: 10000, count: 2 }])
+        );
+        await act(async () =>
+            root.container
+                .queryAll(
+                    (node) =>
+                        node.type === "button" &&
+                        node.props["aria-label"] === "Listening history"
+                )[0]
+                .props.onClick()
+        );
+        const count = () =>
+            root.container.queryAll(
+                (node) =>
+                    node.type === "p" &&
+                    node.props.className ===
+                        "text-base font-semibold tabular-nums"
+            )[2].children[0];
+        for (const time of [
+            1, 1.0001, 1.0006, 1.001, 1.0014, 1.0018, 2, 2.9999, 3.0001,
+        ]) {
+            await act(async () => player.currentTimeAtom.set(time));
+            assert.equal(count(), "3", `count at ${time}s`);
+        }
+        await act(async () => player.playingAtom.set(false));
+        assert.equal(count(), "3");
+        await act(async () => player.currentTimeAtom.set(8));
+        assert.equal(count(), "2");
+        await act(async () => player.currentTimeAtom.set(1));
+        assert.equal(count(), "3");
+        await act(async () => player.playingAtom.set(true));
+        assert.equal(count(), "3");
+        await act(async () => player.currentTimeAtom.set(10));
+        assert.equal(count(), "3");
+        assert.equal(requests.length, 1);
+    } finally {
+        await act(async () => root.unmount());
+    }
+});
+
+test("cursor counts preserve backend boundaries and unheard gaps while including only the live pass", () => {
+    const { listeningHeatmapManager: manager } = setup();
+    const baseline = [
+        { startMs: 0, endMs: 1000, count: 2 },
+        { startMs: 1000, endMs: 2000, count: 4 },
+        { startMs: 3000, endMs: 4000, count: 3 },
+    ];
+    assert.equal(manager.countAt(baseline, 0), 2);
+    assert.equal(manager.countAt(baseline, 0, 0), 3);
+    assert.equal(manager.countAt(baseline, 0.9999, 0.9999), 3);
+    assert.equal(manager.countAt(baseline, 1, 1), 5);
+    assert.equal(manager.countAt(baseline, 2.5, 2.5), 1);
+    assert.equal(manager.countAt(baseline, 3.5, 1), 3);
+    assert.equal(manager.countAt(baseline, 4, 4), 4);
+    assert.equal(manager.countAt([], 1, 1), 1);
+    assert.equal(manager.countAt(baseline, NaN, 1), 0);
 });

@@ -10,6 +10,7 @@ export function useListeningHeatmap(
 ): ListeningHeatmapState {
     const [state, setState] = useState<ListeningHeatmapState>({
         segments: [],
+        currentCount: 0,
         status: "loading",
     });
     useEffect(() => {
@@ -17,26 +18,28 @@ export function useListeningHeatmap(
         let active = true;
         const player = rockIt.mediaPlayerManager;
         let baseline: ListeningHeatmapState["segments"] | undefined;
-        let playedUntil = 0;
+        let playedUntil: number | undefined;
         const publish = (): void => {
             if (active && baseline)
                 setState({
                     publicId,
                     segments: listeningHeatmapManager.withPlayback(
                         baseline,
+                        playedUntil ?? 0
+                    ),
+                    currentCount: listeningHeatmapManager.countAt(
+                        baseline,
+                        player.currentTimeAtom.get(),
                         playedUntil
                     ),
                     status: "ready",
                 });
         };
         const onPlayback = (): void => {
-            if (
-                player.playingAtom.get() &&
-                rockIt.queueManager.currentMedia?.publicId === publicId
-            ) {
+            if (rockIt.queueManager.currentMedia?.publicId !== publicId) return;
+            if (player.playingAtom.get())
                 playedUntil = player.currentTimeAtom.get();
-                publish();
-            }
+            publish();
         };
         const unsubscribeTime = player.currentTimeAtom.listen(onPlayback);
         const unsubscribePlaying = player.playingAtom.listen(onPlayback);
@@ -47,7 +50,12 @@ export function useListeningHeatmap(
                 publish();
             } catch {
                 if (active)
-                    setState({ publicId, segments: [], status: "error" });
+                    setState({
+                        publicId,
+                        segments: [],
+                        currentCount: 0,
+                        status: "error",
+                    });
             }
         };
         void load();
@@ -59,5 +67,5 @@ export function useListeningHeatmap(
     }, [publicId]);
     return state.publicId === publicId
         ? state
-        : { segments: [], status: "loading" as const };
+        : { segments: [], currentCount: 0, status: "loading" as const };
 }

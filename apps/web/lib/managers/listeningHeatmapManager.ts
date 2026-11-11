@@ -10,6 +10,25 @@ export class ListeningHeatmapManager {
         return response.result.segments;
     }
 
+    countAt(
+        segments: ListeningHeatmapSegment[],
+        currentTime: number,
+        playedUntil?: number
+    ): number {
+        if (!Number.isFinite(currentTime) || currentTime < 0) return 0;
+        const ms = currentTime * 1000;
+        const last = segments.at(-1);
+        const baseline =
+            segments.find(
+                (segment) => segment.startMs <= ms && segment.endMs > ms
+            )?.count ?? (last?.endMs === ms ? last.count : 0);
+        // The cursor belongs to the live pass even at its half-open chart edge.
+        return (
+            baseline +
+            (playedUntil !== undefined && currentTime <= playedUntil ? 1 : 0)
+        );
+    }
+
     withPlayback(
         segments: ListeningHeatmapSegment[],
         currentTime: number

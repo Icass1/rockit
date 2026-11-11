@@ -51,7 +51,7 @@ function CardShell({
     return (
         <LibraryDragDropSurface
             media={media}
-            className="mx-auto w-full max-w-62.5"
+            className="mx-auto w-full max-w-62.5 min-w-0"
         >
             {children}
         </LibraryDragDropSurface>
@@ -198,7 +198,7 @@ function LibraryCard({
                     {subtitle}
                 </p>
             ) : (
-                <div className="text-muted-foreground text-center text-sm">
+                <div className="text-muted-foreground w-full min-w-0 text-center text-sm">
                     {subtitle}
                 </div>
             )
@@ -340,6 +340,7 @@ export function AlbumCard({
             name={album.name}
             subtitle={
                 <Artists
+                    align="center"
                     artists={album.artists}
                     className="text-muted-foreground text-sm"
                 />
@@ -378,6 +379,7 @@ export function VideoCard({
             name={$video.name}
             subtitle={
                 <Artists
+                    align="center"
                     artists={$video.artists}
                     className="text-muted-foreground text-sm"
                 />
@@ -428,6 +430,7 @@ export function SongCard({
             subtitle={
                 <>
                     <Artists
+                        align="center"
                         artists={$song.artists}
                         className="text-muted-foreground text-sm"
                     />

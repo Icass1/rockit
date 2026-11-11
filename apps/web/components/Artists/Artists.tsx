@@ -10,16 +10,18 @@ export default function Artists({
     className,
     linkable = true,
     multiline = false,
+    align = "left",
 }: {
     artists: BaseArtistResponse[];
     className?: string;
     linkable?: boolean;
     multiline?: boolean;
+    align?: "left" | "center";
 }): JSX.Element {
     return (
         <div
             title={artists.map((artist) => artist.name).join(", ")}
-            className={`max-w-full min-w-0 leading-normal ${multiline ? "line-clamp-5 text-center" : "truncate"} ${className || ""}`}
+            className={`w-full max-w-full min-w-0 leading-normal ${align === "center" ? "text-center" : "text-left"} ${multiline ? "line-clamp-5 wrap-break-word" : "truncate"} ${className || ""}`}
         >
             {artists.map((artist, index): JSX.Element => (
                 <span key={artist.publicId || artist.name}>

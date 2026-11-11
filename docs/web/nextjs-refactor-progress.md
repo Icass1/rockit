@@ -24,3 +24,8 @@ Checks: web/native TypeScript, lint, production exports and focused regression
 tests. Chromium verifies search scrolling and existing mobile destinations against
 a local fixture backend. These checks do not establish physical iOS/Android
 acceptance. Orientation-specific design work is deferred at the user's request.
+
+Artist credit alignment follow-up: grid cards now request centered credits
+explicitly and constrain their width to the cover. Row credits retain left
+alignment and one-line ellipsis. Album headers explicitly center credits and allow
+up to five lines, including long unbroken names.

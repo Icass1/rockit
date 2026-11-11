@@ -70,9 +70,7 @@
                 "expo-media-control",
                 {
                     "enableBackgroundAudio": true,
-                    "audioSessionCategory": "playback",
-                    "skipForwardInterval": 10,
-                    "skipBackwardInterval": 10
+                    "audioSessionCategory": "playback"
                 }
             ],
             [

@@ -16,6 +16,7 @@ import { useLibrarySongSearch } from "@/hooks/useLibrarySongSearch";
 import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
 import LibraryFilters from "@/components/Library/LibraryFilters";
+import LibraryShortcuts from "@/components/Navigation/LibraryShortcuts";
 import NavigationAnchors from "@/components/Navigation/NavigationAnchors";
 import SearchBar from "@/components/Search/SearchBar";
 
@@ -122,6 +123,7 @@ export default function LibraryScreen({
             {!searchQuery.trim() && activeType === ELibraryActiveType.All && (
                 <NavigationAnchors />
             )}
+            <LibraryShortcuts />
             <SearchBar
                 value={searchQuery}
                 onChangeText={onSearchChange}

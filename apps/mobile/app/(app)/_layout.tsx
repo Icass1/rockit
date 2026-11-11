@@ -10,7 +10,6 @@ import {
     BookOpen,
     Download,
     Home,
-    Radio,
     Search,
     Settings,
     Users,
@@ -68,18 +67,6 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
             label: vocabulary.SEARCH,
             icon: Search,
             path: "/(app)/search" as const,
-        },
-        {
-            name: "downloader",
-            label: vocabulary.DOWNLOADS,
-            icon: Download,
-            path: "/(app)/downloader" as const,
-        },
-        {
-            name: "radio",
-            label: vocabulary.RADIO,
-            icon: Radio,
-            path: "/(app)/radio" as const,
         },
         {
             name: "friends",

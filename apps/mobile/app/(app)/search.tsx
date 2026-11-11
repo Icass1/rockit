@@ -9,6 +9,7 @@ import {
 import { useVocabulary } from "@/lib/vocabulary";
 import { Header, PageContainer } from "@/components/layout";
 import { MediaCardSkeleton } from "@/components/Media";
+import LibraryShortcuts from "@/components/Navigation/LibraryShortcuts";
 import {
     EmptyState,
     SearchBar,
@@ -64,6 +65,7 @@ export default function SearchScreen() {
         <>
             <Header />
             <PageContainer>
+                <LibraryShortcuts discovery />
                 <SearchBar
                     value={query}
                     onChangeText={search}

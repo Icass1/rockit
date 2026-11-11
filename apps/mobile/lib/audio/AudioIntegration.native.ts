@@ -199,8 +199,6 @@ class AudioIntegrationServiceClass {
                     this.Command.PAUSE,
                     this.Command.NEXT_TRACK,
                     this.Command.PREVIOUS_TRACK,
-                    this.Command.SKIP_FORWARD,
-                    this.Command.SKIP_BACKWARD,
                 ],
             });
             this.isMediaControlEnabled = true;

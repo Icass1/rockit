@@ -137,3 +137,5 @@ export {
 } from "@/models/contentRating";
 
 export { shouldKeepVinyl } from "@/utils/vinylIdentity";
+
+export { downloadCollectionOffline } from "./utils/downloadCollectionOffline";

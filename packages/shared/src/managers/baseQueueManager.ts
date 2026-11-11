@@ -1087,17 +1087,60 @@ export class BaseQueueManager {
             : [];
     }
 
+    /** Resolve stable occurrence IDs before loading missing queue pages. */
+    async reorderQueueItemsAsync(
+        fromId: number,
+        toId: number
+    ): Promise<boolean> {
+        const generation = this._queueGeneration;
+        const lifecycle = this._lifecycleGeneration;
+        const queueType = getRockIt().userManager.queueTypeAtom.get();
+        const isCurrent = () =>
+            generation === this._queueGeneration &&
+            lifecycle === this._lifecycleGeneration &&
+            queueType === getRockIt().userManager.queueTypeAtom.get();
+        while (!this.isQueueFullyLoaded) {
+            if (!isCurrent()) return false;
+            const count = this.queue.length;
+            const loaded = this.hasPreviousQueuePage
+                ? await this.loadPreviousQueuePageAsync()
+                : await this.loadNextQueuePageAsync();
+            if (!loaded || !isCurrent() || this.queue.length <= count)
+                return false;
+        }
+        if (!isCurrent()) return false;
+        const from = this.queue.findIndex(
+            (item) => item.queueMediaId === fromId
+        );
+        const to = this.queue.findIndex((item) => item.queueMediaId === toId);
+        if (from < 0 || to < 0) return false;
+        this.reorderQueue(from, to);
+        return true;
+    }
+
     reorderQueue(fromIndex: number, toIndex: number): void {
-        if (fromIndex < 0 || fromIndex >= this.sortedQueue.length) return;
-        if (toIndex < 0 || toIndex >= this.sortedQueue.length) return;
-        if (fromIndex === toIndex) return;
-
-        const [movedItem] = this.sortedQueue.splice(fromIndex, 1);
-        this.sortedQueue.splice(toIndex, 0, movedItem);
-
-        const [movedRandomItem] = this.randomQueue.splice(fromIndex, 1);
-        this.randomQueue.splice(toIndex, 0, movedRandomItem);
-
+        if (!this.isQueueFullyLoaded) return;
+        const queue = [...this.queue];
+        if (
+            !Number.isInteger(fromIndex) ||
+            !Number.isInteger(toIndex) ||
+            fromIndex < 0 ||
+            fromIndex >= queue.length ||
+            toIndex < 0 ||
+            toIndex >= queue.length ||
+            fromIndex === toIndex
+        )
+            return;
+        const [moved] = queue.splice(fromIndex, 1);
+        queue.splice(toIndex, 0, moved);
+        if (getRockIt().userManager.queueTypeAtom.get() === EQueueType.RANDOM)
+            this.randomQueue = queue;
+        else this.sortedQueue = queue;
+        // Cached pages must not restore the previous ordering on later updates.
+        for (const [index, item] of this.sortedQueue.entries())
+            item.sortedIndex = index;
+        for (const [index, item] of this.randomQueue.entries())
+            item.randomIndex = index;
         this.updateQueue();
     }
 

@@ -15,7 +15,7 @@ const tokens = JSON.parse(
 const htmlPath = path.join(output, "index.html");
 let html = await readFile(htmlPath, "utf8");
 await cp(
-    path.join(root, "assets/images/icon.png"),
+    path.join(root, "assets/images/logo-512.png"),
     path.join(output, "icon.png")
 );
 const manifest = {
@@ -31,7 +31,7 @@ const manifest = {
     icons: [
         {
             src: "/icon.png",
-            sizes: "1024x1024",
+            sizes: "512x512",
             type: "image/png",
             purpose: "any",
         },

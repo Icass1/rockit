@@ -18,6 +18,7 @@ import {
     Text,
     View,
 } from "react-native";
+import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
@@ -37,6 +38,10 @@ export default function MiniPlayer() {
         skipForward,
         showPlayer,
     } = usePlayer();
+    const imageUrl = useOfflineArtwork(
+        currentMedia?.publicId,
+        currentMedia?.imageUrl
+    );
     const { currentTime, duration } = usePlayerTime();
 
     const [scale] = useState(() => new Animated.Value(1));
@@ -107,7 +112,7 @@ export default function MiniPlayer() {
             >
                 <View style={styles.thumbnailContainer}>
                     <Image
-                        source={{ uri: currentMedia.imageUrl }}
+                        source={imageUrl ? { uri: imageUrl } : null}
                         style={styles.thumbnail}
                         contentFit="cover"
                         transition={200}

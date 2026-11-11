@@ -3,6 +3,7 @@ import useHandlePlay from "@/callbacks/handlePlay";
 import { capabilities } from "@/platform/capabilities";
 import {
     BaseSearchResultsItem,
+    downloadCollectionOffline,
     EEvent,
     EventManager,
     getAllPlayableMedia,
@@ -237,6 +238,65 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     onPress: () => {
                         hide();
                         rockIt.queueManager.addListToQueueBottomAsync(media);
+                    },
+                });
+            }
+
+            if (!isSearchResult(media) && isList(media)) {
+                options.push({
+                    label: vocabulary.DOWNLOAD_LIST_TO_DEVICE,
+                    icon: Download,
+                    onPress: async () => {
+                        hide();
+                        const session = rockIt.userManager.sessionAtom.get();
+                        const isCurrent = () =>
+                            !!session &&
+                            rockIt.userManager.sessionAtom.get() === session;
+                        try {
+                            toasterManager.notifyInfo(
+                                vocabulary.DOWNLOAD_STARTED
+                            );
+                            const count = await downloadCollectionOffline(
+                                Http,
+                                media.publicId,
+                                {
+                                    isCurrent,
+                                    save: async (song) => {
+                                        const local =
+                                            await mediaStorage.downloadSong(
+                                                song.publicId,
+                                                song.audioUrl!,
+                                                song.imageUrl,
+                                                song.name
+                                            );
+                                        if (!isCurrent()) return;
+                                        if (!local)
+                                            throw new Error(
+                                                "Offline save failed"
+                                            );
+                                        EventManager.getInstance().dispatchEvent(
+                                            EEvent.MediaDownloaded,
+                                            { publicId: song.publicId }
+                                        );
+                                    },
+                                }
+                            );
+                            if (isCurrent()) {
+                                if (count)
+                                    toasterManager.notifySuccess(
+                                        vocabulary.MEDIA_ADDED_TO_LIBRARY
+                                    );
+                                else
+                                    toasterManager.notifyWarn(
+                                        vocabulary.NO_SONGS
+                                    );
+                            }
+                        } catch {
+                            if (isCurrent())
+                                toasterManager.notifyError(
+                                    vocabulary.ERROR_STARTING_DOWNLOAD
+                                );
+                        }
                     },
                 });
             }

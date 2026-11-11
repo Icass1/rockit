@@ -12,6 +12,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { usePlayer } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import FullscreenMediaPlayer from "@/components/Player/FullscreenMediaPlayer";
@@ -40,6 +41,10 @@ export default function FullPlayer() {
         audioOnly,
         toggleAudioOnly,
     } = usePlayer();
+    const imageUrl = useOfflineArtwork(
+        currentMedia?.publicId,
+        currentMedia?.imageUrl
+    );
 
     const insets = useSafeAreaInsets();
     const FOOTER_HEIGHT = 50; // Height of the custom tab bar
@@ -159,11 +164,7 @@ export default function FullPlayer() {
         >
             {/* Blurred album-art background — mirrors old MobilePlayerUI */}
             <Image
-                source={
-                    currentMedia?.imageUrl
-                        ? { uri: currentMedia.imageUrl }
-                        : null
-                }
+                source={imageUrl ? { uri: imageUrl } : null}
                 style={StyleSheet.absoluteFill}
                 contentFit="cover"
                 blurRadius={30}

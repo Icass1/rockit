@@ -52,6 +52,7 @@ export function QueueMedia({
 
             <div className="relative shrink-0">
                 <Image
+                    draggable={false}
                     src={
                         media.media.imageUrl ||
                         (media.media.type === "station"

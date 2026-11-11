@@ -16,6 +16,7 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
+import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaSubSubTitle from "@/components/MediaSubSubTitle";
 import MediaSubTitle from "@/components/MediaSubTitle";
@@ -46,6 +47,10 @@ export default function PlayerMediaInfo({
     isMediaFullscreen,
     onMediaFullscreen,
 }: PlayerMediaInfoProps) {
+    const imageUrl = useOfflineArtwork(
+        currentMedia?.publicId,
+        currentMedia?.imageUrl
+    );
     const theme = useDesignTheme();
     const { width } = useWindowDimensions();
     const COVER_SIZE = Math.min(
@@ -74,7 +79,7 @@ export default function PlayerMediaInfo({
                         </View>
                     ) : (
                         <PlayerCover
-                            uri={currentMedia?.imageUrl}
+                            uri={imageUrl}
                             mediaType={currentMedia?.type}
                             size={COVER_SIZE}
                         />

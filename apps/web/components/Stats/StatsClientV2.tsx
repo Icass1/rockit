@@ -1,16 +1,11 @@
 "use client";
 
-import { JSX, useCallback, useEffect, useState } from "react";
+import { JSX, useCallback, useState } from "react";
 import Link from "next/link";
 import type { UserStatsV2Request } from "@/dto";
-import {
-    EWebSocketMessage,
-    formatStatsRange,
-    statsRangeOptions,
-} from "@rockit/shared";
-import useFetch from "@/hooks/useFetch";
+import { formatStatsRange, statsRangeOptions } from "@rockit/shared";
+import { useLiveStatsV2 } from "@/hooks/useLiveStatsV2";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { getLocalEndOfDay, getLocalStartOfDay } from "@/lib/utils/dateUtils";
 import {
     useLanguage,
@@ -67,23 +62,7 @@ export default function StatsClientV2(): JSX.Element {
         [range, customStart, customEnd]
     );
 
-    const { data, loading, error, update } = useFetch(fetchStats);
-
-    useEffect(() => {
-        const handler = (): void => {
-            update();
-        };
-        rockIt.webSocketManager.onMessage(
-            EWebSocketMessage.MediaListened,
-            handler
-        );
-        return () => {
-            rockIt.webSocketManager.offMessage(
-                EWebSocketMessage.MediaListened,
-                handler
-            );
-        };
-    }, [update]);
+    const { data, loading, error } = useLiveStatsV2(fetchStats);
 
     const rangeLabel =
         range === "today"
@@ -191,8 +170,6 @@ export default function StatsClientV2(): JSX.Element {
                 </div>
             )}
 
-            {loading && <LoadingSkeleton />}
-
             {error && (
                 <div className="animate-fade-in-up mt-8">
                     <p className="text-destructive-soft text-sm">
@@ -202,13 +179,15 @@ export default function StatsClientV2(): JSX.Element {
                 </div>
             )}
 
-            {data && (
+            {loading ? (
+                <LoadingSkeleton />
+            ) : data ? (
                 <UserStatsV2
                     data={data}
                     range={range}
                     rangeLabel={rangeLabel}
                 />
-            )}
+            ) : null}
         </div>
     );
 }

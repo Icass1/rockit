@@ -181,8 +181,6 @@ export default function StatsClient(): JSX.Element {
                 </div>
             )}
 
-            {loading && <LoadingSkeleton />}
-
             {error && (
                 <div className="animate-fade-in-up mt-8">
                     <p className="text-destructive-soft text-sm">
@@ -192,9 +190,11 @@ export default function StatsClient(): JSX.Element {
                 </div>
             )}
 
-            {data && (
+            {loading && !data ? (
+                <LoadingSkeleton />
+            ) : data ? (
                 <UserStats data={data} range={range} rangeLabel={rangeLabel} />
-            )}
+            ) : null}
         </div>
     );
 }

@@ -142,3 +142,83 @@ test("weekly heatmap distinguishes quiet, moderate and busy listening hours", as
     }
     expect(new Set(colors).size).toBe(3);
 });
+
+test("playback keeps heatmap requests local and refreshes stats without a skeleton", async ({
+    page,
+    request,
+    context,
+}) => {
+    await request.post("http://127.0.0.1:18899/__fixture/reset");
+    await context.addCookies([
+        {
+            name: "session_id",
+            value: "fixture",
+            url: "http://127.0.0.1:18899",
+            httpOnly: true,
+        },
+    ]);
+    let heatmapRequests = 0;
+    await page.route("**/listening-heatmap", async (route) => {
+        heatmapRequests++;
+        await route.fulfill({
+            json: { segments: [{ startMs: 0, endMs: 30000, count: 3 }] },
+        });
+    });
+    let statsRequests = 0;
+    let releaseRefresh: (() => void) | undefined;
+    await page.route("**/stats/v2/user", async (route) => {
+        statsRequests++;
+        const response = await route.fetch();
+        const data = await response.json();
+        if (statsRequests === 2) {
+            await new Promise<void>((resolve) => {
+                releaseRefresh = resolve;
+            });
+            data.summary.totalPlayTimeMinutes = 13;
+            data.summary.totalPlayTimeMs = 780000;
+        }
+        await route.fulfill({ response, json: data });
+    });
+    await page.goto("http://127.0.0.1:13000/library");
+    await page
+        .getByPlaceholder("Search in Library")
+        .filter({ visible: true })
+        .fill("Playlist exclusive");
+    await page.getByText("Playlist exclusive", { exact: true }).first().click();
+    const pause = page
+        .getByRole("button", { name: "Pause", exact: true })
+        .filter({ visible: true });
+    await expect(pause).toBeVisible();
+    await expect.poll(() => heatmapRequests).toBe(1);
+    await page.locator('a[href="/stats/v2"]').filter({ visible: true }).click();
+    await expect(page.getByText("12m", { exact: true })).toBeVisible();
+    await expect.poll(() => releaseRefresh, { timeout: 20000 }).toBeTruthy();
+    await expect(page.getByText("12m", { exact: true })).toBeVisible();
+    await expect(page.locator(".skeleton")).toHaveCount(0);
+    releaseRefresh!();
+    await expect(page.getByText("13m", { exact: true })).toBeVisible();
+    await pause.click();
+    expect(heatmapRequests).toBe(1);
+    await page
+        .getByRole("button", { name: "Listening history", exact: true })
+        .click();
+    const history = page.getByRole("region", {
+        name: "Listening history",
+        exact: true,
+    });
+    await expect(history).toBeVisible();
+    await expect(
+        history.getByRole("button", { name: /heard 4 times/ })
+    ).toHaveCount(1);
+    await expect(
+        history.getByRole("button", { name: /heard 3 times/ })
+    ).toHaveCount(1);
+    for (const viewport of [
+        { width: 1280, height: 450 },
+        { width: 390, height: 844 },
+    ]) {
+        await page.setViewportSize(viewport);
+        await expect(page.getByText("13m", { exact: true })).toBeVisible();
+        await expect(page.locator(".skeleton")).toHaveCount(0);
+    }
+});

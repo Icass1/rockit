@@ -170,26 +170,21 @@ function LibraryScreenContent({
                                     onTypeChange={onTypeChange}
                                 />
                             </View>
-                            <Pressable
-                                accessibilityRole="button"
-                                accessibilityLabel={vocabulary.DOWNLOADS}
+                            <IconButton
+                                label={vocabulary.DOWNLOADS}
                                 onPress={() => router.push("/downloader")}
-                                style={{
-                                    width: theme.layout.touchTarget,
-                                    height: theme.layout.touchTarget,
-                                    borderRadius: theme.radius.full,
-                                    backgroundColor: theme.colors.secondary,
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
                             >
                                 <Download
-                                    size={theme.typography.title}
+                                    size={theme.typography.subtitle}
                                     color={theme.colors.foreground}
                                 />
-                            </Pressable>
-                            <Pressable
-                                style={styles.viewToggle}
+                            </IconButton>
+                            <IconButton
+                                label={
+                                    viewMode === "grid"
+                                        ? vocabulary.RADIO_LIST
+                                        : vocabulary.RADIO_GRID
+                                }
                                 onPress={() =>
                                     setViewMode(
                                         viewMode === "grid" ? "list" : "grid"
@@ -198,16 +193,16 @@ function LibraryScreenContent({
                             >
                                 {viewMode === "grid" ? (
                                     <List
-                                        size={28}
-                                        color={theme.legacy.white}
+                                        size={theme.typography.subtitle}
+                                        color={theme.colors.foreground}
                                     />
                                 ) : (
                                     <LayoutGrid
-                                        size={28}
-                                        color={theme.legacy.white}
+                                        size={theme.typography.subtitle}
+                                        color={theme.colors.foreground}
                                     />
                                 )}
-                            </Pressable>
+                            </IconButton>
                         </View>
                         {songSearch.error && (
                             <Pressable
@@ -300,9 +295,5 @@ const createStyles = (theme: DesignTheme) =>
         },
         filtersContainer: {
             flex: 1,
-        },
-        viewToggle: {
-            paddingVertical: 10,
-            paddingHorizontal: theme.spacing.md,
         },
     });

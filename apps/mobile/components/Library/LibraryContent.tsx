@@ -17,6 +17,7 @@ import MediaCard from "@/components/Media/MediaCard";
 import MediaRow from "@/components/Media/MediaRow";
 
 interface LibraryContentProps {
+    extraData?: unknown;
     header?: ReactNode;
     footer?: ReactNode;
     albums: BaseAlbumWithoutSongsResponse[];
@@ -39,6 +40,7 @@ interface Section {
 
 export default function LibraryContent({
     header,
+    extraData,
     footer,
     albums,
     playlists,
@@ -161,6 +163,7 @@ export default function LibraryContent({
     return (
         <SectionList
             testID="library-scroll"
+            extraData={extraData}
             sections={sections}
             renderItem={renderItem}
             renderSectionHeader={renderSectionHeader}

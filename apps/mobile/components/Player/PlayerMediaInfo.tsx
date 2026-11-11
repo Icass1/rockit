@@ -52,10 +52,11 @@ export default function PlayerMediaInfo({
         currentMedia?.imageUrl
     );
     const theme = useDesignTheme();
-    const { width } = useWindowDimensions();
+    const { width, height } = useWindowDimensions();
     const COVER_SIZE = Math.min(
         width - theme.spacing.xl * 2,
-        theme.layout.playerArtworkMax
+        theme.layout.playerArtworkMax,
+        width > height ? height * 0.4 : theme.layout.playerArtworkMax
     );
     const styles = useThemedStyles(createStyles);
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);

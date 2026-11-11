@@ -15,6 +15,11 @@ export async function initializePlatform(): Promise<void> {
         });
         document.body.appendChild(root);
     }
+    const orientation = screen.orientation as ScreenOrientation & {
+        lock?: (mode: string) => Promise<void>;
+    };
+    if (typeof orientation?.lock === "function")
+        void orientation.lock("portrait").catch(() => {});
     await syncManager.init();
     if ("serviceWorker" in navigator && process.env.NODE_ENV === "production")
         void navigator.serviceWorker

@@ -221,7 +221,7 @@ function AppLayoutInner({
     safeBottom: number;
     vocabulary: Vocabulary;
 }) {
-    const { hidePlayer, currentMedia } = usePlayer();
+    const { hidePlayer, currentMedia, isPlayerVisible } = usePlayer();
     const theme = useDesignTheme();
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -331,7 +331,7 @@ function AppLayoutInner({
                     pointerEvents: "box-none",
                 }}
             >
-                <Header showNotifications />
+                {!isPlayerVisible && <Header showNotifications />}
             </View>
         </View>
     );

@@ -866,13 +866,24 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             kind === "audio" &&
             this._preloadAudio &&
             this._preloadedUri === uri &&
+            this._preloadedForQueueMediaId ===
+                getRockIt().queueManager.currentQueueMediaId &&
             this._preloadAudio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
         ) {
-            this._durationAtom.set(0);
-            el.src = uri;
+            // Reuse the buffered resource itself. Reassigning its URL to the old
+            // deck discards that buffer and makes WebKit fetch the track again.
+            const incoming = this._preloadAudio;
+            this._audio = incoming;
+            this._preloadAudio = el as HTMLAudioElement;
+            incoming.muted = false;
+            this._mixer.reset(incoming, true);
+            this._mixer.reset(el as HTMLAudioElement, false);
             this._preloadedUri = undefined;
             this._preloadedForQueueMediaId = undefined;
-            this._preloadAudio.removeAttribute("src");
+            el.pause();
+            el.removeAttribute("src");
+            el.load();
+            this._publishDuration();
             return;
         }
 
@@ -1035,12 +1046,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     this._transitionTick();
             }, 250);
         }
-        if (
-            typeof document !== "undefined" &&
-            document.hidden &&
-            !this._transitionSettings.get().enabled
-        )
-            return;
         void this.preloadNextTrack();
     }
 
@@ -1090,7 +1095,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._preloadAudio.muted = false;
             this._preloadAudio.preload = "auto";
         } else {
-            this._preloadAudio.preload = "metadata";
+            this._preloadAudio.preload = isSong(next.media)
+                ? "auto"
+                : "metadata";
         }
         this._preloadAudio.src = uri;
         this._preloadAudio.load();

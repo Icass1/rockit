@@ -1,3 +1,5 @@
+> **Historical document — not current instructions.** This document is preserved for reference. Start with the [documentation index](README.md) and follow the current [repository engineering instructions](../AGENTS.md).
+
 I'll explore the docs/ directory to understand what documentation is available.
 → Read .
 ✱ Glob "docs/\*_/_" in . (9 matches)

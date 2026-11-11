@@ -194,6 +194,8 @@ The Compose stack includes a YouTube proof-of-origin token provider. Backend vol
 
 ## Explore the documentation
 
+**[Browse the documentation index](docs/README.md)** — guides, references and historical documents.
+
 | Start here                                                                                                                                 | What you will find                                        |
 | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
 | [Contributing](CONTRIBUTING.md)                                                                                                            | Development conventions, checks, and pull requests        |

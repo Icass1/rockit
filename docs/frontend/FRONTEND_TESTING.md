@@ -14,26 +14,10 @@ the existing desktop Node tests. It does not build Next or Expo, install browser
 start an emulator or contact external music providers. The local HTTP/WebSocket
 fixture binds an ephemeral loopback port and closes after its tests.
 
-The verified implementation commit `44ec20a7` passed this command in approximately
-30.9 seconds in GitHub Actions: 25 Vitest tests, 8 native Jest tests and 261 desktop
-tests (294 total), including boundary and fixture type checks. A previous GitHub
-run took 19.4 seconds and the consolidated local gate took 44.2 seconds before
-the last two cases. Runner/cache load affects timings; these are not promises for
-dependency installation, runner provisioning or production latency.
-
-The frontend job has a two-minute limit. Workspace types, web/mobile lint, generated
-theme consistency and two fast Python workbook-tooling checks also run in CI.
-Backend, TypeScript and frontend jobs report their results directly to GitHub.
-There are no production builds or emulator boots in the pull request checks.
-
-For `develop` and `main`, configure the repository ruleset to require these checks:
-
-- `Backend tests and quality`
-- `TypeScript types, formatting, and web lint`
-- `Frontend contracts and component tests`
-
-These replace the removed `PR quality checks` aggregate. Update the ruleset before
-merging this workflow change so GitHub does not wait for the removed check.
+Workspace types, web/mobile lint, generated theme consistency and workbook-tooling
+checks also run in CI. Backend, TypeScript and frontend jobs report directly to
+GitHub. Check the workflow and repository ruleset for the required status names.
+The fast gate does not include production builds or emulator boots.
 
 To target affected behavior during development:
 
@@ -78,23 +62,14 @@ pnpm test:frontend:browser
 The build script creates real Next and Expo production outputs against the isolated
 fixture, prepares the PWA shell and checks its source-map dependency graph. Playwright
 starts the fixture and both production servers itself. No external backend is used.
-Browser projects cover desktop Chromium, Android Chromium emulation and iOS WebKit
-emulation. The seven local Chromium flows cover login/cookies, deep Library search,
-one-song playback, pagination/theme/logout, failed-search retry, offline shell and
-cached metadata reload, and contextual sharing with accented text.
+Browser projects cover desktop Chromium and mobile browser emulation. Emulation
+checks the browser runtime; it does not establish native Android behavior or
+installed iPhone PWA compatibility. Use `PLAYWRIGHT_CHROMIUM_EXECUTABLE` when
+running an installed Chromium outside Playwright's browser cache.
 
-For an installed Chromium outside Playwright's cache, set
-`PLAYWRIGHT_CHROMIUM_EXECUTABLE` to that executable. WebKit download was unavailable
-under the local environment's network policy; no local WebKit pass is claimed.
-Android browser emulation also represents the browser runtime a TWA would host; it
-is not proof of Android native capabilities or a separately signed TWA package.
-
-The `Frontend platform acceptance (manual)` workflow accepts a branch/commit and
-keeps these heavier steps outside ordinary PR CI. Its separate Android job builds
-and installs the real preview APK in an emulator, exercises login/Library/search/
-single-song playback and checks native media state after backgrounding. It uses
-an isolated local fixture and does not deploy or change production signing.
-This workflow has been authored, not executed as part of the local verification.
+The manual frontend platform acceptance workflow keeps production builds and
+Android emulator checks outside ordinary PR CI. A workflow definition is not a
+successful run: record the tested commit, target and result with release evidence.
 
 ## Device release gate
 

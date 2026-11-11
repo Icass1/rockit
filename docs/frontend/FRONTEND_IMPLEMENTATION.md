@@ -1,9 +1,8 @@
 # Implemented frontend architecture
 
-This describes the implementation in [PR #189](https://github.com/Icass1/rockit/pull/189),
-not a proposed folder structure. Production activation and installed-device acceptance
-remain pending; see [verification](FRONTEND_TESTING.md) and
-[deployment](FRONTEND_DEPLOYMENT.md).
+This guide maps the frontend applications to their shared packages and platform
+adapters. Use [verification](FRONTEND_TESTING.md) for test coverage and
+[deployment](FRONTEND_DEPLOYMENT.md) for rollout and installed-device acceptance.
 
 ![Desktop, universal mobile, shared foundations and platform adapters](../diagrams/frontend-implementation.svg)
 

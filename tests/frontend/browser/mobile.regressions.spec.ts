@@ -83,7 +83,9 @@ test("Library and Search expose moved destinations and featured lists without lo
         )
     ).toHaveLength(0);
     await page.getByTestId("navigation-search").click();
-    await page.getByRole("button", { name: "Radio", exact: true }).click();
+    await page
+        .getByRole("button", { name: "Explore worldwide radios", exact: true })
+        .click();
     await expect(page.getByRole("textbox").first()).toBeVisible();
     await expect(page.getByTestId("navigation-search")).toHaveAttribute(
         "aria-pressed",
@@ -228,4 +230,53 @@ test("Radio country selection and friend secondary actions use existing flows", 
         page.getByText("Fixture Friend", { exact: true })
     ).toBeVisible();
     await expect(page.getByRole("tab")).toHaveCount(4);
+});
+
+test("Library selection downloads one authenticated archive for multiple collections and cancels cleanly", async ({
+    page,
+    request,
+}) => {
+    await page.goto(mobile + "/library");
+    const album = page.getByRole("button", {
+        name: "Fixture Album",
+        exact: true,
+    });
+    await expect(album).toBeVisible();
+    await album.click({ delay: 650 });
+    await page.getByText("Select items", { exact: true }).click();
+    await expect(album).toHaveAttribute("aria-pressed", "true");
+    const playlist = page.getByRole("button", {
+        name: "Playlist only",
+        exact: true,
+    });
+    await playlist.scrollIntoViewIfNeeded();
+    await playlist.click();
+    await expect(playlist).toHaveAttribute("aria-pressed", "true");
+    const saved = page.waitForEvent("download");
+    await page
+        .getByRole("button", { name: "Download ZIP", exact: true })
+        .click();
+    const archive = await saved;
+    expect(archive.suggestedFilename()).toBe("RockIt.zip");
+    const calls = await (
+        await request.get(backend + "/__fixture/calls")
+    ).json();
+    expect(
+        calls.calls
+            .findLast(
+                (call: { path: string }) =>
+                    call.path === "/downloader/download-zip"
+            )
+            .body.ids.sort()
+    ).toEqual(["album-1", "playlist-1"]);
+    await expect(
+        page.getByRole("button", { name: "Download ZIP", exact: true })
+    ).toHaveCount(0);
+});
+
+test("Friends shows the global live online count from the backend socket", async ({
+    page,
+}) => {
+    await page.goto(mobile + "/friends");
+    await expect(page.getByLabel("12 · Online")).toBeVisible();
 });

@@ -8,6 +8,25 @@
 
 ## To Review
 
+### [LIBRARY] Selección múltiple y exportación ZIP en móvil
+
+- tags: [frontend, mobile, library, zip]
+- priority: high
+- workload: Normal
+    ```md
+    Seleccionar desde el menú contextual; marcar varios elementos; descargar ZIP con autenticación, cancelación y adaptadores web/nativo. Respetar safe areas existentes.
+    ```
+
+### [MOBILE] Refinar accesos, mapas, portadas oficiales y contador online
+
+- tags: [frontend, mobile, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Portadas oficiales compartidas; Descargas junto al selector de vista; explorar radios al final de Buscar; mapa sin líneas por el antimeridiano; contador global online por WebSocket con verde compartido.
+    ```
+
+
 ### [LIBRARY] Unificar scroll móvil y mostrar listas RockIt! con portadas
 
 - tags: [frontend, mobile, ux]

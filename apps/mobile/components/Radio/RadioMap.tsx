@@ -53,7 +53,6 @@ export default memo(function RadioMap({
                         {...(Platform.OS === "web"
                             ? {
                                   "aria-label": country.name,
-                                  role: "button",
                                   tabIndex: 0,
                                   onKeyDown: (event: {
                                       key: string;
@@ -93,7 +92,6 @@ export default memo(function RadioMap({
                             {...(Platform.OS === "web"
                                 ? {
                                       "aria-label": station.name,
-                                      role: "button",
                                       tabIndex: 0,
                                       onKeyDown: (event: {
                                           key: string;

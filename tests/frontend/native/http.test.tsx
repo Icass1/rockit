@@ -87,6 +87,13 @@ jest.mock(
     },
     { virtual: true }
 );
+jest.mock(
+    "expo/fetch",
+    () => ({
+        fetch: (...args: Parameters<typeof fetch>) => global.fetch(...args),
+    }),
+    { virtual: true }
+);
 const transport = jest.fn();
 const online = (value: unknown, status = 200, headers?: HeadersInit) =>
     transport.mockResolvedValue(

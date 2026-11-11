@@ -6,6 +6,7 @@ import {
 } from "@/utils/offlineMetadataPolicy";
 import { CryptoDigestAlgorithm, digestStringAsync } from "expo-crypto";
 import { Directory, File, Paths } from "expo-file-system";
+import { fetch as expoFetch } from "expo/fetch";
 import type { IApiFetchOptions } from "@/models/types/api";
 import { HttpResult } from "@/models/types/httpTypes";
 import {
@@ -28,13 +29,31 @@ export class Http extends BaseHttp {
         else if (!headers.has("Content-Type"))
             headers.set("Content-Type", "application/json");
         if (cookie) headers.set("Cookie", `session_id=${cookie}`);
-        const response = await fetch(`${BACKEND_URL}${path}`, {
+        const transport =
+            headers.get("Accept") === "application/zip" ? expoFetch : fetch;
+        const response = await transport(`${BACKEND_URL}${path}`, {
             ...options,
             headers,
             credentials: "include",
         });
         if (generation === sessionGeneration())
             await saveSessionCookie(response, generation);
+        return response as Response;
+    }
+    static async downloadZipResponse(
+        payload: import("@rockit/shared").DownloadZipRequest,
+        signal: AbortSignal
+    ): Promise<Response> {
+        const { DownloadZipRequestSchema } = await import("@rockit/shared");
+        const stamp = sessionGeneration();
+        const response = await this.baseApiFetchAsync(this.downloadZipURL(), {
+            method: "POST",
+            headers: { Accept: "application/zip" },
+            signal,
+            body: JSON.stringify(DownloadZipRequestSchema.parse(payload)),
+        });
+        if (response.status === 401 && stamp === sessionGeneration())
+            await clearSessionCookie(stamp);
         return response;
     }
 }

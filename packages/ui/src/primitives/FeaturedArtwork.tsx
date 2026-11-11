@@ -1,7 +1,13 @@
 "use client";
 
 import { featuredArtworkSource } from "@rockit/ui/featuredAssets";
-import { CalendarDays, Disc3, Heart, History } from "@rockit/ui/icons";
+import {
+    CalendarDays,
+    Disc3,
+    Download,
+    Heart,
+    History,
+} from "@rockit/ui/icons";
 import { Image, Text, View } from "@rockit/ui/runtime";
 import { useDesignTheme } from "@rockit/ui/theme";
 
@@ -22,9 +28,11 @@ export function FeaturedArtwork({
             ? Heart
             : kind === "recent-mix"
               ? History
-              : kind === "most-listened"
-                ? Disc3
-                : CalendarDays;
+              : kind === "latest-downloads"
+                ? Download
+                : kind === "most-listened"
+                  ? Disc3
+                  : CalendarDays;
     return (
         <View
             accessibilityRole="image"

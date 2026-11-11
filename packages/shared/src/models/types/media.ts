@@ -247,6 +247,8 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
         const totalSongs = media.medias?.length ?? 0;
         const totalMs = getTotalDuration(media.medias.map((m) => m.item));
         return buildSongCountWithDuration(totalSongs, totalMs);
+    } else if (media.type === "album") {
+        return media.artists.map((artist): string => artist.name).join(", ");
     } else if (isPlaylist(media)) {
         return media.description ?? "";
     } else if (isVideo(media)) {

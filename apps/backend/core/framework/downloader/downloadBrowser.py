@@ -255,15 +255,18 @@ class DownloadBrowser:
                 code=ResultCode.BAD_REQUEST,
                 message="A track is still downloading in another group",
             )
-        cleared = await DownloadBrowseAccess.clear_files_async(
-            session=session, media_ids=[media.id for _, media in rows]
-        )
-        if cleared.is_not_ok():
-            logger.error(f"Could not clear download paths: {cleared.info()}")
-            return Result(code=cleared.code(), message=cleared.message())
+        paths: list[str] = []
+        if action == "delete":
+            cleared = await DownloadBrowseAccess.clear_files_async(
+                session=session, media_ids=[media.id for _, media in rows]
+            )
+            if cleared.is_not_ok():
+                logger.error(f"Could not clear download paths: {cleared.info()}")
+                return Result(code=cleared.code(), message=cleared.message())
+            paths = cleared.result()
         backups: list[str] = []
         try:
-            for key in dict.fromkeys(cleared.result()):
+            for key in dict.fromkeys(paths):
                 backup = await ObjectFiles.backup_async(key)
                 if backup is not None:
                     backups.append(backup)
@@ -291,7 +294,7 @@ class DownloadBrowser:
                 code=ResultCode.GENERAL_ERROR,
                 message="Could not complete the group action",
             )
-        for key in dict.fromkeys(cleared.result()):
+        for key in dict.fromkeys(paths):
             try:
                 await ObjectFiles.delete_async(key)
             except Exception:
@@ -304,6 +307,7 @@ class DownloadBrowser:
                     download_group_id=group.id,
                     user_id=user_id,
                 )
+                task.replace_existing = True
                 task.provider_id = media.provider_id
                 downloads_manager.add_download(task)
         return Result(code=ResultCode.OK, message="OK", result=True)

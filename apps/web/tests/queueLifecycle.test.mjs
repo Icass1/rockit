@@ -482,12 +482,14 @@ test("cleanup detaches handlers from the socket used for setup", async () => {
 });
 
 test("collection playback keeps the returned total, offset and selected occurrence", async () => {
-    for (const id of ["collection", "liked"]) {
+    for (const id of ["collection", "liked", "latest-downloads"]) {
         const e = setup({ web: true });
         await e.queue.init();
         const selected = e.queue.playCollection(id, "chosen51");
         const read = e.take(
-            id === "liked" ? "createFeaturedQueue" : "createCollectionQueue"
+            id === "collection"
+                ? "createCollectionQueue"
+                : "createFeaturedQueue"
         );
         assert.equal(read.args[1].startPublicId, "chosen51");
         read.resolve(
@@ -832,5 +834,44 @@ test("concurrent redownload refresh keeps the newest metadata and rejects unrela
         assert.equal(await pending, false);
         assert.equal(e.queue.currentMedia.provider, "New");
     }
+    e.queue.stop();
+});
+
+test("reorders the visible random queue without moving a different sorted occurrence", async () => {
+    const e = setup({ seed: page({ ids: [0, 1, 2] }) });
+    await e.queue.init();
+    e.queue.randomQueue = [
+        e.queue.sortedQueue[2],
+        e.queue.sortedQueue[0],
+        e.queue.sortedQueue[1],
+    ];
+    e.runtime.userManager.queueTypeAtom.set("RANDOM");
+    e.queue.updateQueue();
+    const current = e.queue.currentQueueMediaId;
+    const loads = e.calls.loads;
+    e.queue.reorderQueue(0, 2);
+    assert.deepEqual(
+        Array.from(e.queue.queue, (i) => i.queueMediaId),
+        [0, 1, 2]
+    );
+    assert.deepEqual(
+        Array.from(e.queue.sortedQueue, (i) => i.queueMediaId),
+        [0, 1, 2]
+    );
+    assert.equal(e.queue.currentQueueMediaId, current);
+    assert.equal(e.calls.loads, loads);
+    e.queue.stop();
+});
+
+test("reorders paged queue items by occurrence identity after loading missing pages", async () => {
+    const e = setup({ seed: page({ ids: [0, 1], total: 4 }) });
+    await e.queue.init();
+    const moving = e.queue.reorderQueueItemsAsync(0, 1);
+    e.take("getQueue").resolve(ok(page({ offset: 2, ids: [2, 3], total: 4 })));
+    assert.equal(await moving, true);
+    assert.deepEqual(
+        Array.from(e.queue.queue, (i) => i.queueMediaId),
+        [1, 0, 2, 3]
+    );
     e.queue.stop();
 });

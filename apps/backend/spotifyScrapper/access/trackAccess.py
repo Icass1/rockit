@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
+from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
 from result import Result, ResultCode
 from spotifyScrapper.access.db.ormModels.track import TrackRow
@@ -105,63 +106,48 @@ class TrackAccess:
             )
 
     @staticmethod
+    @safe_async
     async def update_track_path_async(
         session: AsyncSession,
         track_id: int,
         storage_object_id: int | None,
         download_url: str | None,
     ) -> ResultCode:
-        try:
-            stmt = select(TrackRow).where(TrackRow.id == track_id)
-            result = await session.execute(stmt)
-            track: TrackRow | None = result.scalar_one_or_none()
+        """Flush download metadata; the caller owns the transaction."""
+        stmt = select(TrackRow).where(TrackRow.id == track_id)
+        result = await session.execute(stmt)
+        track: TrackRow | None = result.scalar_one_or_none()
 
-            if not track:
-                logger.error(f"Track with id {track_id} not found.")
-                return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
+        if not track:
+            logger.error(f"Track with id {track_id} not found.")
+            return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
 
-            track.storage_object_id = storage_object_id
-            track.download_url = download_url
+        track.storage_object_id = storage_object_id
+        track.download_url = download_url
 
-            await session.commit()
+        await session.flush()
 
-            await session.refresh(track)
-            session.expunge(track)
-
-            return ResultCode(code=ResultCode.OK, message="Track updated.")
-
-        except Exception as e:
-            logger.error(f"Failed to update track path: {e}")
-            return ResultCode(code=ResultCode.GENERAL_ERROR, message=f"Failed to update track: {e}")
+        return ResultCode(code=ResultCode.OK, message="Track updated.")
 
     @staticmethod
+    @safe_async
     async def update_track_real_duration_async(
         session: AsyncSession,
         track_id: int,
         real_duration_ms: int,
     ) -> ResultCode:
-        try:
-            stmt = select(TrackRow).where(TrackRow.id == track_id)
-            result = await session.execute(stmt)
-            track: TrackRow | None = result.scalar_one_or_none()
+        """Flush download metadata; the caller owns the transaction."""
+        stmt = select(TrackRow).where(TrackRow.id == track_id)
+        result = await session.execute(stmt)
+        track: TrackRow | None = result.scalar_one_or_none()
 
-            if not track:
-                logger.error(f"Track with id {track_id} not found.")
-                return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
+        if not track:
+            logger.error(f"Track with id {track_id} not found.")
+            return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
 
-            track.real_duration_ms = real_duration_ms
+        track.real_duration_ms = real_duration_ms
 
-            await session.commit()
+        await session.flush()
 
-            await session.refresh(track)
-            session.expunge(track)
-
-            logger.info(f"Updated real_duration_ms for track {track_id}: {real_duration_ms}ms")
-            return ResultCode(code=ResultCode.OK, message="Track real duration updated.")
-
-        except Exception as e:
-            logger.error(f"Failed to update track real duration: {e}")
-            return ResultCode(
-                code=ResultCode.GENERAL_ERROR,
-                message=f"Failed to update track real duration: {e}",
-            )
+        logger.info(f"Updated real_duration_ms for track {track_id}: {real_duration_ms}ms")
+        return ResultCode(code=ResultCode.OK, message="Track real duration updated.")

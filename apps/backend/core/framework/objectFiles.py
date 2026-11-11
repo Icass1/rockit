@@ -8,6 +8,7 @@ from collections.abc import AsyncGenerator, AsyncIterator, Generator
 from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path, PurePosixPath
 from typing import Any, BinaryIO, cast
+from uuid import uuid4
 
 from botocore.exceptions import ClientError
 from fastapi.responses import StreamingResponse
@@ -98,6 +99,27 @@ class ObjectFiles:
             return Result(code=ResultCode.GENERAL_ERROR, message="File upload failed")
 
     @staticmethod
+    async def upload_download_async(
+        session: AsyncSession, source: str, key: str
+    ) -> Result[StorageObjectRow]:
+        """Store a complete download under a fresh key, preserving the active object."""
+        try:
+            size = Path(source).stat().st_size
+            if size <= 0:
+                raise ValueError("Downloaded file is empty")
+            path = PurePosixPath(ObjectFiles.key(key))
+            key = str(path.with_name(f"{path.stem}-{uuid4().hex}{path.suffix}"))
+            uploaded = await ObjectFiles.upload_async(session=session, source=source, key=key)
+            if uploaded.is_not_ok():
+                return uploaded
+            if uploaded.result().size_bytes != size:
+                raise ValueError("Uploaded download size does not match the processing file")
+            return uploaded
+        except Exception:
+            logger.exception("Cannot store downloaded file")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Download upload failed")
+
+    @staticmethod
     async def store_processing_result_async(source: str, key: str) -> None:
         """Publish a reproducible processing result to S3 without a database row."""
         key = ObjectFiles._prefixed_key(key)
@@ -112,8 +134,6 @@ class ObjectFiles:
     @staticmethod
     async def backup_async(key: str) -> str | None:
         """Retain the old download in S3 when deleting or retrying a group."""
-        from uuid import uuid4
-
         key = ObjectFiles._prefixed_key(key)
         prefix = settings.S3_PREFIX.strip("/")
         backup_key = f"backups/{uuid4().hex}/{key.removeprefix(f'{prefix}/') if prefix else key}"

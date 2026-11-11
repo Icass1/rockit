@@ -1,7 +1,7 @@
 import type { BaseHttp } from "@/http/baseHttp";
 import type { TMedia } from "@/models/types/media";
 
-/** Resolve the whole album before changing files; queue each replacement immediately. */
+/** Resolve the whole album before queuing replacements; keep existing files available. */
 export async function redownloadMedia(
     http: typeof BaseHttp,
     media: TMedia,
@@ -37,12 +37,10 @@ export async function redownloadMedia(
     if (!ids.size) throw new Error("Empty collection");
     for (const publicId of ids) {
         if (!isCurrent()) throw new Error("Obsolete session");
-        const removed = await http.deleteMediaFileAsync(publicId);
-        if (!removed.isOk()) throw new Error(removed.message);
-        if (!isCurrent()) throw new Error("Obsolete session");
         const started = await http.startDownload({
             ids: [publicId],
             title: media.name,
+            replaceExisting: true,
         });
         if (!started.isOk()) throw new Error(started.message);
     }

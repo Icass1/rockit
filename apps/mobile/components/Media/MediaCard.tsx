@@ -58,6 +58,8 @@ const createStyles = (theme: DesignTheme) =>
             backgroundColor: theme.legacy.bgCard,
         },
         info: {
+            width: "100%",
+            minWidth: 0,
             marginTop: 6,
             paddingHorizontal: theme.spacing.xs,
             alignItems: "center",
@@ -69,6 +71,7 @@ const createStyles = (theme: DesignTheme) =>
             textAlign: "center",
         },
         subtitle: {
+            width: "100%",
             color: theme.legacy.gray400,
             fontSize: theme.typography.caption,
             marginTop: 2,

@@ -93,6 +93,7 @@
     --theme-bookmark-previous-muted: #b35900;
     --theme-vinyl-body: #0d0d0d;
     --theme-vinyl-groove: #1c1c1c;
+    --theme-online: #22c55e;
     --lyrics-emphasis-scale: 1.25;
     --radius-none: 0px;
     --radius-xs: 2px;
@@ -120,6 +121,7 @@
     --motion-slow: 400ms;
     --motion-lyricsHighlight: 650ms;
     --motion-lyricsScroll: 900ms;
+    --motion-likeHold: 1000ms;
 }
 
 @theme inline {
@@ -150,6 +152,7 @@
     --color-destructive-subtle: var(--theme-destructive-subtle);
     --color-destructive-foreground: var(--theme-destructive-foreground);
     --color-destructive-soft: var(--theme-destructive-soft);
+    --color-online: var(--theme-online);
     --color-success: var(--theme-success);
     --color-success-hover: var(--theme-success-hover);
     --color-success-subtle: var(--theme-success-subtle);
@@ -286,6 +289,7 @@
     --theme-highlight-rgb: 109, 40, 217;
     --theme-highlight-soft-rgb: 109, 40, 217;
     --theme-highlight-dark-rgb: 237, 233, 254;
+    --theme-online: #15803d;
 }
 
 @media (prefers-color-scheme: light) {
@@ -337,5 +341,6 @@
         --theme-highlight-rgb: 109, 40, 217;
         --theme-highlight-soft-rgb: 109, 40, 217;
         --theme-highlight-dark-rgb: 237, 233, 254;
+        --theme-online: #15803d;
     }
 }

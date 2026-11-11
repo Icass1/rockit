@@ -137,3 +137,7 @@ pyright.txt
 
 apps/backend/images/
 apps/backend/media/
+
+# Generated from shared official artwork.
+/apps/web/public/rockit-background.png
+/apps/web/public/recap-covers/

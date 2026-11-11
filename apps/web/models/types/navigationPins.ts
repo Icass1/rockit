@@ -7,4 +7,9 @@ export type PinnableMedia = Extract<
 >;
 
 export type RockitListKey =
-    "liked" | "most-listened" | "recent-mix" | "last-month" | "year-recap";
+    | "liked"
+    | "most-listened"
+    | "recent-mix"
+    | "last-month"
+    | "year-recap"
+    | "latest-downloads";

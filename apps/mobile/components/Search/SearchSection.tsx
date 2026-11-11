@@ -13,7 +13,6 @@ import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
 import ArtistAvatar from "@/components/Media/ArtistAvatar";
 import MediaCard from "@/components/Media/MediaCard";
-import MediaRow from "@/components/Media/MediaRow";
 
 type ItemLayout = "row" | "grid" | "artist";
 
@@ -138,13 +137,6 @@ export default function SearchSection({
         [styles]
     );
 
-    const renderRowItem = useCallback(
-        ({ item }: { item: BaseSearchResultsItem }) => (
-            <MediaRow media={item} />
-        ),
-        []
-    );
-
     const renderArtistItem = useCallback(
         ({ item }: { item: BaseSearchResultsItem }) => (
             <View style={styles.artistItem}>
@@ -163,7 +155,7 @@ export default function SearchSection({
             ? renderGridItem
             : layout === "artist"
               ? renderArtistItem
-              : renderRowItem;
+              : renderGridItem;
 
     const keyExtractor = useCallback(
         (item: BaseSearchResultsItem) => item.providerUrl,
@@ -176,14 +168,12 @@ export default function SearchSection({
         <View style={styles.container}>
             <SectionTitle>{title}</SectionTitle>
             <FlatList
+                style={{ flexGrow: 0, flexShrink: 0 }}
                 data={items}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
-                scrollEnabled={false}
-                numColumns={layout === "grid" ? 2 : 1}
-                columnWrapperStyle={
-                    layout === "grid" ? styles.gridRow : undefined
-                }
+                horizontal
+                showsHorizontalScrollIndicator={false}
                 initialNumToRender={10}
                 maxToRenderPerBatch={10}
                 removeClippedSubviews={true}
@@ -198,9 +188,8 @@ const createStyles = (theme: DesignTheme) =>
             marginBottom: theme.spacing.xl,
         },
         gridItem: {
-            flex: 1,
-            margin: theme.spacing.xs,
-            maxWidth: "50%",
+            width: theme.layout.artistArtwork,
+            marginRight: theme.spacing.md,
         },
         gridRow: {
             justifyContent: "flex-start",

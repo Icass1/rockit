@@ -4,6 +4,8 @@ import {
     DEFAULT_CROSSFADE,
     type CrossfadeSettings,
 } from "@/lib/audio/crossfade";
+import { Http } from "@/lib/http";
+import { userManager } from "@/lib/managers/userManager";
 
 /** The PWA uses the same proven transport as desktop, including iOS transitions. */
 export class MediaPlayerManager extends BrowserPlayer {
@@ -23,6 +25,32 @@ export class MediaPlayerManager extends BrowserPlayer {
 
     override initializeTransitionSettings(): void {
         super.initializeTransitionSettings();
+        const session = userManager.sessionAtom.get();
+        const initial = this.transitionSettingsAtom.get();
+        let hasPreference = false;
+        try {
+            hasPreference =
+                window.localStorage.getItem("rockit-web-transitions-v1") !==
+                null;
+        } catch {}
+        if (!hasPreference && session) {
+            void Http.getUser()
+                .then((response) => {
+                    if (
+                        userManager.sessionAtom.get() !== session ||
+                        this.transitionSettingsAtom.get() !== initial ||
+                        !response.isOk()
+                    )
+                        return;
+                    const seconds = response.result.crossfade;
+                    if (!Number.isFinite(seconds) || seconds <= 0) return;
+                    this.updateCrossfadeSettings({
+                        durationMs: seconds * 1000,
+                    });
+                    void this.preloadNextTrack();
+                })
+                .catch(() => {});
+        }
         const settings = this.transitionSettingsAtom.get();
         this.crossfadeState.set({
             ...this.crossfadeState.get(),

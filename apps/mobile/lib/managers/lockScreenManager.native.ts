@@ -99,7 +99,7 @@ export class LockScreenManager {
                     AudioIntegrationService.setLockScreenActive(
                         true,
                         lockScreenMetadata(media),
-                        { showSeekForward: true, showSeekBackward: true }
+                        { showSeekForward: false, showSeekBackward: false }
                     );
                     NativeMediaBridge.updateNowPlaying(
                         media.name,

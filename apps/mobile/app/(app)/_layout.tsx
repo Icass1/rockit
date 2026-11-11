@@ -10,7 +10,6 @@ import {
     BookOpen,
     Download,
     Home,
-    Radio,
     Search,
     Settings,
     Users,
@@ -48,7 +47,15 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
     const router = useRouter();
     const segments = useSegments();
 
-    const activeTab = segments.at(1) || "index";
+    const route = segments.at(1) || "index";
+    const activeTab =
+        route === "downloader"
+            ? "library"
+            : route === "radio"
+              ? "search"
+              : route === "stats"
+                ? "settings"
+                : route;
 
     const tabs = [
         {
@@ -68,18 +75,6 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
             label: vocabulary.SEARCH,
             icon: Search,
             path: "/(app)/search" as const,
-        },
-        {
-            name: "downloader",
-            label: vocabulary.DOWNLOADS,
-            icon: Download,
-            path: "/(app)/downloader" as const,
-        },
-        {
-            name: "radio",
-            label: vocabulary.RADIO,
-            icon: Radio,
-            path: "/(app)/radio" as const,
         },
         {
             name: "friends",
@@ -154,7 +149,7 @@ const createStyles = (theme: DesignTheme) =>
         },
         tabItem: {
             flex: 1,
-            height: theme.layout.tabBar,
+            minHeight: theme.layout.touchTarget,
             alignItems: "center",
             justifyContent: "center",
         },
@@ -234,10 +229,10 @@ function AppLayoutInner({
     safeBottom: number;
     vocabulary: Vocabulary;
 }) {
-    const { hidePlayer, currentMedia } = usePlayer();
+    const { hidePlayer, currentMedia, isPlayerVisible } = usePlayer();
     const theme = useDesignTheme();
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
             <View
                 style={{
                     flex: 1,
@@ -252,7 +247,12 @@ function AppLayoutInner({
             >
                 <Tabs
                     tabBar={() => null}
-                    screenOptions={{ headerShown: false }}
+                    screenOptions={{
+                        headerShown: false,
+                        sceneStyle: {
+                            backgroundColor: theme.colors.background,
+                        },
+                    }}
                 >
                     <Tabs.Screen
                         name="index"
@@ -339,7 +339,7 @@ function AppLayoutInner({
                     pointerEvents: "box-none",
                 }}
             >
-                <Header showNotifications />
+                {!isPlayerVisible && <Header showNotifications />}
             </View>
         </View>
     );

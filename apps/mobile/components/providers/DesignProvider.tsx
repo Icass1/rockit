@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useDocumentTheme } from "@/platform/useDocumentTheme";
 import { useStore } from "@nanostores/react";
 import {
     DarkTheme,
@@ -18,6 +19,7 @@ export function DesignProvider({ children }: { children: ReactNode }) {
         system === "light" ? "light" : "dark"
     );
     const colors = getTheme(mode);
+    useDocumentTheme(mode, colors.background);
     const navigation = {
         ...(mode === "light" ? DefaultTheme : DarkTheme),
         colors: {

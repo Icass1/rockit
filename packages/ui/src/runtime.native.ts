@@ -1,4 +1,6 @@
 export {
+    AccessibilityInfo,
+    Animated,
     ActivityIndicator,
     Image,
     Pressable,
@@ -6,3 +8,5 @@ export {
     Text,
     View,
 } from "react-native";
+
+export const nativeAnimations = true;

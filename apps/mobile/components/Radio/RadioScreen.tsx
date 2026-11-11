@@ -6,25 +6,28 @@ import {
 } from "@rockit/shared";
 import { IconButton, MediaIdentity, useDesignTheme } from "@rockit/ui";
 import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
-import { Library, ListPlus } from "@rockit/ui/icons";
+import { Library, ListPlus, Search, X } from "@rockit/ui/icons";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
+import RadioMap from "@/components/Radio/RadioMap";
 
 export default function RadioScreen() {
     const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
     const [query, setQuery] = useState("");
     const [submitted, setSubmitted] = useState("");
+    const [country, setCountry] = useState("");
     const [busy, setBusy] = useState<string>();
     const resource = useAsyncResource(async () => {
         if (submitted) return rockIt.stationManager.search(submitted);
+        if (country) return rockIt.stationManager.getByCountry(country);
         const response = await Http.getUserLibraryMedias();
         if (!response.isOk()) throw new Error(response.message);
         return response.result.stations.map((entry) => entry.item);
-    }, submitted);
+    }, `${submitted}|${country}`);
     const act = async (
         item: BaseStationResponse | BaseSearchResultsItem,
         action: "play" | "queue" | "save"
@@ -49,6 +52,7 @@ export default function RadioScreen() {
     };
     return (
         <FlatList<BaseStationResponse | BaseSearchResultsItem>
+            style={{ flex: 1, backgroundColor: theme.colors.background }}
             data={resource.data ?? []}
             keyExtractor={(item) =>
                 isSearchResult(item) ? item.providerUrl : item.publicId
@@ -72,29 +76,73 @@ export default function RadioScreen() {
                     >
                         {vocabulary.RADIO}
                     </Text>
-                    <TextInput
-                        placeholder={vocabulary.RADIO_SEARCH}
-                        accessibilityLabel={vocabulary.RADIO_SEARCH}
-                        value={query}
-                        onChangeText={setQuery}
-                        onSubmitEditing={() => setSubmitted(query.trim())}
-                        returnKeyType="search"
-                        style={{
-                            minHeight: theme.layout.touchTarget,
-                            color: theme.colors.foreground,
-                            backgroundColor: theme.colors.secondary,
-                            borderRadius: theme.radius.md,
-                            padding: theme.spacing.md,
+                    <RadioMap
+                        selected={country}
+                        onCountry={(name) => {
+                            setCountry(name);
+                            setSubmitted("");
+                            setQuery("");
                         }}
+                        stations={(resource.data ?? []).filter(
+                            (item): item is BaseStationResponse =>
+                                !isSearchResult(item)
+                        )}
+                        onStation={(station) => void act(station, "play")}
                     />
-                    <Pressable
-                        accessibilityRole="button"
-                        onPress={() => setSubmitted(query.trim())}
+                    {!!country && (
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: theme.spacing.sm,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: theme.colors.foreground,
+                                    flex: 1,
+                                }}
+                            >
+                                {country}
+                            </Text>
+                            <IconButton
+                                label={vocabulary.CANCEL}
+                                onPress={() => setCountry("")}
+                            >
+                                <X color={theme.colors.foreground} />
+                            </IconButton>
+                        </View>
+                    )}
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: theme.spacing.sm,
+                        }}
                     >
-                        <Text style={{ color: theme.colors.primary }}>
-                            {vocabulary.SEARCH}
-                        </Text>
-                    </Pressable>
+                        <TextInput
+                            placeholder={vocabulary.RADIO_SEARCH}
+                            accessibilityLabel={vocabulary.RADIO_SEARCH}
+                            value={query}
+                            onChangeText={setQuery}
+                            onSubmitEditing={() => setSubmitted(query.trim())}
+                            returnKeyType="search"
+                            style={{
+                                flex: 1,
+                                minHeight: theme.layout.touchTarget,
+                                color: theme.colors.foreground,
+                                backgroundColor: theme.colors.secondary,
+                                borderRadius: theme.radius.md,
+                                padding: theme.spacing.md,
+                            }}
+                        />
+                        <IconButton
+                            label={vocabulary.SEARCH}
+                            onPress={() => setSubmitted(query.trim())}
+                        >
+                            <Search color={theme.colors.primary} />
+                        </IconButton>
+                    </View>
                     {submitted && (
                         <Pressable
                             accessibilityRole="button"

@@ -123,7 +123,7 @@ class SpotifyScrapperDownload(BaseDownload):
 
             object_key = f"spotify_scrapper/{track.spotify_id}.mp3"
 
-            uploaded = await ObjectFiles.upload_async(
+            uploaded = await ObjectFiles.upload_download_async(
                 session=session, source=downloaded_filename, key=object_key
             )
             if uploaded.is_not_ok():

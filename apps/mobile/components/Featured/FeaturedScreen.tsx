@@ -1,5 +1,6 @@
 import {
     featuredCollectionSeed,
+    getRockitListName,
     loadFeaturedCollection,
     type FeaturedCollectionKey,
 } from "@rockit/shared";
@@ -26,7 +27,13 @@ export default function FeaturedScreen({
             <CollectionScreen
                 key={resource.data.publicId}
                 publicId={resource.data.publicId}
-                initial={featuredCollectionSeed(resource.data)}
+                initial={featuredCollectionSeed({
+                    ...resource.data,
+                    name:
+                        kind === "latest-downloads"
+                            ? getRockitListName(kind, vocabulary)
+                            : resource.data.name,
+                })}
             />
         );
     return (

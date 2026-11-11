@@ -3,6 +3,7 @@ import useHandlePlay from "@/callbacks/handlePlay";
 import { capabilities } from "@/platform/capabilities";
 import {
     BaseSearchResultsItem,
+    downloadCollectionOffline,
     EEvent,
     EventManager,
     getAllPlayableMedia,
@@ -18,7 +19,9 @@ import {
     redownloadMedia,
     TMedia,
 } from "@rockit/shared";
+import { useDesignTheme } from "@rockit/ui";
 import {
+    CheckSquare,
     Download,
     HardDriveDownload,
     Heart,
@@ -34,8 +37,9 @@ import {
     Radio,
     Share2,
     Shuffle,
+    Square,
 } from "@rockit/ui/icons";
-import { Pressable } from "react-native";
+import { Pressable, View } from "react-native";
 import {
     ContextMenuConfig,
     ContextMenuOption,
@@ -50,6 +54,10 @@ import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";
 import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
+import {
+    canSelectForZip,
+    useLibrarySelection,
+} from "@/components/Library/LibrarySelectionContext";
 
 interface MediaCardProps {
     media: TMedia | BaseSearchResultsItem;
@@ -70,6 +78,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     menuOnly,
     onPress,
 }: MediaCardProps) {
+    const selection = useLibrarySelection();
+    const theme = useDesignTheme();
     const { show, hide } = useContextMenu();
     const { vocabulary } = useVocabulary();
     const router = useTypedRouter();
@@ -123,6 +133,15 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     const buildMainMenu = useCallback(
         (media: TMedia | BaseSearchResultsItem): ContextMenuConfig => {
             const options: ContextMenuOption[] = [];
+            if (selection && !isSearchResult(media) && canSelectForZip(media))
+                options.push({
+                    label: vocabulary.LIBRARY_SELECT_ITEMS,
+                    icon: CheckSquare,
+                    onPress: () => {
+                        hide();
+                        selection.start(media.publicId);
+                    },
+                });
 
             options.push({
                 label: vocabulary.ADD_TO_LIBRARY,
@@ -237,6 +256,65 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     onPress: () => {
                         hide();
                         rockIt.queueManager.addListToQueueBottomAsync(media);
+                    },
+                });
+            }
+
+            if (!isSearchResult(media) && isList(media)) {
+                options.push({
+                    label: vocabulary.DOWNLOAD_LIST_TO_DEVICE,
+                    icon: Download,
+                    onPress: async () => {
+                        hide();
+                        const session = rockIt.userManager.sessionAtom.get();
+                        const isCurrent = () =>
+                            !!session &&
+                            rockIt.userManager.sessionAtom.get() === session;
+                        try {
+                            toasterManager.notifyInfo(
+                                vocabulary.DOWNLOAD_STARTED
+                            );
+                            const count = await downloadCollectionOffline(
+                                Http,
+                                media.publicId,
+                                {
+                                    isCurrent,
+                                    save: async (song) => {
+                                        const local =
+                                            await mediaStorage.downloadSong(
+                                                song.publicId,
+                                                song.audioUrl!,
+                                                song.imageUrl,
+                                                song.name
+                                            );
+                                        if (!isCurrent()) return;
+                                        if (!local)
+                                            throw new Error(
+                                                "Offline save failed"
+                                            );
+                                        EventManager.getInstance().dispatchEvent(
+                                            EEvent.MediaDownloaded,
+                                            { publicId: song.publicId }
+                                        );
+                                    },
+                                }
+                            );
+                            if (isCurrent()) {
+                                if (count)
+                                    toasterManager.notifySuccess(
+                                        `${count} ${vocabulary.OFFLINE_DOWNLOAD_SUMMARY}`
+                                    );
+                                else
+                                    toasterManager.notifyWarn(
+                                        vocabulary.NO_SONGS
+                                    );
+                            }
+                        } catch {
+                            if (isCurrent())
+                                toasterManager.notifyError(
+                                    vocabulary.ERROR_STARTING_DOWNLOAD
+                                );
+                        }
                     },
                 });
             }
@@ -423,7 +501,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [hide, show, extraOptions, listPublicId, vocabulary]
+        [hide, show, extraOptions, listPublicId, vocabulary, selection]
     );
 
     const showPlaylistPicker = useCallback(
@@ -500,6 +578,11 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     }, [media, menuOnly, show, buildMainMenu]);
 
     const handlePress = useCallback(() => {
+        if (selection?.active) {
+            if (!isSearchResult(media) && canSelectForZip(media))
+                selection.toggle(media.publicId);
+            return;
+        }
         if (!isSearchResult(media)) {
             webSocketManager.sendMediaClicked({
                 mediaPublicId: media.publicId,
@@ -529,6 +612,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
         menuOnly,
         onPress,
         listPublicId,
+        selection,
     ]);
 
     return (
@@ -536,6 +620,16 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={media.name}
+                aria-pressed={
+                    selection?.active && !isSearchResult(media)
+                        ? selection.selected.includes(media.publicId)
+                        : undefined
+                }
+                accessibilityState={{
+                    selected:
+                        !isSearchResult(media) &&
+                        !!selection?.selected.includes(media.publicId),
+                }}
                 onPress={handlePress}
                 onLongPress={handleLongPress}
                 delayLongPress={250}
@@ -544,6 +638,27 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 }
             >
                 {children}
+                {selection?.active &&
+                    canSelectForZip(media) &&
+                    !isSearchResult(media) && (
+                        <View
+                            pointerEvents="none"
+                            style={{
+                                position: "absolute",
+                                top: theme.spacing.sm,
+                                right: theme.spacing.sm,
+                                padding: theme.spacing.xs,
+                                borderRadius: theme.radius.sm,
+                                backgroundColor: theme.colors.background,
+                            }}
+                        >
+                            {selection.selected.includes(media.publicId) ? (
+                                <CheckSquare color={theme.colors.primary} />
+                            ) : (
+                                <Square color={theme.colors.foreground} />
+                            )}
+                        </View>
+                    )}
             </Pressable>
             {editMetadataMedia && (
                 <EditMetadataModal

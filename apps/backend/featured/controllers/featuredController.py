@@ -133,6 +133,29 @@ async def get_featured_year_recap(
     return a_result.result()
 
 
+@router.get("/latest-downloads")
+async def get_featured_latest_downloads(
+    request: Request,
+) -> BasePlaylistWithMediasResponse:
+    """Get the current user's 50 latest completed downloads."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Latest downloads authentication failed: {a_result_user.info()}")
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    a_result = await featured.get_latest_downloads_playlist_async(
+        session=session,
+        user_id=a_result_user.result().id,
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Latest downloads lookup failed: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return a_result.result()
+
+
 @router.post("/{public_id}/queue")
 async def create_featured_queue(
     request: Request, public_id: str, payload: CollectionQueueRequest
@@ -150,6 +173,7 @@ async def create_featured_queue(
         "recent-mix": featured.get_recent_mix_playlist_async,
         "last-month": featured.get_last_month_playlist_async,
         "year-recap": featured.get_year_recap_playlist_async,
+        "latest-downloads": featured.get_latest_downloads_playlist_async,
     }
     method = methods.get(public_id)
     if method is None:

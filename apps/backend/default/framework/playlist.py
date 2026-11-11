@@ -311,11 +311,13 @@ class Playlist:
 
     @staticmethod
     async def get_user_playlists_async(
-        session: AsyncSession, user_id: int
+        session: AsyncSession, user_id: int, owned_only: bool = False
     ) -> Result[list[PlaylistModel]]:
         a_result_playlists: Result[
             list[PlaylistRow]
-        ] = await PlaylistAccess.get_user_playlists_async(session=session, user_id=user_id)
+        ] = await PlaylistAccess.get_user_playlists_async(
+            session=session, user_id=user_id, owned_only=owned_only
+        )
         if a_result_playlists.is_not_ok():
             logger.error(f"Error getting user playlists. {a_result_playlists.info()}")
             return Result(

@@ -369,9 +369,13 @@ export class BaseHttp {
         );
     }
 
-    static async getUserPlaylistsAsync() {
+    static async getUserPlaylistsAsync(ownedOnly?: boolean) {
+        const queryParams = new URLSearchParams();
+        if (ownedOnly !== undefined)
+            queryParams.append("owned_only", `${ownedOnly}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/default/playlist`,
+            `/default/playlist${queryString ? `?${queryString}` : ""}`,
             dto.UserPlaylistsResponseSchema
         );
     }
@@ -612,6 +616,13 @@ export class BaseHttp {
     static async getFeaturedLastMonth() {
         return this.apiGetAsync(
             `/featured/last-month`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedLatestDownloads() {
+        return this.apiGetAsync(
+            `/featured/latest-downloads`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }

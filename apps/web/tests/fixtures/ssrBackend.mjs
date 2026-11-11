@@ -101,6 +101,7 @@ const server = http.createServer(async (req, res) => {
             currentLang: "es",
             vocabulary: {
                 LIBRARY: "Biblioteca de prueba",
+                FEATURED_LATEST_DOWNLOADS: "Últimas descargas",
                 GOOD_MORNING: "Buenos días",
                 GOOD_AFTERNOON: "Buenas tardes",
                 GOOD_EVENING: "Buenas noches",
@@ -108,6 +109,42 @@ const server = http.createServer(async (req, res) => {
                 NO_MEDIA_PLAYING: "NO_MEDIA_PLAYING",
             },
         });
+    if (url.pathname === "/featured/latest-downloads") {
+        if (!sessionId?.startsWith("fixture"))
+            return send({ detail: "Login required" }, 401);
+        const empty = sessionId === "fixture-empty";
+        return send({
+            type: "playlist",
+            description: null,
+            provider: "Core",
+            publicId: "latest-downloads",
+            url: "/playlist/latest-downloads",
+            providerUrl: "",
+            name: "Latest Downloads",
+            contributors: [],
+            imageUrl: "/rockit-background.png",
+            owner: artist,
+            medias: empty
+                ? []
+                : [
+                      {
+                          item: {
+                              ...song,
+                              name:
+                                  sessionId === "fixture-other"
+                                      ? "Other viewer download"
+                                      : "Latest viewer download",
+                          },
+                          addedAt: "2026-06-01T00:00:00Z",
+                          expanded: false,
+                      },
+                  ],
+            limit: 50,
+            total: empty ? 0 : 1,
+            hasMore: false,
+            playableCount: empty ? 0 : 1,
+        });
+    }
     if (url.pathname === "/user/queue") {
         if (!req.headers.cookie?.includes("session_id=fixture"))
             return send({ detail: "Login required" }, 401);

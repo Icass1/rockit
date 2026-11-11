@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { withAlpha } from "@rockit/theme";
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
-import { Dimensions, Platform, StyleSheet, View } from "react-native";
+import {
+    ScrollView,
+    StyleSheet,
+    useWindowDimensions,
+    View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
     runOnJS,
@@ -12,6 +17,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { usePlayer } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import FullscreenMediaPlayer from "@/components/Player/FullscreenMediaPlayer";
@@ -20,16 +26,16 @@ import PlayerTabsBar from "@/components/Player/PlayerTabsBar";
 import PlayerTabsPanel from "@/components/Player/PlayerTabsPanel";
 import PlayerTopBar from "@/components/Player/PlayerTopBar";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-
 const SPRING_CONFIG = { damping: 50, stiffness: 300, mass: 0.8 };
-const OFFSET_Y = SCREEN_HEIGHT + 50;
 
 export type PlayerTab =
     "queue" | "lyrics" | "related" | "crossfade" | "bookmarks" | null;
 
 export default function FullPlayer() {
     const styles = useThemedStyles(createStyles);
+    const theme = useDesignTheme();
+    const { height: SCREEN_HEIGHT, width } = useWindowDimensions();
+    const OFFSET_Y = SCREEN_HEIGHT + theme.spacing.xxl;
     const {
         currentMedia,
         isPlayerVisible,
@@ -40,17 +46,14 @@ export default function FullPlayer() {
         audioOnly,
         toggleAudioOnly,
     } = usePlayer();
+    const imageUrl = useOfflineArtwork(
+        currentMedia?.publicId,
+        currentMedia?.imageUrl
+    );
 
     const insets = useSafeAreaInsets();
-    const FOOTER_HEIGHT = 50; // Height of the custom tab bar
-
-    let containerHeight: number;
-
-    if (Platform.OS === "android") {
-        containerHeight = SCREEN_HEIGHT;
-    } else {
-        containerHeight = SCREEN_HEIGHT - FOOTER_HEIGHT - (insets.bottom || 0);
-    }
+    const containerHeight = SCREEN_HEIGHT - theme.layout.tabBar - insets.bottom;
+    const landscape = width > SCREEN_HEIGHT;
     const translateY = useSharedValue(SCREEN_HEIGHT + 10);
     const isHiding = useSharedValue(false);
     const [keepMounted, setKeepMounted] = useState(false);
@@ -94,7 +97,7 @@ export default function FullPlayer() {
             );
         }
         prevVisible.current = isPlayerVisible;
-    }, [isPlayerVisible, translateY, isHiding, onHideComplete]);
+    }, [isPlayerVisible, translateY, isHiding, onHideComplete, OFFSET_Y]);
 
     const handleBookmarkPress = useCallback(() => {
         if (currentMedia?.publicId) {
@@ -119,19 +122,19 @@ export default function FullPlayer() {
                 if (finished) runOnJS(onHideComplete)();
             }
         );
-    }, [translateY, isHiding, onHideComplete]);
+    }, [translateY, isHiding, onHideComplete, OFFSET_Y]);
 
     // Pan-down to dismiss — disabled when a tab panel is open so it doesn't
     // interfere with the panel's own scrolling
     const panGesture = Gesture.Pan()
         .onUpdate((e) => {
             // Disable pan when a tab panel is open (activeTab != null)
-            if (activeTab) return;
+            if (activeTab || landscape) return;
             if (e.translationY > 0) translateY.value = e.translationY;
         })
         .onEnd((e) => {
             // Disable pan when a tab panel is open (activeTab != null)
-            if (activeTab) return;
+            if (activeTab || landscape) return;
             const dismiss =
                 e.translationY > SCREEN_HEIGHT / 3 || e.velocityY > 800;
             if (dismiss) runOnJS(handleHide)();
@@ -159,11 +162,7 @@ export default function FullPlayer() {
         >
             {/* Blurred album-art background — mirrors old MobilePlayerUI */}
             <Image
-                source={
-                    currentMedia?.imageUrl
-                        ? { uri: currentMedia.imageUrl }
-                        : null
-                }
+                source={imageUrl ? { uri: imageUrl } : null}
                 style={StyleSheet.absoluteFill}
                 contentFit="cover"
                 blurRadius={30}
@@ -172,13 +171,17 @@ export default function FullPlayer() {
 
             {/* Main content wrapped in pan gesture detector */}
             <GestureDetector gesture={panGesture}>
-                <Animated.View style={styles.gestureContent}>
+                <ScrollView
+                    style={styles.gestureContent}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    showsVerticalScrollIndicator={false}
+                >
                     <Animated.View
                         style={[
                             styles.inner,
                             {
-                                paddingTop: insets.top + 80,
-                                paddingBottom: 20,
+                                paddingTop: insets.top + theme.spacing.md,
+                                paddingBottom: theme.spacing.lg,
                             },
                         ]}
                     >
@@ -205,7 +208,7 @@ export default function FullPlayer() {
                             onMediaFullscreen={() => setMediaFullscreen(true)}
                         />
                     </Animated.View>
-                </Animated.View>
+                </ScrollView>
             </GestureDetector>
 
             <PlayerTabsBar
@@ -233,7 +236,7 @@ const createStyles = (theme: DesignTheme) =>
             left: 0,
             right: 0,
             bottom: 0,
-            paddingBottom: 60,
+            paddingBottom: theme.layout.touchTarget,
             // Height will be set dynamically to avoid covering the footer
             zIndex: 0, // default stacking; MiniPlayer is hidden when FullPlayer visible
             backgroundColor: theme.colors["background"],

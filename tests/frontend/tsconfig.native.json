@@ -20,7 +20,11 @@
             "@rockit/ui/theme": ["packages/ui/src/theme.tsx"],
             "@rockit/ui/icons": ["packages/ui/src/icons.native.ts"],
             "@/platform/socket": ["apps/mobile/platform/socket.web.ts"],
-            "@/lib/api": ["apps/mobile/lib/api.native.ts"]
+            "@/lib/api": ["apps/mobile/lib/api.native.ts"],
+            "@/lib/http": ["apps/mobile/lib/http.native.ts"],
+            "expo-sharing": [
+                "apps/mobile/node_modules/expo-sharing/build/index.d.ts"
+            ]
         },
         "types": ["node", "jest"],
         "allowImportingTsExtensions": true,

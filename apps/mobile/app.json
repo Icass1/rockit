@@ -3,7 +3,7 @@
         "name": "RockIt!",
         "slug": "rockit",
         "version": "1.0.0",
-        "orientation": "default",
+        "orientation": "portrait",
         "icon": "./assets/images/icon.png",
         "scheme": "mobile",
         "jsEngine": "hermes",
@@ -70,9 +70,7 @@
                 "expo-media-control",
                 {
                     "enableBackgroundAudio": true,
-                    "audioSessionCategory": "playback",
-                    "skipForwardInterval": 10,
-                    "skipBackwardInterval": 10
+                    "audioSessionCategory": "playback"
                 }
             ],
             [

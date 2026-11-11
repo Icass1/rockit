@@ -33,6 +33,7 @@ export const getFeaturedListAsync = cache(
             | "recent-mix"
             | "last-month"
             | "year-recap"
+            | "latest-downloads"
     ) => {
         switch (type) {
             case "liked":
@@ -45,6 +46,10 @@ export const getFeaturedListAsync = cache(
                 return requireResult(await ServerHttp.getFeaturedRecentMix());
             case "last-month":
                 return requireResult(await ServerHttp.getFeaturedLastMonth());
+            case "latest-downloads":
+                return requireResult(
+                    await ServerHttp.getFeaturedLatestDownloads()
+                );
             case "year-recap":
                 return requireResult(await ServerHttp.getFeaturedYearRecap());
         }

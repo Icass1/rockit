@@ -1115,4 +1115,11 @@ export interface Vocabulary {
     STATS_RANGE_TODAY: string;
     HOME_MEDIA_COUNT_ONE: string;
     HOME_MEDIA_COUNT_OTHER: string;
+    FEATURED_LATEST_DOWNLOADS: string;
+    MOBILE_PLAYER_RELATED: string;
+    MOBILE_PHOTO_CHANGE: string;
+    MOBILE_PHOTO_PERMISSION: string;
+    MOBILE_PHOTO_INVALID: string;
+    MOBILE_PHOTO_ERROR: string;
+    MOBILE_RADIO_EXPLORE: string;
 }

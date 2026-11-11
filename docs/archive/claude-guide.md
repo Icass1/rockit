@@ -1,3 +1,5 @@
+> **Historical reference — not current instructions.** See the [documentation index](../README.md) and [engineering instructions](../../AGENTS.md). Paths to retired files are retained as text.
+
 > Historical reference. Current instructions live in the repository and application AGENTS.md files.
 
 # Rockit — Agent Guidelines

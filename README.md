@@ -194,25 +194,19 @@ The Compose stack includes a YouTube proof-of-origin token provider. Backend vol
 
 ## Explore the documentation
 
-**[Browse the documentation index](docs/README.md)** — guides, references and historical documents.
+**[Documentation index](docs/README.md)** — the starting point for guides and references.
 
-| Start here                                                                                                                                 | What you will find                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| [Contributing](CONTRIBUTING.md)                                                                                                            | Development conventions, checks, and pull requests        |
-| [Project board](docs/Kanban.md)                                                                                                            | Work planned and awaiting review                          |
-| [Web architecture](docs/web-guide.md) · [Backend architecture](docs/backend-guide.md)                                                      | How the applications fit together                         |
-| [Desktop and universal mobile architecture](docs/FRONTEND_PLATFORM_ARCHITECTURE.md)                                                        | Shared core, UI and platform boundaries                   |
-| [Implemented frontend diagrams](docs/FRONTEND_IMPLEMENTATION.md)                                                                           | Shared components, mobile targets and concrete code paths |
-| [Frontend verification](docs/FRONTEND_TESTING.md)                                                                                          | Fast contracts, browser checks and device acceptance      |
-| [Library search](docs/LIBRARY_SONG_SEARCH.md) · [Drag and drop](docs/LIBRARY_DRAG_DROP.md) · [Navigation anchors](docs/NAVIGATION_PINS.md) | Finding and organizing your collection                    |
-| [Lyrics](docs/LYRICS_MATCHING.md) · [Recording selection](docs/SONG_RECORDING_SELECTION.md)                                                | Matching the right words and the right recording          |
-| [Recommendations](docs/RECOMMENDATIONS.md) · [Friends and listening sessions](docs/listen-together.md)                                     | Discovery and shared listening                            |
-| [YouTube downloads](docs/YOUTUBE_DOWNLOADS.md) · [Mobile builds](docs/BUILDINGAPKIPA.md)                                                   | Provider setup and native build instructions              |
-| [Web](apps/web/AGENTS.md) · [Backend](apps/backend/AGENTS.md) · [Mobile](apps/mobile/AGENTS.md)                                            | Current application-specific engineering rules            |
+| Area | Reference |
+| --- | --- |
+| Desktop, mobile and shared UI | [Frontend](docs/frontend/README.md) |
+| API, providers, metadata and storage | [Backend](docs/backend/README.md) |
+| Deployment | [Desktop/mobile delivery](docs/frontend/FRONTEND_DEPLOYMENT.md) · [Containers](docs/operations/DOCKER.md) |
+| Product behavior | [Feature references](docs/features/README.md) |
+| Contributing and work tracking | [Contribution guide](CONTRIBUTING.md) · [Project board](docs/Kanban.md) |
 
-Some feature documents include implementation history, controlled test results,
-and remaining acceptance checks. They are more precise than a blanket claim of
-browser or device compatibility.
+Implementation guides distinguish controlled checks from production and device
+acceptance. Previous plans and investigations are retained in the
+[documentation archive](docs/archive/README.md).
 
 ## Build it with us
 

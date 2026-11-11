@@ -21,6 +21,7 @@ class FeaturedProvider(BaseProvider):
                 ("recent-mix", "Recent Mix", True),
                 ("last-month", "Last Month", False),
                 ("year-recap", "Year Recap", False),
+                ("latest-downloads", "Latest Downloads", False),
             )
         ]
 

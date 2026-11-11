@@ -14,6 +14,7 @@ export async function loadFeaturedCollection(
         "most-listened": () => http.getFeaturedMostListened(),
         "recent-mix": () => http.getFeaturedRecentMix(),
         "year-recap": () => http.getFeaturedYearRecap(),
+        "latest-downloads": () => http.getFeaturedLatestDownloads(),
     };
     const response = await loaders[key]();
     if (!response.isOk()) throw new Error(response.message);
@@ -50,6 +51,7 @@ export function getRockitListName(
         "recent-mix": vocabulary.RECENT_MIX,
         "last-month": vocabulary.NAV_LAST_MONTH,
         "year-recap": vocabulary.NAV_YEAR_RECAP,
+        "latest-downloads": vocabulary.FEATURED_LATEST_DOWNLOADS,
     };
     return Object.prototype.hasOwnProperty.call(names, key)
         ? names[key as FeaturedCollectionKey]

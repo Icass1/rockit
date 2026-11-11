@@ -4,6 +4,7 @@ from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.downloadAccess import DownloadAccess
 from core.access.mediaAccess import MediaAccess
 from core.access.statsAccess import StatsAccess
 from core.enums.mediaTypeEnum import MediaTypeEnum
@@ -367,7 +368,7 @@ async def get_year_recap_playlist_async(
         user_id=user_id,
         start_date=start_date,
         end_date=end_date,
-        limit=0,
+        limit=50,
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting top media. {a_result_ids.info()}")
@@ -407,5 +408,63 @@ async def get_year_recap_playlist_async(
                 dominantColor="",
             ),
             medias=a_result_items.result(),
+            limit=50,
+            total=len(a_result_items.result()),
+            playableCount=len(a_result_items.result()),
+        ),
+    )
+
+
+async def get_latest_downloads_playlist_async(
+    session: AsyncSession,
+    user_id: int,
+) -> Result[BasePlaylistWithMediasResponse]:
+
+    a_result_ids: Result[
+        list[str]
+    ] = await DownloadAccess.get_latest_downloaded_media_public_ids_async(
+        session=session, user_id=user_id, limit=50
+    )
+    if a_result_ids.is_not_ok():
+        logger.error(f"Error getting latest downloads. {a_result_ids.info()}")
+        return Result(code=a_result_ids.code(), message=a_result_ids.message())
+
+    public_ids: list[str] = a_result_ids.result()
+
+    a_result_items: Result[
+        list[
+            PlaylistResponseItem[BaseSongWithAlbumResponse]
+            | PlaylistResponseItem[BaseVideoResponse]
+        ]
+    ] = await _resolve_medias(session=session, public_ids=public_ids)
+    if a_result_items.is_not_ok():
+        return Result(code=a_result_items.code(), message=a_result_items.message())
+
+    return Result(
+        code=ResultCode.OK,
+        message="OK",
+        result=BasePlaylistWithMediasResponse(
+            type="playlist",
+            description=None,
+            provider=Core.provider_name,
+            publicId="latest-downloads",
+            url="/playlist/latest-downloads",
+            providerUrl="",
+            name="Latest Downloads",
+            contributors=[],
+            imageUrl="/rockit-background.png",
+            owner=BaseArtistResponse(
+                provider=Core.provider_name,
+                publicId="rockit",
+                url="",
+                providerUrl="",
+                name="Rock It!",
+                imageUrl="",
+                dominantColor="",
+            ),
+            medias=a_result_items.result(),
+            limit=50,
+            total=len(a_result_items.result()),
+            playableCount=len(a_result_items.result()),
         ),
     )

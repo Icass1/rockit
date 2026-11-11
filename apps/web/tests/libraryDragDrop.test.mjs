@@ -22,7 +22,8 @@ const response = (ok, result = {}) => ({
 });
 globalThis.__libraryDndTest = {
     Http: {
-        async getUserPlaylistsAsync() {
+        async getUserPlaylistsAsync(ownedOnly) {
+            if (ownedOnly !== undefined) assert.equal(ownedOnly, true);
             state.calls.push("owner");
             if (state.wait) await state.wait;
             if (state.failOwner) throw Error("Offline");

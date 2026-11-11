@@ -119,7 +119,13 @@ export async function expandPlaylistsToPlayable(
 }
 
 export async function getFeaturedListAsync(
-    type: "liked" | "most-listened" | "recent-mix" | "last-month" | "year-recap"
+    type:
+        | "liked"
+        | "most-listened"
+        | "recent-mix"
+        | "last-month"
+        | "year-recap"
+        | "latest-downloads"
 ): Promise<BasePlaylistWithMediasResponse | undefined> {
     let response;
     switch (type) {
@@ -134,6 +140,9 @@ export async function getFeaturedListAsync(
             break;
         case "last-month":
             response = await Http.getFeaturedLastMonth();
+            break;
+        case "latest-downloads":
+            response = await Http.getFeaturedLatestDownloads();
             break;
         case "year-recap":
             response = await Http.getFeaturedYearRecap();

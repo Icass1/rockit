@@ -1115,4 +1115,5 @@ export interface Vocabulary {
     STATS_RANGE_TODAY: string;
     HOME_MEDIA_COUNT_ONE: string;
     HOME_MEDIA_COUNT_OTHER: string;
+    FEATURED_LATEST_DOWNLOADS: string;
 }

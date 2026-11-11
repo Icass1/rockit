@@ -16,6 +16,7 @@ import { useLibrarySongSearch } from "@/hooks/useLibrarySongSearch";
 import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
 import LibraryFilters from "@/components/Library/LibraryFilters";
+import FeaturedCollections from "@/components/Navigation/FeaturedCollections";
 import LibraryShortcuts from "@/components/Navigation/LibraryShortcuts";
 import NavigationAnchors from "@/components/Navigation/NavigationAnchors";
 import SearchBar from "@/components/Search/SearchBar";
@@ -118,74 +119,89 @@ export default function LibraryScreen({
         [shared, searchQuery, sortMode, activeType]
     );
     return (
-        <>
-            <View style={{ height: theme.layout.mobileContentTop }} />
-            {!searchQuery.trim() && activeType === ELibraryActiveType.All && (
-                <NavigationAnchors />
-            )}
-            <LibraryShortcuts />
-            <SearchBar
-                value={searchQuery}
-                onChangeText={onSearchChange}
-                isSearching={songSearch.loading}
-                onClear={() => onSearchChange("")}
-                placeholder={vocabulary.SEARCH_LIBRARY}
-            />
-
-            <View style={styles.controlsRow}>
-                <View style={styles.filtersContainer}>
-                    <LibraryFilters
-                        activeType={activeType}
-                        onTypeChange={onTypeChange}
+        <LibraryContent
+            albums={filteredAlbums}
+            playlists={filteredPlaylists}
+            songs={filteredSongs}
+            videos={filteredVideos}
+            stations={filteredStations}
+            shared={filteredShared}
+            activeType={activeType}
+            viewMode={viewMode}
+            header={
+                <>
+                    {" "}
+                    <LibraryShortcuts />{" "}
+                    <SearchBar
+                        value={searchQuery}
+                        onChangeText={onSearchChange}
+                        isSearching={songSearch.loading}
+                        onClear={() => onSearchChange("")}
+                        placeholder={vocabulary.SEARCH_LIBRARY}
                     />
-                </View>
-                <Pressable
-                    style={styles.viewToggle}
-                    onPress={() =>
-                        setViewMode(viewMode === "grid" ? "list" : "grid")
-                    }
-                >
-                    {viewMode === "grid" ? (
-                        <List size={28} color={theme.legacy.white} />
-                    ) : (
-                        <LayoutGrid size={28} color={theme.legacy.white} />
+                    <View style={styles.controlsRow}>
+                        <View style={styles.filtersContainer}>
+                            <LibraryFilters
+                                activeType={activeType}
+                                onTypeChange={onTypeChange}
+                            />
+                        </View>
+                        <Pressable
+                            style={styles.viewToggle}
+                            onPress={() =>
+                                setViewMode(
+                                    viewMode === "grid" ? "list" : "grid"
+                                )
+                            }
+                        >
+                            {viewMode === "grid" ? (
+                                <List size={28} color={theme.legacy.white} />
+                            ) : (
+                                <LayoutGrid
+                                    size={28}
+                                    color={theme.legacy.white}
+                                />
+                            )}
+                        </Pressable>
+                    </View>
+                    {songSearch.error && (
+                        <Pressable
+                            accessibilityRole="button"
+                            onPress={songSearch.retry}
+                        >
+                            <Text style={{ color: theme.colors.destructive }}>
+                                {vocabulary.ERROR} · {vocabulary.RETRY}
+                            </Text>
+                        </Pressable>
                     )}
-                </Pressable>
-            </View>
-
-            {songSearch.error && (
-                <Pressable
-                    accessibilityRole="button"
-                    onPress={songSearch.retry}
-                >
-                    <Text style={{ color: theme.colors.destructive }}>
-                        {vocabulary.ERROR} · {vocabulary.RETRY}
-                    </Text>
-                </Pressable>
-            )}
-            <LibraryContent
-                albums={filteredAlbums}
-                playlists={filteredPlaylists}
-                songs={filteredSongs}
-                videos={filteredVideos}
-                stations={filteredStations}
-                shared={filteredShared}
-                activeType={activeType}
-                viewMode={viewMode}
-            />
-            {songSearch.hasMore && (
-                <Pressable
-                    accessibilityRole="button"
-                    onPress={songSearch.loadMore}
-                    disabled={songSearch.loading}
-                    style={{ padding: theme.spacing.md }}
-                >
-                    <Text style={{ color: theme.colors.primary }}>
-                        {vocabulary.SEARCH_LOAD_MORE}
-                    </Text>
-                </Pressable>
-            )}
-        </>
+                    {!searchQuery.trim() &&
+                        (activeType === ELibraryActiveType.All ||
+                            activeType === ELibraryActiveType.Playlists) && (
+                            <>
+                                <FeaturedCollections />
+                                <NavigationAnchors />
+                            </>
+                        )}
+                </>
+            }
+            footer={
+                <>
+                    {" "}
+                    {songSearch.hasMore && (
+                        <Pressable
+                            accessibilityRole="button"
+                            onPress={songSearch.loadMore}
+                            disabled={songSearch.loading}
+                            style={{ padding: theme.spacing.md }}
+                        >
+                            <Text style={{ color: theme.colors.primary }}>
+                                {vocabulary.SEARCH_LOAD_MORE}
+                            </Text>
+                        </Pressable>
+                    )}
+                </>
+            }
+        />
     );
 }
 

@@ -1,17 +1,9 @@
-import { getRockitListName, type FeaturedCollectionKey } from "@rockit/shared";
+import { type FeaturedCollectionKey } from "@rockit/shared";
 import { useDesignTheme } from "@rockit/ui";
 import { Download, Heart, ListMusic, Radio } from "@rockit/ui/icons";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
-
-const featuredKeys: FeaturedCollectionKey[] = [
-    "liked",
-    "most-listened",
-    "recent-mix",
-    "last-month",
-    "year-recap",
-];
 
 /** Local destinations only: listing shortcuts never downloads five playlists. */
 export default function LibraryShortcuts({
@@ -38,12 +30,6 @@ export default function LibraryShortcuts({
                   path: "/downloader" as const,
                   Icon: Download,
               },
-              ...featuredKeys.map((key) => ({
-                  key,
-                  name: getRockitListName(key, vocabulary),
-                  path: `/playlist/${key}` as const,
-                  Icon: key === "liked" ? Heart : ListMusic,
-              })),
           ];
     return (
         <ScrollView

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, type ReactNode } from "react";
 import {
     isSearchResult,
     type BaseAlbumWithoutSongsResponse,
@@ -13,12 +13,12 @@ import { SectionList, StyleSheet, Text, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useVocabulary } from "@/lib/vocabulary";
 import SectionTitle from "@/components/layout/SectionTitle";
-import LibraryGrid from "@/components/Library/LibraryGrid";
-import LibraryListView from "@/components/Library/LibraryListView";
 import MediaCard from "@/components/Media/MediaCard";
 import MediaRow from "@/components/Media/MediaRow";
 
 interface LibraryContentProps {
+    header?: ReactNode;
+    footer?: ReactNode;
     albums: BaseAlbumWithoutSongsResponse[];
     playlists: BasePlaylistWithoutMediasResponse[];
     songs: BaseSongWithAlbumResponse[];
@@ -38,6 +38,8 @@ interface Section {
 }
 
 export default function LibraryContent({
+    header,
+    footer,
     albums,
     playlists,
     songs,
@@ -156,82 +158,41 @@ export default function LibraryContent({
         []
     );
 
-    if (activeType === ELibraryActiveType.All) {
-        if (sections.length === 0) {
-            return (
-                <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>
-                        {vocabulary.NO_RESULTS}
-                    </Text>
-                </View>
-            );
-        }
-
-        return (
-            <SectionList
-                sections={sections}
-                renderItem={renderItem}
-                renderSectionHeader={renderSectionHeader}
-                keyExtractor={keyExtractor}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-                stickySectionHeadersEnabled={false}
-                initialNumToRender={10}
-                maxToRenderPerBatch={10}
-                windowSize={5}
-                removeClippedSubviews={true}
-                ListFooterComponent={<View style={{ height: 100 }} />}
-            />
-        );
-    }
-
-    let items: TMedia[] = [];
-    switch (activeType) {
-        case ELibraryActiveType.Albums:
-            items = albums;
-            break;
-        case ELibraryActiveType.Playlists:
-            items = playlists;
-            break;
-        case ELibraryActiveType.Songs:
-            items = songs;
-            break;
-        case ELibraryActiveType.Stations:
-            items = stations;
-            break;
-        case ELibraryActiveType.Shared:
-            items = shared;
-            break;
-        case ELibraryActiveType.Videos:
-            items = videos;
-            break;
-    }
-
-    if (items.length === 0) {
-        return (
-            <View style={styles.emptyContainer}>
+    return (
+        <SectionList
+            testID="library-scroll"
+            sections={sections}
+            renderItem={renderItem}
+            renderSectionHeader={renderSectionHeader}
+            keyExtractor={keyExtractor}
+            ListHeaderComponent={<>{header}</>}
+            ListFooterComponent={<>{footer}</>}
+            ListEmptyComponent={
                 <Text style={styles.emptyText}>{vocabulary.NO_RESULTS}</Text>
-            </View>
-        );
-    }
-
-    return viewMode === "grid" ? (
-        <LibraryGrid items={items} />
-    ) : (
-        <LibraryListView items={items} />
+            }
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            stickySectionHeadersEnabled={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+        />
     );
 }
 
 const createStyles = (theme: DesignTheme) =>
     StyleSheet.create({
         listContent: {
+            paddingTop: theme.layout.mobileContentTop,
             paddingHorizontal: theme.spacing.lg,
+            paddingBottom: theme.layout.mobileContentBottom,
         },
         sectionHeader: {
             marginBottom: theme.spacing.sm,
         },
         gridItemWrapper: {
             flex: 1,
+            maxWidth: "50%",
             padding: theme.spacing.xs,
         },
         gridRow: {

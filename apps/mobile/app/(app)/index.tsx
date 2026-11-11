@@ -21,7 +21,7 @@ import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
 import { HEADER_HEIGHT } from "@/components/layout/Header";
 import HorizontalScrollList from "@/components/Media/HorizontalScrollList";
 import MediaCard from "@/components/Media/MediaCard";
-import LibraryShortcuts from "@/components/Navigation/LibraryShortcuts";
+import FeaturedCollections from "@/components/Navigation/FeaturedCollections";
 import AutoplayDiscovery from "@/components/Recommendations/AutoplayDiscovery";
 
 function useFadeIn(delay: number = 0) {
@@ -122,7 +122,7 @@ export default function HomeScreen() {
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
             >
-                <LibraryShortcuts />
+                <FeaturedCollections />
                 <Animated.View style={section0}>
                     <HomeHeader />
                 </Animated.View>

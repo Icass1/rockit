@@ -82,11 +82,7 @@ export default function SearchScreen() {
                 )}
 
                 {query && !searching && results.length > 0 && (
-                    <ScrollView
-                        style={styles.resultsContainer}
-                        contentContainerStyle={styles.resultsContent}
-                        showsVerticalScrollIndicator={false}
-                    >
+                    <View style={styles.resultsContent}>
                         <SearchSection
                             title={vocabulary.SONGS}
                             items={songs}
@@ -112,7 +108,7 @@ export default function SearchScreen() {
                             items={videos}
                             layout="grid"
                         />
-                    </ScrollView>
+                    </View>
                 )}
             </PageContainer>
         </>

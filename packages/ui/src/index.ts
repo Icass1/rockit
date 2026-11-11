@@ -15,3 +15,4 @@ export { ResolvedMediaArtwork } from "@rockit/ui/primitives/ResolvedMediaArtwork
 export { ActionButton } from "@rockit/ui/primitives/ActionButton";
 
 export { ExplicitBadge } from "@rockit/ui/primitives/ExplicitBadge";
+export { FeaturedArtwork } from "@rockit/ui/primitives/FeaturedArtwork";

@@ -95,7 +95,7 @@ class YoutubeDownload(BaseDownload):
             _, actual_ext = os.path.splitext(downloaded_filename)
             object_key = f"youtube/{self.youtube_video_id}{actual_ext}"
 
-            uploaded = await ObjectFiles.upload_async(
+            uploaded = await ObjectFiles.upload_download_async(
                 session=session, source=downloaded_filename, key=object_key
             )
             if uploaded.is_not_ok():
@@ -110,9 +110,8 @@ class YoutubeDownload(BaseDownload):
                 )
 
                 if a_result_update.is_not_ok():
-                    logger.warning(
-                        f"Could not update video path in DB: {a_result_update.message()}"
-                    )
+                    logger.error(f"Could not update video path: {a_result_update.info()}")
+                    return a_result_update
 
                 if real_duration_ms is not None:
                     a_result_duration: ResultCode = await Video.update_video_real_duration_async(
@@ -126,7 +125,8 @@ class YoutubeDownload(BaseDownload):
                             f"{a_result_duration.message()}"
                         )
             except Exception as e:
-                logger.warning(f"Could not update video in DB: {e}")
+                logger.error(f"Could not update video in DB: {e}")
+                return ResultCode(code=ResultCode.GENERAL_ERROR, message="Video update failed")
 
             return ResultCode(code=ResultCode.OK, message="Download completed.")
 

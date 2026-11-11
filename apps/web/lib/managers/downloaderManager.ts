@@ -592,6 +592,7 @@ export class DownloaderManager {
     async startDownloadAsync(publicId: string, name: string): Promise<void> {
         try {
             const response = await Http.startDownload({
+                replaceExisting: false,
                 ids: [publicId], // The API expects an array of IDs/URLs
                 title: name,
             });
@@ -705,6 +706,7 @@ export class DownloaderManager {
 
     async downloadMediaAsync(publicIds: string[], name: string): Promise<void> {
         const response = await Http.startDownload({
+            replaceExisting: false,
             ids: publicIds,
             title: name,
         });

@@ -182,3 +182,52 @@ async def test_single_build_upload_publishes_to_s3_and_removes_assembly_file(
     assert result.is_ok()
     assert object_store.objects["builds/v1.apk"] == b"apk bytes"
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("failure", [None, "empty", "upload", "register", "size"])
+async def test_download_upload_never_overwrites_existing_audio(
+    object_store: FakeObjectStore,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    failure: str | None,
+) -> None:
+    object_store.objects["spotify/song.mp3"] = b"previous audio"
+    source = tmp_path / "new.mp3"
+    source.write_bytes(b"" if failure == "empty" else b"replacement audio")
+    monkeypatch.setattr(Storage, "ensure_bucket_async", AsyncMock())
+
+    async def register(
+        session: AsyncSession,
+        bucket: str,
+        key: str,
+        content_type: str,
+        size_bytes: int,
+        etag: str,
+    ) -> Result[StorageObjectRow]:
+        assert key != "spotify/song.mp3"
+        if failure == "register":
+            return Result(code=ResultCode.GENERAL_ERROR, message="Database unavailable")
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=StorageObjectRow(
+                bucket=bucket,
+                key=key,
+                content_type=content_type,
+                size_bytes=size_bytes,
+                etag=etag,
+            ),
+        )
+
+    monkeypatch.setattr(StorageObjectAccess, "insert_object_async", AsyncMock(side_effect=register))
+    if failure == "upload":
+        monkeypatch.setattr(object_store, "upload_file", Mock(side_effect=RuntimeError("Offline")))
+    elif failure == "size":
+        monkeypatch.setattr(object_store, "head_object", Mock(return_value={"ContentLength": 1}))
+    result = await ObjectFiles.upload_download_async(
+        session=AsyncMock(spec=AsyncSession), source=str(source), key="spotify/song.mp3"
+    )
+    assert object_store.objects["spotify/song.mp3"] == b"previous audio"
+    assert result.is_ok() == (failure is None)
+    if result.is_ok():
+        assert object_store.objects[result.result().key] == b"replacement audio"

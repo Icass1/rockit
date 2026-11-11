@@ -15,7 +15,6 @@ from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers
 from core.framework.downloader import downloads_manager
-from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.downloader.deferredDownload import DeferredDownload
 from core.framework.media.media import Media
 from core.framework.models.media import MediaModel
@@ -97,8 +96,9 @@ class Downloader:
         public_ids: list[str],
         group: DownloadGroupRow,
         user_id: int,
+        replace_existing: bool = False,
     ) -> Result[bool]:
-        """Reuse available files in a new source group and queue only missing media."""
+        """Queue replacements explicitly, otherwise reuse available files in the new group."""
         unique_ids = list(dict.fromkeys(public_ids))
         if not unique_ids:
             logger.warning("Download source has no playable media")
@@ -112,7 +112,11 @@ class Downloader:
             logger.warning("Some requested downloads could not be resolved")
             return Result(code=ResultCode.NOT_FOUND, message="Download media unavailable")
         candidates = [by_public_id[public_id] for public_id in unique_ids]
-        existing = await DownloadFiles.existing_ids_async(candidates=candidates)
+        existing: set[int] = (
+            set()
+            if replace_existing
+            else await DownloadFiles.existing_ids_async(candidates=candidates)
+        )
         for candidate in candidates:
             if (
                 candidate.id not in existing
@@ -144,6 +148,7 @@ class Downloader:
                 download_group_id=group.id,
                 user_id=user_id,
             )
+            task.replace_existing = replace_existing
             task.provider_id = candidate.provider_id
             task.title = candidate.name or candidate.public_id
             task.artist = candidate.provider
@@ -157,6 +162,7 @@ class Downloader:
         title: str,
         public_ids: list[str],
         add_to_library: bool = False,
+        replace_existing: bool = False,
     ) -> Result[StartDownloadResponse]:
         """
         Create a download group, queue a BaseDownload per media, and return the group's
@@ -205,7 +211,11 @@ class Downloader:
                     )
 
         queued = await Downloader._queue_downloads_async(
-            session=session, public_ids=resolved_ids, group=group, user_id=user_id
+            session=session,
+            public_ids=resolved_ids,
+            group=group,
+            user_id=user_id,
+            replace_existing=replace_existing,
         )
         if queued.is_not_ok():
             logger.error(f"Error preparing download group: {queued.info()}")
@@ -414,14 +424,6 @@ class Downloader:
 
         media: CoreMediaRow = a_result_media.result()
 
-        if download_row.status_key == DownloadStatusEnum.COMPLETED.value:
-            deleted = await Media.delete_media_file_async(
-                session=session, public_id=media.public_id
-            )
-            if deleted.is_not_ok():
-                logger.error(f"Error removing file for redownload. {deleted.info()}")
-                return Result(code=deleted.code(), message=deleted.message())
-
         a_result_reset: Result[DownloadRow] = await DownloadAccess.reset_download_for_retry(
             session=session, download_id=download_row.id
         )
@@ -435,19 +437,20 @@ class Downloader:
         if provider is None:
             return Result(code=ResultCode.NOT_FOUND, message="Provider not found")
 
-        a_result_base: Result[BaseDownload] = await provider.start_download_async(
-            session=session,
+        base_download = DeferredDownload(
             public_id=media.public_id,
             download_id=download_row.id,
             download_group_id=download_row.download_group_id,
             user_id=user_id,
         )
-        if a_result_base.is_not_ok():
-            logger.error(f"Provider could not create download for retry. {a_result_base.info()}")
-            return Result(code=a_result_base.code(), message=a_result_base.message())
-
-        base_download: BaseDownload = a_result_base.result()
         base_download.provider_id = media.provider_id
+        base_download.replace_existing = True
+        try:
+            await session.commit()
+        except Exception as error:
+            await session.rollback()
+            logger.error(f"Could not save download retry: {error}", exc_info=True)
+            return Result(code=ResultCode.GENERAL_ERROR, message="Could not save download retry")
         downloads_manager.add_download(base_download)
 
         return Result(code=ResultCode.OK, message="OK", result=True)

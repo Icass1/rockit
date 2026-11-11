@@ -415,7 +415,7 @@ class YoutubeMusicAccess:
                 message=f"Track {track_id} not found",
             )
         track_row.storage_object_id = storage_object_id
-        await session.commit()
+        await session.flush()
         return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod

@@ -129,16 +129,20 @@ class YoutubeMusicDownload(BaseDownload):
 
             object_key = f"youtubeMusic/{self.youtube_id}.mp3"
 
-            uploaded = await ObjectFiles.upload_async(
+            uploaded = await ObjectFiles.upload_download_async(
                 session=session, source=downloaded_filename, key=object_key
             )
             if uploaded.is_not_ok():
                 return ResultCode(code=uploaded.code(), message=uploaded.message())
             os.remove(downloaded_filename)
 
-            await YoutubeMusicAccess.update_track_path_async(
+            updated = await YoutubeMusicAccess.update_track_path_async(
                 session=session, track_id=self.track_id, storage_object_id=uploaded.result().id
             )
+
+            if updated.is_not_ok():
+                logger.error(f"Could not update downloaded track: {updated.info()}")
+                return ResultCode(code=updated.code(), message=updated.message())
 
             return ResultCode(code=ResultCode.OK, message="Download completed.")
 

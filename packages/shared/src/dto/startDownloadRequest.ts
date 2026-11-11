@@ -6,6 +6,7 @@ import { z } from "zod";
 export const StartDownloadRequestSchema = z.object({
     ids: z.array(z.string()),
     title: z.string(),
+    replaceExisting: z.boolean().default(false),
 });
 
 export type StartDownloadRequest = z.infer<typeof StartDownloadRequestSchema>;

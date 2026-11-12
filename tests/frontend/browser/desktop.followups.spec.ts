@@ -25,7 +25,7 @@ test("desktop Home renders the current session photo", async ({
     });
     await page.goto(app);
     await expect(
-        page.locator('.cf-section [aria-label="fixture"]').first()
+        page.locator(".cf-section").getByRole("img", { name: "fixture" })
     ).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath("desktop-home.png") });
 });

@@ -30,7 +30,7 @@ test("Home uses the current profile photo and keeps featured collections in Libr
         0
     );
     await expect(
-        page.locator('[role="img"][aria-label="fixture"]')
+        page.getByRole("img", { name: "fixture", exact: true })
     ).toBeVisible();
     expect(
         await page.locator('img[src*="/assets/artwork.svg"]').count()

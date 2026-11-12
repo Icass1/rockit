@@ -4,6 +4,24 @@
 
 ## In Progress
 
+### [QUEUE] Restaurar arrastre táctil para reordenar la cola móvil
+
+- tags: [mobile, queue, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Activar tiradores accesibles, autoscroll y reordenado por ID de ocurrencia. Conservar reproducción, paginación y gesto de borrado.
+    ```
+
+### [PLAYER] Mostrar inmediatamente la selección en el footer móvil
+
+- tags: [mobile, playback, performance]
+- priority: high
+- workload: Normal
+    ```md
+    Mostrar metadatos y carga antes de esperar a la creación de cola. Limpiar selecciones fallidas, antiguas o canceladas sin publicar un falso estado de reproducción.
+    ```
+
 ## Idle
 
 ## To Review

@@ -23,10 +23,7 @@ import {
     type LayoutChangeEvent,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import {
-    SafeAreaView,
-    useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { ContextMenuProvider } from "@/lib/ContextMenuContext";
 import { ModalProvider } from "@/lib/ModalContext";
@@ -41,6 +38,7 @@ import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
 
 function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
+    const { bottom: safeBottom } = useSafeAreaInsets();
     const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
@@ -91,14 +89,14 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
     ];
 
     return (
-        <SafeAreaView
-            edges={["bottom"]}
+        <View
             style={{
                 position: "absolute",
                 bottom: 0,
                 left: 0,
                 right: 0,
                 backgroundColor: theme.legacy.bgCard,
+                paddingBottom: safeBottom,
                 zIndex: 1000,
             }}
         >
@@ -133,7 +131,7 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
                     );
                 })}
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

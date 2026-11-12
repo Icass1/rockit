@@ -1,280 +1,183 @@
 import { useState } from "react";
-import { formatHour, formatHourRange, utcIsoToLocalDate } from "@rockit/shared";
-import type { StatsMinutesEntryResponse } from "@rockit/shared";
+import {
+    formatHour,
+    formatHourRange,
+    utcIsoToLocalDate,
+    type StatsMinutesEntryResponse,
+} from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { useDesignTheme } from "@rockit/ui";
+import { Pressable, Text, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
-interface MinutesBarChartProps {
+const HEIGHT = 180;
+const AXIS = 40;
+export default function MinutesBarChart({
+    data,
+}: {
     data: StatsMinutesEntryResponse[];
-}
-
-const CHART_HEIGHT = 180;
-const LEFT_MARGIN = 40;
-const RIGHT_PADDING = 8;
-const MIN_BAR_WIDTH = 16;
-const MAX_BAR_WIDTH = 40;
-const BAR_GAP = 12;
-
-interface TooltipState {
-    visible: boolean;
-    x: number;
-    label: string;
-    value: number;
-}
-
-export default function MinutesBarChart({ data }: MinutesBarChartProps) {
-    const { vocabulary } = useVocabulary();
+}) {
     const theme = useDesignTheme();
-    const styles = useThemedStyles(createStyles);
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-    const [tooltip, setTooltip] = useState<TooltipState>({
-        visible: false,
-        x: 0,
-        label: "",
-        value: 0,
-    });
-
-    if (data.length === 0) {
-        return (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
-                    {vocabulary.MOBILE_NO_DATA}
-                </Text>
-            </View>
-        );
-    }
-
-    const maxVal = Math.max(...data.map((d) => d.minutes), 1);
-    const availableWidth =
-        Dimensions.get("window").width - LEFT_MARGIN - RIGHT_PADDING - 32;
-    const calculatedWidth =
-        (availableWidth - (data.length - 1) * BAR_GAP) / data.length;
-    const barWidth = Math.min(
-        MAX_BAR_WIDTH,
-        Math.max(MIN_BAR_WIDTH, calculatedWidth)
+    const { vocabulary: v, lang } = useVocabulary();
+    const [width, setWidth] = useState(0);
+    const [selected, setSelected] = useState<number | null>(null);
+    const plot = Math.max(0, width - AXIS);
+    const gap = Math.min(theme.spacing.xs, plot / Math.max(1, data.length * 2));
+    const bar = Math.max(
+        0,
+        (plot - gap * (data.length - 1)) / Math.max(1, data.length)
     );
-
-    const handleBarPress = (
-        index: number,
-        entry: StatsMinutesEntryResponse
-    ) => {
-        const x = LEFT_MARGIN + index * (barWidth + BAR_GAP) + barWidth / 2;
-        const startDate = utcIsoToLocalDate(entry.start);
-        const endDate = utcIsoToLocalDate(entry.end);
-        const isHourly = /^\d{2}:\d{2}$/.test(entry.label);
-        const label = isHourly
-            ? formatHourRange(startDate, endDate)
-            : startDate.toLocaleDateString("en-US", {
+    const max = Math.max(1, ...data.map((x) => x.minutes));
+    const stride = Math.max(
+        1,
+        Math.ceil(data.length / Math.max(1, Math.floor(plot / AXIS)))
+    );
+    const entry = selected === null ? undefined : data[selected];
+    const label = (item: StatsMinutesEntryResponse) =>
+        /^\d{2}:\d{2}$/.test(item.label)
+            ? formatHourRange(
+                  utcIsoToLocalDate(item.start),
+                  utcIsoToLocalDate(item.end)
+              )
+            : utcIsoToLocalDate(item.start).toLocaleDateString(lang, {
                   month: "short",
                   day: "numeric",
               });
-        setSelectedIndex(index);
-        setTooltip({ visible: true, x, label, value: entry.minutes });
-    };
-
-    const yAxisLabels = [
-        0,
-        Math.round(maxVal * 0.25),
-        Math.round(maxVal * 0.5),
-        Math.round(maxVal * 0.75),
-        Math.round(maxVal),
-    ];
-
     return (
-        <View style={styles.wrapper}>
-            {tooltip.visible && (
-                <Pressable
-                    style={[styles.tooltip, { left: tooltip.x - 50 }]}
-                    onPress={() => {
-                        setTooltip({ ...tooltip, visible: false });
-                        setSelectedIndex(null);
-                    }}
-                >
-                    <Text style={styles.tooltipLabel}>{tooltip.label}</Text>
-                    <Text style={styles.tooltipValue}>
-                        {tooltip.value.toFixed(1)} {vocabulary.MINUTES}
-                    </Text>
-                </Pressable>
-            )}
-            <View style={styles.container}>
-                <View style={styles.yAxis}>
-                    {yAxisLabels.reverse().map((val, i) => (
-                        <Text key={i} style={styles.yAxisLabel}>
-                            {val.toFixed(0)}
-                        </Text>
-                    ))}
-                </View>
-                <View style={styles.chartArea}>
-                    <View style={styles.gridLines}>
-                        {[0, 1, 2, 3].map((i) => (
-                            <View
-                                key={i}
-                                style={[
-                                    styles.gridLine,
-                                    { bottom: `${(i / 4) * 100}%` },
-                                ]}
-                            />
-                        ))}
-                    </View>
-                    <View style={styles.barsContainer}>
-                        {data.map((entry, index) => {
-                            const barHeight =
-                                (entry.minutes / maxVal) * CHART_HEIGHT;
-                            const isSelected = selectedIndex === index;
-                            return (
+        <View
+            testID="minutes-chart"
+            onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+            style={{ width: "100%", minWidth: 0 }}
+        >
+            {!data.length ? (
+                <Text style={{ color: theme.colors["muted-foreground"] }}>
+                    {v.MOBILE_NO_DATA}
+                </Text>
+            ) : (
+                <>
+                    {entry && (
+                        <Pressable
+                            onPress={() => setSelected(null)}
+                            style={{
+                                padding: theme.spacing.sm,
+                                backgroundColor: theme.colors.secondary,
+                                borderRadius: theme.radius.md,
+                            }}
+                        >
+                            <Text style={{ color: theme.colors.foreground }}>
+                                {label(entry)} · {entry.minutes.toFixed(1)}{" "}
+                                {v.MINUTES}
+                            </Text>
+                        </Pressable>
+                    )}
+                    <View style={{ flexDirection: "row", height: HEIGHT }}>
+                        <View
+                            style={{
+                                width: AXIS,
+                                justifyContent: "space-between",
+                                alignItems: "flex-end",
+                                paddingRight: theme.spacing.sm,
+                            }}
+                        >
+                            {[1, 0.75, 0.5, 0.25, 0].map((value) => (
+                                <Text
+                                    key={value}
+                                    style={{
+                                        fontSize: theme.typography.caption,
+                                        color: theme.colors["muted-foreground"],
+                                    }}
+                                >
+                                    {Math.round(max * value)}
+                                </Text>
+                            ))}
+                        </View>
+                        <View
+                            testID="minutes-chart-bars"
+                            style={{
+                                flex: 1,
+                                minWidth: 0,
+                                flexDirection: "row",
+                                alignItems: "flex-end",
+                                gap,
+                                overflow: "hidden",
+                            }}
+                        >
+                            {data.map((item, index) => (
                                 <Pressable
-                                    key={index}
-                                    style={styles.barWrapper}
-                                    onPress={() => handleBarPress(index, entry)}
+                                    key={`${item.start}-${index}`}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`${label(item)} · ${item.minutes.toFixed(1)} ${v.MINUTES}`}
+                                    onPress={() => setSelected(index)}
+                                    style={{
+                                        width: bar,
+                                        height: HEIGHT,
+                                        justifyContent: "flex-end",
+                                    }}
                                 >
                                     <View
-                                        style={[
-                                            styles.bar,
-                                            {
-                                                height: barHeight,
-                                                width: barWidth,
-                                                backgroundColor: isSelected
-                                                    ? theme.legacy.accent
-                                                    : selectedIndex !== null
-                                                      ? withAlpha(
-                                                            theme.colors[
-                                                                "primary"
-                                                            ],
-                                                            0.2
-                                                        )
-                                                      : withAlpha(
-                                                            theme.colors[
-                                                                "primary"
-                                                            ],
-                                                            0.7
-                                                        ),
-                                            },
-                                        ]}
+                                        style={{
+                                            height:
+                                                (item.minutes / max) * HEIGHT,
+                                            width: "100%",
+                                            borderRadius: theme.radius.sm,
+                                            backgroundColor: withAlpha(
+                                                theme.colors.primary,
+                                                selected === null ||
+                                                    selected === index
+                                                    ? 0.8
+                                                    : 0.2
+                                            ),
+                                        }}
                                     />
                                 </Pressable>
-                            );
-                        })}
-                    </View>
-                </View>
-            </View>
-            <View style={[styles.labels, { marginLeft: LEFT_MARGIN }]}>
-                {data.map((entry, index) => {
-                    return (
-                        <View
-                            key={index}
-                            style={[
-                                styles.labelWrapper,
-                                { width: barWidth + BAR_GAP },
-                            ]}
-                        >
-                            <Text style={styles.dateLabel}>
-                                {/^\d{2}:\d{2}$/.test(entry.label)
-                                    ? formatHour(utcIsoToLocalDate(entry.start))
-                                    : entry.label}
-                            </Text>
+                            ))}
                         </View>
-                    );
-                })}
-            </View>
+                    </View>
+                    <View
+                        style={{
+                            marginLeft: AXIS,
+                            position: "relative",
+                            height: theme.typography.caption + theme.spacing.sm,
+                            marginTop: theme.spacing.sm,
+                        }}
+                    >
+                        {data.flatMap((item, index) =>
+                            index % stride
+                                ? []
+                                : [
+                                      <Text
+                                          key={`${item.start}-${index}`}
+                                          numberOfLines={1}
+                                          style={{
+                                              position: "absolute",
+                                              left: Math.max(
+                                                  0,
+                                                  Math.min(
+                                                      plot - AXIS,
+                                                      index * (bar + gap)
+                                                  )
+                                              ),
+                                              width: Math.min(AXIS, plot),
+                                              fontSize:
+                                                  theme.typography.caption,
+                                              color: theme.colors[
+                                                  "muted-foreground"
+                                              ],
+                                          }}
+                                      >
+                                          {/^\d{2}:\d{2}$/.test(item.label)
+                                              ? formatHour(
+                                                    utcIsoToLocalDate(
+                                                        item.start
+                                                    )
+                                                )
+                                              : item.label}
+                                      </Text>,
+                                  ]
+                        )}
+                    </View>
+                </>
+            )}
         </View>
     );
 }
-
-const createStyles = (theme: DesignTheme) =>
-    StyleSheet.create({
-        wrapper: {
-            position: "relative",
-        },
-        container: {
-            flexDirection: "row",
-            height: CHART_HEIGHT,
-        },
-        yAxis: {
-            width: LEFT_MARGIN,
-            height: CHART_HEIGHT,
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            paddingRight: theme.spacing.sm,
-        },
-        yAxisLabel: {
-            fontSize: 10,
-            color: theme.legacy.gray600,
-        },
-        chartArea: {
-            flex: 1,
-            height: CHART_HEIGHT,
-            position: "relative",
-        },
-        gridLines: {
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-        },
-        gridLine: {
-            position: "absolute",
-            left: 0,
-            right: 0,
-            height: 1,
-            backgroundColor: withAlpha(theme.colors["surface-raised"], 0.5),
-        },
-        barsContainer: {
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "flex-end",
-            justifyContent: "flex-start",
-            gap: BAR_GAP,
-        },
-        barWrapper: {
-            alignItems: "center",
-        },
-        bar: {
-            borderRadius: theme.radius.sm,
-        },
-        labels: {
-            flexDirection: "row",
-            marginTop: theme.spacing.sm,
-        },
-        labelWrapper: {
-            alignItems: "center",
-            overflow: "hidden",
-        },
-        dateLabel: {
-            fontSize: 9,
-            color: theme.legacy.gray600,
-            textAlign: "center",
-        },
-        emptyContainer: {
-            height: CHART_HEIGHT,
-            alignItems: "center",
-            justifyContent: "center",
-        },
-        emptyText: {
-            fontSize: theme.typography.body,
-            color: theme.legacy.gray600,
-        },
-        tooltip: {
-            position: "absolute",
-            top: -40,
-            backgroundColor: theme.legacy.bgCard,
-            borderRadius: theme.radius.md,
-            padding: theme.spacing.sm,
-            zIndex: 10,
-            minWidth: 100,
-            alignItems: "center",
-            borderWidth: 1,
-            borderColor: withAlpha(theme.colors["surface-raised"], 0.8),
-        },
-        tooltipLabel: {
-            fontSize: 10,
-            color: theme.legacy.gray600,
-        },
-        tooltipValue: {
-            fontSize: theme.typography.body,
-            fontWeight: "bold",
-            color: theme.colors["foreground-strong"],
-        },
-    });

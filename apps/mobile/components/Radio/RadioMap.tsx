@@ -24,15 +24,14 @@ export default memo(function RadioMap({
         <View
             style={{
                 width: "100%",
-                height: theme.layout.radioMapHeight,
-                minHeight: theme.layout.artistArtwork,
+                aspectRatio: 720 / 290,
             }}
         >
             <Svg
                 width="100%"
                 height="100%"
                 viewBox="0 10 720 290"
-                preserveAspectRatio="none"
+                preserveAspectRatio="xMidYMid meet"
                 accessibilityLabel={vocabulary.RADIO}
             >
                 {countries.map((country) => (

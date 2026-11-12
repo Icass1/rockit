@@ -124,6 +124,8 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
 const createStyles = (theme: DesignTheme) =>
     StyleSheet.create({
         container: {
+            minWidth: 0,
+            maxWidth: "100%",
             gap: theme.spacing.md,
         },
         row: {
@@ -131,6 +133,7 @@ const createStyles = (theme: DesignTheme) =>
             gap: theme.spacing.md,
         },
         card: {
+            minWidth: 0,
             flex: 1,
             borderRadius: theme.radius.xl,
             padding: theme.spacing.md,

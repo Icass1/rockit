@@ -142,7 +142,7 @@ export default function FriendsScreen() {
             windowSize={5}
             contentContainerStyle={{
                 paddingTop: theme.layout.mobileContentTop,
-                paddingBottom: theme.layout.mobileContentBottom,
+                paddingBottom: theme.spacing.lg,
                 paddingHorizontal: theme.spacing.lg,
                 gap: theme.spacing.lg,
             }}

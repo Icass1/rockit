@@ -25,6 +25,8 @@ export default function StatsSectionCard({
 const createStyles = (theme: DesignTheme) =>
     StyleSheet.create({
         container: {
+            minWidth: 0,
+            maxWidth: "100%",
             borderRadius: theme.radius.xl,
             borderWidth: 1,
             borderColor: withAlpha(theme.colors["surface-raised"], 0.5),

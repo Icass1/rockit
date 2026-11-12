@@ -59,7 +59,7 @@ export default function RadioScreen() {
             }
             contentContainerStyle={{
                 paddingTop: theme.layout.mobileContentTop,
-                paddingBottom: theme.layout.mobileContentBottom,
+                paddingBottom: theme.spacing.lg,
                 paddingHorizontal: theme.spacing.lg,
                 gap: theme.spacing.md,
             }}

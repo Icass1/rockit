@@ -188,7 +188,7 @@ const createStyles = (theme: DesignTheme) =>
         listContent: {
             paddingTop: theme.layout.mobileContentTop,
             paddingHorizontal: theme.spacing.lg,
-            paddingBottom: theme.layout.mobileContentBottom,
+            paddingBottom: theme.spacing.lg,
         },
         sectionHeader: {
             marginBottom: theme.spacing.sm,

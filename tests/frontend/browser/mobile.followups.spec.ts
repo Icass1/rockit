@@ -119,6 +119,19 @@ test("31 bars and labels fit the stats card on narrow mobile screens", async ({
                 () => document.documentElement.scrollWidth <= innerWidth
             )
         ).toBe(true);
+        const labels = await page
+            .getByTestId("minutes-chart-labels")
+            .evaluate((element) =>
+                Array.from(element.children, (child) => {
+                    const rect = child.getBoundingClientRect();
+                    return { left: rect.left, right: rect.right };
+                })
+            );
+        for (let i = 1; i < labels.length; i++) {
+            expect(labels[i].left).toBeGreaterThanOrEqual(
+                labels[i - 1].right - 1
+            );
+        }
         await page.screenshot({
             path: testInfo.outputPath(`stats-${width}.png`),
         });

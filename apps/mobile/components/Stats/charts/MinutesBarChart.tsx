@@ -134,6 +134,7 @@ export default function MinutesBarChart({
                         </View>
                     </View>
                     <View
+                        testID="minutes-chart-labels"
                         style={{
                             marginLeft: AXIS,
                             position: "relative",
@@ -142,7 +143,8 @@ export default function MinutesBarChart({
                         }}
                     >
                         {data.flatMap((item, index) =>
-                            index % stride
+                            index % stride ||
+                            (index > 0 && index * (bar + gap) + AXIS > plot)
                                 ? []
                                 : [
                                       <Text
@@ -150,13 +152,7 @@ export default function MinutesBarChart({
                                           numberOfLines={1}
                                           style={{
                                               position: "absolute",
-                                              left: Math.max(
-                                                  0,
-                                                  Math.min(
-                                                      plot - AXIS,
-                                                      index * (bar + gap)
-                                                  )
-                                              ),
+                                              left: index * (bar + gap),
                                               width: Math.min(AXIS, plot),
                                               fontSize:
                                                   theme.typography.caption,

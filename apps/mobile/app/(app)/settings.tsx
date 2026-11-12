@@ -2,7 +2,7 @@ import { withAlpha } from "@rockit/theme";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
-import { Header, PageContainer, SectionTitle } from "@/components/layout";
+import { PageContainer, SectionTitle } from "@/components/layout";
 import {
     AccountSection,
     AudioSection,
@@ -34,7 +34,6 @@ export default function SettingsScreen() {
 
     return (
         <>
-            <Header />
             <PageContainer bottomPadding={200}>
                 <ProfileSection />
 

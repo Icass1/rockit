@@ -180,7 +180,8 @@ export default function FullPlayer() {
                         style={[
                             styles.inner,
                             {
-                                paddingTop: insets.top + theme.spacing.md,
+                                paddingTop:
+                                    insets.top + theme.layout.mobileContentTop,
                                 paddingBottom: theme.spacing.lg,
                             },
                         ]}
@@ -214,7 +215,7 @@ export default function FullPlayer() {
             <PlayerTabsBar
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
-                insetBottom={Math.max(insets.bottom, 8)}
+                insetBottom={theme.spacing.md}
             />
 
             <PlayerTabsPanel
@@ -236,7 +237,6 @@ const createStyles = (theme: DesignTheme) =>
             left: 0,
             right: 0,
             bottom: 0,
-            paddingBottom: theme.layout.touchTarget,
             // Height will be set dynamically to avoid covering the footer
             zIndex: 0, // default stacking; MiniPlayer is hidden when FullPlayer visible
             backgroundColor: theme.colors["background"],

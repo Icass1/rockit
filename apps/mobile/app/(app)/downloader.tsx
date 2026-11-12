@@ -8,7 +8,7 @@ import {
     DownloadInputBar,
     StatsPills,
 } from "@/components/Downloader";
-import { Header, PageContainer, SectionTitle } from "@/components/layout";
+import { PageContainer, SectionTitle } from "@/components/layout";
 
 export default function DownloaderScreen() {
     const styles = useThemedStyles(createStyles);
@@ -26,7 +26,6 @@ export default function DownloaderScreen() {
     if (vocabLoading) {
         return (
             <>
-                <Header />
                 <PageContainer />
             </>
         );
@@ -34,7 +33,6 @@ export default function DownloaderScreen() {
 
     return (
         <>
-            <Header />
             <PageContainer>
                 <View style={styles.headerSection}>
                     <Text style={styles.title}>{vocabulary.DOWNLOADS}</Text>

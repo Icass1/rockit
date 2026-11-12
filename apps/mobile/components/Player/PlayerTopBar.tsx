@@ -48,8 +48,14 @@ export default function PlayerTopBar({
     }
 
     return (
-        <View style={styles.container}>
-            <Pressable style={styles.button} onPress={onClose} hitSlop={12}>
+        <View testID="player-top-bar" style={styles.container}>
+            <Pressable
+                style={styles.button}
+                onPress={onClose}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={vocabulary.MOBILE_CLOSE}
+            >
                 <ChevronDown size={28} color={theme.legacy.white} />
             </Pressable>
 

@@ -38,11 +38,9 @@ import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayerServices } from "@/lib/PlayerContext";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
-import { webSocketManager } from "@/lib/webSocketManager";
 
 export default function FriendsScreen() {
     const theme = useDesignTheme();
-    const onlineUsers = useStore(webSocketManager.onlineUsersAtom);
     const menu = useContextMenu();
     const { vocabulary: v } = useVocabulary();
     const services = usePlayerServices();
@@ -159,21 +157,10 @@ export default function FriendsScreen() {
                             style={{
                                 ...copy,
                                 fontSize: theme.typography.heading,
-                            }}
-                        >
-                            {v.FRIENDS}
-                        </Text>
-                        <Text
-                            accessibilityRole="text"
-                            accessibilityLabel={`${onlineUsers ?? "—"} · ${v.ONLINE_LABEL}`}
-                            style={{
-                                color: theme.colors.online,
-                                fontSize: theme.typography.label,
-                                fontWeight: "600",
                                 flex: 1,
                             }}
                         >
-                            {onlineUsers ?? "—"}
+                            {v.FRIENDS}
                         </Text>
                         <IconButton
                             label={v.FRIENDS_SEARCH_PLACEHOLDER}

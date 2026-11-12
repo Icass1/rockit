@@ -4,6 +4,15 @@
 
 ## In Progress
 
+### [PLAYER] Evitar canciones simultáneas al recuperar la PWA iOS
+
+- tags: [mobile, ios, playback, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Revisar desbloqueo/foreground, transiciones suspendidas y eventos de audio tardíos. Solo la canción activa y una cola de transición vigente pueden sonar; nunca una precarga o una canción retirada. Añadir regresiones sin desactivar las transiciones.
+    ```
+
 ## Idle
 
 ## To Review

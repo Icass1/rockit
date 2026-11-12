@@ -29,10 +29,10 @@ interface QueueItemProps {
     index: number;
     isActive: boolean;
     isDragging?: boolean;
-    /** Provide when used inside DraggableFlatList to enable drag-to-reorder */
+    /** Start a reorder gesture from the dedicated platform handle. */
     drag?: () => void;
     onDragMove?: (dy: number, y: number) => void;
-    onDragEnd?: (dy: number) => void;
+    onDragEnd?: (dy: number | null) => void;
     onDelete: (index: number) => void;
     onPlay: (media: TQueueMedia, index: number) => void;
 }

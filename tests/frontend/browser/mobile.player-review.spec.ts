@@ -457,8 +457,12 @@ test("review screenshots cover mobile destinations and each player panel", async
         ["recent-mix", "/playlist/recent-mix"],
     ]) {
         await page.goto(mobile + path);
-        await expect(page.getByTestId("rockit-header-logo")).toBeVisible();
-        await page.getByTestId("navigation-index").click({ trial: true });
+        if (name === "offline") {
+            await expect(page.getByText("Saved on this device")).toBeVisible();
+        } else {
+            await expect(page.getByTestId("rockit-header-logo")).toBeVisible();
+            await page.getByTestId("navigation-index").click({ trial: true });
+        }
         await page.waitForTimeout(1000);
         await page.screenshot({ path: info.outputPath(name + ".png") });
     }

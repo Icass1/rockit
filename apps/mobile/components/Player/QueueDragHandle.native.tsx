@@ -12,7 +12,7 @@ export default function QueueDragHandle({
     label: string;
     onStart: () => void;
     onMove: (dy: number, y: number) => void;
-    onEnd: (dy: number) => void;
+    onEnd: (dy: number | null) => void;
     children: ReactNode;
 }) {
     const theme = useDesignTheme();
@@ -23,7 +23,7 @@ export default function QueueDragHandle({
                 onPanResponderGrant: onStart,
                 onPanResponderMove: (_, g) => onMove(g.dy, g.moveY),
                 onPanResponderRelease: (_, g) => onEnd(g.dy),
-                onPanResponderTerminate: () => onEnd(0),
+                onPanResponderTerminate: () => onEnd(null),
                 onPanResponderTerminationRequest: () => false,
             }),
         [onStart, onMove, onEnd]

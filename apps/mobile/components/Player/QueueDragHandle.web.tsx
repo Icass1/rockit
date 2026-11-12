@@ -11,7 +11,7 @@ export default function QueueDragHandle({
     label: string;
     onStart: () => void;
     onMove: (dy: number, y: number) => void;
-    onEnd: (dy: number) => void;
+    onEnd: (dy: number | null) => void;
     children: ReactNode;
 }) {
     const theme = useDesignTheme();
@@ -58,7 +58,7 @@ export default function QueueDragHandle({
             onPointerCancel={() => {
                 if (start.current === null) return;
                 start.current = null;
-                onEnd(0);
+                onEnd(null);
             }}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => {

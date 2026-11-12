@@ -201,6 +201,7 @@ export default function PlayerQueue() {
                                 dragSnapshot.current = null;
                                 setDragIndex(null);
                                 setDropIndex(null);
+                                if (dy === null) return;
                                 const to = Math.max(
                                     0,
                                     Math.min(

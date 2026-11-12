@@ -18,7 +18,6 @@ import FeaturedCarousel from "@/components/Home/FeaturedCarousel";
 import HomeHeader from "@/components/Home/HomeHeader";
 import HorizontalSongRow from "@/components/Home/HorizontalSongRow";
 import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
-import { HEADER_HEIGHT } from "@/components/layout/Header";
 import HorizontalScrollList from "@/components/Media/HorizontalScrollList";
 import MediaCard from "@/components/Media/MediaCard";
 import AutoplayDiscovery from "@/components/Recommendations/AutoplayDiscovery";
@@ -242,7 +241,7 @@ const createStyles = (theme: DesignTheme) =>
             flex: 1,
         },
         content: {
-            paddingTop: HEADER_HEIGHT,
+            paddingTop: theme.layout.mobileHeaderHeight,
         },
         centerContainer: {
             flex: 1,

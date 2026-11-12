@@ -28,6 +28,16 @@ import {
  * in the base class.
  */
 export class MediaPlayerManager extends BaseMediaPlayerManager {
+    private readonly nativePlayingRevision = createAtom(0);
+    /** Emitted for confirmed native playing events, including buffered deck handoffs. */
+    get nativePlayingRevisionAtom(): ReadonlyAtom<number> {
+        return this.nativePlayingRevision.getReadonlyAtom();
+    }
+    private confirmNativePlaying(): void {
+        this.onNativePlaying();
+        this.nativePlayingRevision.set(this.nativePlayingRevision.get() + 1);
+    }
+
     static #instance: MediaPlayerManager;
 
     protected override subscribeToResume(listener: () => void): () => void {
@@ -203,7 +213,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 this._effectiveKind(getRockIt().queueManager.currentMedia) ===
                     "video"
             )
-                this.onNativePlaying();
+                this.confirmNativePlaying();
         };
         this._video.onpause = (): void => {
             if (
@@ -331,7 +341,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     "audio"
             )
                 return;
-            this.onNativePlaying();
+            this.confirmNativePlaying();
             if (!el.paused && this._playingAtom.get()) this._startBlend();
         };
         el.onpause = (): void => {
@@ -948,7 +958,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     !el.paused &&
                     !el.ended
                 ) {
-                    this.onNativePlaying();
+                    this.confirmNativePlaying();
                     if (kind === "audio" && this._playingAtom.get())
                         this._startBlend();
                 }

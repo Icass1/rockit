@@ -67,6 +67,8 @@ function setup({
     const currentMedia = atom(noMedia ? undefined : song("first"));
     const playingAtom = atom(playing);
     const currentTimeAtom = atom(0);
+    const nativePlayingRevisionAtom = atom(0);
+    const audios = [];
     const transport = { play: 0, pause: 0, seek: 0, next: 0, previous: 0 };
     const handlers = new Map();
     let metadata;
@@ -116,6 +118,7 @@ function setup({
     const sessionAtom = atom(sessionSnapshot);
     const player = {
         playingAtom,
+        nativePlayingRevisionAtom,
         volumeAtom: atom(1),
         currentTimeAtom,
         currentTime: 0,
@@ -186,6 +189,9 @@ function setup({
             }
         },
         Audio: class {
+            constructor() {
+                audios.push(this);
+            }
             play() {
                 return Promise.resolve();
             }
@@ -201,6 +207,8 @@ function setup({
     if (initialize) manager.init();
     return {
         manager,
+        nativePlayingRevisionAtom,
+        audios,
         lifecycle,
         services,
         activation,
@@ -497,3 +505,37 @@ for (const device of [
         assert.equal(e.transport.seek, 0);
         e.manager.destroy();
     });
+
+test("actual native playing republishes track commands after Now Playing discards initial registrations", () => {
+    const e = setup();
+    e.handlers.clear();
+    e.nativePlayingRevisionAtom.set(1);
+    assert.equal(typeof e.handlers.get("nexttrack"), "function");
+    assert.equal(typeof e.handlers.get("previoustrack"), "function");
+    assert.equal(e.handlers.get("seekbackward"), null);
+    assert.equal(e.handlers.get("seekforward"), null);
+    assertTransportUntouched(e);
+    e.handlers.get("nexttrack")();
+    assert.equal(e.transport.next, 1);
+    e.handlers.clear();
+    e.nativePlayingRevisionAtom.set(2);
+    assert.equal(typeof e.handlers.get("nexttrack"), "function");
+    e.manager.destroy();
+    assert.equal(e.nativePlayingRevisionAtom.listenerCount, 0);
+    e.handlers.clear();
+    e.nativePlayingRevisionAtom.set(3);
+    assert.equal(e.handlers.size, 0);
+});
+test("iOS keepalive playing republishes navigation without touching music transport", () => {
+    const e = setup();
+    e.manager.activateOnGesture();
+    const audio = e.audios.at(-1);
+    e.handlers.clear();
+    audio.onplaying();
+    assert.equal(typeof e.handlers.get("nexttrack"), "function");
+    assert.equal(typeof e.handlers.get("previoustrack"), "function");
+    assert.equal(e.handlers.get("seekforward"), null);
+    assertTransportUntouched(e);
+    e.manager.destroy();
+    assert.equal(audio.onplaying, null);
+});

@@ -54,6 +54,7 @@ export class MediaSessionManager {
         if (typeof document !== "undefined") {
             const onVisible = (): void => {
                 if (document.hidden) return;
+                this._registerActionHandlers();
                 this._recoverKeepaliveOnVisible();
                 this._updatePlaybackState();
             };
@@ -180,14 +181,20 @@ export class MediaSessionManager {
         el.muted = false;
         el.volume = 0.001;
         el.src = SILENT_WAV;
+        el.onplaying = () => {
+            if (!this._initialized || this._keepaliveAudio !== el) return;
+            this._registerActionHandlers();
+            this._updatePlaybackState();
+        };
+        this._keepaliveAudio = el;
         el.play().catch((): void => {
             /* ignore */
         });
-        this._keepaliveAudio = el;
     }
 
     private _stopAudioKeepalive(): void {
         if (!this._keepaliveAudio) return;
+        this._keepaliveAudio.onplaying = null;
         this._keepaliveAudio.pause();
         this._keepaliveAudio.removeAttribute("src");
         this._keepaliveAudio.load();
@@ -283,6 +290,18 @@ export class MediaSessionManager {
     }
 
     private _subscribeToChanges(): void {
+        const nativePlaying =
+            this.services.mediaPlayerManager.nativePlayingRevisionAtom;
+        if (nativePlaying)
+            this._unsubscribers.push(
+                nativePlaying.listen(() => {
+                    if (!this._initialized) return;
+                    // WebKit advertises commands only once a media element owns Now Playing.
+                    // Reassert for every actual start; playingAtom may stay true across fades.
+                    this._registerActionHandlers();
+                    this._updatePlaybackState();
+                })
+            );
         const unsubMedia =
             this.services.queueManager.currentMediaAtom.subscribe(
                 (media: TPlayableMedia | undefined): void => {
@@ -376,25 +395,11 @@ export class MediaSessionManager {
         });
 
         if (MediaSessionManager._isiOS()) {
-            this._registeriOSActionHandlers();
+            this._registerActionHandlers();
         }
         // Publish after metadata/handler changes so the native controls describe
         // the incoming track even when playback continued without an atom change.
         this._updatePlaybackState();
-    }
-
-    private _registeriOSActionHandlers(): void {
-        try {
-            navigator.mediaSession.setActionHandler("seekbackward", null);
-        } catch {
-            /* not supported */
-        }
-
-        try {
-            navigator.mediaSession.setActionHandler("seekforward", null);
-        } catch {
-            /* not supported */
-        }
     }
 
     private _updatePositionState(time: number): void {

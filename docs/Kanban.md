@@ -4,6 +4,96 @@
 
 ## In Progress
 
+### [STATS] Contener gráficos de barras en pantallas móviles
+
+- tags: [mobile, stats, layout]
+- priority: high
+- workload: Normal
+    ```md
+    Medir el contenedor y limitar etiquetas y barras al ancho disponible.
+    ```
+
+### [QUEUE] Aclarar el destino al reordenar canciones en web
+
+- tags: [web, queue, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Mostrar una posición de inserción precisa durante el arrastre, también en colas paginadas.
+    ```
+
+### [PLAYER] Corregir relleno azul de iconos en iOS
+
+- tags: [mobile, icons, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Usar colores explícitos del tema en SVG nativo/web; evitar currentColor heredado del navegador.
+    ```
+
+### [COLLECTION] Quitar botón Play gigante de álbumes y playlists móviles
+
+- tags: [mobile, collection, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Integrar reproducción en una barra compacta de acciones sin un botón aislado gigante.
+    ```
+
+### [LIBRARY] Unificar anclados y destacadas en una misma fila móvil
+
+- tags: [mobile, library, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Un carrusel horizontal, destacadas primero y anclados personales después sin duplicados.
+    ```
+
+### [SAFE AREA] Revisar insets y espacios de la navegación móvil
+
+- tags: [mobile, safe-area, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Evitar padding duplicado; barra y mini player respetan insets superiores e inferiores.
+    ```
+
+### [HOME] Quitar destacadas de Home móvil
+
+- tags: [mobile, home, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Las colecciones de RockIt permanecen en Library.
+    ```
+
+### [PROFILE] Mostrar foto real del usuario en Home móvil y web
+
+- tags: [mobile, web, profile]
+- priority: high
+- workload: Normal
+    ```md
+    Usar la sesión actual y fallback de inicial si no hay imagen o falla.
+    ```
+
+### [RADIO] Respetar proporciones naturales del mapa
+
+- tags: [mobile, radio, layout]
+- priority: high
+- workload: Normal
+    ```md
+    Mantener relación del SVG sin compresión ni estiramiento.
+    ```
+
+### [MEDIA SESSION] Corregir ±10 segundos persistentes en PWA iOS
+
+- tags: [mobile, ios, playback, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Revisar la ruta real de registro y propiedad de Now Playing; conservar reproducción y transiciones.
+    ```
+
 ## Idle
 
 ## To Review

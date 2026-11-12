@@ -187,7 +187,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                         if (listPublicId)
                             void rockIt.queueManager.playCollection(
                                 listPublicId,
-                                media.publicId
+                                media.publicId,
+                                media
                             );
                         else handlePlay(media, getAllPlayableMedia(allMedia));
                         hide();
@@ -596,7 +597,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             if (listPublicId)
                 void rockIt.queueManager.playCollection(
                     listPublicId,
-                    media.publicId
+                    media.publicId,
+                    media
                 );
             else handlePlay(media, getAllPlayableMedia(allMedia));
         } else if (isList(media) || media.type === "artist") {

@@ -899,3 +899,37 @@ for (const [from, to, edge, expected] of [
         assert.equal(e.calls.loads, loads);
         e.queue.stop();
     });
+
+test("collection selection publishes immediate feedback without replacing playing media before the response", async () => {
+    const e = setup();
+    await e.queue.init();
+    const previous = e.queue.currentMedia;
+    const chosen = song("chosen");
+    const pending = e.queue.playCollection("collection", "chosen", chosen);
+    const response = e.take("createCollectionQueue");
+    assert.equal(e.queue.pendingSelectionAtom.get(), chosen);
+    assert.equal(e.queue.currentMedia, previous);
+    assert.equal(e.calls.plays, 0);
+    response.resolve(fail());
+    await pending;
+    assert.equal(e.queue.pendingSelectionAtom.get(), undefined);
+    assert.equal(e.queue.currentMedia, previous);
+    e.queue.stop();
+});
+test("an old response cannot clear feedback for a newer selection and cleanup clears it", async () => {
+    const e = setup();
+    await e.queue.init();
+    const first = e.queue.playCollection("one", "a", song("a"));
+    const old = e.take("createCollectionQueue");
+    const chosen = song("b");
+    const second = e.queue.playCollection("two", "b", chosen);
+    const latest = e.take("createCollectionQueue");
+    old.resolve(fail());
+    await first;
+    assert.equal(e.queue.pendingSelectionAtom.get(), chosen);
+    e.queue.stop();
+    assert.equal(e.queue.pendingSelectionAtom.get(), undefined);
+    latest.resolve(fail());
+    await second;
+    assert.equal(e.queue.pendingSelectionAtom.get(), undefined);
+});

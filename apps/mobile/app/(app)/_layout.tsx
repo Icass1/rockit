@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useStore } from "@nanostores/react";
 import type { Vocabulary } from "@rockit/shared";
 import {
     ActionButton,
@@ -228,6 +229,7 @@ function AppLayoutInner({
     vocabulary: Vocabulary;
 }) {
     const { hidePlayer, currentMedia } = usePlayer();
+    const pendingSelection = useStore(rockIt.queueManager.pendingSelectionAtom);
     const theme = useDesignTheme();
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -237,7 +239,7 @@ function AppLayoutInner({
                     marginBottom:
                         theme.layout.tabBar +
                         safeBottom +
-                        (currentMedia
+                        (currentMedia || pendingSelection
                             ? theme.layout.miniPlayerHeight +
                               theme.layout.miniPlayerGap
                             : 0),

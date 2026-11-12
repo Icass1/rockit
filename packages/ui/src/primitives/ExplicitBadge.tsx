@@ -17,11 +17,13 @@ export function ExplicitBadge({
             aria-label={label}
             title={label}
             style={{
-                color: theme.colors["muted-foreground"],
-                border: `1px solid ${theme.colors["muted-foreground"]}`,
+                color: theme.colors["explicit-foreground"],
+                backgroundColor: theme.colors["explicit-background"],
+                textAlign: "center",
+                minWidth: theme.typography.caption + theme.spacing.xs,
                 display: "inline-block",
                 lineHeight: 1.1,
-                borderRadius: theme.radius.sm,
+                borderRadius: theme.radius.xs,
                 paddingInline: theme.spacing.xs,
                 fontSize: theme.typography.caption,
                 fontWeight: "700",

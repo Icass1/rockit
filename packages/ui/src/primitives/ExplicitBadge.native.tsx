@@ -17,10 +17,11 @@ export function ExplicitBadge({
         <Text
             accessibilityLabel={label}
             style={{
-                color: theme.colors["muted-foreground"],
-                borderColor: theme.colors["muted-foreground"],
-                borderWidth: 1,
-                borderRadius: theme.radius.sm,
+                color: theme.colors["explicit-foreground"],
+                backgroundColor: theme.colors["explicit-background"],
+                textAlign: "center",
+                minWidth: theme.typography.caption + theme.spacing.xs,
+                borderRadius: theme.radius.xs,
                 paddingHorizontal: theme.spacing.xs,
                 fontSize: theme.typography.caption,
                 fontWeight: "700",

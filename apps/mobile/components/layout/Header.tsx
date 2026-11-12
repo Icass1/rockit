@@ -10,8 +10,6 @@ import { useVocabulary } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";
 import NotificationButton from "@/components/Notifications/NotificationButton";
 
-export const HEADER_HEIGHT = 90;
-
 interface HeaderProps {
     showSearch?: boolean;
     showNotifications?: boolean;
@@ -79,6 +77,7 @@ const createStyles = (theme: DesignTheme) =>
             backgroundColor: "transparent",
         },
         content: {
+            height: theme.layout.mobileHeaderHeight,
             paddingHorizontal: theme.spacing.lg,
             paddingVertical: theme.spacing.md,
             alignItems: "center",

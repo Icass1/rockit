@@ -85,7 +85,9 @@ export default function PlayerLyrics() {
             const line = lineLayouts.current.get(currentIndex);
             if (!line) return;
             scrollRef.current?.scrollTo({
-                y: Math.max(0, line.y + line.height / 2 - viewportHeight / 2),
+                // Lines are measured inside the unpadded wrapper. The content's
+                // half-viewport leading space cancels the centering subtraction.
+                y: Math.max(0, line.y + line.height / 2),
                 animated: animated && !reducedMotion,
             });
         },
@@ -146,44 +148,48 @@ export default function PlayerLyrics() {
                     ]}
                     showsVerticalScrollIndicator={false}
                 >
-                    {lyrics.lines.map((line, index) => (
-                        <Text
-                            key={index}
-                            testID={
-                                currentIndex === index
-                                    ? "active-lyric"
-                                    : undefined
-                            }
-                            onLayout={({ nativeEvent }) => {
-                                lineLayouts.current.set(
-                                    index,
-                                    nativeEvent.layout
-                                );
-                                if (index === currentIndex)
-                                    centerActiveLine(false);
-                            }}
-                            onPress={() => goToLine(index)}
-                            style={[
-                                styles.lyricLine,
-                                currentIndex === index &&
-                                    styles.lyricLineActive,
-                                currentIndex !== null &&
-                                    index < currentIndex &&
-                                    styles.lyricLinePast,
-                            ]}
-                        >
-                            {line.text}
-                        </Text>
-                    ))}
+                    <View>
+                        {lyrics.lines.map((line, index) => (
+                            <Text
+                                key={index}
+                                testID={
+                                    currentIndex === index
+                                        ? "active-lyric"
+                                        : undefined
+                                }
+                                onLayout={({ nativeEvent }) => {
+                                    lineLayouts.current.set(
+                                        index,
+                                        nativeEvent.layout
+                                    );
+                                    if (index === currentIndex)
+                                        centerActiveLine(false);
+                                }}
+                                onPress={() => goToLine(index)}
+                                style={[
+                                    styles.lyricLine,
+                                    currentIndex === index &&
+                                        styles.lyricLineActive,
+                                    currentIndex !== null &&
+                                        index < currentIndex &&
+                                        styles.lyricLinePast,
+                                ]}
+                            >
+                                {line.text}
+                            </Text>
+                        ))}
 
-                    <View style={styles.footer}>
-                        <Text style={styles.footerLabel}>
-                            {vocabulary.LYRICS_BY}
-                        </Text>
-                        <Text style={styles.footerProvider}>
-                            {lyrics.provider}
-                        </Text>
-                        <Text style={styles.footerId}>{lyrics.publicId}</Text>
+                        <View style={styles.footer}>
+                            <Text style={styles.footerLabel}>
+                                {vocabulary.LYRICS_BY}
+                            </Text>
+                            <Text style={styles.footerProvider}>
+                                {lyrics.provider}
+                            </Text>
+                            <Text style={styles.footerId}>
+                                {lyrics.publicId}
+                            </Text>
+                        </View>
                     </View>
                 </ScrollView>
             )}

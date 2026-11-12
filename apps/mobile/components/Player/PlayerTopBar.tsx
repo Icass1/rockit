@@ -18,6 +18,7 @@ interface PlayerTopBarProps {
     onRelated?: () => void;
     onBookmarkPress?: () => void;
     media?: TMedia; // current media object for context menu
+    onHeightChange?: (height: number) => void;
 }
 
 export default function PlayerTopBar({
@@ -29,6 +30,7 @@ export default function PlayerTopBar({
     onRelated,
     onBookmarkPress,
     media,
+    onHeightChange,
 }: PlayerTopBarProps) {
     const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
@@ -48,7 +50,13 @@ export default function PlayerTopBar({
     }
 
     return (
-        <View testID="player-top-bar" style={styles.container}>
+        <View
+            testID="player-top-bar"
+            style={styles.container}
+            onLayout={({ nativeEvent }) =>
+                onHeightChange?.(nativeEvent.layout.height)
+            }
+        >
             <Pressable
                 style={styles.button}
                 onPress={onClose}

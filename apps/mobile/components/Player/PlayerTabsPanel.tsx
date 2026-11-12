@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { StyleSheet, Text, View } from "react-native";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSheet } from "@/lib/SheetContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -21,6 +22,12 @@ export default function PlayerTabsPanel({
     onClose,
 }: PlayerTabsPanelProps) {
     const styles = useThemedStyles(createStyles);
+    const theme = useDesignTheme();
+    const { height } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    const panelHeight =
+        (height * theme.layout.playerPanelPercent) / 100 -
+        theme.layout.sheetHandleHeight;
     const { vocabulary } = useVocabulary();
     const { open, close } = useSheet();
     const hasOpenSheet = useRef(false);
@@ -56,8 +63,19 @@ export default function PlayerTabsPanel({
         }
         hasOpenSheet.current = true;
         open({
-            content,
-            snapPoints: ["65%"],
+            // BottomSheetView also covers an offscreen overdrag area. Keep each
+            // player's scroll viewport inside the visible snap point instead.
+            content: (
+                <View
+                    style={{
+                        height: panelHeight,
+                        paddingBottom: insets.bottom,
+                    }}
+                >
+                    {content}
+                </View>
+            ),
+            snapPoints: [`${theme.layout.playerPanelPercent}%`],
             onClose: () => {
                 // Dismissal already closed the sheet before clearing the tab.
                 hasOpenSheet.current = false;
@@ -65,7 +83,16 @@ export default function PlayerTabsPanel({
             },
             debugLabel: `player-${activeTab}`,
         });
-    }, [activeTab, close, content, onClose, open]);
+    }, [
+        activeTab,
+        close,
+        content,
+        onClose,
+        open,
+        panelHeight,
+        insets.bottom,
+        theme.layout.playerPanelPercent,
+    ]);
 
     return null;
 }

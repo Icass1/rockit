@@ -4,7 +4,6 @@ import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useLibraryData } from "@/hooks/useLibraryData";
-import Header from "@/components/layout/Header";
 import LibraryScreen from "@/components/Library/LibraryScreen";
 
 export default function LibraryPage() {
@@ -23,18 +22,14 @@ export default function LibraryPage() {
         videos,
         stations,
         shared,
+        addedAtById,
         loading,
         error,
-    } = useLibraryData({
-        filterMode: sortMode,
-        searchQuery,
-        activeType,
-    });
+    } = useLibraryData();
 
     if (loading) {
         return (
             <View style={styles.container}>
-                <Header />
                 <View style={styles.centerContainer}>
                     <ActivityIndicator
                         size="large"
@@ -48,7 +43,6 @@ export default function LibraryPage() {
     if (error) {
         return (
             <View style={styles.container}>
-                <Header />
                 <View style={styles.centerContainer}>
                     <Text style={styles.errorText}>{error}</Text>
                 </View>
@@ -58,9 +52,9 @@ export default function LibraryPage() {
 
     return (
         <View style={styles.container}>
-            <Header />
             <View style={{ flex: 1 }}>
                 <LibraryScreen
+                    addedAtById={addedAtById}
                     albums={albums}
                     playlists={playlists}
                     songs={songs}

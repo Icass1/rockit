@@ -36,6 +36,7 @@ import FeaturedCollections from "@/components/Navigation/FeaturedCollections";
 import SearchBar from "@/components/Search/SearchBar";
 
 interface LibraryScreenProps {
+    addedAtById: ReadonlyMap<string, number>;
     albums: BaseAlbumWithoutSongsResponse[];
     playlists: BasePlaylistWithoutMediasResponse[];
     songs: BaseSongWithAlbumResponse[];
@@ -57,6 +58,7 @@ export default function LibraryScreen(props: LibraryScreenProps) {
     );
 }
 function LibraryScreenContent({
+    addedAtById,
     albums,
     playlists,
     songs,
@@ -82,8 +84,8 @@ function LibraryScreenContent({
             activeType === ELibraryActiveType.Albums
                 ? filterBySearch(albums, searchQuery)
                 : [];
-        return sortItems(filtered, sortMode);
-    }, [albums, searchQuery, activeType, sortMode]);
+        return filtered;
+    }, [albums, searchQuery, activeType]);
 
     const filteredPlaylists = useMemo(() => {
         const filtered =
@@ -91,8 +93,8 @@ function LibraryScreenContent({
             activeType === ELibraryActiveType.Playlists
                 ? filterBySearch(playlists, searchQuery)
                 : [];
-        return sortItems(filtered, sortMode);
-    }, [playlists, searchQuery, activeType, sortMode]);
+        return filtered;
+    }, [playlists, searchQuery, activeType]);
 
     const searchEnabled =
         activeType === ELibraryActiveType.All ||
@@ -111,9 +113,9 @@ function LibraryScreenContent({
             searchEnabled
                 ? searchQuery.trim()
                     ? songSearch.items
-                    : sortItems(songs, sortMode)
+                    : songs
                 : [],
-        [searchEnabled, searchQuery, songSearch.items, songs, sortMode]
+        [searchEnabled, searchQuery, songSearch.items, songs]
     );
 
     const filteredVideos = useMemo(() => {
@@ -122,35 +124,63 @@ function LibraryScreenContent({
             activeType === ELibraryActiveType.Videos
                 ? filterBySearch(videos, searchQuery)
                 : [];
-        return sortItems(filtered, sortMode);
-    }, [videos, searchQuery, activeType, sortMode]);
+        return filtered;
+    }, [videos, searchQuery, activeType]);
 
     const filteredStations = useMemo(
         () =>
             activeType === ELibraryActiveType.All ||
             activeType === ELibraryActiveType.Stations
-                ? sortItems(filterBySearch(stations, searchQuery), sortMode)
+                ? filterBySearch(stations, searchQuery)
                 : [],
-        [stations, searchQuery, sortMode, activeType]
+        [stations, searchQuery, activeType]
     );
     const filteredShared = useMemo(
         () =>
             activeType === ELibraryActiveType.All ||
             activeType === ELibraryActiveType.Shared
-                ? sortItems(filterBySearch(shared, searchQuery), sortMode)
+                ? filterBySearch(shared, searchQuery)
                 : [],
-        [shared, searchQuery, sortMode, activeType]
+        [shared, searchQuery, activeType]
     );
+    const items = useMemo(() => {
+        const all = [
+            ...filteredAlbums,
+            ...filteredPlaylists,
+            ...filteredSongs,
+            ...filteredVideos,
+            ...filteredStations,
+            ...filteredShared,
+        ];
+        const unique = [
+            ...new Map(
+                all.map(
+                    (media) =>
+                        [`${media.type}:${media.publicId}`, media] as const
+                )
+            ).values(),
+        ];
+        if (sortMode !== "default") return sortItems(unique, sortMode);
+        return unique.sort(
+            (a, b) =>
+                (addedAtById.get(`${b.type}:${b.publicId}`) ?? 0) -
+                    (addedAtById.get(`${a.type}:${a.publicId}`) ?? 0) ||
+                a.name.localeCompare(b.name)
+        );
+    }, [
+        filteredAlbums,
+        filteredPlaylists,
+        filteredSongs,
+        filteredVideos,
+        filteredStations,
+        filteredShared,
+        addedAtById,
+        sortMode,
+    ]);
     return (
         <View style={{ flex: 1 }}>
             <LibraryContent
-                albums={filteredAlbums}
-                playlists={filteredPlaylists}
-                songs={filteredSongs}
-                videos={filteredVideos}
-                stations={filteredStations}
-                shared={filteredShared}
-                activeType={activeType}
+                items={items}
                 viewMode={viewMode}
                 extraData={selection.selected}
                 header={

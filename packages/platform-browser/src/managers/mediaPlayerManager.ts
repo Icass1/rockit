@@ -118,6 +118,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _boundsWaits = new Map<ReturnType<typeof setTimeout>, () => void>();
     private _freshAudioSource = false;
     private _outgoingEnd?: number;
+    private _outgoingDeadline?: number;
 
     private _audioBounds(
         publicId: string,
@@ -208,12 +209,15 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.setAttribute("webkit-playsinline", "");
 
         this._video.onplaying = (): void => {
+            if (this._video?.paused !== false) return;
             if (
-                this._video?.paused === false &&
-                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
-                    "video"
-            )
-                this.confirmNativePlaying();
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "video"
+            ) {
+                this._video.pause();
+                return;
+            }
+            this.confirmNativePlaying();
         };
         this._video.onpause = (): void => {
             if (
@@ -319,6 +323,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     private _handleVisibility = (): void => {
         if (!this._browserActive) return;
+        if (!document.hidden) {
+            // WebKit may resume native decks before delivering suspended timers.
+            this._expireTransition();
+            if (this._preloadAudio)
+                this._silenceInactiveAudio(this._preloadAudio);
+        }
         if (this._usesAudioForVideo()) {
             if (document.hidden) this._switchToBackgroundAudio();
             else this._restoreForegroundVideo();
@@ -334,13 +344,19 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         const el = new Audio();
         el.preload = "metadata";
         el.onplaying = (): void => {
-            if (
-                el.paused ||
-                el !== this._audio ||
-                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
-                    "audio"
-            )
+            if (el.paused) return;
+            this._expireTransition();
+            if (el !== this._audio) {
+                this._silenceInactiveAudio(el);
                 return;
+            }
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "audio"
+            ) {
+                el.pause();
+                return;
+            }
             this.confirmNativePlaying();
             if (!el.paused && this._playingAtom.get()) this._startBlend();
         };
@@ -569,12 +585,14 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         const old = this._outgoing;
         this._outgoing = undefined;
         this._outgoingEnd = undefined;
+        this._outgoingDeadline = undefined;
         this._promotionQueueId = undefined;
         this._promotionUri = undefined;
         this._blendStarted = false;
         if (this._blendTimer) clearTimeout(this._blendTimer);
         this._blendTimer = undefined;
         if (old) {
+            old.muted = true;
             old.pause();
             this._mixer.reset(old, false);
             old.removeAttribute("src");
@@ -585,7 +603,28 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             void this.preloadNextTrack();
     }
 
+    private _silenceInactiveAudio(element: HTMLAudioElement): void {
+        // Only a current transition tail may play beside the active deck.
+        if (element === this._audio || element === this._outgoing) return;
+        element.muted = true;
+        element.pause();
+        this._mixer.reset(element, false);
+    }
+
+    private _expireTransition(): void {
+        const old = this._outgoing;
+        if (
+            old &&
+            (old.ended ||
+                old.currentTime >= (this._outgoingEnd ?? old.duration) ||
+                (this._outgoingDeadline !== undefined &&
+                    Date.now() >= this._outgoingDeadline))
+        )
+            this._cancelTransition();
+    }
+
     private _startBlend(): void {
+        this._expireTransition();
         const old = this._outgoing,
             current = this._audio;
         if (!old || !current || this._blendStarted) return;
@@ -610,6 +649,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     private _transitionTick(): void {
+        this._expireTransition();
         const audio = this._audio,
             settings = this._transitionSettings.get();
         if (
@@ -630,7 +670,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             duration = audio.duration;
         if (!Number.isFinite(duration) || duration < 20) return;
         if (this._outgoing) {
-            if (this._outgoing.ended) this._cancelTransition();
             return;
         }
         const bounds = this._audioBounds(media.publicId, duration);
@@ -689,6 +728,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         }
         if (incoming.seeking) return;
         this._outgoingEnd = audibleEnd;
+        this._outgoingDeadline = Date.now() + remaining * 1000;
         this._outgoing = audio;
         this._promotionQueueId = next.queueMediaId;
         this._promotionUri = this._preloadedUri;
@@ -1104,13 +1144,13 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 this._preloadAudio,
                 false
             );
-            this._preloadAudio.muted = false;
             this._preloadAudio.preload = "auto";
         } else {
             this._preloadAudio.preload = isSong(next.media)
                 ? "auto"
                 : "metadata";
         }
+        this._silenceInactiveAudio(this._preloadAudio);
         this._preloadAudio.src = uri;
         this._preloadAudio.load();
         this._preloadedUri = uri;

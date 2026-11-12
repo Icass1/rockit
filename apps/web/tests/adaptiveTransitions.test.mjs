@@ -55,7 +55,8 @@ function setup({
         handlers = new Map(),
         timers = new Map(),
         timeoutDue = new Map();
-    let clock = 0;
+    let clock = 0,
+        wallOffset = 0;
     class Param {
         value = 1;
         curves = [];
@@ -166,6 +167,11 @@ function setup({
         HTMLMediaElement: { HAVE_CURRENT_DATA: 2 },
         console,
         URL,
+        Date: class extends Date {
+            static now() {
+                return Date.now() + wallOffset;
+            }
+        },
         AbortSignal,
         fetch: boundsFetch,
         offlineLookup,
@@ -244,6 +250,9 @@ function setup({
         player,
         queue,
         timers,
+        advanceWallTime(ms) {
+            wallOffset += ms;
+        },
         async advanceTime(ms) {
             const target = clock + ms;
             while (true) {
@@ -1125,6 +1134,128 @@ test("browser cleanup cancels the outgoing blend and timers while the active dec
     await flush();
     assert.equal(e.player.audioElement, active);
     assert.equal(active.paused, false);
+    e.player.pause();
+    e.player.stopBrowserLifecycle();
+});
+
+test("foreground recovery retires an expired transition even when timers and the audio clock were suspended", async () => {
+    for (const expiration of ["wall clock", "audible end"]) {
+        const e = setup();
+        await start(e);
+        const outgoing = await approachEnd(e),
+            active = e.player.audioElement;
+        active.currentTime = 12;
+        const playCalls = active.playCalls;
+        e.document.hidden = true;
+        for (const listener of e.documentListeners.get("visibilitychange"))
+            listener();
+        e.player._mixer._context.state = "suspended";
+        if (expiration === "wall clock") e.advanceWallTime(30_000);
+        else outgoing.currentTime = e.player._outgoingEnd;
+        e.document.hidden = false;
+        for (const listener of e.documentListeners.get("visibilitychange"))
+            listener();
+        await flush();
+        assert.equal(outgoing.paused, true, expiration);
+        assert.equal(outgoing.muted, true, expiration);
+        assert.equal(e.player._outgoing, undefined);
+        assert.equal(e.player.audioElement, active);
+        assert.equal(active.paused, false);
+        assert.equal(active.currentTime, 12);
+        assert.equal(active.playCalls, playCalls);
+        assert.equal(e.queue.currentQueueMediaId, 2);
+        assert.equal(e.messages.filter((m) => m.kind === "ended").length, 1);
+        e.player.pause();
+        e.player.stopBrowserLifecycle();
+    }
+});
+
+test("a quick foreground return preserves a valid crossfade and retires its tail normally", async () => {
+    const e = setup();
+    await start(e);
+    const outgoing = await approachEnd(e),
+        active = e.player.audioElement;
+    e.document.hidden = false;
+    for (const listener of e.documentListeners.get("visibilitychange"))
+        listener();
+    assert.equal(outgoing.paused, false);
+    assert.equal(active.paused, false);
+    assert.equal(e.player._outgoing, outgoing);
+    await e.advanceTime(4000);
+    assert.equal(outgoing.paused, true);
+    assert.equal(outgoing.muted, true);
+    assert.equal(e.player.audioElement, active);
+    assert.equal(active.paused, false);
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    e.player.pause();
+    e.player.stopBrowserLifecycle();
+});
+
+test("a retired deck cannot resume behind the selected song after a manual skip", async () => {
+    const e = setup();
+    await start(e);
+    const retired = e.player.audioElement;
+    e.queue.setQueueMediaId(2);
+    await e.player.setMedia();
+    e.player.play();
+    await flush();
+    const active = e.player.audioElement;
+    assert.notEqual(retired, active);
+    active.currentTime = 15;
+    const revision = e.player.nativePlayingRevisionAtom.get();
+    retired.muted = false;
+    await retired.play(); // Delayed native playing event after a source/deck change.
+    assert.equal(retired.paused, true);
+    assert.equal(retired.muted, true);
+    assert.equal(e.player.nativePlayingRevisionAtom.get(), revision);
+    assert.equal(e.player.audioElement, active);
+    assert.equal(active.paused, false);
+    assert.equal(active.currentTime, 15);
+    assert.equal(e.player.playingAtom.get(), true);
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    e.player.pause();
+    e.player.stopBrowserLifecycle();
+});
+
+test("foreground recovery silences an idle preload even without a fresh playing event", async () => {
+    const e = setup();
+    await start(e);
+    const active = e.player.audioElement,
+        idle = e.player._preloadAudio;
+    assert.equal(idle.muted, true);
+    idle.muted = false;
+    idle.paused = false;
+    for (const listener of e.documentListeners.get("visibilitychange"))
+        listener();
+    assert.equal(idle.paused, true);
+    assert.equal(idle.muted, true);
+    assert.equal(e.player.audioElement, active);
+    assert.equal(active.paused, false);
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    e.player.pause();
+    e.player.stopBrowserLifecycle();
+});
+
+test("a late playing event from the inactive media kind cannot add a second audio output", async () => {
+    const e = setup();
+    await start(e);
+    const audio = e.player.audioElement,
+        video = e.player.videoElement;
+    video.src = "https://test/retired-video";
+    await video.play();
+    assert.equal(video.paused, true);
+    assert.equal(audio.paused, false);
+    e.player.pause();
+    e.queue.currentMedia = {
+        type: "video",
+        publicId: "video",
+        videoUrl: "https://test/video",
+    };
+    e.player._playRequested = true;
+    await video.play();
+    await audio.play();
+    assert.equal(audio.paused, true);
+    assert.equal(video.paused, false);
     e.player.pause();
     e.player.stopBrowserLifecycle();
 });

@@ -4,6 +4,51 @@
 
 ## In Progress
 
+### [LYRICS] Centrar la línea activa en el player móvil
+
+- tags: [mobile, lyrics, layout]
+- priority: high
+- workload: Normal
+    ```md
+    Medir líneas y viewport reales; centrar también al abrir el panel, cambiar canción o ajustar el tamaño de texto. No asumir alturas fijas.
+    ```
+
+### [PLAYER] Ampliar y separar Cola, Letras y Related
+
+- tags: [mobile, player, ux]
+- priority: normal
+- workload: Easy
+    ```md
+    Texto aproximadamente 1,5 veces mayor, targets accesibles y más espacio sobre los accesos. Mantener los colores actuales.
+    ```
+
+### [PLAYER] Mantener el logo de RockIt! por encima del reproductor
+
+- tags: [mobile, player, branding]
+- priority: normal
+- workload: Normal
+    ```md
+    Mostrar el header compartido también en el player, reservando su espacio sin solapar contenido ni duplicar safe areas.
+    ```
+
+### [LIBRARY] Mezclar los tipos de elementos en una lista móvil
+
+- tags: [mobile, library, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Eliminar secciones por tipo, aplicar un orden global y conservar filtros, grid/lista y selección múltiple.
+    ```
+
+### [HEADER] Mover usuarios conectados a la izquierda del logo
+
+- tags: [mobile, friends, presence]
+- priority: normal
+- workload: Easy
+    ```md
+    Contador global con icono de persona de Lucide y color online del tema; notificaciones a la derecha. Quitar el contador duplicado de Friends.
+    ```
+
 ### [PLAYER] Evitar canciones simultáneas al recuperar la PWA iOS
 
 - tags: [mobile, ios, playback, bug]

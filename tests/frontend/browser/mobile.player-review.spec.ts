@@ -467,6 +467,10 @@ test("review screenshots cover mobile destinations and each player panel", async
         await page.screenshot({ path: info.outputPath(name + ".png") });
     }
     await openPlayer(page, true);
+    await page
+        .getByRole("button", { name: "Queue", exact: true })
+        .click({ trial: true });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: info.outputPath("player.png") });
     for (const name of ["Queue", "Lyrics", "Related"]) {
         await page.getByRole("button", { name, exact: true }).click();

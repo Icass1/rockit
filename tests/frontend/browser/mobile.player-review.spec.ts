@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { WebSocket } from "ws";
 
 const mobile = "http://127.0.0.1:13001";
 const backend = "http://127.0.0.1:18899";
@@ -228,4 +229,248 @@ test("Library interleaves media by added date and keeps type filters and selecti
         page.getByRole("button", { name: album.name, exact: true })
     ).toHaveAttribute("aria-pressed", "true");
     await page.screenshot({ path: info.outputPath("mixed-library.png") });
+});
+
+test("a slow collection response does not delay the mini player's selection feedback", async ({
+    page,
+    request,
+}) => {
+    const response = await (
+        await request.post(backend + "/media/collection/album-1/queue", {
+            headers,
+            data: { startPublicId: "song-2" },
+        })
+    ).json();
+    await request.post(backend + "/__fixture/reset");
+    await request.post(backend + "/__fixture/fault", {
+        data: {
+            path: "/media/collection/album-1/queue",
+            body: response,
+            delayMs: 2000,
+        },
+    });
+    await page.goto(mobile + "/album/album-1");
+    let completed = false;
+    page.on("response", (r) => {
+        if (r.url().endsWith("/media/collection/album-1/queue"))
+            completed = true;
+    });
+    const song = page.getByRole("button", {
+        name: "Playlist exclusive",
+        exact: true,
+    });
+    await song.first().click();
+    await expect(song).toHaveCount(2, { timeout: 500 });
+    await expect(song.last()).toHaveAttribute("aria-disabled", "true");
+    expect(completed).toBe(false);
+    await expect(song.last()).not.toHaveAttribute("aria-disabled", "true", {
+        timeout: 6000,
+    });
+});
+
+test("mobile queue drag persists occurrence order while preserving the selected song", async ({
+    page,
+    request,
+    browserName,
+}) => {
+    test.skip(
+        browserName !== "chromium",
+        "Uses Chromium touch input; physical iOS acceptance is separate."
+    );
+    const socket = new WebSocket("ws://127.0.0.1:18899/ws");
+    await new Promise<void>((resolve) => socket.once("open", resolve));
+    socket.send(
+        JSON.stringify({
+            type: "current_queue",
+            queue: ["song-1", "song-2", "synthetic-0"].map(
+                (mediaPublicId, i) => ({
+                    mediaPublicId,
+                    listPublicId: null,
+                    queueMediaId: i + 1,
+                    randomIndex: i,
+                    sortedIndex: i,
+                })
+            ),
+        })
+    );
+    await expect
+        .poll(
+            async () =>
+                (
+                    await (
+                        await request.get(backend + "/user/queue", { headers })
+                    ).json()
+                ).total
+        )
+        .toBe(3);
+    socket.send(
+        JSON.stringify({
+            type: "current_media",
+            currentTimeMs: 0,
+            playbackId: "fixture-boundary",
+            queueMediaId: 1,
+            mediaPublicId: "song-1",
+            queueType: "SORTED",
+        })
+    );
+    await expect
+        .poll(
+            async () =>
+                (
+                    await (
+                        await request.get(backend + "/user/queue", { headers })
+                    ).json()
+                ).currentQueueMediaId
+        )
+        .toBe(1);
+    socket.close();
+
+    await page.goto(mobile + "/library");
+    await page
+        .getByRole("button", { name: "Canción de prueba — Snow", exact: true })
+        .last()
+        .click();
+    await page.getByRole("button", { name: "Queue", exact: true }).click();
+    const handles = page.getByTestId("queue-drag-handle");
+    await expect(handles).toHaveCount(3);
+    await handles.nth(2).click({ trial: true });
+    const source = (await handles.nth(2).boundingBox())!;
+    const target = (await handles.first().boundingBox())!;
+    const touch = await page.context().newCDPSession(page);
+    const x = source.x + source.width / 2;
+    await touch.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [{ x, y: source.y + source.height / 2 }],
+    });
+    await page.waitForTimeout(150);
+    for (let step = 1; step <= 15; step++) {
+        await touch.send("Input.dispatchTouchEvent", {
+            type: "touchMove",
+            touchPoints: [
+                {
+                    x,
+                    y:
+                        source.y +
+                        source.height / 2 +
+                        ((target.y - source.y) * step) / 15,
+                },
+            ],
+        });
+        await page.waitForTimeout(20);
+    }
+    await touch.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: [],
+    });
+    await expect
+        .poll(async () =>
+            (
+                await (
+                    await request.get(backend + "/user/queue", { headers })
+                ).json()
+            ).queue.map((item: { queueMediaId: number }) => item.queueMediaId)
+        )
+        .toEqual([3, 1, 2]);
+    const state = await (
+        await request.get(backend + "/user/queue", { headers })
+    ).json();
+    expect(state.currentQueueMediaId).toBe(1);
+});
+
+test("search ignores an older response that arrives after the final typed query", async ({
+    page,
+}) => {
+    let releaseOld: (() => void) | undefined;
+    const old = new Promise<void>((resolve) => {
+        releaseOld = resolve;
+    });
+    const result = (name: string) => ({
+        results: [
+            {
+                type: "song",
+                searchResult: true,
+                name,
+                providerUrl: "https://fixture.invalid/" + name,
+                imageUrl: "",
+                artists: [],
+                provider: "Fixture",
+                downloaded: false,
+                url: null,
+                publicId: null,
+            },
+        ],
+    });
+    await page.route("**/media/search", async (route) => {
+        const query = route.request().postDataJSON().query;
+        if (query === "Old") await old;
+        await route.fulfill({ json: result(query) });
+    });
+    await page.goto(mobile + "/search");
+    const input = page.getByRole("textbox").first();
+    const started = page.waitForRequest((r) =>
+        r.url().endsWith("/media/search")
+    );
+    await input.fill("Old");
+    await started;
+    await input.fill("Final phrase");
+    await expect(page.getByText("Final phrase", { exact: true })).toBeVisible();
+    releaseOld!();
+    await expect(page.getByText("Old", { exact: true })).toHaveCount(0);
+    await input.clear();
+    await expect(page.getByText("Final phrase", { exact: true })).toHaveCount(
+        0
+    );
+});
+
+test("featured collection headers compose their official art and the corresponding icon", async ({
+    page,
+}) => {
+    for (const kind of ["liked", "most-listened", "recent-mix"]) {
+        await page.goto(mobile + "/playlist/" + kind);
+        const artwork = page
+            .getByRole("img")
+            .filter({ has: page.locator("svg") });
+        await expect(artwork.first()).toBeVisible();
+    }
+});
+
+test("review screenshots cover mobile destinations and each player panel", async ({
+    page,
+}, info) => {
+    test.skip(process.env.SCREENSHOT_REVIEW !== "1", "Opt-in visual capture.");
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const [name, path] of [
+        ["home", "/"],
+        ["library", "/library"],
+        ["album", "/album/album-1"],
+        ["artist", "/artist/artist-1"],
+        ["radio", "/radio"],
+        ["friends", "/friends"],
+        ["search", "/search"],
+        ["settings", "/settings"],
+        ["stats", "/stats"],
+        ["liked", "/playlist/liked"],
+        ["most-listened", "/playlist/most-listened"],
+        ["recent-mix", "/playlist/recent-mix"],
+    ]) {
+        await page.goto(mobile + path);
+        await expect(page.getByTestId("rockit-header-logo")).toBeVisible();
+        await page.getByTestId("navigation-index").click({ trial: true });
+        await page.waitForTimeout(1000);
+        await page.screenshot({ path: info.outputPath(name + ".png") });
+    }
+    await openPlayer(page, true);
+    await page.screenshot({ path: info.outputPath("player.png") });
+    for (const name of ["Queue", "Lyrics", "Related"]) {
+        await page.getByRole("button", { name, exact: true }).click();
+        const sheet = page.getByRole("button", {
+            name: "Bottom sheet backdrop",
+        });
+        await expect(sheet).toBeVisible();
+        await page.waitForTimeout(400);
+        await page.screenshot({
+            path: info.outputPath("player-" + name.toLowerCase() + ".png"),
+        });
+        await sheet.click({ position: { x: 10, y: 120 } });
+    }
 });

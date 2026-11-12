@@ -4,6 +4,37 @@
 
 ## In Progress
 
+## Idle
+
+## To Review
+
+### [SEARCH] Descartar búsquedas móviles obsoletas y verificar escritorio
+
+- tags: [mobile, web, search]
+- priority: high
+- workload: Normal
+    ```md
+    Solo el último término puede publicar resultados, errores o loading. Invalidar al borrar y desmontar, mantener debounce. Verificación con respuestas fuera de orden y las regresiones existentes de escritorio.
+    ```
+
+### [FEATURED] Restaurar iconos sobre las portadas de las listas RockIt!
+
+- tags: [mobile, featured, artwork]
+- priority: normal
+- workload: Easy
+    ```md
+    Reutilizar FeaturedArtwork en los headers, con corazón, disco e historial sobre la portada oficial.
+    ```
+
+### [EXPLICIT] Distintivo relleno con E negra en web y móvil
+
+- tags: [mobile, web, design]
+- priority: normal
+- workload: Easy
+    ```md
+    Fondo gris claro y letra E oscura, sin iconos de Lucide. Colores semánticos compartidos y etiqueta accesible existente.
+    ```
+
 ### [QUEUE] Restaurar arrastre táctil para reordenar la cola móvil
 
 - tags: [mobile, queue, ux]
@@ -21,10 +52,6 @@
     ```md
     Mostrar metadatos y carga antes de esperar a la creación de cola. Limpiar selecciones fallidas, antiguas o canceladas sin publicar un falso estado de reproducción.
     ```
-
-## Idle
-
-## To Review
 
 ### [LYRICS] Centrar la línea activa en el player móvil
 

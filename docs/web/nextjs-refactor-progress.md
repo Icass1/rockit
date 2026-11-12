@@ -105,3 +105,29 @@ Chromium checks cover player geometry at 320/390/430 px, wrapped lyric centering
 on open/resize/seek and mixed-library ordering/filtering/selection. Screenshots use
 fixture content. Native/web TypeScript, lint and production bundles supplement
 those checks; real iPhone lock/unlock and Android device acceptance remain open.
+
+## Queue input, selection feedback and search follow-up — PR212
+
+Mobile queue handles now use captured browser pointers in the PWA and the native
+responder adapter in APK builds. Rows retain occurrence identity, show an insertion
+marker, scroll near the viewport edges and preserve the selected song. Pointer
+cancellation leaves the ordering intact; desktop/native keyboard accessibility
+uses the same manager operation. Only the active drag disables swipe deletion.
+
+Pending playback selection is separate from confirmed playing media: the mini
+player publishes metadata and a loading indicator before collection/recommendation
+requests complete. Stale requests, failures and account cleanup cannot retain an
+old preview. A browser test verifies feedback within 500 ms against a two-second
+fixture response; this does not claim shorter network or audio startup latency.
+
+Mobile search invalidates previous work on input, clear and unmount. Desktop's
+existing request-version guards remain in place. Featured headers now compose the
+shared official artwork and list icon. Explicit badges use semantic filled-gray
+backgrounds with a dark E on both renderers. Workbook translations include the new
+touch reorder label in English, Spanish and French.
+
+Verification includes persisted touch reordering in Chromium, late search replies,
+featured icons, queue/search manager regressions, native badge rendering, TypeScript,
+lint and the production mobile export. Opt-in screenshots cover the principal
+mobile destinations and player panels against synthetic fixture data. Real-device
+WebKit gestures and APK acceptance remain separate from these browser checks.

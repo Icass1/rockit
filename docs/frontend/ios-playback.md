@@ -74,8 +74,25 @@ WebKit owns background scheduling and autoplay permission. Playback must be
 initiated by the user; no PWA can guarantee execution after the OS terminates it.
 Videos lacking a separate audio source retain ordinary video playback behavior.
 
+## PWA track controls
+
+The browser MediaSession adapter publishes previous/next handlers and clears both
+relative-seek handlers. It reasserts those commands after actual native `playing`
+events, including track changes where the logical playing state remains true,
+and when the keepalive becomes active. Registering only during app initialization
+does not cover the moment WebKit selects its Now Playing media session.
+
+Manager tests cover handler recovery and listener cleanup. A Chromium test starts
+real HTML audio and checks registration after its `playing` event. Neither check
+proves which buttons iOS renders: on a physical Home Screen PWA, start a song,
+lock the phone, skip forward/back and let a track transition complete. Confirm
+previous/next buttons rather than ten-second seek buttons, continuous audio and
+the correct play/pause state. Record the iOS version with the result.
+
 ## References
 
 - [Apple: Delivering video content for Safari](https://developer.apple.com/documentation/webkit/delivering-video-content-for-safari)
 - [Expo SDK 57 video](https://docs.expo.dev/versions/v57.0.0/sdk/video/)
 - [Expo SDK 57 audio](https://docs.expo.dev/versions/v57.0.0/sdk/audio/)
+- [WebKit MediaSession command registration](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/Modules/mediasession/MediaSession.cpp)
+- [Playing-event registration and iOS simulator observations](https://github.com/weitzman/splitopen/pull/15)

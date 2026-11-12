@@ -51,3 +51,31 @@ Verification covers real Chromium ZIP downloads with album and playlist IDs,
 global presence, native stream cleanup/cancellation, error and stale-session
 handling, TypeScript, lint and production bundles. APK sharing and iOS system
 insets still require device acceptance. A native rebuild is required for sharing.
+
+## Mobile layout and MediaSession regressions — PR212
+
+Stats charts measure their containing card and fit all bars and sampled labels
+without horizontal overflow. Radio preserves the SVG's aspect ratio. The mobile
+shell owns the bottom inset once; page footers no longer repeat navigation-sized
+padding. Collection playback moves into the compact search/action row. Transport
+SVG fills use explicit theme colors, avoiding inherited Safari link colors.
+
+Library combines featured collections and personal anchors in one horizontal
+shelf, deduplicating builtins. Mobile Home keeps personalized discovery and omits
+the featured shelf. Both Home renderers use a shared session-backed profile image
+with a recoverable initial fallback. Web queue dragging shows the exact before or
+after insertion boundary; keyboard reordering uses Alt + Up/Down. The destination
+calculation uses queue occurrence IDs and preserves the current track.
+
+Browser MediaSession commands are reasserted when real playback starts, including
+between tracks without a logical pause and when the keepalive becomes active.
+Relative-seek actions remain disabled. Playback and transition behavior is
+unchanged. See [iOS playback](../frontend/ios-playback.md) for device acceptance.
+
+Verification: mobile/web and test TypeScript, lint, production Expo/Next bundles,
+portable/native component contracts and focused manager tests. Local Chromium
+checks cover 31-bar charts at 320/390/430 px, one Library shelf, Home photos,
+compact playback, map proportions, simulated safe-area layout, real audio command
+registration and a persisted HTML queue drag. Fixture screenshots use synthetic
+accounts/media. Physical iOS system controls/insets and Android device acceptance
+remain unverified; tasks are in To Review.

@@ -4,6 +4,10 @@
 
 ## In Progress
 
+## Idle
+
+## To Review
+
 ### [STATS] Contener gráficos de barras en pantallas móviles
 
 - tags: [mobile, stats, layout]
@@ -91,12 +95,8 @@
 - priority: high
 - workload: Normal
     ```md
-    Revisar la ruta real de registro y propiedad de Now Playing; conservar reproducción y transiciones.
+    Reanunciar next/previous al iniciar el audio real y el keepalive, sin cambiar reproducción ni transiciones. Pruebas de registro aprobadas; pendiente confirmar botones del sistema en un iPhone real.
     ```
-
-## Idle
-
-## To Review
 
 ### [LIBRARY] Selección múltiple y exportación ZIP en móvil
 

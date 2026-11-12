@@ -33,7 +33,6 @@ import {
     useLibrarySelection,
 } from "@/components/Library/LibrarySelectionContext";
 import FeaturedCollections from "@/components/Navigation/FeaturedCollections";
-import NavigationAnchors from "@/components/Navigation/NavigationAnchors";
 import SearchBar from "@/components/Search/SearchBar";
 
 interface LibraryScreenProps {
@@ -222,7 +221,6 @@ function LibraryScreenContent({
                                     ELibraryActiveType.Playlists) && (
                                 <>
                                     <FeaturedCollections />
-                                    <NavigationAnchors />
                                 </>
                             )}
                     </>

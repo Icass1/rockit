@@ -81,7 +81,7 @@ const createStyles = (theme: DesignTheme) =>
         },
         tabLabel: {
             fontSize: theme.typography.subtitle,
-            fontWeight: "500",
+            fontWeight: "600",
             color: theme.colors["muted-foreground"],
         },
         tabLabelActive: {

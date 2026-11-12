@@ -164,13 +164,13 @@ export default function MiniPlayer() {
                         />
                     ) : isPlaying ? (
                         <Pause
-                            fill="currentColor"
+                            fill={theme.legacy.white}
                             size={22}
                             color={theme.legacy.white}
                         />
                     ) : (
                         <Play
-                            fill="currentColor"
+                            fill={theme.legacy.white}
                             size={22}
                             color={theme.legacy.white}
                         />
@@ -189,7 +189,7 @@ export default function MiniPlayer() {
                     hitSlop={12}
                 >
                     <SkipForward
-                        fill="currentColor"
+                        fill={theme.legacy.white}
                         size={22}
                         color={theme.legacy.white}
                     />

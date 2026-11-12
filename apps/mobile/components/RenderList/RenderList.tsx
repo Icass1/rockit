@@ -6,12 +6,9 @@ import type {
     TMedia,
 } from "@rockit/shared";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { Play } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { StyleSheet, Text, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
@@ -53,7 +50,7 @@ export default memo(function RenderList({
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.container}>
             <VirtualCollectionList
                 pager={pager}
                 showMediaIndex={showMediaIndex}
@@ -97,38 +94,17 @@ export default memo(function RenderList({
                                     </Text>
                                 )}
                                 <Text style={styles.mediaCount}>
-                                    {total ?? media.length}{" "}
+                                    {Math.max(total ?? 0, media.length)}{" "}
                                     {media.length === 1
                                         ? vocabulary.SONG
                                         : vocabulary.SONGS}
                                 </Text>
                             </View>
                         </View>
-                        {listPublicId && (
-                            <Pressable
-                                accessibilityRole="button"
-                                accessibilityLabel={vocabulary.PLAY}
-                                onPress={() =>
-                                    void rockIt.queueManager.playCollection(
-                                        listPublicId
-                                    )
-                                }
-                                style={{
-                                    padding: 12,
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Play
-                                    size={theme.layout.touchTarget}
-                                    color={theme.colors.primary}
-                                    fill="currentColor"
-                                />
-                            </Pressable>
-                        )}
                     </>
                 }
             />
-        </SafeAreaView>
+        </View>
     );
 });
 
@@ -143,7 +119,7 @@ const createStyles = (theme: DesignTheme) =>
         },
         header: {
             alignItems: "center",
-            paddingTop: 80,
+            paddingTop: theme.layout.mobileContentTop,
             paddingBottom: theme.spacing.xl,
             paddingHorizontal: 20,
         },

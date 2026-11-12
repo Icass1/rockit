@@ -1090,7 +1090,8 @@ export class BaseQueueManager {
     /** Resolve stable occurrence IDs before loading missing queue pages. */
     async reorderQueueItemsAsync(
         fromId: number,
-        toId: number
+        toId: number,
+        placement?: "before" | "after"
     ): Promise<boolean> {
         const generation = this._queueGeneration;
         const lifecycle = this._lifecycleGeneration;
@@ -1114,7 +1115,11 @@ export class BaseQueueManager {
         );
         const to = this.queue.findIndex((item) => item.queueMediaId === toId);
         if (from < 0 || to < 0) return false;
-        this.reorderQueue(from, to);
+        const boundary = to + (placement === "after" ? 1 : 0);
+        const destination = placement
+            ? boundary - (from < boundary ? 1 : 0)
+            : to;
+        this.reorderQueue(from, destination);
         return true;
     }
 

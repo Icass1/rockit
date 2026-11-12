@@ -1122,4 +1122,6 @@ export interface Vocabulary {
     MOBILE_PHOTO_INVALID: string;
     MOBILE_PHOTO_ERROR: string;
     MOBILE_RADIO_EXPLORE: string;
+    QUEUE_DROP_HERE: string;
+    QUEUE_REORDER_HELP: string;
 }

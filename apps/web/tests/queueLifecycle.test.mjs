@@ -875,3 +875,27 @@ test("reorders paged queue items by occurrence identity after loading missing pa
     );
     e.queue.stop();
 });
+
+for (const [from, to, edge, expected] of [
+    [0, 2, "before", [1, 0, 2]],
+    [0, 2, "after", [1, 2, 0]],
+    [2, 0, "before", [2, 0, 1]],
+    [2, 0, "after", [0, 2, 1]],
+])
+    test(`explicit ${edge} placement preserves the highlighted queue boundary (${from} to ${to})`, async () => {
+        const e = setup({ seed: page({ ids: [0, 1, 2] }) });
+        await e.queue.init();
+        const current = e.queue.currentQueueMediaId,
+            loads = e.calls.loads;
+        assert.equal(
+            await e.queue.reorderQueueItemsAsync(from, to, edge),
+            true
+        );
+        assert.deepEqual(
+            Array.from(e.queue.queue, (item) => item.queueMediaId),
+            expected
+        );
+        assert.equal(e.queue.currentQueueMediaId, current);
+        assert.equal(e.calls.loads, loads);
+        e.queue.stop();
+    });

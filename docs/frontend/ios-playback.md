@@ -89,6 +89,21 @@ lock the phone, skip forward/back and let a track transition complete. Confirm
 previous/next buttons rather than ten-second seek buttons, continuous audio and
 the correct play/pause state. Record the iOS version with the result.
 
+## Audio deck recovery
+
+The browser player permits the current audio deck and a bounded transition tail
+to play together. Preloaded and retired decks stay muted and are paused if they
+emit a late `playing` event. The inactive video/audio transport cannot start a
+second output. On foreground recovery, transition expiry is checked against both
+the media clock and a wall-clock deadline before the mixer resumes, so suspended
+JavaScript timers cannot retain a stale tail. Returning during a valid crossfade
+preserves the mix, queue occurrence and current playhead.
+
+Regression tests model delayed native events and frozen timers/audio clocks;
+they do not reproduce WebKit's physical lock/unlock behavior. Device acceptance
+should include several background transitions, rapid selection changes, pausing
+while locked and unlocking with transitions both enabled and disabled.
+
 ## References
 
 - [Apple: Delivering video content for Safari](https://developer.apple.com/documentation/webkit/delivering-video-content-for-safari)

@@ -79,3 +79,29 @@ compact playback, map proportions, simulated safe-area layout, real audio comman
 registration and a persisted HTML queue drag. Fixture screenshots use synthetic
 accounts/media. Physical iOS system controls/insets and Android device acceptance
 remain unverified; tasks are in To Review.
+
+## Foreground playback and mobile player review — PR212
+
+Browser playback now silences late starts from inactive decks and expires stale
+transition tails on foreground recovery without interrupting a valid crossfade.
+Five new regressions cover suspended clocks/timers, retired decks, idle preloads
+and inactive audio/video outputs; the adaptive playback suite passes 54 cases.
+
+Mobile lyrics use measured line frames inside an unpadded wrapper, with enough
+leading/trailing space to center the first and last lines. Player panels are
+bounded to their visible snap point rather than the sheet's offscreen overdrag
+area. The lyric font keeps a stable size across highlights to avoid rewrapping.
+The shared header remains visible above the player, shows global presence to the
+left of the logo and notifications to the right, and owns the only header copy.
+Player artwork measures the space left by metadata and controls; larger bottom
+tab actions remain reachable. Header, handle and panel dimensions use theme tokens.
+
+Library uses one virtualized mixed feed, ordered globally by each item's library
+addition time, with shared-playlist deduplication and the existing type filters,
+grid/list toggle and selection/export flow. The feed retains library timestamps
+instead of sorting each media type separately.
+
+Chromium checks cover player geometry at 320/390/430 px, wrapped lyric centering
+on open/resize/seek and mixed-library ordering/filtering/selection. Screenshots use
+fixture content. Native/web TypeScript, lint and production bundles supplement
+those checks; real iPhone lock/unlock and Android device acceptance remain open.

@@ -4,6 +4,10 @@
 
 ## In Progress
 
+## Idle
+
+## To Review
+
 ### [LYRICS] Centrar la línea activa en el player móvil
 
 - tags: [mobile, lyrics, layout]
@@ -55,12 +59,8 @@
 - priority: high
 - workload: Normal
     ```md
-    Revisar desbloqueo/foreground, transiciones suspendidas y eventos de audio tardíos. Solo la canción activa y una cola de transición vigente pueden sonar; nunca una precarga o una canción retirada. Añadir regresiones sin desactivar las transiciones.
+    Se detienen inicios tardíos de precargas y audios retirados; las transiciones caducadas se limpian al recuperar foreground sin desactivar las válidas. 54 regresiones de reproducción aprobadas. Pendiente validación física al bloquear/desbloquear iPhone.
     ```
-
-## Idle
-
-## To Review
 
 ### [STATS] Contener gráficos de barras en pantallas móviles
 

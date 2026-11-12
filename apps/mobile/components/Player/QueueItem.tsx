@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import {
     getMediaArtistsString,
@@ -19,6 +19,7 @@ import { Swipeable } from "react-native-gesture-handler";
 import { useMediaOffline } from "@/hooks/useMediaOffline";
 import { syncManager } from "@/lib/syncManager";
 import { useVocabulary } from "@/lib/vocabulary";
+import QueueDragHandle from "@/components/Player/QueueDragHandle";
 
 /** Width of the swipe-to-delete action revealed behind a queue row. */
 const DELETE_WIDTH = 80;
@@ -30,6 +31,8 @@ interface QueueItemProps {
     isDragging?: boolean;
     /** Provide when used inside DraggableFlatList to enable drag-to-reorder */
     drag?: () => void;
+    onDragMove?: (dy: number, y: number) => void;
+    onDragEnd?: (dy: number) => void;
     onDelete: (index: number) => void;
     onPlay: (media: TQueueMedia, index: number) => void;
 }
@@ -40,9 +43,12 @@ export default function QueueItem({
     isActive,
     isDragging = false,
     drag,
+    onDragMove,
+    onDragEnd,
     onDelete,
     onPlay,
 }: QueueItemProps) {
+    const [translation] = useState(() => new Animated.Value(0));
     const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
@@ -81,93 +87,118 @@ export default function QueueItem({
     };
 
     return (
-        <Swipeable
-            ref={swipeableRef}
-            renderRightActions={renderRightActions}
-            // Require a deliberate drag past most of the action (or a quick
-            // flick — release velocity is factored in) before deleting, so
-            // scrolling doesn't accidentally remove items.
-            rightThreshold={DELETE_WIDTH * 0.75}
-            dragOffsetFromRightEdge={20}
-            onSwipeableWillOpen={() => onDelete(index)}
-            friction={2}
-            overshootRight={false}
+        <Animated.View
+            style={{
+                transform: [{ translateY: translation }],
+                zIndex: isDragging ? 1 : 0,
+            }}
         >
-            <Pressable
-                style={[
-                    styles.container,
-                    isActive && styles.containerActive,
-                    isDragging && styles.containerDragging,
-                    isNotDownloaded && styles.containerNotDownloaded,
-                ]}
-                onPress={() => onPlay(media, index)}
+            <Swipeable
+                ref={swipeableRef}
+                enabled={!isDragging}
+                renderRightActions={renderRightActions}
+                // Require a deliberate drag past most of the action (or a quick
+                // flick — release velocity is factored in) before deleting, so
+                // scrolling doesn't accidentally remove items.
+                rightThreshold={DELETE_WIDTH * 0.75}
+                dragOffsetFromRightEdge={20}
+                onSwipeableWillOpen={() => onDelete(index)}
+                friction={2}
+                overshootRight={false}
             >
-                <Image
-                    source={{ uri: media.imageUrl }}
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={media.name}
+                    accessibilityState={{
+                        selected: isActive,
+                        busy: isDragging,
+                    }}
                     style={[
-                        styles.image,
-                        isActive && styles.imageActive,
-                        isNotDownloaded && styles.imageNotDownloaded,
+                        styles.container,
+                        isActive && styles.containerActive,
+                        isDragging && styles.containerDragging,
+                        isNotDownloaded && styles.containerNotDownloaded,
                     ]}
-                    contentFit="cover"
-                    transition={200}
-                />
-
-                <View style={styles.info}>
-                    <Text
+                    onPress={() => {
+                        if (!isDragging) onPlay(media, index);
+                    }}
+                >
+                    <Image
+                        source={{ uri: media.imageUrl }}
                         style={[
-                            styles.title,
-                            isActive && { color: theme.legacy.accent },
-                            isNotDownloaded && styles.titleNotDownloaded,
+                            styles.image,
+                            isActive && styles.imageActive,
+                            isNotDownloaded && styles.imageNotDownloaded,
                         ]}
-                        numberOfLines={1}
-                    >
-                        {media.name}
-                    </Text>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: theme.spacing.xs,
-                        }}
-                    >
-                        <ExplicitBadge
-                            explicit={
-                                media.type === "song" ? media.explicit : null
-                            }
-                            label={vocabulary.CONTENT_RATING_EXPLICIT}
-                        />
+                        contentFit="cover"
+                        transition={200}
+                    />
+
+                    <View style={styles.info}>
                         <Text
                             style={[
-                                styles.artist,
-                                isNotDownloaded && styles.artistNotDownloaded,
+                                styles.title,
+                                isActive && { color: theme.legacy.accent },
+                                isNotDownloaded && styles.titleNotDownloaded,
                             ]}
                             numberOfLines={1}
                         >
-                            {getMediaArtistsString(media)}
+                            {media.name}
                         </Text>
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: theme.spacing.xs,
+                            }}
+                        >
+                            <ExplicitBadge
+                                explicit={
+                                    media.type === "song"
+                                        ? media.explicit
+                                        : null
+                                }
+                                label={vocabulary.CONTENT_RATING_EXPLICIT}
+                            />
+                            <Text
+                                style={[
+                                    styles.artist,
+                                    isNotDownloaded &&
+                                        styles.artistNotDownloaded,
+                                ]}
+                                numberOfLines={1}
+                            >
+                                {getMediaArtistsString(media)}
+                            </Text>
+                        </View>
                     </View>
-                </View>
 
-                {/* Drag handle — only active when drag prop is provided */}
-                {drag && (
-                    <Pressable
-                        style={styles.dragHandle}
-                        onLongPress={drag}
-                        delayLongPress={150}
-                        hitSlop={8}
-                    >
-                        <Menu
-                            size={18}
-                            color={withAlpha(
-                                theme.colors["foreground-strong"],
-                                0.35
-                            )}
-                        />
-                    </Pressable>
-                )}
-            </Pressable>
-        </Swipeable>
+                    {/* Drag handle — only active when drag prop is provided */}
+                    {drag && (
+                        <QueueDragHandle
+                            label={vocabulary.QUEUE_REORDER_TOUCH}
+                            onStart={drag}
+                            onMove={(dy, y) => {
+                                translation.setValue(dy);
+                                onDragMove?.(dy, y);
+                            }}
+                            onEnd={(dy) => {
+                                translation.setValue(0);
+                                onDragEnd?.(dy);
+                            }}
+                        >
+                            <Menu
+                                size={18}
+                                color={withAlpha(
+                                    theme.colors["foreground-strong"],
+                                    0.35
+                                )}
+                            />
+                        </QueueDragHandle>
+                    )}
+                </Pressable>
+            </Swipeable>
+        </Animated.View>
     );
 }
 
@@ -229,8 +260,8 @@ const createStyles = (theme: DesignTheme) =>
             color: theme.legacy.gray400,
         },
         dragHandle: {
-            width: 36,
-            height: 36,
+            width: theme.layout.touchTarget,
+            height: theme.layout.touchTarget,
             alignItems: "center",
             justifyContent: "center",
         },

@@ -1124,4 +1124,5 @@ export interface Vocabulary {
     MOBILE_RADIO_EXPLORE: string;
     QUEUE_DROP_HERE: string;
     QUEUE_REORDER_HELP: string;
+    QUEUE_REORDER_TOUCH: string;
 }

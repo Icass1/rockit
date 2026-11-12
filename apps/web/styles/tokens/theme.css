@@ -93,6 +93,8 @@
     --theme-bookmark-previous-muted: #b35900;
     --theme-vinyl-body: #0d0d0d;
     --theme-vinyl-groove: #1c1c1c;
+    --theme-explicit-background: #b3b3b3;
+    --theme-explicit-foreground: #000000;
     --theme-online: #22c55e;
     --lyrics-emphasis-scale: 1.25;
     --radius-none: 0px;

@@ -881,6 +881,7 @@
     "QUEUE_DROP_HERE": "Move here",
     "QUEUE_LOAD_PREVIOUS": "Load earlier queue items",
     "QUEUE_REORDER_HELP": "Drag to reorder, or use Alt + Up/Down.",
+    "QUEUE_REORDER_TOUCH": "Reorder song",
     "QUICK_SELECTIONS": "Quick selections",
     "RADIO": "Radio",
     "RADIO_CLEAR": "Clear filters",

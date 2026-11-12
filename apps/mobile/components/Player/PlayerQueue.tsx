@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { ERepeatMode, type QueueMediaItem } from "@rockit/shared";
-import { withAlpha } from "@rockit/theme";
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { designTokens, withAlpha } from "@rockit/theme";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { usePlayer, usePlayerServices } from "@/lib/PlayerContext";
 import QueueItem from "@/components/Player/QueueItem";
 import { RecommendationRow } from "@/components/Recommendations/AutoplayDiscovery";
 
-const ITEM_HEIGHT = 66;
+const ITEM_HEIGHT = designTokens.layout.queueRowHeight;
 
 /** Queue identity survives duplicate songs, loaded pages and row selection. */
 export default function PlayerQueue() {
     const styles = useThemedStyles(createStyles);
+    const theme = useDesignTheme();
     const services = usePlayerServices();
     const {
         queueItems,
@@ -27,7 +28,51 @@ export default function PlayerQueue() {
     );
     const repeat = useStore(services.userManager.repeatModeAtom);
     const vocabulary = useStore(services.vocabularyManager.vocabularyAtom);
-    const listRef = useRef<FlatList<QueueMediaItem>>(null);
+    const listRef = useRef<Pick<
+        FlatList<QueueMediaItem>,
+        "scrollToIndex" | "scrollToOffset"
+    > | null>(null);
+    const dragSnapshot = useRef<{ identity: object; ids: number[] } | null>(
+        null
+    );
+    const host = useRef<View>(null);
+    const offset = useRef(0);
+    const dragStartOffset = useRef(0);
+    const pointer = useRef({ dy: 0, y: 0, top: 0, bottom: 0 });
+    const [dragIndex, setDragIndex] = useState<number | null>(null);
+    const [dropIndex, setDropIndex] = useState<number | null>(null);
+    const [reordering, setReordering] = useState(false);
+    useEffect(() => {
+        if (dragIndex === null) return;
+        const timer = setInterval(() => {
+            const p = pointer.current;
+            const direction =
+                p.y > p.bottom - ITEM_HEIGHT
+                    ? 1
+                    : p.y < p.top + ITEM_HEIGHT
+                      ? -1
+                      : 0;
+            if (!direction) return;
+            const next = Math.max(0, offset.current + direction * 16);
+            listRef.current?.scrollToOffset({ offset: next, animated: false });
+            setDropIndex(
+                Math.max(
+                    0,
+                    Math.min(
+                        queueItems.length - 1,
+                        dragIndex +
+                            Math.round(
+                                (p.dy +
+                                    offset.current -
+                                    dragStartOffset.current) /
+                                    ITEM_HEIGHT
+                            )
+                    )
+                )
+            );
+        }, 80);
+        return () => clearInterval(timer);
+    }, [dragIndex, queueItems.length]);
     const [initialIndex] = useState(currentIndex);
     useEffect(() => {
         void services.queueManager.loadAutoplaySuggestionsAsync();
@@ -54,7 +99,7 @@ export default function PlayerQueue() {
             </View>
         );
     return (
-        <View style={styles.container}>
+        <View ref={host} style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>{vocabulary.QUEUE}</Text>
                 <Text style={styles.headerCount}>
@@ -62,7 +107,9 @@ export default function PlayerQueue() {
                 </Text>
             </View>
             <FlatList
-                ref={listRef}
+                ref={(instance) => {
+                    listRef.current = instance;
+                }}
                 data={queueItems}
                 keyExtractor={(item) => String(item.queueMediaId)}
                 getItemLayout={(_, index) => ({
@@ -85,14 +132,109 @@ export default function PlayerQueue() {
                 maxToRenderPerBatch={10}
                 windowSize={5}
                 maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+                scrollEnabled={dragIndex === null}
+                onScroll={(event) => {
+                    offset.current = event.nativeEvent.contentOffset.y;
+                }}
+                scrollEventThrottle={16}
                 renderItem={({ item, index }) => (
-                    <QueueItem
-                        media={item.media}
-                        index={index}
-                        isActive={item.queueMediaId === currentQueueMediaId}
-                        onDelete={removeFromQueue}
-                        onPlay={() => playQueueItem(item.queueMediaId)}
-                    />
+                    <View
+                        style={
+                            dropIndex === index && dragIndex !== index
+                                ? {
+                                      borderTopWidth: 2,
+                                      borderTopColor: theme.colors.primary,
+                                  }
+                                : undefined
+                        }
+                    >
+                        <QueueItem
+                            media={item.media}
+                            index={index}
+                            drag={
+                                reordering
+                                    ? undefined
+                                    : () => {
+                                          dragSnapshot.current = {
+                                              identity:
+                                                  services.queueManager
+                                                      .queueIdentity,
+                                              ids: queueItems.map(
+                                                  (item) => item.queueMediaId
+                                              ),
+                                          };
+                                          dragStartOffset.current =
+                                              offset.current;
+                                          pointer.current.dy = 0;
+                                          host.current?.measureInWindow(
+                                              (x, y, w, h) => {
+                                                  pointer.current.top = y;
+                                                  pointer.current.bottom =
+                                                      y + h;
+                                                  pointer.current.y = y + h / 2;
+                                              }
+                                          );
+                                          setDragIndex(index);
+                                      }
+                            }
+                            onDragMove={(dy, y) => {
+                                pointer.current.dy = dy;
+                                pointer.current.y = y;
+                                setDropIndex(
+                                    Math.max(
+                                        0,
+                                        Math.min(
+                                            queueItems.length - 1,
+                                            index +
+                                                Math.round(
+                                                    (dy +
+                                                        offset.current -
+                                                        dragStartOffset.current) /
+                                                        ITEM_HEIGHT
+                                                )
+                                        )
+                                    )
+                                );
+                            }}
+                            onDragEnd={(dy) => {
+                                const snapshot = dragSnapshot.current;
+                                dragSnapshot.current = null;
+                                setDragIndex(null);
+                                setDropIndex(null);
+                                const to = Math.max(
+                                    0,
+                                    Math.min(
+                                        queueItems.length - 1,
+                                        index +
+                                            Math.round(
+                                                (dy +
+                                                    offset.current -
+                                                    dragStartOffset.current) /
+                                                    ITEM_HEIGHT
+                                            )
+                                    )
+                                );
+                                if (
+                                    !snapshot ||
+                                    snapshot.identity !==
+                                        services.queueManager.queueIdentity ||
+                                    to === index
+                                )
+                                    return;
+                                setReordering(true);
+                                void services.queueManager
+                                    .reorderQueueItemsAsync(
+                                        snapshot.ids[index],
+                                        snapshot.ids[to]
+                                    )
+                                    .finally(() => setReordering(false));
+                            }}
+                            isDragging={dragIndex === index}
+                            isActive={item.queueMediaId === currentQueueMediaId}
+                            onDelete={removeFromQueue}
+                            onPlay={() => playQueueItem(item.queueMediaId)}
+                        />
+                    </View>
                 )}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}

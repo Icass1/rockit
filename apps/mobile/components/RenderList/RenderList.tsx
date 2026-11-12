@@ -5,7 +5,12 @@ import type {
     CollectionPager,
     TMedia,
 } from "@rockit/shared";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    FeaturedArtwork,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
@@ -14,6 +19,7 @@ import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList
 
 interface RenderListProps {
     title: string;
+    featuredKind?: string;
     subtitle?: string;
     imageUrl: string;
     artists?: BaseArtistResponse[];
@@ -32,6 +38,7 @@ interface RenderListProps {
 
 export default memo(function RenderList({
     title,
+    featuredKind,
     subtitle,
     imageUrl,
     artists = [],
@@ -65,13 +72,23 @@ export default memo(function RenderList({
                                 style={styles.gradient}
                             />
                             <View style={styles.imageContainer}>
-                                <Image
-                                    source={{
-                                        uri: imageUrl || PLACEHOLDER.playlist,
-                                    }}
-                                    style={styles.coverImage}
-                                    contentFit="cover"
-                                />
+                                {featuredKind ? (
+                                    <FeaturedArtwork
+                                        kind={featuredKind}
+                                        label={title}
+                                        size={theme.layout.collectionArtwork}
+                                    />
+                                ) : (
+                                    <Image
+                                        source={{
+                                            uri:
+                                                imageUrl ||
+                                                PLACEHOLDER.playlist,
+                                        }}
+                                        style={styles.coverImage}
+                                        contentFit="cover"
+                                    />
+                                )}
                             </View>
                             <View style={styles.titleContainer}>
                                 <Text style={styles.title} numberOfLines={5}>
@@ -138,8 +155,8 @@ const createStyles = (theme: DesignTheme) =>
             elevation: 8,
         },
         coverImage: {
-            width: 220,
-            height: 220,
+            width: theme.layout.collectionArtwork,
+            height: theme.layout.collectionArtwork,
             borderRadius: theme.radius.lg,
             backgroundColor: theme.legacy.bgCard,
         },

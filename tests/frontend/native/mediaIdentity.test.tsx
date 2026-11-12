@@ -86,17 +86,16 @@ it("renders the explicit marker through native Text and excludes unknown evidenc
 
 it("renders the user's profile photo and falls back to an initial only after an image failure", async () => {
     const { ProfileAvatar } = require("@rockit/ui");
-    const { Image } = require("react-native");
     await render(
         <ProfileAvatar
             name="Nico"
             imageUrl="https://fixture.invalid/avatar.png"
         />
     );
-    expect(screen.UNSAFE_getByType(Image)).toHaveProp("source", {
+    expect(screen.getByLabelText("Nico")).toHaveProp("source", {
         uri: "https://fixture.invalid/avatar.png",
     });
-    await fireEvent(screen.UNSAFE_getByType(Image), "error");
+    await fireEvent(screen.getByLabelText("Nico"), "error");
     expect(screen.getByText("N")).toBeTruthy();
     await screen.rerender(
         <ProfileAvatar
@@ -104,7 +103,7 @@ it("renders the user's profile photo and falls back to an initial only after an 
             imageUrl="https://fixture.invalid/updated.png"
         />
     );
-    expect(screen.UNSAFE_getByType(Image)).toHaveProp("source", {
+    expect(screen.getByLabelText("Nico")).toHaveProp("source", {
         uri: "https://fixture.invalid/updated.png",
     });
 });

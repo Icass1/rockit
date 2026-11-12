@@ -19,8 +19,6 @@ export function ProfileAvatar({
     const length = size ?? theme.layout.touchTarget;
     return (
         <View
-            accessibilityRole="image"
-            accessibilityLabel={name}
             style={{
                 width: length,
                 height: length,
@@ -34,6 +32,7 @@ export function ProfileAvatar({
         >
             {imageUrl && imageUrl !== failed ? (
                 <Image
+                    accessibilityLabel={name}
                     source={{ uri: imageUrl }}
                     resizeMode="cover"
                     style={StyleSheet.absoluteFill}

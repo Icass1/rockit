@@ -15,6 +15,7 @@ import {
     Flame,
     Headphones,
 } from "@rockit/ui/icons";
+import { EmblemInspector } from "@rockit/ui/primitives/EmblemInspector";
 import { IconButton } from "@rockit/ui/primitives/IconButton";
 import { ListeningEmblem } from "@rockit/ui/primitives/ListeningEmblem";
 import { ProfileAvatar } from "@rockit/ui/primitives/ProfileAvatar";
@@ -533,6 +534,15 @@ export function ListeningProfile({
                         accessibilityLiveRegion="polite"
                         style={{ gap: theme.spacing.xs }}
                     >
+                        {selectedKey === selected.key && (
+                            <EmblemInspector
+                                key={selected.key}
+                                badge={selected}
+                                ownerName={profile.username}
+                                vocabulary={v}
+                                preview={medal(selected)}
+                            />
+                        )}
                         <Text
                             style={{
                                 color: muted,

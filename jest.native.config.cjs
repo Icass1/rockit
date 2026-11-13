@@ -15,6 +15,8 @@ module.exports = {
         "^@rockit/ui$": "<rootDir>/packages/ui/src/index.ts",
         "^@rockit/ui/primitives/ExplicitBadge$":
             "<rootDir>/packages/ui/src/primitives/ExplicitBadge.native.tsx",
+        "^@rockit/ui/primitives/EmblemInspector$":
+            "<rootDir>/packages/ui/src/primitives/EmblemInspector.native.tsx",
         "^@rockit/ui/(.*)$": "<rootDir>/packages/ui/src/$1",
         "^@rockit/theme/tokens$": "<rootDir>/packages/theme/src/tokens.json",
         "^@rockit/theme$": "<rootDir>/packages/theme/src/index.ts",

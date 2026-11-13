@@ -13,8 +13,12 @@ motifs. Miniatures clip motifs to a reserved interior and omit overlaid logos
 and numeric labels. Three.js builds beveled extrusions from those same outlines;
 raised tubular contours give the motif physical depth and react to studio light.
 The league metal and colored enamel come from shared semantic theme tokens.
-Legend adds a seven-part faceted crest with raised crystalline wings and an
-amethyst finish; the family motif keeps its clear central field.
+Legend uses a convex central cup with a polished inward bevel, real inner walls
+and a shallow recessed enamel floor. The family motif sits entirely below the lip.
+Seven closed crystal roofs form its amethyst crest; neighboring roofs share
+boundary vertices, with side walls only on the exposed perimeter. The enamel
+and rear plates follow the core rather than copying the wing silhouette, keeping
+them clear of the crystals. Miniatures use the same core, well and crystal layout.
 
 The reverse carries the original RockIt! vector logo, the viewed profile's
 existing username, a Roman rank and the persisted award date without a timezone
@@ -42,8 +46,10 @@ context. Initialization failure and context loss retain a static preview.
 
 ## Verification
 
-Fast contracts cover Roman ranks, bounded collection rendering, inspection
-controls, cleanup and the unavailable-WebGL fallback. The browser flow exercises
+Fast geometry contracts check closed, consistently wound cup/crystal meshes and
+a genuinely recessed central face. Other contracts cover Roman ranks, bounded
+collection rendering, inspection controls, cleanup and the unavailable-WebGL
+fallback. The browser flow exercises
 actual WebGL rendering, front/reverse selection, close/reopen and simulated
 context loss. Native component checks cover the static profile path. Browser
 captures use synthetic profiles and award dates. Physical iPhone GPU acceptance
@@ -52,3 +58,9 @@ is separate from Chromium checks.
 Three.js references: [ExtrudeGeometry](https://threejs.org/docs/#ExtrudeGeometry),
 [OrbitControls](https://threejs.org/docs/#OrbitControls) and
 [SVGLoader](https://threejs.org/docs/#SVGLoader).
+
+## Next league
+
+Diamond color and facet differentiation from Legend remains a separate design
+pass. This refinement changes Legend only; the other five forms keep their
+existing geometry and palette.

@@ -274,3 +274,20 @@ reverse logo is a physical cut in the plate with preserved metal islands and a
 recessed floor. The award date keeps its existing instant and omits the visible
 timezone suffix. Text engraving remains texture-based. The inline preview uses
 the production geometry and palette.
+
+### Legend cavity and crystal topology — PR 212
+
+Replace stacked wing silhouettes with one closed central cup and joined closed
+crystal roofs. The front enamel and family motif sit inside a physical recess;
+the polished rim descends into the face instead of stacking above it. Adjacent
+crystals share their boundary edges, while enamel and reverse plates remain
+inside the core. The original cut rear logo and award text are preserved.
+Miniatures use the same separated core/well/crystal outlines. Diamond remains
+queued for a separate color and facet refinement.
+
+Verification: nine focused geometry/artwork/lifecycle checks and the native
+profile control pass. Both production builds, strict UI/app/test types, app lint
+and boundary/theme checks pass. Three Chromium inspector flows cover six
+finishes, phone bounds, front/reverse, close/reopen and context-loss recovery.
+The production-renderer demo also passes at 320 px without overflow. Physical
+iPhone GPU acceptance remains separate.

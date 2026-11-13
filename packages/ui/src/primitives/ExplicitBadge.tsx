@@ -1,5 +1,6 @@
 "use client";
 
+import { ExplicitMark } from "@rockit/ui/icons";
 import { useDesignTheme } from "@rockit/ui/theme";
 
 /** Render only persisted positive evidence; missing evidence is not clean. */
@@ -14,23 +15,28 @@ export function ExplicitBadge({
     if (explicit !== true) return null;
     return (
         <span
+            role="img"
             aria-label={label}
             title={label}
             style={{
-                color: theme.colors["explicit-foreground"],
-                backgroundColor: theme.colors["explicit-background"],
-                textAlign: "center",
-                minWidth: theme.typography.caption + theme.spacing.xs,
-                display: "inline-block",
-                lineHeight: 1.1,
-                borderRadius: theme.radius.xs,
-                paddingInline: theme.spacing.xs,
-                fontSize: theme.typography.caption,
-                fontWeight: "700",
+                backgroundColor: theme.colors["explicit-foreground"],
+                width: theme.layout.explicitBadgeSize,
+                height: theme.layout.explicitBadgeSize,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                verticalAlign: "middle",
+                borderRadius: theme.layout.explicitBadgeRadius,
                 flexShrink: 0,
             }}
         >
-            E
+            <ExplicitMark
+                size={theme.layout.explicitBadgeSize}
+                fill={theme.colors["explicit-background"]}
+                strokeWidth={0}
+                aria-hidden="true"
+                focusable="false"
+            />
         </span>
     );
 }

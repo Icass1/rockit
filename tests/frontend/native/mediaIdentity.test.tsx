@@ -73,7 +73,7 @@ it("exposes selected and disabled actions through the native accessibility tree"
     expect(press).not.toHaveBeenCalled();
 });
 
-it("renders the explicit marker through native Text and excludes unknown evidence", async () => {
+it("renders an accessible native explicit marker and excludes unknown evidence", async () => {
     const view = await render(
         <ExplicitBadge explicit label="Explicit recording" />
     );

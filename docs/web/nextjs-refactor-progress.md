@@ -246,3 +246,11 @@ motion uses manual navigation. The presenter does not alter music playback.
 Research, exact rules, data coverage and validation are documented in
 [Annual recap](../frontend/annual-recap.md). Browser screenshots use synthetic history;
 physical iPhone/APK background acceptance remains separate.
+
+### Explicit marker proportions — PR 212
+
+Replace the font-dependent explicit label with one shared filled vector silhouette:
+12 px square, light gray with a dark cut-out glyph, without label padding or a
+border. Web and native adapters render the same path and retain the translated
+accessible name and positive-evidence policy. Existing DOM/native media-identity
+checks and both app type checks pass; the browser preview measures 12×12 px.

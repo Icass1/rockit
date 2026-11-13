@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [EMBLEMS] Ampliar la colección con 500 objetivos y seis ligas
+
+- tags: [backend, mobile, web, friends, emblems]
+- priority: normal
+- workload: Normal
+    ```md
+    Catálogo de 615 emblemas, conservando los 115 identificadores anteriores. Dieciséis familias, objetivos cortos/medios/largos, aniversarios hasta veinte años y 25 secretos. Bronce/plata/oro/platino/diamante/leyenda con siluetas y motivos distintos. Concesión batched, ranking sin objetivos bloqueados y catálogos paginados con filtros de familia/liga. Traducciones en Excel y documentación de límites UTC.
+    ```
+
 ### [FRIENDS] Perfiles musicales y vitrina de emblemas en web y móvil
 
 - tags: [mobile, web, friends, emblems, ux]

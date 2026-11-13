@@ -97,3 +97,36 @@ it("shows retry on failure instead of zero-filled profile data", async () => {
     expect(await screen.findByText("Sam")).toBeTruthy();
     expect(load).toHaveBeenCalledTimes(2);
 });
+
+it("filters a large collection by family and league without rendering hundreds of emblems", async () => {
+    const { emblemCollectionProfile } =
+        await import("../fixtures/emblemCollection");
+    const profile = {
+        ...emblemCollectionProfile,
+        listeningBadges: Array.from({ length: 615 }, (_, index) => ({
+            ...emblemCollectionProfile.listeningBadges[
+                index % emblemCollectionProfile.listeningBadges.length
+            ],
+            key: `sample-${index}`,
+        })),
+    };
+    render(panel(async () => profile));
+    fireEvent.click(
+        await screen.findByRole("button", { name: "Explore all 615 emblems" })
+    );
+    expect(
+        screen
+            .getByTestId("profile-emblems")
+            .querySelectorAll('[role="button"]')
+    ).toHaveLength(9);
+    fireEvent.click(screen.getByRole("button", { name: "Diamond" }));
+    expect(
+        screen
+            .getByTestId("profile-emblems")
+            .querySelectorAll('[role="button"]')
+    ).toHaveLength(9);
+    fireEvent.click(screen.getByRole("button", { name: "Hidden tracks" }));
+    const detail = screen.getByTestId("profile-emblem-detail");
+    expect(detail.textContent).toContain("This secret reveals itself");
+    expect(detail.textContent).not.toContain("0 / 0");
+});

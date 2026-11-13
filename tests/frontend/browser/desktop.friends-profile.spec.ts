@@ -58,3 +58,28 @@ test("desktop circle opens a focused, dismissible listening passport and the ori
         page.getByRole("dialog").getByText("Sam", { exact: true })
     ).toBeVisible();
 });
+
+test("emblem families and leagues filter the shared collection without spilling the viewport", async ({
+    page,
+    request,
+    context,
+}, info) => {
+    const { emblemCollectionProfile } =
+        await import("../fixtures/emblemCollection");
+    const { verifyEmblemCollection } = await import("./emblemCollectionFlow");
+    await request.post(backend + "/__fixture/reset");
+    await context.addCookies([
+        { name: "session_id", value: "fixture", url: backend, httpOnly: true },
+    ]);
+    await request.post(backend + "/__fixture/fault", {
+        data: { path: "/friends", body: { friends: circleFriends } },
+    });
+    await request.post(backend + "/__fixture/fault", {
+        data: {
+            path: "/friends/circle-sam/level",
+            body: emblemCollectionProfile,
+        },
+    });
+    await page.goto("http://127.0.0.1:13000/friends");
+    await verifyEmblemCollection(page, info, "desktop-emblems");
+});

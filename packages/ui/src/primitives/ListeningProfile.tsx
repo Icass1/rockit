@@ -18,7 +18,13 @@ import {
 import { IconButton } from "@rockit/ui/primitives/IconButton";
 import { ListeningEmblem } from "@rockit/ui/primitives/ListeningEmblem";
 import { ProfileAvatar } from "@rockit/ui/primitives/ProfileAvatar";
-import { ActivityIndicator, Pressable, Text, View } from "@rockit/ui/runtime";
+import {
+    ActivityIndicator,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
+} from "@rockit/ui/runtime";
 import { useDesignTheme } from "@rockit/ui/theme";
 
 /** On-demand, scoped listening passport. No additional presence or playback subscriptions. */
@@ -37,6 +43,8 @@ export function ListeningProfile({
     const resource = useAsyncResource(loadProfile, resourceKey);
     const [catalog, setCatalog] = useState(false);
     const [earnedOnly, setEarnedOnly] = useState(false);
+    const [family, setFamily] = useState("all");
+    const [league, setLeague] = useState("all");
     const [page, setPage] = useState(0);
     const [selectedKey, setSelectedKey] = useState<string>();
     const color = theme.colors.foreground;
@@ -82,9 +90,12 @@ export function ListeningProfile({
             a.key.localeCompare(b.key)
     );
     const earned = badges.filter((badge) => badge.earnedAt).length;
-    const filtered = earnedOnly
-        ? badges.filter((badge) => badge.earnedAt)
-        : badges;
+    const filtered = badges.filter(
+        (badge) =>
+            (!earnedOnly || badge.earnedAt) &&
+            (family === "all" || badge.scope === family) &&
+            (league === "all" || badge.league === league)
+    );
     const size = theme.layout.socialEmblemSize;
     const pageSize = theme.layout.socialEmblemPageSize;
     const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -111,6 +122,7 @@ export function ListeningProfile({
                 variant={badge.visualVariant}
                 earned={!!badge.earnedAt}
                 tier={badge.tier}
+                league={badge.league}
                 size={size}
             />
         );
@@ -317,6 +329,115 @@ export function ListeningProfile({
                         ))}
                     </View>
                 )}
+                {catalog && (
+                    <>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            accessibilityLabel={v.FRIENDS_BADGE_FILTER_FAMILY}
+                            style={{ flexGrow: 0 }}
+                            contentContainerStyle={{ gap: theme.spacing.md }}
+                        >
+                            {[
+                                "all",
+                                ...new Set(badges.map((badge) => badge.scope)),
+                            ].map((scope) => (
+                                <Pressable
+                                    key={scope}
+                                    accessibilityRole="button"
+                                    aria-pressed={family === scope}
+                                    accessibilityState={{
+                                        selected: family === scope,
+                                    }}
+                                    onPress={() => {
+                                        setFamily(scope);
+                                        setPage(0);
+                                        setSelectedKey(undefined);
+                                    }}
+                                    style={{
+                                        minHeight: theme.layout.touchTarget,
+                                        justifyContent: "center",
+                                        borderBottomWidth: 2,
+                                        borderBottomColor:
+                                            family === scope
+                                                ? theme.colors.primary
+                                                : "transparent",
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color:
+                                                family === scope
+                                                    ? color
+                                                    : muted,
+                                            fontSize: theme.typography.caption,
+                                        }}
+                                    >
+                                        {scope === "all"
+                                            ? v.FRIENDS_BADGE_ALL
+                                            : text(
+                                                  `FRIENDS_BADGE_FAMILY_${scope.toUpperCase()}`
+                                              )}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </ScrollView>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            accessibilityLabel={v.FRIENDS_BADGE_FILTER_LEAGUE}
+                            style={{ flexGrow: 0 }}
+                            contentContainerStyle={{ gap: theme.spacing.md }}
+                        >
+                            {[
+                                "all",
+                                "bronze",
+                                "silver",
+                                "gold",
+                                "platinum",
+                                "diamond",
+                                "legend",
+                            ].map((rank) => (
+                                <Pressable
+                                    key={rank}
+                                    accessibilityRole="button"
+                                    aria-pressed={league === rank}
+                                    accessibilityState={{
+                                        selected: league === rank,
+                                    }}
+                                    onPress={() => {
+                                        setLeague(rank);
+                                        setPage(0);
+                                        setSelectedKey(undefined);
+                                    }}
+                                    style={{
+                                        minHeight: theme.layout.touchTarget,
+                                        justifyContent: "center",
+                                        borderBottomWidth: 2,
+                                        borderBottomColor:
+                                            league === rank
+                                                ? theme.colors.primary
+                                                : "transparent",
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color:
+                                                league === rank ? color : muted,
+                                            fontSize: theme.typography.caption,
+                                        }}
+                                    >
+                                        {rank === "all"
+                                            ? v.FRIENDS_BADGE_LEAGUES_ALL
+                                            : text(
+                                                  `FRIENDS_BADGE_LEAGUE_${rank.toUpperCase()}`
+                                              )}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </ScrollView>
+                    </>
+                )}
                 <View
                     testID="profile-emblems"
                     style={{
@@ -362,6 +483,16 @@ export function ListeningProfile({
                             >
                                 {text(badge.titleKey)}
                             </Text>
+                            <Text
+                                style={{
+                                    color: muted,
+                                    fontSize: theme.typography.caption,
+                                }}
+                            >
+                                {text(
+                                    `FRIENDS_BADGE_LEAGUE_${badge.league.toUpperCase()}`
+                                )}
+                            </Text>
                         </Pressable>
                     ))}
                 </View>
@@ -374,6 +505,20 @@ export function ListeningProfile({
                         accessibilityLiveRegion="polite"
                         style={{ gap: theme.spacing.xs }}
                     >
+                        <Text
+                            style={{
+                                color: muted,
+                                fontSize: theme.typography.caption,
+                            }}
+                        >
+                            {text(
+                                `FRIENDS_BADGE_FAMILY_${selected.scope.toUpperCase()}`
+                            )}{" "}
+                            ·{" "}
+                            {text(
+                                `FRIENDS_BADGE_LEAGUE_${selected.league.toUpperCase()}`
+                            )}
+                        </Text>
                         <Text
                             style={{
                                 color,
@@ -404,13 +549,15 @@ export function ListeningProfile({
                         >
                             {selected.earnedAt
                                 ? `${v.FRIENDS_BADGE_EARNED} · ${new Date(selected.earnedAt).toLocaleDateString()}`
-                                : text("FRIENDS_BADGE_PROGRESS", {
-                                      current: Math.min(
-                                          selected.current,
-                                          selected.target
-                                      ),
-                                      target: selected.target,
-                                  })}
+                                : selected.secret
+                                  ? v.FRIENDS_BADGE_LOCKED
+                                  : text("FRIENDS_BADGE_PROGRESS", {
+                                        current: Math.min(
+                                            selected.current,
+                                            selected.target
+                                        ),
+                                        target: selected.target,
+                                    })}
                         </Text>
                     </View>
                 )}

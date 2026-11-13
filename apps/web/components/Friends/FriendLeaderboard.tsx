@@ -216,7 +216,10 @@ export default function FriendLeaderboard({
                             aria-label={v.FRIENDS_BADGES}
                         >
                             <h3>{v.FRIENDS_BADGES}</h3>
-                            <EmblemCollection badges={self.listeningBadges} />
+                            <EmblemCollection
+                                badges={self.listeningBadges}
+                                totalBadges={self.listeningBadgeTotal}
+                            />
                         </section>
                     )}
                 </section>
@@ -360,6 +363,7 @@ export default function FriendLeaderboard({
                                     <h4>{v.SOCIAL_YOU}</h4>
                                     <EmblemCollection
                                         badges={self.listeningBadges ?? []}
+                                        totalBadges={self.listeningBadgeTotal}
                                         compact
                                     />
                                 </section>
@@ -367,6 +371,9 @@ export default function FriendLeaderboard({
                                     <h4>{selected.username}</h4>
                                     <EmblemCollection
                                         badges={selected.listeningBadges ?? []}
+                                        totalBadges={
+                                            selected.listeningBadgeTotal
+                                        }
                                         compact
                                     />
                                 </section>

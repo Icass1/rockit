@@ -4,6 +4,7 @@ export {
     ActivityIndicator,
     Image,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     View,

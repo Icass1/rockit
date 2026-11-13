@@ -27,6 +27,7 @@ registry. See [provider boundaries](provider-boundaries.md) and the current
 | Audio boundary metadata | [Silence analysis](audio-silence-analysis.md) |
 | Large collections and search | [Pagination](collection-pagination.md), [search performance](search-performance.md) |
 | Collection export | [ZIP export](zip-export.md) |
+| Listening goals and collectibles | [Emblem collection](emblem-collection.md) |
 | Verification and persistence coverage | [Backend tests](tests.md) |
 
 ## Development and API changes

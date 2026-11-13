@@ -8,6 +8,7 @@ export const {
     ActivityIndicator,
     Image,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     View,
@@ -18,6 +19,7 @@ export const {
     | "ActivityIndicator"
     | "Image"
     | "Pressable"
+    | "ScrollView"
     | "StyleSheet"
     | "Text"
     | "View"

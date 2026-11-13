@@ -209,3 +209,26 @@ Escape/focus restoration. Existing circle tests also pass. Production builds,
 application lint, frontend/test types and generated theme/vocabulary checks cover
 the integration. Screenshots use synthetic fixture identities. Physical iPhone
 and APK acceptance remains separate from these automated checks.
+
+### Long-term emblem collection — PR 212
+
+The backend catalog now has 615 emblems: 115 preserved identities and 500 new
+objectives across 16 categories. Calendar anniversaries extend to twenty years;
+25 secret milestones reveal their names and objectives only after a persisted
+unlock. Six leagues use distinct silhouettes, shared palettes and category
+engravings. The browser and Expo SVG adapter render the same artwork source.
+
+The shared profile catalog adds horizontal family/league filters and retains
+nine-item pagination. The older desktop comparison collection now paginates too.
+Leaderboards request earned emblems and explicit collection totals, while full
+profiles retain the catalog. This keeps locked objectives out of every friend's
+ranking payload and avoids rendering hundreds of SVGs. No native dependency or
+continuous animation was added.
+
+Verification covers legacy award identities, translated copy, leap-year account
+anniversaries, redacted secrets, batched grants/SQL shape, six distinct silhouettes,
+a 615-item component fixture, native controls and Chromium filters on both hosts.
+Both production builds and frontend/backend type and lint checks are included.
+See [backend rules and limits](../backend/emblem-collection.md), including UTC
+habit counters and optional PostgreSQL persistence acceptance. Screenshots use
+representative fixture entries; artwork previews use the production SVG source.

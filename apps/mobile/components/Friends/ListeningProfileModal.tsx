@@ -78,6 +78,7 @@ export default function ListeningProfileModal({
                                     size={size}
                                     variant={badge.visualVariant}
                                     tier={badge.tier}
+                                    league={badge.league}
                                     earned={!!badge.earnedAt}
                                     renderFace={renderFace}
                                     logoSource={require("@/assets/images/logo-192.png")}

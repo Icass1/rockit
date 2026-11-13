@@ -1133,4 +1133,12 @@ export interface Vocabulary {
     SOCIAL_CIRCLE_EMPTY: string;
     SOCIAL_CIRCLE_SELECT: string;
     SOCIAL_CIRCLE_INVITE: string;
+    SOCIAL_PROFILE_OPEN: string;
+    SOCIAL_PROFILE_ACTION: string;
+    SOCIAL_PROFILE_SELF: string;
+    SOCIAL_PROFILE_HOURS: string;
+    SOCIAL_PROFILE_BADGES: string;
+    SOCIAL_PROFILE_BADGE_OPEN: string;
+    SOCIAL_PROFILE_PREVIOUS_PAGE: string;
+    SOCIAL_PROFILE_NEXT_PAGE: string;
 }

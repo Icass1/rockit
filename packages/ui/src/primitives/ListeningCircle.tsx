@@ -4,7 +4,12 @@ import { useState } from "react";
 import type { Friend, Vocabulary } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useListeningCircle } from "@rockit/ui/headless/useListeningCircle";
-import { AudioLines, Headphones, UserPlus } from "@rockit/ui/icons";
+import {
+    ArrowUpRight,
+    AudioLines,
+    Headphones,
+    UserPlus,
+} from "@rockit/ui/icons";
 import { ProfileAvatar } from "@rockit/ui/primitives/ProfileAvatar";
 import { Pressable, Text, View } from "@rockit/ui/runtime";
 import { useDesignTheme } from "@rockit/ui/theme";
@@ -22,6 +27,9 @@ type CircleCopy = Pick<
     | "FRIENDS_ONLINE_COUNT"
     | "SOCIAL_MANAGE"
     | "SOCIAL_YOU"
+    | "SOCIAL_PROFILE_OPEN"
+    | "SOCIAL_PROFILE_ACTION"
+    | "SOCIAL_PROFILE_SELF"
 >;
 
 /** One bounded, static listening stage shared by desktop, Expo and the PWA. */
@@ -32,6 +40,8 @@ export function ListeningCircle({
     busy = false,
     onInvite,
     onFindFriends,
+    onViewProfile,
+    onViewSelf,
 }: {
     friends: readonly Friend[];
     self?: { username: string; image?: string | null };
@@ -39,6 +49,8 @@ export function ListeningCircle({
     busy?: boolean;
     onInvite: (publicId: string) => void;
     onFindFriends: () => void;
+    onViewProfile?: (publicId: string) => void;
+    onViewSelf?: () => void;
 }) {
     const theme = useDesignTheme();
     const [width, setWidth] = useState(0);
@@ -163,11 +175,18 @@ export function ListeningCircle({
                         }}
                     >
                         {self ? (
-                            <ProfileAvatar
-                                name={self.username}
-                                imageUrl={self.image}
-                                size={avatar}
-                            />
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={v.SOCIAL_PROFILE_SELF}
+                                disabled={!onViewSelf}
+                                onPress={onViewSelf}
+                            >
+                                <ProfileAvatar
+                                    name={self.username}
+                                    imageUrl={self.image}
+                                    size={avatar}
+                                />
+                            </Pressable>
                         ) : (
                             <Headphones
                                 size={theme.typography.heading}
@@ -320,6 +339,35 @@ export function ListeningCircle({
                                 </Text>
                             </View>
                         </View>
+                    )}
+                    {selected && onViewProfile && (
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={v.SOCIAL_PROFILE_OPEN.replace(
+                                "{name}",
+                                selected.username
+                            )}
+                            onPress={() => onViewProfile(selected.publicId)}
+                            style={{
+                                minHeight: theme.layout.touchTarget,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: theme.spacing.xs,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: theme.colors["muted-foreground"],
+                                    fontSize: theme.typography.body,
+                                }}
+                            >
+                                {v.SOCIAL_PROFILE_ACTION}
+                            </Text>
+                            <ArrowUpRight
+                                size={theme.typography.body}
+                                color={theme.colors["muted-foreground"]}
+                            />
+                        </Pressable>
                     )}
                     <Pressable
                         accessibilityRole="button"

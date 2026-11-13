@@ -156,32 +156,20 @@ export function createLegendCrystals() {
         const center = points
             .reduce((sum, point) => sum.add(point), new THREE.Vector2())
             .divideScalar(points.length);
-        const peak = new THREE.Vector3(center.x, center.y, 0.22);
+        // A small polished table and a crown of cut facets on both faces.
+        const table = points.map((point) => point.clone().lerp(center, 0.58));
         for (let i = 0; i < points.length; i++) {
             const a = points[i],
                 b = points[(i + 1) % points.length];
-            triangle(
-                front,
-                peak,
-                new THREE.Vector3(a.x, a.y, 0.025),
-                new THREE.Vector3(b.x, b.y, 0.025)
-            );
             const id = [key(a), key(b)].sort().join("|");
             const previous = edges.get(id);
             if (previous) previous.count++;
             else edges.set(id, { a, b, count: 1 });
         }
-        const rearPeak = new THREE.Vector3(center.x, center.y, -0.22);
-        for (let i = 0; i < points.length; i++) {
-            const a = points[i],
-                b = points[(i + 1) % points.length];
-            triangle(
-                front,
-                rearPeak,
-                new THREE.Vector3(b.x, b.y, -0.025),
-                new THREE.Vector3(a.x, a.y, -0.025)
-            );
-        }
+        band(front, points, 0.025, table, 0.2);
+        cap(front, table, [], 0.2, true);
+        band(front, table, -0.2, points, -0.025);
+        cap(front, table, [], -0.2, false);
     }
     for (const { a, b, count } of edges.values()) {
         if (count !== 1) continue;

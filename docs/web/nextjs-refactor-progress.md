@@ -297,7 +297,8 @@ iPhone GPU acceptance remains separate.
 Refine only Legend with a rounded central outline, thin metal lip and almost
 flush enamel field. Replace its smoothed tubular motif with the SVG loader's
 exact planar stroke geometry, preserving video-icon corners and line proportions.
-Both sides of each crystal now have a faceted apex, joined through a narrow belt.
+Both sides of each crystal now have a polished table and cut crown, joined
+through a narrow belt. Eight instanced metal claws seat their roots on the rim.
 A small shared local satin roughness texture differentiates the metal from the
 enamel and crystal material. The cut reverse logo remains intact.
 

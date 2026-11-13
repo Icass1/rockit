@@ -214,6 +214,25 @@ export function createMedalViewer(
             group.add(
                 new THREE.Mesh(own(createLegendCrystals()), [crystal, metal])
             );
+            // Tiny shared claws seat the crystal roots against the medal's metal rim.
+            const claws = own(
+                new THREE.InstancedMesh(
+                    own(new THREE.CapsuleGeometry(0.014, 0.055, 3, 8)),
+                    edge,
+                    8
+                )
+            );
+            const mount = new THREE.Object3D();
+            mount.rotation.z = Math.PI / 2;
+            let index = 0;
+            for (const x of [-0.535, 0.535])
+                for (const y of [-1 / 6, 1 / 6])
+                    for (const z of [0.126, -0.145]) {
+                        mount.position.set(x, y, z);
+                        mount.updateMatrix();
+                        claws.setMatrixAt(index++, mount.matrix);
+                    }
+            group.add(claws);
         } else {
             solid(1, 0.18, -0.09, metal, 0.8);
             solid(0.91, 0.025, 0.112, edge, 0.15, 0.83);

@@ -286,7 +286,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                                 song.publicId,
                                                 song.audioUrl!,
                                                 song.imageUrl,
-                                                song.name
+                                                song.name,
+                                                song
                                             );
                                         if (!isCurrent()) return;
                                         if (!local)
@@ -360,7 +361,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                     media.publicId,
                                     url,
                                     media.imageUrl,
-                                    media.name
+                                    media.name,
+                                    media
                                 );
 
                             if (localPath) {

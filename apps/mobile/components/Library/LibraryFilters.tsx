@@ -17,6 +17,7 @@ export default function LibraryFilters({
 
     const TABS: { key: ELibraryActiveType; label: string }[] = [
         { key: ELibraryActiveType.All, label: vocabulary.ALL },
+        { key: ELibraryActiveType.Offline, label: vocabulary.OFFLINE },
         { key: ELibraryActiveType.Albums, label: vocabulary.ALBUMS },
         { key: ELibraryActiveType.Playlists, label: vocabulary.PLAYLISTS },
         { key: ELibraryActiveType.Songs, label: vocabulary.SONGS },

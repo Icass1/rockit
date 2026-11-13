@@ -6,4 +6,5 @@ export enum ELibraryActiveType {
     Videos,
     Stations,
     Shared,
+    Offline,
 }

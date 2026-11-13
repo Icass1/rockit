@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FilterMode } from "@rockit/shared";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useLibraryData } from "@/hooks/useLibraryData";
 import LibraryScreen from "@/components/Library/LibraryScreen";
@@ -40,20 +40,11 @@ export default function LibraryPage() {
         );
     }
 
-    if (error) {
-        return (
-            <View style={styles.container}>
-                <View style={styles.centerContainer}>
-                    <Text style={styles.errorText}>{error}</Text>
-                </View>
-            </View>
-        );
-    }
-
     return (
         <View style={styles.container}>
             <View style={{ flex: 1 }}>
                 <LibraryScreen
+                    loadError={error}
                     addedAtById={addedAtById}
                     albums={albums}
                     playlists={playlists}

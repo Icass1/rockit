@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useStore } from "@nanostores/react";
 import type {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -24,6 +25,8 @@ import {
 } from "react-native";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { useLibrarySongSearch } from "@/hooks/useLibrarySongSearch";
+import { useOfflineLibrarySongs } from "@/hooks/useOfflineLibrarySongs";
+import { syncManager } from "@/lib/syncManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
 import LibraryContent from "@/components/Library/LibraryContent";
@@ -36,6 +39,7 @@ import FeaturedCollections from "@/components/Navigation/FeaturedCollections";
 import SearchBar from "@/components/Search/SearchBar";
 
 interface LibraryScreenProps {
+    loadError?: string;
     addedAtById: ReadonlyMap<string, number>;
     albums: BaseAlbumWithoutSongsResponse[];
     playlists: BasePlaylistWithoutMediasResponse[];
@@ -58,6 +62,7 @@ export default function LibraryScreen(props: LibraryScreenProps) {
     );
 }
 function LibraryScreenContent({
+    loadError,
     addedAtById,
     albums,
     playlists,
@@ -72,6 +77,11 @@ function LibraryScreenContent({
     sortMode,
 }: LibraryScreenProps) {
     const selection = useLibrarySelection()!;
+    const online = useStore(syncManager.isOnlineAtom);
+    const offline = useOfflineLibrarySongs(
+        songs,
+        activeType === ELibraryActiveType.Offline
+    );
     const theme = useDesignTheme();
     const router = useTypedRouter();
     const styles = useThemedStyles(createStyles);
@@ -101,7 +111,7 @@ function LibraryScreenContent({
         activeType === ELibraryActiveType.Songs;
     const songSearch = useLibrarySongSearch(
         searchQuery,
-        searchEnabled,
+        searchEnabled && online,
         sortMode === "asc"
             ? "name_asc"
             : sortMode === "desc"
@@ -110,12 +120,22 @@ function LibraryScreenContent({
     );
     const filteredSongs = useMemo(
         () =>
-            searchEnabled
-                ? searchQuery.trim()
-                    ? songSearch.items
-                    : songs
-                : [],
-        [searchEnabled, searchQuery, songSearch.items, songs]
+            activeType === ELibraryActiveType.Offline
+                ? filterBySearch(offline.data ?? [], searchQuery)
+                : searchEnabled
+                  ? searchQuery.trim() && online
+                      ? songSearch.items
+                      : filterBySearch(songs, searchQuery)
+                  : [],
+        [
+            activeType,
+            offline.data,
+            online,
+            searchEnabled,
+            searchQuery,
+            songSearch.items,
+            songs,
+        ]
     );
 
     const filteredVideos = useMemo(() => {
@@ -188,10 +208,23 @@ function LibraryScreenContent({
                         <SearchBar
                             value={searchQuery}
                             onChangeText={onSearchChange}
-                            isSearching={songSearch.loading}
+                            isSearching={
+                                activeType === ELibraryActiveType.Offline
+                                    ? offline.loading
+                                    : songSearch.loading
+                            }
                             onClear={() => onSearchChange("")}
                             placeholder={vocabulary.SEARCH_LIBRARY}
                         />
+                        {loadError && (
+                            <Text
+                                style={{
+                                    color: theme.colors["muted-foreground"],
+                                }}
+                            >
+                                {vocabulary.ERROR}
+                            </Text>
+                        )}
                         <View style={styles.controlsRow}>
                             <View style={styles.filtersContainer}>
                                 <LibraryFilters

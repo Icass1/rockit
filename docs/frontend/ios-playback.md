@@ -119,3 +119,22 @@ while locked and unlocking with transitions both enabled and disabled.
 - [Expo SDK 57 audio](https://docs.expo.dev/versions/v57.0.0/sdk/audio/)
 - [WebKit MediaSession command registration](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/Modules/mediasession/MediaSession.cpp)
 - [Playing-event registration and iOS simulator observations](https://github.com/weitzman/splitopen/pull/15)
+
+## Offline PWA launch and library
+
+The installed worker caches all public route chunks, fonts and bundled artwork
+before installation completes. Navigation falls back to the saved shell on
+network failure or unsuccessful HTTP responses. Private API data stays in the
+account-scoped metadata cache; audio and covers stay in IndexedDB. Radio and
+uncached server data still need a connection.
+
+The mobile Library Offline filter reads saved audio records rather than server
+download flags. New saves retain song metadata; older records use matching
+cached library or collection metadata when available. Offline search filters the
+local catalog. Collection playback traverses the cached pages saved during download and skips songs
+without a local file; it does not create a server queue while disconnected.
+
+Browser acceptance closes the page, disables networking, opens a new page,
+plays a saved Blob with an advancing audio clock, then opens and reloads a route
+not previously visited. This is not physical iOS acceptance or a guarantee
+against OS storage eviction. Install/update the worker online before testing.

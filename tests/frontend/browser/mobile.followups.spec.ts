@@ -137,7 +137,7 @@ test("31 bars and labels fit the stats card on narrow mobile screens", async ({
         });
     }
 });
-test("collection playback is compact, transport fills are explicit, and the map keeps its proportions", async ({
+test("collection playback stays on the artwork and the map keeps its proportions", async ({
     page,
 }, testInfo) => {
     await page.goto(mobile + "/album/album-1");
@@ -145,7 +145,14 @@ test("collection playback is compact, transport fills are explicit, and the map 
         page.getByRole("button", { name: "Play", exact: true })
     ).toHaveCount(1);
     const play = page.getByRole("button", { name: "Play", exact: true });
-    expect((await play.boundingBox())!.height).toBeLessThanOrEqual(48);
+    await expect(play).toHaveAttribute(
+        "data-testid",
+        "collection-artwork-play"
+    );
+    await play.tap();
+    await expect(
+        page.getByTestId("collection-artwork-play-overlay")
+    ).toBeVisible();
     const icon = play.locator("svg");
     expect(await icon.getAttribute("fill")).not.toBe("currentColor");
     expect(await icon.getAttribute("fill")).not.toBe("none");

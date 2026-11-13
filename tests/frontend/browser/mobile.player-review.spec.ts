@@ -485,3 +485,62 @@ test("review screenshots cover mobile destinations and each player panel", async
         await sheet.click({ position: { x: 10, y: 120 } });
     }
 });
+
+test("collection artwork requires confirmation, expires and keeps search compact", async ({
+    page,
+}, info) => {
+    let plays = 0;
+    page.on("request", (request) => {
+        if (
+            request.method() === "POST" &&
+            /\/media\/collection\/[^/]+\/queue$/.test(request.url())
+        )
+            plays++;
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const [name, path] of [
+        ["album", "/album/album-1"],
+        ["playlist", "/playlist/playlist-1"],
+        ["featured", "/playlist/liked"],
+    ]) {
+        await page.goto(mobile + path);
+        const cover = page.getByTestId("collection-artwork-play");
+        const overlay = page.getByTestId("collection-artwork-play-overlay");
+        await expect(cover).toBeVisible();
+        await expect(overlay).toHaveCount(0);
+        const previous = plays;
+        await cover.tap();
+        await expect(overlay).toBeVisible();
+        expect(plays).toBe(previous);
+        if (name === "album") {
+            await page.screenshot({
+                path: info.outputPath("album-play-revealed.png"),
+            });
+            await expect(overlay).toHaveCount(0, { timeout: 4000 });
+            expect(plays).toBe(previous);
+            await page.screenshot({
+                path: info.outputPath("album-play-hidden.png"),
+            });
+            await cover.tap();
+            await expect(overlay).toBeVisible();
+        }
+        const response = page.waitForResponse(
+            (r) =>
+                r.url().includes("/media/collection/") &&
+                r.url().endsWith("/queue") &&
+                r.request().method() === "POST"
+        );
+        await cover.tap();
+        await response;
+        await expect(overlay).toHaveCount(0);
+        expect(plays).toBe(previous + 1);
+        const search = page.getByRole("textbox").first();
+        await expect(search).toBeVisible();
+        const style = await search.evaluate((el) => ({
+            height: el.getBoundingClientRect().height,
+            radius: parseFloat(getComputedStyle(el).borderRadius),
+        }));
+        expect(style.height).toBeLessThanOrEqual(48);
+        expect(style.radius).toBeGreaterThanOrEqual(style.height / 2);
+    }
+});

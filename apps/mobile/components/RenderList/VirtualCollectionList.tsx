@@ -21,7 +21,6 @@ import {
 } from "@rockit/shared";
 import { useDesignTheme } from "@rockit/ui";
 import { FlatList, View, type ViewToken } from "react-native";
-import { usePlayerServices } from "@/lib/PlayerContext";
 import CollectionControls from "@/components/RenderList/CollectionControls";
 import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import { ListMedia } from "@/components/RenderList/ListMedia";
@@ -40,7 +39,6 @@ const TreeRow = memo(function TreeRow({
     listPublicId: string;
     substractArtists: string[];
 }) {
-    const services = usePlayerServices();
     const page = useStore(tree.root.state);
     useEffect(() => {
         if (row.kind === "controls" && row.collectionKey !== "root")
@@ -51,14 +49,6 @@ const TreeRow = memo(function TreeRow({
             <CollectionControls
                 pager={row.pager}
                 showSearch={row.collectionKey === "root"}
-                onPlay={
-                    row.collectionKey === "root"
-                        ? () =>
-                              void services.queueManager.playCollection(
-                                  listPublicId
-                              )
-                        : undefined
-                }
             />
         );
     if (row.kind === "footer")

@@ -14,7 +14,9 @@ import {
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
+import { usePlayerServices } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
+import CollectionArtworkPlay from "@/components/RenderList/CollectionArtworkPlay";
 import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 interface RenderListProps {
@@ -51,6 +53,7 @@ export default memo(function RenderList({
     total,
     footer,
 }: RenderListProps) {
+    const services = usePlayerServices();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
@@ -71,7 +74,14 @@ export default memo(function RenderList({
                                 colors={[theme.legacy.bgCard, "transparent"]}
                                 style={styles.gradient}
                             />
-                            <View style={styles.imageContainer}>
+                            <CollectionArtworkPlay
+                                key={pager.publicId}
+                                onPlay={() =>
+                                    void services.queueManager.playCollection(
+                                        pager.publicId
+                                    )
+                                }
+                            >
                                 {featuredKind ? (
                                     <FeaturedArtwork
                                         kind={featuredKind}
@@ -89,7 +99,7 @@ export default memo(function RenderList({
                                         contentFit="cover"
                                     />
                                 )}
-                            </View>
+                            </CollectionArtworkPlay>
                             <View style={styles.titleContainer}>
                                 <Text style={styles.title} numberOfLines={5}>
                                     {title}
@@ -146,13 +156,6 @@ const createStyles = (theme: DesignTheme) =>
             left: 0,
             right: 0,
             height: 200,
-        },
-        imageContainer: {
-            shadowColor: theme.colors["backdrop"],
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.4,
-            shadowRadius: 16,
-            elevation: 8,
         },
         coverImage: {
             width: theme.layout.collectionArtwork,

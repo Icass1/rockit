@@ -143,3 +143,13 @@ export { downloadCollectionOffline } from "./utils/downloadCollectionOffline";
 export * from "@/utils/radioMap";
 
 export type { Friend } from "@/models/interfaces/friend";
+
+export {
+    annualRecapRange,
+    buildAnnualRecap,
+    loadAnnualRecap,
+} from "@/utils/annualRecap";
+export type {
+    AnnualRecap,
+    AnnualRecapSlide,
+} from "@/models/interfaces/annualRecap";

@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [FRIENDS] Círculo musical interactivo compartido entre web y móvil
+
+- tags: [mobile, web, friends, ui, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Avatares alrededor del usuario, selección para previsualizar presencia/canción e invitación explícita para escuchar juntos. Componente compartido, sin polling ni animaciones continuas; conservar directorio y acciones existentes. Estados vacío/offline, teclado y tamaños móvil/tablet/escritorio comprobados con fixtures; aceptación física iOS/APK pendiente.
+    ```
+
 ### [SEARCH] Descartar búsquedas móviles obsoletas y verificar escritorio
 
 - tags: [mobile, web, search]

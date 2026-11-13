@@ -155,3 +155,26 @@ The mobile vector map now uses square Web Mercator geometry. The build generator
 station markers and country-focus calculations share the world size and projection;
 poles are clamped to the finite Mercator latitude limit. This preserves rectangular
 map navigation and keeps station positions aligned with the regenerated country paths.
+
+### Shared listening circle — PR 212
+
+Friends now opens with an interactive listening circle on desktop and mobile.
+It shows up to six real friends, prioritizing people listening now, around the
+current user's avatar. Selecting a person previews their current presence and
+track; a separate action sends an invitation through the existing listening
+manager. Offline users never display stale tracks as live activity. The empty
+state opens friend discovery. Existing directories, requests, sharing, activity,
+rankings and listening sessions remain available.
+
+`packages/ui` owns the native-compatible component and selection hook. Both
+applications supply scoped manager state and actions. The stage has no polling
+or continuous animations; phone layouts stack the preview below the avatars and
+wide containers place them alongside each other. Sizes/colors come from shared
+theme tokens and new English, Spanish and French copy comes from Vocabulary.xlsx.
+
+Verification covers portable and native component interactions, removal of a
+selected friend, offline/empty states, explicit invitation payloads, desktop
+keyboard selection and mobile layouts at 320, 390 and 768 pixels. Screenshots
+use synthetic fixture identities. TypeScript, lint, theme/vocabulary tooling and
+both production builds are checked separately. Physical iOS and APK acceptance
+remains a device check; Chromium screenshots do not establish native rendering.

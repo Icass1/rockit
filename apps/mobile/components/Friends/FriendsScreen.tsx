@@ -4,6 +4,7 @@ import { useStore } from "@nanostores/react";
 import {
     ActionButton,
     IconButton,
+    ListeningCircle,
     MediaIdentity,
     useDesignTheme,
 } from "@rockit/ui";
@@ -49,6 +50,7 @@ export default function FriendsScreen() {
     const sharing = services.sharingManager;
     const router = useTypedRouter();
     const friends = useStore(manager.friendsAtom);
+    const session = useStore(services.userManager.sessionAtom);
     const blocked = useStore(manager.blockedAtom);
     const incoming = useStore(manager.incomingRequestsAtom);
     const sentRequests = useStore(manager.sentRequestsAtom);
@@ -198,6 +200,7 @@ export default function FriendsScreen() {
                                 key={item.key}
                                 accessibilityRole="tab"
                                 accessibilityLabel={item.label}
+                                aria-selected={tab === item.key}
                                 accessibilityState={{
                                     selected: tab === item.key,
                                 }}
@@ -233,6 +236,29 @@ export default function FriendsScreen() {
                             </Pressable>
                         ))}
                     </ScrollView>
+                    {tab === "friends" &&
+                        ((!loading && !error) || friends.length > 0) && (
+                            <ListeningCircle
+                                key={scope}
+                                friends={friends}
+                                self={session ?? undefined}
+                                vocabulary={v}
+                                busy={busy}
+                                onInvite={(publicId) => {
+                                    void listening
+                                        .invite(publicId)
+                                        .then((ok) => {
+                                            if (
+                                                ok &&
+                                                manager.scopeAtom.get() ===
+                                                    scope
+                                            )
+                                                setTab("sessions");
+                                        });
+                                }}
+                                onFindFriends={() => setTab("search")}
+                            />
+                        )}
                     {!tabs.some((item) => item.key === tab) && (
                         <Text style={copy}>
                             {tab === "search"
@@ -265,6 +291,10 @@ export default function FriendsScreen() {
                                     v.FRIENDS_SEARCH_PLACEHOLDER
                                 }
                                 placeholder={v.FRIENDS_SEARCH_PLACEHOLDER}
+                                placeholderTextColor={
+                                    theme.colors["muted-foreground"]
+                                }
+                                autoFocus
                                 value={query}
                                 onChangeText={setQuery}
                                 onSubmitEditing={() =>
@@ -290,7 +320,7 @@ export default function FriendsScreen() {
                 </View>
             }
             ListEmptyComponent={
-                !loading && !ranks.loading ? (
+                tab !== "friends" && !loading && !ranks.loading ? (
                     <Text style={copy}>{v.NO_DATA}</Text>
                 ) : null
             }

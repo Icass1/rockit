@@ -2,6 +2,7 @@
 
 import { type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import { ListeningCircle } from "@rockit/ui";
 import { Headphones, Music2, Send, Users } from "lucide-react";
 import FriendActivityFeed from "@/components/Friends/FriendActivityFeed";
 import FriendLeaderboard from "@/components/Friends/FriendLeaderboard";
@@ -20,7 +21,14 @@ export default function FriendsClient(): JSX.Element {
 }
 
 function FriendsContent(): JSX.Element {
-    const { friendManager, sharingManager } = useRuntimeServices();
+    const {
+        friendManager,
+        sharingManager,
+        listenTogetherManager,
+        userManager,
+    } = useRuntimeServices();
+    const self = useStore(userManager.sessionAtom);
+    const inviting = useStore(listenTogetherManager.loadingAtom);
     const v = useVocabulary();
     const friends = useStore(friendManager.friendsAtom);
     const activity = useStore(friendManager.activityAtom);
@@ -78,6 +86,38 @@ function FriendsContent(): JSX.Element {
                     </a>
                 ))}
             </nav>
+            {((!loading && !error) || friends.length > 0) && (
+                <ListeningCircle
+                    friends={friends}
+                    self={self ?? undefined}
+                    vocabulary={v}
+                    busy={inviting}
+                    onInvite={(publicId) => {
+                        void listenTogetherManager
+                            .invite(publicId)
+                            .then((ok) => {
+                                if (ok)
+                                    document
+                                        .getElementById("social-together")
+                                        ?.scrollIntoView({
+                                            behavior: window.matchMedia(
+                                                "(prefers-reduced-motion: reduce)"
+                                            ).matches
+                                                ? "auto"
+                                                : "smooth",
+                                            block: "start",
+                                        });
+                            });
+                    }}
+                    onFindFriends={() => {
+                        const input = document.querySelector<HTMLInputElement>(
+                            "#social-circle input"
+                        );
+                        input?.scrollIntoView({ block: "center" });
+                        input?.focus();
+                    }}
+                />
+            )}
             {error && (
                 <div className={styles.error} role="alert">
                     <p>{error}</p>

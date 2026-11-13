@@ -5,11 +5,16 @@ import {
     createMedalOutline,
 } from "@rockit/ui/browser/medalEngraving.web";
 import {
+    createLegendCrystals,
+    createLegendCup,
+    LEGEND_MOTIF_HEIGHT,
+} from "@rockit/ui/browser/medalLegend.web";
+import {
     emblemEngravings,
     emblemInks,
+    emblemMotifPlacement,
     emblemPalette,
     emblemSilhouettes,
-    legendFacets,
 } from "@rockit/ui/headless/emblemArtwork";
 import { medalAwardDate, romanTier } from "@rockit/ui/headless/medalDesign";
 import * as THREE from "three";
@@ -158,9 +163,19 @@ export function createMedalViewer(
             group.add(mesh);
             return mesh;
         };
-        solid(1, 0.18, -0.09, metal, 0.8);
-        solid(0.91, 0.025, 0.112, edge, 0.15, 0.83);
-        solid(0.82, 0.012, 0.113, enamel, 0.16);
+        if (league === "legend") {
+            group.add(
+                new THREE.Mesh(own(createLegendCup()), [metal, enamel, edge])
+            );
+            group.add(
+                new THREE.Mesh(own(createLegendCrystals()), [edge, metal])
+            );
+        } else {
+            solid(1, 0.18, -0.09, metal, 0.8);
+            solid(0.91, 0.025, 0.112, edge, 0.15, 0.83);
+            solid(0.82, 0.012, 0.113, enamel, 0.16);
+        }
+        const placement = emblemMotifPlacement(league);
         const rearRim = solid(0.91, 0.025, -0.112, edge, 0.15, 0.83);
         rearRim.rotation.y = Math.PI;
         const motifs = loader.parse(
@@ -173,9 +188,14 @@ export function createMedalViewer(
                     .map(
                         (point) =>
                             new THREE.Vector3(
-                                ((point.x - 40) * 0.66) / 36,
-                                ((35 - point.y) * 0.66) / 36 + 0.11,
-                                0.158
+                                ((point.x - 40) * placement.scale) / 36,
+                                ((35 - point.y) * placement.scale +
+                                    40 -
+                                    placement.centerY) /
+                                    36,
+                                league === "legend"
+                                    ? LEGEND_MOTIF_HEIGHT
+                                    : 0.158
                             )
                     );
                 if (points.length < 2) continue;
@@ -200,45 +220,6 @@ export function createMedalViewer(
                 );
             }
         }
-        if (league === "legend") {
-            for (const points of legendFacets) {
-                const mapped = points.map(
-                    ([x, y]) =>
-                        new THREE.Vector3(
-                            ((x - 40) * 0.97) / 36,
-                            ((40 - y) * 0.97) / 36,
-                            0.145
-                        )
-                );
-                const center = mapped
-                    .reduce((sum, point) => sum.add(point), new THREE.Vector3())
-                    .divideScalar(mapped.length);
-                center.z = 0.23;
-                const vertices: number[] = [];
-                for (let i = 0; i < mapped.length; i++) {
-                    let a = mapped[i],
-                        b = mapped[(i + 1) % mapped.length];
-                    if (
-                        (a.x - center.x) * (b.y - center.y) -
-                            (a.y - center.y) * (b.x - center.x) <
-                        0
-                    )
-                        [a, b] = [b, a];
-                    vertices.push(
-                        ...center.toArray(),
-                        ...a.toArray(),
-                        ...b.toArray()
-                    );
-                }
-                const geometry = own(new THREE.BufferGeometry());
-                geometry.setAttribute(
-                    "position",
-                    new THREE.Float32BufferAttribute(vertices, 3)
-                );
-                geometry.computeVertexNormals();
-                group.add(new THREE.Mesh(geometry, edge));
-            }
-        }
         const engraving = document.createElement("canvas");
         engraving.width = engraving.height = 1024;
         const context = engraving.getContext("2d");
@@ -254,7 +235,10 @@ export function createMedalViewer(
         const nameWidth = Math.max(1, context.measureText(name).width);
         context.save();
         context.translate(512, 625);
-        context.scale(Math.min(1, 510 / nameWidth), 1);
+        context.scale(
+            Math.min(1, (league === "legend" ? 330 : 510) / nameWidth),
+            1
+        );
         context.fillText(name, 0, 0);
         context.restore();
         context.font = "32px sans-serif";

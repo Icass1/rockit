@@ -10,28 +10,31 @@ export const emblemSilhouettes: Record<string, string> = {
     platinum:
         "M40 3L51 12L65 15L68 29L77 40L68 51L65 65L51 68L40 77L29 68L15 65L12 51L3 40L12 29L15 15L29 12Z",
     diamond: "M40 2L69 21L76 42L40 76L4 42L11 21Z",
-    legend: "M40 2L48 15L57 9L58 24L77 11L70 34L78 30L69 51L60 48L57 61L40 77L23 61L20 48L11 51L2 30L10 34L3 11L22 24L23 9L32 15Z",
+    legend: "M40 8L60 22V48L40 75L20 48V22Z",
 };
 
-/** Facets are part of the silhouette, kept outside the reserved family-motif field. */
+/** The front well remains inside the central cup, clear of the crystal wings. */
+export const legendWellPath = "M27 20H53L55 46L40 65L25 46Z";
 const leftLegendFacets = [
     [
-        [4, 13],
-        [19, 26],
-        [16, 43],
-        [8, 32],
+        [4, 12],
+        [18, 24],
+        [22, 34],
+        [22, 46],
+        [12, 34],
     ],
     [
-        [23, 11],
-        [24, 19],
-        [21, 37],
-        [17, 26],
+        [22, 9],
+        [28, 19],
+        [22, 34],
+        [18, 24],
     ],
     [
-        [4, 32],
-        [16, 40],
-        [20, 48],
-        [11, 50],
+        [12, 34],
+        [22, 46],
+        [21, 52],
+        [10, 47],
+        [6, 33],
     ],
 ] as const;
 export const legendFacets: ReadonlyArray<
@@ -48,6 +51,12 @@ export const legendFacets: ReadonlyArray<
         [33, 13],
     ],
 ];
+
+export function emblemMotifPlacement(league: string) {
+    return league === "legend"
+        ? { centerY: 38, scale: 0.56 }
+        : { centerY: 36, scale: 0.66 };
+}
 
 export function emblemPalette(
     colors: ReturnType<typeof getTheme>,
@@ -140,36 +149,43 @@ export function emblemArtwork(
     const ink = earned
         ? colors[emblemInks[safeVariant]]
         : colors["muted-foreground"];
+    const legend = safeLeague === "legend";
+    const placement = emblemMotifPlacement(safeLeague);
+    const crystals = legend
+        ? legendFacets
+              .map((points) => {
+                  const cx =
+                      points.reduce((sum, p) => sum + p[0], 0) / points.length;
+                  const cy =
+                      points.reduce((sum, p) => sum + p[1], 0) / points.length;
+                  return points
+                      .map(
+                          (point, index) =>
+                              `<path d="M${cx} ${cy}L${point.join(" ")}L${points[(index + 1) % points.length].join(" ")}Z" fill="${index % 2 ? color("metal") : color("highlight")}"/>`
+                      )
+                      .join("");
+              })
+              .join("")
+        : "";
+    const field = legend
+        ? `<path d="${legendWellPath}" transform="translate(40 40) scale(.97) translate(-40 -40)"/>`
+        : `<path d="${die}" transform="translate(40 40) scale(.72) translate(-40 -40)"/>`;
+    const inset = legend
+        ? `<path d="${legendWellPath}" transform="translate(40 40) scale(1.04) translate(-40 -40)" fill="${color("shadow")}"/>
+           <path d="${legendWellPath}" fill="url(#metal-${id})"/>
+           <path d="${legendWellPath}" transform="translate(40 40) scale(.97) translate(-40 -40)" fill="${color("face")}"/>
+           <path d="${legendWellPath}" transform="translate(40 40) scale(.97) translate(-40 -40)" fill="url(#enamel-${id})"/>`
+        : `<path d="${die}" transform="translate(40 40) scale(.87) translate(-40 -40)" fill="${color("shadow")}"/>
+           <path d="${die}" transform="translate(40 40) scale(.82) translate(-40 -40)" fill="${color("face")}" stroke="${color("highlight")}" stroke-opacity=".5" stroke-width=".8"/>
+           <path d="${die}" transform="translate(40 40) scale(.79) translate(-40 -40)" fill="url(#enamel-${id})"/>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none"><defs>
     <linearGradient id="metal-${id}" x1="10" y1="4" x2="66" y2="75" gradientUnits="userSpaceOnUse"><stop stop-color="${color("highlight")}"/><stop offset=".25" stop-color="${color("metal")}"/><stop offset=".5" stop-color="${color("highlight")}"/><stop offset=".72" stop-color="${color("metal")}"/><stop offset="1" stop-color="${color("shadow")}"/></linearGradient>
     <linearGradient id="enamel-${id}" x1="22" y1="15" x2="58" y2="64" gradientUnits="userSpaceOnUse"><stop stop-color="${ink}" stop-opacity=".5"/><stop offset="1" stop-color="${ink}" stop-opacity=".12"/></linearGradient>
-    <clipPath id="field-${id}"><path d="${die}" transform="translate(40 40) scale(.72) translate(-40 -40)"/></clipPath></defs>
+    <clipPath id="field-${id}">${field}</clipPath></defs>
     <path d="${die}" transform="translate(0 2)" fill="${color("shadow")}"/><path d="${die}" fill="url(#metal-${id})"/>
-    <path d="${die}" transform="translate(40 40) scale(.87) translate(-40 -40)" fill="${color("shadow")}"/>
-    <path d="${die}" transform="translate(40 40) scale(.82) translate(-40 -40)" fill="${color("face")}" stroke="${color("highlight")}" stroke-opacity=".5" stroke-width=".8"/>
-    <path d="${die}" transform="translate(40 40) scale(.79) translate(-40 -40)" fill="url(#enamel-${id})"/>
-    ${
-        safeLeague === "legend"
-            ? legendFacets
-                  .map((points) => {
-                      const cx =
-                          points.reduce((sum, p) => sum + p[0], 0) /
-                          points.length;
-                      const cy =
-                          points.reduce((sum, p) => sum + p[1], 0) /
-                          points.length;
-                      return points
-                          .map(
-                              (point, index) =>
-                                  `<path d="M${cx} ${cy}L${point.join(" ")}L${points[(index + 1) % points.length].join(" ")}Z" fill="${index % 2 ? color("metal") : color("highlight")}" fill-opacity="${index % 2 ? 0.85 : 0.7}"/>`
-                          )
-                          .join("");
-                  })
-                  .join("")
-            : ""
-    }
-    <g clip-path="url(#field-${id})"><g transform="translate(40 36) scale(.66) translate(-40 -35)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4">
+    ${crystals}${inset}
+    <g clip-path="url(#field-${id})"><g transform="translate(40 ${placement.centerY}) scale(${placement.scale}) translate(-40 -35)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4">
     <g transform="translate(.6 1)" stroke="${color("shadow")}">${emblemEngravings[safeVariant]}</g>
     <g stroke="${ink}">${emblemEngravings[safeVariant]}</g></g></g>
-    <path d="M27 59h26" stroke="${color("highlight")}" stroke-opacity=".45" stroke-width=".7"/></svg>`;
+    ${legend ? "" : `<path d="M27 59h26" stroke="${color("highlight")}" stroke-opacity=".45" stroke-width=".7"/>`}</svg>`;
 }

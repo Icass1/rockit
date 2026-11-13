@@ -32,34 +32,42 @@ function capArea(
     return area;
 }
 
-it("cuts the brand into the plate while retaining its enclosed metal islands", () => {
-    const outline = createMedalOutline("gold", 0.82);
-    const points = outline.getPoints();
-    const plainArea =
-        Math.abs(
-            points.reduce((sum, point, index) => {
-                const next = points[(index + 1) % points.length];
-                return sum + point.x * next.y - next.x * point.y;
-            }, 0)
-        ) / 2;
-    const cut = createEngravedRear(outline);
-    try {
-        expect(outline.holes).toHaveLength(0);
-        expect(cut.islands.length).toBeGreaterThan(0);
-        const plateArea =
-            capArea(cut.surface) +
-            cut.islands.reduce((sum, geometry) => sum + capArea(geometry), 0);
-        expect(plainArea - plateArea).toBeGreaterThan(capArea(cut.floor) * 0.5);
-        expect(plateArea).toBeGreaterThan(plainArea * 0.5);
-        expect(cut.floor.getAttribute("position").count).toBeGreaterThan(0);
-        expect(
-            Array.from(cut.surface.getAttribute("position").array).every(
-                Number.isFinite
-            )
-        ).toBe(true);
-    } finally {
-        cut.surface.dispose();
-        cut.floor.dispose();
-        cut.islands.forEach((geometry) => geometry.dispose());
+it.each(["gold", "legend"])(
+    "cuts the brand into the %s plate while retaining its enclosed metal islands",
+    (league) => {
+        const outline = createMedalOutline(league, 0.82);
+        const points = outline.getPoints();
+        const plainArea =
+            Math.abs(
+                points.reduce((sum, point, index) => {
+                    const next = points[(index + 1) % points.length];
+                    return sum + point.x * next.y - next.x * point.y;
+                }, 0)
+            ) / 2;
+        const cut = createEngravedRear(outline);
+        try {
+            expect(outline.holes).toHaveLength(0);
+            expect(cut.islands.length).toBeGreaterThan(0);
+            const plateArea =
+                capArea(cut.surface) +
+                cut.islands.reduce(
+                    (sum, geometry) => sum + capArea(geometry),
+                    0
+                );
+            expect(plainArea - plateArea).toBeGreaterThan(
+                capArea(cut.floor) * 0.5
+            );
+            expect(plateArea).toBeGreaterThan(plainArea * 0.5);
+            expect(cut.floor.getAttribute("position").count).toBeGreaterThan(0);
+            expect(
+                Array.from(cut.surface.getAttribute("position").array).every(
+                    Number.isFinite
+                )
+            ).toBe(true);
+        } finally {
+            cut.surface.dispose();
+            cut.floor.dispose();
+            cut.islands.forEach((geometry) => geometry.dispose());
+        }
     }
-});
+);

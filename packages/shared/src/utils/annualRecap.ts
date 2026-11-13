@@ -80,21 +80,19 @@ export function buildAnnualRecap(
             bodyKey: "RECAP_RANKING_BODY",
             items: songs,
         });
-    [...artists]
-        .reverse()
-        .forEach((item, index) =>
-            slides.push({
-                id: `artist-${item.publicId}`,
-                kind: "artists",
-                titleKey:
-                    index === artists.length - 1
-                        ? "RECAP_ARTIST_WINNER"
-                        : "RECAP_ARTIST_COUNTDOWN",
-                bodyKey: "RECAP_ARTIST_BODY",
-                rank: artists.length - index,
-                item,
-            })
-        );
+    [...artists].reverse().forEach((item, index) =>
+        slides.push({
+            id: `artist-${item.publicId}`,
+            kind: "artists",
+            titleKey:
+                index === artists.length - 1
+                    ? "RECAP_ARTIST_WINNER"
+                    : "RECAP_ARTIST_COUNTDOWN",
+            bodyKey: "RECAP_ARTIST_BODY",
+            rank: artists.length - index,
+            item,
+        })
+    );
     const insight: AnnualRecapSlide =
         stats.insights.longestStreak >= 14
             ? {

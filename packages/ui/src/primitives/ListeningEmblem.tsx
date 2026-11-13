@@ -60,9 +60,9 @@ export function ListeningEmblem({
                 resizeMode="contain"
                 style={{
                     position: "absolute",
-                    width: length * 0.26,
-                    height: length * 0.26,
-                    top: length * 0.51,
+                    width: length * 0.22,
+                    height: length * 0.22,
+                    top: length * 0.45,
                     opacity: earned ? 1 : 0.45,
                 }}
             />

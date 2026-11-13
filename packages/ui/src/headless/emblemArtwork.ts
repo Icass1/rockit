@@ -10,8 +10,44 @@ export const emblemSilhouettes: Record<string, string> = {
     platinum:
         "M40 3L51 12L65 15L68 29L77 40L68 51L65 65L51 68L40 77L29 68L15 65L12 51L3 40L12 29L15 15L29 12Z",
     diamond: "M40 2L69 21L76 42L40 76L4 42L11 21Z",
-    legend: "M10 11L24 19L40 3L56 19L70 11L66 45Q62 62 40 75Q18 62 14 45Z",
+    legend: "M40 2L48 15L57 9L58 24L77 11L70 34L78 30L69 51L60 48L57 61L40 77L23 61L20 48L11 51L2 30L10 34L3 11L22 24L23 9L32 15Z",
 };
+
+/** Facets are part of the silhouette, kept outside the reserved family-motif field. */
+const leftLegendFacets = [
+    [
+        [4, 13],
+        [19, 26],
+        [16, 43],
+        [8, 32],
+    ],
+    [
+        [23, 11],
+        [24, 19],
+        [21, 37],
+        [17, 26],
+    ],
+    [
+        [4, 32],
+        [16, 40],
+        [20, 48],
+        [11, 50],
+    ],
+] as const;
+export const legendFacets: ReadonlyArray<
+    ReadonlyArray<readonly [number, number]>
+> = [
+    ...leftLegendFacets,
+    ...leftLegendFacets.map((points) =>
+        points.map(([x, y]) => [80 - x, y] as const)
+    ),
+    [
+        [40, 3],
+        [47, 13],
+        [40, 18],
+        [33, 13],
+    ],
+];
 
 export function emblemPalette(
     colors: ReturnType<typeof getTheme>,
@@ -112,6 +148,26 @@ export function emblemArtwork(
     <path d="${die}" transform="translate(40 40) scale(.87) translate(-40 -40)" fill="${color("shadow")}"/>
     <path d="${die}" transform="translate(40 40) scale(.82) translate(-40 -40)" fill="${color("face")}" stroke="${color("highlight")}" stroke-opacity=".5" stroke-width=".8"/>
     <path d="${die}" transform="translate(40 40) scale(.79) translate(-40 -40)" fill="url(#enamel-${id})"/>
+    ${
+        safeLeague === "legend"
+            ? legendFacets
+                  .map((points) => {
+                      const cx =
+                          points.reduce((sum, p) => sum + p[0], 0) /
+                          points.length;
+                      const cy =
+                          points.reduce((sum, p) => sum + p[1], 0) /
+                          points.length;
+                      return points
+                          .map(
+                              (point, index) =>
+                                  `<path d="M${cx} ${cy}L${point.join(" ")}L${points[(index + 1) % points.length].join(" ")}Z" fill="${index % 2 ? color("metal") : color("highlight")}" fill-opacity="${index % 2 ? 0.85 : 0.7}"/>`
+                          )
+                          .join("");
+                  })
+                  .join("")
+            : ""
+    }
     <g clip-path="url(#field-${id})"><g transform="translate(40 36) scale(.66) translate(-40 -35)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4">
     <g transform="translate(.6 1)" stroke="${color("shadow")}">${emblemEngravings[safeVariant]}</g>
     <g stroke="${ink}">${emblemEngravings[safeVariant]}</g></g></g>

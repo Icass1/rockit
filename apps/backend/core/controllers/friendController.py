@@ -779,7 +779,9 @@ async def get_leaderboard(request: Request) -> LeaderboardResponse:
 
     all_user_ids = [user.id] + friend_ids
 
-    profiles = await Levels.get_profiles_async(session, all_user_ids)
+    profiles = await Levels.get_profiles_async(
+        session=session, user_ids=all_user_ids, include_locked_badges=False
+    )
     if profiles.is_not_ok():
         logger.error(f"Error getting leaderboard. {profiles.info()}")
         raise HTTPException(status_code=profiles.get_http_code(), detail=profiles.message())

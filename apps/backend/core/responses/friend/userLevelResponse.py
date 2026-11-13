@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from core.framework.models.listeningRewards import (
+    ListeningBadgeLeague,
     ListeningBadgeScope,
 )
 
@@ -29,6 +30,8 @@ class ListeningBadgeResponse(BaseModel):
     current: int = 0
     visualVariant: str
     tier: int
+    league: ListeningBadgeLeague = "gold"
+    secret: bool = False
     earnedAt: datetime | None = None
 
 
@@ -45,6 +48,8 @@ class UserLevelResponse(BaseModel):
     levelStartXp: int = 0
     totalListeningSeconds: int = 0
     sessionListeningSeconds: int = 0
+    listeningBadgeCount: int = 0
+    listeningBadgeTotal: int = 0
     listeningBadges: list[ListeningBadgeResponse] = Field(
         default_factory=list[ListeningBadgeResponse]
     )

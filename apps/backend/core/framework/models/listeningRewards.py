@@ -35,6 +35,11 @@ class ListeningRewardSummary:
     recommendations: int = 0
     friends: int = 0
     videos: int = 0
+    active_days: int = 0
+    night_listens: int = 0
+    early_listens: int = 0
+    weekend_listens: int = 0
+    joined_at: datetime | None = None
 
 
 ListeningBadgeScope = Literal[
@@ -47,7 +52,17 @@ ListeningBadgeScope = Literal[
     "friends",
     "videos",
     "mixed",
+    "active_days",
+    "night",
+    "early",
+    "weekend",
+    "tenure",
+    "anniversary",
+    "secrets",
 ]
+
+
+ListeningBadgeLeague = Literal["bronze", "silver", "gold", "platinum", "diamond", "legend"]
 
 
 @dataclass(frozen=True)
@@ -66,3 +81,6 @@ class ListeningBadgeDefinition:
     description_key: str
     visual_variant: str
     tier: int
+    league: ListeningBadgeLeague = "gold"
+    secret: bool = False
+    metric: ListeningBadgeScope | None = None

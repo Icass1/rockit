@@ -11,6 +11,7 @@ import core.framework.friend.listeningRewards as reward_module
 from core.access.db.ormModels.friend.listeningBadge import ListeningBadgeRow
 from core.access.db.ormModels.friend.listeningXpEvent import ListeningXpEventRow
 from core.access.friend.userLevelAccess import UserLevelAccess
+from core.framework.friend.listeningBadgeCatalog import LISTENING_BADGES
 from core.framework.friend.listeningRewards import ListeningRewards
 
 pytestmark = pytest.mark.integration
@@ -29,7 +30,10 @@ async def test_timed_xp_is_not_recomputed_or_replayed(
             database, 1, "occurrence", minute * 60000, baseline=minute == 0
         )
         assert result.is_ok(), result.info()
-    assert await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 6
+    expected = sum(
+        badge.scope in {"session", "total"} and badge.target <= 10 for badge in LISTENING_BADGES
+    )
+    assert await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == expected
     profiles = await UserLevelAccess.get_user_levels_async(database, [1])
     assert profiles.is_ok() and profiles.result()[0].xp == 20
     repeated = await ListeningRewards.observe_async(database, 1, "occurrence", 600000)
@@ -38,7 +42,10 @@ async def test_timed_xp_is_not_recomputed_or_replayed(
     seek = await ListeningRewards.observe_async(database, 1, "occurrence", 3600000, baseline=True)
     assert seek.is_ok() and not seek.result()
     assert await database.scalar(select(func.count()).select_from(ListeningXpEventRow)) == 1
-    assert await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 6
+    expected = sum(
+        badge.scope in {"session", "total"} and badge.target <= 10 for badge in LISTENING_BADGES
+    )
+    assert await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == expected
     profiles = await UserLevelAccess.get_user_levels_async(database, [1])
     assert profiles.is_ok() and profiles.result()[0].xp == 20
 
@@ -62,7 +69,10 @@ async def test_reward_and_cursor_rollback_together(
     await database.rollback()
     replay = await ListeningRewards.observe_async(database, 1, "occurrence", 600000)
     assert replay.is_ok() and replay.result()
-    assert await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 6
+    expected = sum(
+        badge.scope in {"session", "total"} and badge.target <= 10 for badge in LISTENING_BADGES
+    )
+    assert await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == expected
     profiles = await UserLevelAccess.get_user_levels_async(database, [1])
     assert profiles.is_ok() and profiles.result()[0].xp == 20
     assert await database.scalar(select(func.count()).select_from(ListeningXpEventRow)) == 1
@@ -71,14 +81,13 @@ async def test_reward_and_cursor_rollback_together(
 async def test_catalogue_backfill_is_batched_and_idempotent(
     database: AsyncSession,
 ) -> None:
-    from core.framework.friend.listeningBadgeCatalog import LISTENING_BADGES
     from core.framework.friend.listeningBadges import (
         ListeningBadges,
         badge_current,
     )
     from core.framework.models.listeningRewards import ListeningRewardSummary
 
-    assert len(LISTENING_BADGES) == len({badge.key for badge in LISTENING_BADGES}) == 115
+    assert len(LISTENING_BADGES) == len({badge.key for badge in LISTENING_BADGES}) == 615
     summary = ListeningRewardSummary(
         total_ms=900000,
         session_ms=120000,

@@ -6,7 +6,7 @@ from core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from core.access.db.ormModels.friend.userLevel import UserLevelRow
 from core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
 from core.access.friend.userLevelAccess import UserLevelAccess
-from core.framework.friend.listeningBadges import ListeningBadges, badge_current
+from core.framework.friend.listeningBadges import ListeningBadges, badge_metrics, badge_response
 from core.framework.friend.listeningPolicy import (
     LISTENING_BADGES,
     SESSION_BREAK_SECONDS,
@@ -14,7 +14,6 @@ from core.framework.friend.listeningPolicy import (
 )
 from core.framework.media.image import Image
 from core.responses.friend.userLevelResponse import (
-    ListeningBadgeResponse,
     ListeningMilestoneResponse,
     UserLevelResponse,
 )
@@ -69,7 +68,7 @@ class Levels:
 
     @staticmethod
     async def get_profiles_async(
-        session: AsyncSession, user_ids: list[int]
+        session: AsyncSession, user_ids: list[int], include_locked_badges: bool = True
     ) -> Result[list["UserLevelResponse"]]:
         from core.access.friend.friendAccess import FriendAccess
         from core.access.statsAccess import get_streaks_for_users_async
@@ -99,6 +98,10 @@ class Levels:
         by_user = {row.user_id: row for row in levels.result()}
         responses: list[UserLevelResponse] = []
         for user in users.result():
+            metrics = badge_metrics(
+                summary=rewards.result()[user.id], streak=streaks.result().get(user.id, 0)
+            )
+            owned = badges.result().get(user.id, {})
             row = by_user[user.id]
             title = next((c.title for c in configs.result() if c.level == row.level), "")
             next_xp = next((c.xp_required for c in configs.result() if c.level > row.level), row.xp)
@@ -120,26 +123,12 @@ class Levels:
                     xpToNext=max(0, next_xp - row.xp),
                     title=title,
                     streak=streaks.result().get(user.id, 0),
+                    listeningBadgeCount=sum(badge.key in owned for badge in LISTENING_BADGES),
+                    listeningBadgeTotal=len(LISTENING_BADGES),
                     listeningBadges=[
-                        ListeningBadgeResponse(
-                            key=badge.key,
-                            titleKey=badge.title_key,
-                            descriptionKey=badge.description_key,
-                            scope=badge.scope,
-                            targetMinutes=(
-                                badge.target if badge.scope in {"session", "total"} else 0
-                            ),
-                            target=badge.target,
-                            current=badge_current(
-                                badge=badge,
-                                summary=rewards.result()[user.id],
-                                streak=streaks.result().get(user.id, 0),
-                            ),
-                            visualVariant=badge.visual_variant,
-                            tier=badge.tier,
-                            earnedAt=badges.result().get(user.id, {}).get(badge.key),
-                        )
+                        badge_response(badge=badge, metrics=metrics, earned_at=owned.get(badge.key))
                         for badge in LISTENING_BADGES
+                        if include_locked_badges or badge.key in owned
                     ],
                     songsListened=rewards.result()[user.id].recorded_listens,
                     totalListeningSeconds=rewards.result()[user.id].total_ms // 1000,

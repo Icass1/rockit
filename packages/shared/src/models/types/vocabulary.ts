@@ -1712,4 +1712,14 @@ export interface Vocabulary {
     RECAP_MANUAL: string;
     RECAP_METHOD: string;
     RECAP_POSITION: string;
+    MEDAL_3D_OPEN: string;
+    MEDAL_3D_CLOSE: string;
+    MEDAL_3D_FRONT: string;
+    MEDAL_3D_BACK: string;
+    MEDAL_3D_RESET: string;
+    MEDAL_3D_HINT: string;
+    MEDAL_3D_LABEL: string;
+    MEDAL_3D_UNAVAILABLE: string;
+    MEDAL_3D_LOADING: string;
+    MEDAL_3D_REVERSE_NAME: string;
 }

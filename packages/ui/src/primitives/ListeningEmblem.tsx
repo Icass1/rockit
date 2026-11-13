@@ -1,21 +1,16 @@
 "use client";
 
 import { useId, useMemo, type ComponentProps, type ReactNode } from "react";
-import {
-    emblemArtwork,
-    emblemPalette,
-} from "@rockit/ui/headless/emblemArtwork";
+import { emblemArtwork } from "@rockit/ui/headless/emblemArtwork";
 import { LockKeyhole } from "@rockit/ui/icons";
-import { Image, Text, View } from "@rockit/ui/runtime";
+import { Image, View } from "@rockit/ui/runtime";
 import { useDesignTheme } from "@rockit/ui/theme";
 
 export function ListeningEmblem({
     variant,
     earned,
-    tier = 1,
     league = "gold",
     size,
-    logoSource = { uri: "/logo-192.png" },
     renderFace,
 }: {
     variant: string;
@@ -55,29 +50,6 @@ export function ListeningEmblem({
                     style={{ width: length, height: length }}
                 />
             )}
-            <Image
-                source={logoSource}
-                resizeMode="contain"
-                style={{
-                    position: "absolute",
-                    width: length * 0.22,
-                    height: length * 0.22,
-                    top: length * 0.45,
-                    opacity: earned ? 1 : 0.45,
-                }}
-            />
-            <Text
-                style={{
-                    position: "absolute",
-                    bottom: length * 0.16,
-                    color: emblemPalette(theme.colors, league, earned)
-                        .highlight,
-                    fontSize: length * 0.13,
-                    fontWeight: "700",
-                }}
-            >
-                {tier}
-            </Text>
             {!earned && (
                 <View
                     style={{

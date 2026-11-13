@@ -3,7 +3,7 @@ import type { getTheme } from "@rockit/theme";
 // Original RockIt! die and engravings, shared by the browser and native SVG adapter.
 const originalDie =
     "M36 4Q40 2 44 4L65 16Q69 18 69 23V49Q69 54 65 56L44 68Q40 70 36 68L15 56Q11 54 11 49V23Q11 18 15 16Z";
-const silhouettes: Record<string, string> = {
+export const emblemSilhouettes: Record<string, string> = {
     bronze: "M40 4a34 34 0 1 1 0 68a34 34 0 1 1 0-68Z",
     silver: "M15 7Q40 0 65 7V38Q65 59 40 74Q15 59 15 38Z",
     gold: originalDie,
@@ -18,7 +18,9 @@ export function emblemPalette(
     league: string,
     earned: boolean
 ) {
-    const safeLeague = Object.hasOwn(silhouettes, league) ? league : "gold";
+    const safeLeague = Object.hasOwn(emblemSilhouettes, league)
+        ? league
+        : "gold";
     const palette = colors as Record<string, string>;
     return Object.fromEntries(
         ["highlight", "metal", "shadow", "face"].map((part) => [
@@ -30,11 +32,11 @@ export function emblemPalette(
     ) as Record<"highlight" | "metal" | "shadow" | "face", string>;
 }
 
-const engravings: Record<string, string> = {
-    orbit: '<ellipse cx="40" cy="35" rx="25" ry="15" transform="rotate(-32 40 35)" stroke-dasharray="38 7"/>',
+export const emblemEngravings: Record<string, string> = {
+    orbit: '<ellipse cx="40" cy="35" rx="25" ry="15" transform="rotate(-32 40 35)" /><circle cx="40" cy="35" r="7"/>',
     groove: '<circle cx="40" cy="35" r="23" stroke-opacity=".6"/><circle cx="40" cy="35" r="20" stroke-opacity=".35"/>',
     ignition:
-        '<path d="m29 18 4-6m14 6-4-6M20 30l-4-2m44 2 4-2" stroke-width="1.5"/>',
+        '<path d="M24 30v12m8-18v24m8-30v36m8-30v24m8-18v12" stroke-width="3.5"/>',
     longplay:
         '<path d="M19 28v14m4-19v24m34-24v24m4-19v14" stroke-width="1.5"/>',
     atlas: '<path d="m40 11 3 5-3 5-3-5ZM18 39l4-4-4-4m44 8-4-4 4-4"/><path d="M25 18Q40 10 55 18" stroke-dasharray="1 4"/>',
@@ -61,8 +63,8 @@ const extraEngravings: Record<string, string> = {
     artifact:
         '<path d="m40 10 21 13-7 27-14 8-14-8-7-27ZM19 23l21 13 21-13M40 36v22"/><path d="m40 18 7 9-7 4-7-4Z"/>',
 };
-Object.assign(engravings, extraEngravings);
-const inks = {
+Object.assign(emblemEngravings, extraEngravings);
+export const emblemInks = {
     orbit: "emblem-discovery",
     groove: "emblem-community",
     ignition: "emblem-listening",
@@ -90,23 +92,28 @@ export function emblemArtwork(
     id: string,
     league = "gold"
 ): string {
-    const safeLeague = Object.hasOwn(silhouettes, league) ? league : "gold";
-    const die = silhouettes[safeLeague];
+    const safeLeague = Object.hasOwn(emblemSilhouettes, league)
+        ? league
+        : "gold";
+    const die = emblemSilhouettes[safeLeague];
     const palette = emblemPalette(colors, safeLeague, earned);
     const color = (part: keyof typeof palette) => palette[part];
-    const safeVariant = Object.hasOwn(inks, variant)
-        ? (variant as keyof typeof inks)
+    const safeVariant = Object.hasOwn(emblemInks, variant)
+        ? (variant as keyof typeof emblemInks)
         : "ignition";
-    const ink = earned ? colors[inks[safeVariant]] : colors["muted-foreground"];
+    const ink = earned
+        ? colors[emblemInks[safeVariant]]
+        : colors["muted-foreground"];
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none"><defs>
-    <linearGradient id="metal-${id}" x1="15" y1="4" x2="64" y2="68" gradientUnits="userSpaceOnUse"><stop stop-color="${color("highlight")}"/><stop offset=".28" stop-color="${color("metal")}"/><stop offset=".52" stop-color="${color("highlight")}"/><stop offset="1" stop-color="${color("shadow")}"/></linearGradient>
-    <linearGradient id="enamel-${id}" x1="24" y1="12" x2="55" y2="62" gradientUnits="userSpaceOnUse"><stop stop-color="${ink}" stop-opacity=".36"/><stop offset="1" stop-color="${ink}" stop-opacity=".07"/></linearGradient></defs>
-    <path d="${die}" transform="translate(0 3)" fill="${color("shadow")}"/><path d="${die}" fill="url(#metal-${id})"/>
-    <path d="${die}" transform="translate(4.8 4.32) scale(.88)" fill="${color("face")}" stroke="${color("shadow")}" stroke-width=".8"/>
-    <path d="${die}" transform="translate(6.4 5.76) scale(.84)" fill="url(#enamel-${id})" stroke="${ink}" stroke-opacity=".55" stroke-width=".7"/>
-    <g transform="translate(4 -4) scale(.9)" stroke="${ink}" stroke-linecap="round">${engravings[safeVariant]}</g>
-    <path d="M21 48q-6-7-4-16m42 16q6-7 4-16" stroke="${color("highlight")}" stroke-opacity=".55" stroke-width="1.2" stroke-linecap="round"/>
-    ${safeLeague === "diamond" ? `<path d="m11 21 29 8 29-8M40 29v47M4 42h72" stroke="${color("highlight")}" stroke-opacity=".35"/>` : ""}
-    ${safeLeague === "legend" ? `<path d="M10 49Q3 34 9 24m61 25q7-15 1-25M8 35l-5-4m6 12-6-2m69-6 5-4m-6 12 6-2" stroke="${color("metal")}" stroke-width="2"/>` : ""}
-    <path d="m28 58 12 7 12-7" stroke="${color("highlight")}" stroke-opacity=".6" stroke-linecap="round"/></svg>`;
+    <linearGradient id="metal-${id}" x1="10" y1="4" x2="66" y2="75" gradientUnits="userSpaceOnUse"><stop stop-color="${color("highlight")}"/><stop offset=".25" stop-color="${color("metal")}"/><stop offset=".5" stop-color="${color("highlight")}"/><stop offset=".72" stop-color="${color("metal")}"/><stop offset="1" stop-color="${color("shadow")}"/></linearGradient>
+    <linearGradient id="enamel-${id}" x1="22" y1="15" x2="58" y2="64" gradientUnits="userSpaceOnUse"><stop stop-color="${ink}" stop-opacity=".5"/><stop offset="1" stop-color="${ink}" stop-opacity=".12"/></linearGradient>
+    <clipPath id="field-${id}"><path d="${die}" transform="translate(40 40) scale(.72) translate(-40 -40)"/></clipPath></defs>
+    <path d="${die}" transform="translate(0 2)" fill="${color("shadow")}"/><path d="${die}" fill="url(#metal-${id})"/>
+    <path d="${die}" transform="translate(40 40) scale(.87) translate(-40 -40)" fill="${color("shadow")}"/>
+    <path d="${die}" transform="translate(40 40) scale(.82) translate(-40 -40)" fill="${color("face")}" stroke="${color("highlight")}" stroke-opacity=".5" stroke-width=".8"/>
+    <path d="${die}" transform="translate(40 40) scale(.79) translate(-40 -40)" fill="url(#enamel-${id})"/>
+    <g clip-path="url(#field-${id})"><g transform="translate(40 36) scale(.66) translate(-40 -35)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4">
+    <g transform="translate(.6 1)" stroke="${color("shadow")}">${emblemEngravings[safeVariant]}</g>
+    <g stroke="${ink}">${emblemEngravings[safeVariant]}</g></g></g>
+    <path d="M27 59h26" stroke="${color("highlight")}" stroke-opacity=".45" stroke-width=".7"/></svg>`;
 }

@@ -1128,4 +1128,9 @@ export interface Vocabulary {
     RADIO_MAP_ZOOM_IN: string;
     RADIO_MAP_ZOOM_OUT: string;
     RADIO_MAP_RESET: string;
+    SOCIAL_CIRCLE_TITLE: string;
+    SOCIAL_CIRCLE_HINT: string;
+    SOCIAL_CIRCLE_EMPTY: string;
+    SOCIAL_CIRCLE_SELECT: string;
+    SOCIAL_CIRCLE_INVITE: string;
 }

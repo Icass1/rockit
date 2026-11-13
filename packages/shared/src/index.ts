@@ -141,3 +141,5 @@ export { shouldKeepVinyl } from "@/utils/vinylIdentity";
 export { downloadCollectionOffline } from "./utils/downloadCollectionOffline";
 
 export * from "@/utils/radioMap";
+
+export type { Friend } from "@/models/interfaces/friend";

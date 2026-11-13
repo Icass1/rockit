@@ -1,17 +1,21 @@
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { isSearchResult, type TMedia } from "@rockit/shared";
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    FlatList,
+    StyleSheet,
+    Text,
+    useWindowDimensions,
+    View,
+} from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 import MediaCard from "@/components/Media/MediaCard";
-import MediaRow from "@/components/Media/MediaRow";
 
 interface LibraryContentProps {
     extraData?: unknown;
     header?: ReactNode;
     footer?: ReactNode;
     items: TMedia[];
-    viewMode: "grid" | "list";
 }
 
 export default function LibraryContent({
@@ -19,38 +23,47 @@ export default function LibraryContent({
     extraData,
     footer,
     items,
-    viewMode,
 }: LibraryContentProps) {
     const styles = useThemedStyles(createStyles);
+    const theme = useDesignTheme();
+    const { width } = useWindowDimensions();
+    const [measuredWidth, setMeasuredWidth] = useState<number>();
+    const columns = Math.max(
+        2,
+        Math.floor(
+            ((measuredWidth ?? width) - theme.spacing.lg * 2) /
+                theme.layout.libraryCardMinWidth
+        )
+    );
     const { vocabulary } = useVocabulary();
 
     const rows = useMemo(() => {
         const result: TMedia[][] = [];
-        const columns = viewMode === "grid" ? 2 : 1;
         for (let index = 0; index < items.length; index += columns)
             result.push(items.slice(index, index + columns));
         return result;
-    }, [items, viewMode]);
+    }, [items, columns]);
 
     const renderItem = useCallback(
         ({ item }: { item: TMedia[] }) => {
-            if (viewMode === "grid") {
-                return (
-                    <View style={styles.gridRow}>
-                        {item.map((media) => (
-                            <View
-                                key={`${media.type}-${isSearchResult(media) ? media.providerUrl : media.publicId}`}
-                                style={styles.gridItemWrapper}
-                            >
-                                <MediaCard media={media} />
-                            </View>
-                        ))}
-                    </View>
-                );
-            }
-            return <MediaRow media={item[0]} />;
+            return (
+                <View style={styles.gridRow}>
+                    {item.map((media) => (
+                        <View
+                            testID="library-grid-item"
+                            key={`${media.type}-${isSearchResult(media) ? media.providerUrl : media.publicId}`}
+                            style={[
+                                styles.gridItemWrapper,
+                                { width: `${100 / columns}%` },
+                            ]}
+                        >
+                            <MediaCard media={media} />
+                        </View>
+                    ))}
+                </View>
+            );
         },
-        [styles, viewMode]
+        [styles, columns]
     );
 
     const keyExtractor = useCallback(
@@ -62,6 +75,9 @@ export default function LibraryContent({
     return (
         <FlatList
             testID="library-scroll"
+            onLayout={({ nativeEvent }) =>
+                setMeasuredWidth(nativeEvent.layout.width)
+            }
             extraData={extraData}
             data={rows}
             renderItem={renderItem}
@@ -88,8 +104,6 @@ const createStyles = (theme: DesignTheme) =>
             paddingBottom: theme.spacing.lg,
         },
         gridItemWrapper: {
-            flex: 1,
-            maxWidth: "50%",
             padding: theme.spacing.xs,
         },
         gridRow: {

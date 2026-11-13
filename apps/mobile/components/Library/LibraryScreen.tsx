@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useStore } from "@nanostores/react";
 import type {
     BaseAlbumWithoutSongsResponse,
@@ -15,7 +15,7 @@ import {
     useThemedStyles,
     type DesignTheme,
 } from "@rockit/ui";
-import { Download, LayoutGrid, List, X } from "@rockit/ui/icons";
+import { Download, X } from "@rockit/ui/icons";
 import {
     ActivityIndicator,
     Pressable,
@@ -86,7 +86,6 @@ function LibraryScreenContent({
     const router = useTypedRouter();
     const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
     const filteredAlbums = useMemo(() => {
         const filtered =
@@ -201,7 +200,6 @@ function LibraryScreenContent({
         <View style={{ flex: 1 }}>
             <LibraryContent
                 items={items}
-                viewMode={viewMode}
                 extraData={selection.selected}
                 header={
                     <>
@@ -240,30 +238,6 @@ function LibraryScreenContent({
                                     size={theme.typography.subtitle}
                                     color={theme.colors.foreground}
                                 />
-                            </IconButton>
-                            <IconButton
-                                label={
-                                    viewMode === "grid"
-                                        ? vocabulary.RADIO_LIST
-                                        : vocabulary.RADIO_GRID
-                                }
-                                onPress={() =>
-                                    setViewMode(
-                                        viewMode === "grid" ? "list" : "grid"
-                                    )
-                                }
-                            >
-                                {viewMode === "grid" ? (
-                                    <List
-                                        size={theme.typography.subtitle}
-                                        color={theme.colors.foreground}
-                                    />
-                                ) : (
-                                    <LayoutGrid
-                                        size={theme.typography.subtitle}
-                                        color={theme.colors.foreground}
-                                    />
-                                )}
                             </IconButton>
                         </View>
                         {songSearch.error && (

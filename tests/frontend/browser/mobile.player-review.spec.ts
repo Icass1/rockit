@@ -544,3 +544,80 @@ test("collection artwork requires confirmation, expires and keeps search compact
         expect(style.radius).toBeGreaterThanOrEqual(style.height / 2);
     }
 });
+
+test("Library keeps two phone columns and adapts to tablet width without a layout toggle", async ({
+    page,
+    request,
+}, info) => {
+    const library = await (
+        await request.get(backend + "/user/library/medias", { headers })
+    ).json();
+    await request.post(backend + "/__fixture/fault", {
+        data: {
+            path: "/user/library/medias",
+            body: {
+                ...library,
+                albums: Array.from({ length: 7 }, (_, index) => ({
+                    ...library.albums[0],
+                    item: {
+                        ...library.albums[0].item,
+                        publicId: `grid-album-${index}`,
+                        name: `Grid album ${index}`,
+                    },
+                })),
+                playlists: [],
+                songs: [],
+                videos: [],
+                stations: [],
+                shared: [],
+            },
+        },
+    });
+    await page.goto(mobile + "/library");
+    const cards = page.getByTestId("library-grid-item");
+    await expect(cards).toHaveCount(7);
+    for (const [width, columns] of [
+        [320, 2],
+        [390, 2],
+        [430, 2],
+        [768, 4],
+        [1024, 5],
+    ]) {
+        await page.setViewportSize({ width, height: 1000 });
+        await expect
+            .poll(async () =>
+                cards.evaluateAll((nodes) => {
+                    const top = nodes[0].getBoundingClientRect().top;
+                    return nodes.filter(
+                        (node) =>
+                            Math.abs(node.getBoundingClientRect().top - top) < 1
+                    ).length;
+                })
+            )
+            .toBe(columns);
+        const bounds = await cards.evaluateAll((nodes) =>
+            nodes.map((node) => {
+                const rect = node.getBoundingClientRect();
+                return {
+                    left: rect.left,
+                    right: rect.right,
+                    width: rect.width,
+                };
+            })
+        );
+        for (const card of bounds) {
+            expect(card.left).toBeGreaterThanOrEqual(0);
+            expect(card.right).toBeLessThanOrEqual(width);
+            expect(Math.abs(card.width - bounds[0].width)).toBeLessThan(1);
+        }
+        await expect(
+            page.getByRole("button", { name: "List", exact: true })
+        ).toHaveCount(0);
+        await expect(
+            page.getByRole("button", { name: "Grid", exact: true })
+        ).toHaveCount(0);
+        await page.screenshot({
+            path: info.outputPath(`library-${width}.png`),
+        });
+    }
+});

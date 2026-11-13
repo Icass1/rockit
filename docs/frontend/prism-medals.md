@@ -17,9 +17,10 @@ Legend uses a convex central cup with a polished inward bevel, real inner walls
 and an almost flush enamel field, only 0.012 model units below the lip.
 Legend uses exact flat SVG stroke geometry for the metal inlay, preserving corners
 and straight segments instead of resampling them through a smoothing spline.
-Seven double-sided faceted crystals form its crest, with matching front and rear
-tables and cut crowns instead of flat rear caps; neighboring crystals share
-boundary vertices, with side walls only on the exposed perimeter. The enamel
+Nine double-sided faceted crystals form its crest, including two small upper
+rhombi. Front and rear crowns meet directly at a shared equator, without a flat
+central belt. Neighboring stones have a small clearance and remain closed solids;
+the smaller crystals have proportionate depth. The enamel
 and rear plates follow the core rather than copying the wing silhouette, keeping
 them clear of the crystals. Miniatures use the same core, well and crystal layout.
 Eight small instanced metal claws seat the side-crystal roots against the rim on

@@ -193,9 +193,7 @@ export function createMedalViewer(
             group.add(
                 new THREE.Mesh(own(createLegendCup()), [metal, enamel, edge])
             );
-            group.add(
-                new THREE.Mesh(own(createLegendCrystals()), [crystal, metal])
-            );
+            group.add(new THREE.Mesh(own(createLegendCrystals()), crystal));
             // Tiny shared claws seat the crystal roots against the medal's metal rim.
             const claws = own(
                 new THREE.InstancedMesh(

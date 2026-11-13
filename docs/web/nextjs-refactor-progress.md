@@ -311,3 +311,11 @@ Remove the generated grain roughness map after visual review showed a cardboard-
 surface. Legend now uses uniform smooth material roughness, with a more polished
 front field and inlay. Crystal cuts, metal claws and the reverse engraving remain.
 The preview uses the same production material settings.
+
+### Legend crystal silhouettes — PR 212
+
+Remove the flat center belt from each crystal: front and rear facets now meet
+directly at the equator. Each stone remains a separate closed solid with a small
+clearance from its neighbors. Add two small rhombi beside the upper crown stone,
+with proportionate depth and shared miniature/3D placement. Preserve the smooth
+metal field, root mounts and reverse engraving.

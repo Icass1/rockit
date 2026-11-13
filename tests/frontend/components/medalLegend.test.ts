@@ -55,7 +55,7 @@ function inspectSolid(geometry: ReturnType<typeof createLegendCup>) {
     expect(volume).toBeGreaterThan(0);
 }
 
-it("closes the Legend cup and joined crystals without open, duplicated or reversed edges", () => {
+it("closes the Legend cup and separate crystals without open, duplicated or reversed edges", () => {
     for (const geometry of [createLegendCup(), createLegendCrystals()]) {
         try {
             inspectSolid(geometry);
@@ -115,5 +115,24 @@ it("keeps the video inlay planar and below the thin medal lip", () => {
         }
     } finally {
         parts.forEach((part) => part.dispose());
+    }
+});
+
+it("joins crystal crowns directly without a side belt crossing their equator", () => {
+    const crystal = createLegendCrystals();
+    try {
+        const vertices = crystal.getAttribute("position");
+        for (let i = 0; i < vertices.count; i += 3) {
+            const z = [
+                vertices.getZ(i),
+                vertices.getZ(i + 1),
+                vertices.getZ(i + 2),
+            ];
+            expect(Math.min(...z) >= -1e-6 || Math.max(...z) <= 1e-6).toBe(
+                true
+            );
+        }
+    } finally {
+        crystal.dispose();
     }
 });

@@ -137,50 +137,31 @@ export function createLegendCup() {
     return geometry([metal, enamel, polished]);
 }
 
-/** Adjacent crystal roofs share exact edges; only exposed boundaries receive side walls. */
+/** Each crystal closes directly at its equator, without a flat side belt. */
 export function createLegendCrystals() {
-    const front: Batch = [],
-        shell: Batch = [];
-    const edges = new Map<
-        string,
-        { a: THREE.Vector2; b: THREE.Vector2; count: number }
-    >();
-    const key = (point: THREE.Vector2) =>
-        `${point.x.toFixed(8)},${point.y.toFixed(8)}`;
+    const facets: Batch = [];
     for (const polygon of legendFacets) {
-        const points = loop(
+        const outline = loop(
             polygon.map(
                 ([x, y]) => new THREE.Vector2((x - 40) / 36, (40 - y) / 36)
             )
         );
-        const center = points
+        const center = outline
             .reduce((sum, point) => sum.add(point), new THREE.Vector2())
-            .divideScalar(points.length);
-        // A small polished table and a crown of cut facets on both faces.
+            .divideScalar(outline.length);
+        // Separate neighboring stones slightly so every gem remains a closed solid.
+        const points = outline.map((point) => point.clone().lerp(center, 0.02));
         const table = points.map((point) => point.clone().lerp(center, 0.58));
-        for (let i = 0; i < points.length; i++) {
-            const a = points[i],
-                b = points[(i + 1) % points.length];
-            const id = [key(a), key(b)].sort().join("|");
-            const previous = edges.get(id);
-            if (previous) previous.count++;
-            else edges.set(id, { a, b, count: 1 });
-        }
-        band(front, points, 0.025, table, 0.2);
-        cap(front, table, [], 0.2, true);
-        band(front, table, -0.2, points, -0.025);
-        cap(front, table, [], -0.2, false);
+        const depth = Math.min(
+            0.2,
+            Math.sqrt(Math.abs(THREE.ShapeUtils.area(points))) * 0.6
+        );
+        band(facets, points, 0, table, depth);
+        cap(facets, table, [], depth, true);
+        band(facets, table, -depth, points, 0);
+        cap(facets, table, [], -depth, false);
     }
-    for (const { a, b, count } of edges.values()) {
-        if (count !== 1) continue;
-        const topA = new THREE.Vector3(a.x, a.y, 0.025),
-            topB = new THREE.Vector3(b.x, b.y, 0.025);
-        const bottomA = new THREE.Vector3(a.x, a.y, -0.025),
-            bottomB = new THREE.Vector3(b.x, b.y, -0.025);
-        triangle(shell, topA, bottomA, bottomB);
-        triangle(shell, topA, bottomB, topB);
-    }
-    return geometry([front, shell]);
+    return geometry([facets]);
 }
 
 /** Flat, exact SVG strokes preserve straight sides and corners instead of smoothing them into wire. */

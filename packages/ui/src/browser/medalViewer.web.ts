@@ -7,6 +7,7 @@ import {
 import {
     createLegendCrystals,
     createLegendCup,
+    createLegendMotif,
     LEGEND_MOTIF_HEIGHT,
 } from "@rockit/ui/browser/medalLegend.web";
 import {
@@ -131,6 +132,49 @@ export function createMedalViewer(
                 roughness: 0.24,
             })
         );
+        const crystal = own(
+            new THREE.MeshPhysicalMaterial({
+                color: new THREE.Color(palette.highlight).lerp(
+                    new THREE.Color(palette.metal),
+                    0.3
+                ),
+                metalness: 0.12,
+                roughness: 0.16,
+                clearcoat: 1,
+                clearcoatRoughness: 0.08,
+            })
+        );
+        if (league === "legend") {
+            metal.color.lerp(
+                new THREE.Color(colors["medal-silver-metal"]),
+                0.45
+            );
+            enamel.color.set(palette.face).lerp(new THREE.Color(ink), 0.14);
+            enamel.metalness = 0.65;
+            enamel.roughness = 0.38;
+            relief.color
+                .copy(metal.color)
+                .lerp(new THREE.Color(palette.highlight), 0.35);
+            relief.roughness = 0.3;
+            // One small local satin texture, shared by the metal surfaces.
+            const grain = new Uint8Array(128 * 128 * 4);
+            for (let y = 0; y < 128; y++)
+                for (let x = 0; x < 128; x++) {
+                    const value =
+                        180 +
+                        ((x * 13 + y * 71 + x * y * 3) % 19) +
+                        (y % 3) * 5;
+                    const offset = (y * 128 + x) * 4;
+                    grain[offset] =
+                        grain[offset + 1] =
+                        grain[offset + 2] =
+                            value;
+                    grain[offset + 3] = 255;
+                }
+            const satin = own(new THREE.DataTexture(grain, 128, 128));
+            satin.needsUpdate = true;
+            metal.roughnessMap = enamel.roughnessMap = satin;
+        }
         const group = new THREE.Group();
         group.rotation.set(0.2, -0.52, 0);
         scene.add(group);
@@ -168,7 +212,7 @@ export function createMedalViewer(
                 new THREE.Mesh(own(createLegendCup()), [metal, enamel, edge])
             );
             group.add(
-                new THREE.Mesh(own(createLegendCrystals()), [edge, metal])
+                new THREE.Mesh(own(createLegendCrystals()), [crystal, metal])
             );
         } else {
             solid(1, 0.18, -0.09, metal, 0.8);
@@ -181,7 +225,11 @@ export function createMedalViewer(
         const motifs = loader.parse(
             `<svg xmlns="http://www.w3.org/2000/svg">${emblemEngravings[variant]}</svg>`
         ).paths;
-        for (const path of motifs) {
+        if (league === "legend") {
+            for (const geometry of createLegendMotif(variant))
+                group.add(new THREE.Mesh(own(geometry), relief));
+        }
+        for (const path of league === "legend" ? [] : motifs) {
             for (const contour of path.subPaths) {
                 const points = contour
                     .getPoints(20)

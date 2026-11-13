@@ -14,11 +14,17 @@ and numeric labels. Three.js builds beveled extrusions from those same outlines;
 raised tubular contours give the motif physical depth and react to studio light.
 The league metal and colored enamel come from shared semantic theme tokens.
 Legend uses a convex central cup with a polished inward bevel, real inner walls
-and a shallow recessed enamel floor. The family motif sits entirely below the lip.
-Seven closed crystal roofs form its amethyst crest; neighboring roofs share
+and an almost flush enamel field, only 0.012 model units below the lip.
+Legend uses exact flat SVG stroke geometry for the metal inlay, preserving corners
+and straight segments instead of resampling them through a smoothing spline.
+Seven double-sided faceted crystals form its crest, with matching front and rear
+apices instead of flat rear caps; neighboring crystals share
 boundary vertices, with side walls only on the exposed perimeter. The enamel
 and rear plates follow the core rather than copying the wing silhouette, keeping
 them clear of the crystals. Miniatures use the same core, well and crystal layout.
+One local 128×128 roughness texture adds a restrained satin finish to Legend metal;
+it is shared across surfaces and disposed with the viewer. No post-processing,
+remote textures or animation loop is introduced.
 
 The reverse carries the original RockIt! vector logo, the viewed profile's
 existing username, a Roman rank and the persisted award date without a timezone
@@ -64,3 +70,7 @@ Three.js references: [ExtrudeGeometry](https://threejs.org/docs/#ExtrudeGeometry
 Diamond color and facet differentiation from Legend remains a separate design
 pass. This refinement changes Legend only; the other five forms keep their
 existing geometry and palette.
+
+Design reference for the single-medal refinement:
+[Three.js Graphics Builder](https://github.com/majidmanzarpour/threejs-game-skills/blob/main/skills/threejs-aaa-graphics-builder/SKILL.md),
+using its form-first, material-role and bounded-rendering guidance.

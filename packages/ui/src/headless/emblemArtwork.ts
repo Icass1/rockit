@@ -10,11 +10,12 @@ export const emblemSilhouettes: Record<string, string> = {
     platinum:
         "M40 3L51 12L65 15L68 29L77 40L68 51L65 65L51 68L40 77L29 68L15 65L12 51L3 40L12 29L15 15L29 12Z",
     diamond: "M40 2L69 21L76 42L40 76L4 42L11 21Z",
-    legend: "M40 8L60 22V48L40 75L20 48V22Z",
+    legend: "M40 10L57 21Q60 23 60 27V46Q60 51 56 55L40 73L24 55Q20 51 20 46V27Q20 23 23 21Z",
 };
 
 /** The front well remains inside the central cup, clear of the crystal wings. */
-export const legendWellPath = "M27 20H53L55 46L40 65L25 46Z";
+export const legendWellPath =
+    "M40 13L55 23Q58 25 58 28V46Q58 50 54 54L40 69L26 54Q22 50 22 46V28Q22 25 25 23Z";
 const leftLegendFacets = [
     [
         [4, 12],
@@ -168,13 +169,13 @@ export function emblemArtwork(
               .join("")
         : "";
     const field = legend
-        ? `<path d="${legendWellPath}" transform="translate(40 40) scale(.97) translate(-40 -40)"/>`
+        ? `<path d="${legendWellPath}" transform="translate(40 40) scale(.995) translate(-40 -40)"/>`
         : `<path d="${die}" transform="translate(40 40) scale(.72) translate(-40 -40)"/>`;
     const inset = legend
-        ? `<path d="${legendWellPath}" transform="translate(40 40) scale(1.04) translate(-40 -40)" fill="${color("shadow")}"/>
+        ? `<path d="${legendWellPath}" transform="translate(40 40) scale(1.01) translate(-40 -40)" fill="${color("shadow")}"/>
            <path d="${legendWellPath}" fill="url(#metal-${id})"/>
-           <path d="${legendWellPath}" transform="translate(40 40) scale(.97) translate(-40 -40)" fill="${color("face")}"/>
-           <path d="${legendWellPath}" transform="translate(40 40) scale(.97) translate(-40 -40)" fill="url(#enamel-${id})"/>`
+           <path d="${legendWellPath}" transform="translate(40 40) scale(.995) translate(-40 -40)" fill="${color("face")}"/>
+           <path d="${legendWellPath}" transform="translate(40 40) scale(.995) translate(-40 -40)" fill="url(#enamel-${id})"/>`
         : `<path d="${die}" transform="translate(40 40) scale(.87) translate(-40 -40)" fill="${color("shadow")}"/>
            <path d="${die}" transform="translate(40 40) scale(.82) translate(-40 -40)" fill="${color("face")}" stroke="${color("highlight")}" stroke-opacity=".5" stroke-width=".8"/>
            <path d="${die}" transform="translate(40 40) scale(.79) translate(-40 -40)" fill="url(#enamel-${id})"/>`;

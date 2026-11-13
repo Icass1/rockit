@@ -291,3 +291,16 @@ and boundary/theme checks pass. Three Chromium inspector flows cover six
 finishes, phone bounds, front/reverse, close/reopen and context-loss recovery.
 The production-renderer demo also passes at 320 px without overflow. Physical
 iPhone GPU acceptance remains separate.
+
+### Legend medal finish and exact video inlay — PR 212
+
+Refine only Legend with a rounded central outline, thin metal lip and almost
+flush enamel field. Replace its smoothed tubular motif with the SVG loader's
+exact planar stroke geometry, preserving video-icon corners and line proportions.
+Both sides of each crystal now have a faceted apex, joined through a narrow belt.
+A small shared local satin roughness texture differentiates the metal from the
+enamel and crystal material. The cut reverse logo remains intact.
+
+Geometry contracts cover closed crystal/cup topology, the shallow lip and planar
+video inlay. The interactive preview uses the production renderer. Remaining
+leagues stay outside this design pass; physical iPhone GPU acceptance is separate.

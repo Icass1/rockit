@@ -2,6 +2,7 @@
 import {
     createLegendCrystals,
     createLegendCup,
+    createLegendMotif,
     LEGEND_MOTIF_HEIGHT,
     LEGEND_WELL_FLOOR,
 } from "@rockit/ui/browser/medalLegend.web";
@@ -93,11 +94,26 @@ it("keeps the central face and the full motif below the lip, with no cap across 
         expect(facesAtCenter.length).toBeGreaterThan(0);
         expect(Math.max(...facesAtCenter)).toBeCloseTo(LEGEND_WELL_FLOOR);
         geometry.computeBoundingBox();
-        expect(LEGEND_MOTIF_HEIGHT - 0.018).toBeGreaterThan(LEGEND_WELL_FLOOR);
-        expect(LEGEND_MOTIF_HEIGHT + 0.018).toBeLessThan(
-            geometry.boundingBox!.max.z - 0.02
+        expect(LEGEND_MOTIF_HEIGHT).toBeGreaterThan(LEGEND_WELL_FLOOR);
+        expect(LEGEND_MOTIF_HEIGHT).toBeLessThan(geometry.boundingBox!.max.z);
+        expect(geometry.boundingBox!.max.z - LEGEND_WELL_FLOOR).toBeLessThan(
+            0.015
         );
     } finally {
         geometry.dispose();
+    }
+});
+
+it("keeps the video inlay planar and below the thin medal lip", () => {
+    const parts = createLegendMotif("camera");
+    try {
+        expect(parts.length).toBeGreaterThan(0);
+        for (const part of parts) {
+            part.computeBoundingBox();
+            expect(part.boundingBox!.min.z).toBeCloseTo(LEGEND_MOTIF_HEIGHT);
+            expect(part.boundingBox!.max.z).toBeCloseTo(LEGEND_MOTIF_HEIGHT);
+        }
+    } finally {
+        parts.forEach((part) => part.dispose());
     }
 });

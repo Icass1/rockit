@@ -1,7 +1,10 @@
 "use client";
 
 import { useId, useMemo, type ComponentProps, type ReactNode } from "react";
-import { emblemArtwork } from "@rockit/ui/headless/emblemArtwork";
+import {
+    emblemArtwork,
+    emblemPalette,
+} from "@rockit/ui/headless/emblemArtwork";
 import { LockKeyhole } from "@rockit/ui/icons";
 import { Image, Text, View } from "@rockit/ui/runtime";
 import { useDesignTheme } from "@rockit/ui/theme";
@@ -10,6 +13,7 @@ export function ListeningEmblem({
     variant,
     earned,
     tier = 1,
+    league = "gold",
     size,
     logoSource = { uri: "/logo-192.png" },
     renderFace,
@@ -17,6 +21,7 @@ export function ListeningEmblem({
     variant: string;
     earned: boolean;
     tier?: number;
+    league?: string;
     size?: number;
     logoSource?: ComponentProps<typeof Image>["source"];
     renderFace?: (xml: string, size: number) => ReactNode;
@@ -25,8 +30,8 @@ export function ListeningEmblem({
     const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
     const length = size ?? theme.layout.socialEmblemSize;
     const xml = useMemo(
-        () => emblemArtwork(theme.colors, variant, earned, id),
-        [theme.colors, variant, earned, id]
+        () => emblemArtwork(theme.colors, variant, earned, id, league),
+        [theme.colors, variant, earned, id, league]
     );
     return (
         <View
@@ -55,9 +60,9 @@ export function ListeningEmblem({
                 resizeMode="contain"
                 style={{
                     position: "absolute",
-                    width: length * 0.42,
-                    height: length * 0.42,
-                    top: length * 0.22,
+                    width: length * 0.26,
+                    height: length * 0.26,
+                    top: length * 0.51,
                     opacity: earned ? 1 : 0.45,
                 }}
             />
@@ -65,9 +70,8 @@ export function ListeningEmblem({
                 style={{
                     position: "absolute",
                     bottom: length * 0.16,
-                    color: earned
-                        ? theme.colors["medal-highlight"]
-                        : theme.colors["medal-muted-highlight"],
+                    color: emblemPalette(theme.colors, league, earned)
+                        .highlight,
                     fontSize: length * 0.13,
                     fontWeight: "700",
                 }}

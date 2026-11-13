@@ -8,6 +8,7 @@ export default function RockitEmblem(props: {
     variant: string;
     earned: boolean;
     tier?: number;
+    league?: string;
 }): JSX.Element {
     return <ListeningEmblem {...props} />;
 }

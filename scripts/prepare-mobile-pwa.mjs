@@ -54,7 +54,12 @@ html = html.replace(
     `<!-- rockit-mobile-pwa:start --><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="${tokens.themes.dark.background}"><style>html,body,#root{background:${tokens.themes.dark.background};color-scheme:dark;}html,body{margin:0;height:100%;}</style><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!-- rockit-mobile-pwa:end --></head>`
 );
 await writeFile(htmlPath, html);
-const shell = [
+// Cache route chunks before declaring the installation ready, not just visited pages.
+const publicAssets = (await readdir(output, { recursive: true }))
+    .filter(file => /\.(?:js|css|woff2?|ttf|png|jpe?g|svg|webp|ico)$/.test(file))
+    .map(file => "/" + file);
+const shell = [...new Set([
+    ...publicAssets,
     "/",
     "/index.html",
     "/manifest.webmanifest",
@@ -63,7 +68,7 @@ const shell = [
         html.matchAll(/(?:src|href)="([^"?#]+\.(?:js|css))"/g),
         (item) => item[1]
     ).filter((value) => value.startsWith("/")),
-];
+])];
 const files = (await readdir(output, { recursive: true }))
     .filter(
         (file) =>
@@ -96,7 +101,7 @@ self.addEventListener("fetch", event => {
     const url = new URL(request.url);
     if (request.method !== "GET" || request.headers.has("range") || url.origin !== self.location.origin) return;
     if (request.mode === "navigate") {
-        event.respondWith(fetch(request).catch(() => caches.match("/index.html")));
+        event.respondWith(fetch(request).then(response => response.ok ? response : caches.match("/index.html")).catch(() => caches.match("/index.html")));
         return;
     }
     // Only public build assets: never API responses, media or signed URLs.

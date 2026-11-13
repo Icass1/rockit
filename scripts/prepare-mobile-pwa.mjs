@@ -56,7 +56,8 @@ html = html.replace(
 await writeFile(htmlPath, html);
 // Cache route chunks before declaring the installation ready, not just visited pages.
 const publicAssets = (await readdir(output, { recursive: true }))
-    .filter(file => /\.(?:js|css|woff2?|ttf|png|jpe?g|svg|webp|ico)$/.test(file))
+    .filter(file => file !== "sw.js" && /\.(?:js|css|woff2?|ttf|png|jpe?g|svg|webp|ico)$/.test(file))
+    .sort()
     .map(file => "/" + file);
 const shell = [...new Set([
     ...publicAssets,

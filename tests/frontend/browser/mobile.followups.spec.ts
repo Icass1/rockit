@@ -223,7 +223,9 @@ test("PWA registers track navigation after a real HTML audio playing event", asy
         .toBe(true);
 });
 
-test("the shell reserves a bottom system inset once", async ({ page }) => {
+test("the shell reserves a bottom system inset once", async ({
+    page,
+}, info) => {
     // Model the values supplied by safe-area-context's CSS env probe. This is a
     // layout contract check, not an emulation of the iOS system interface.
     await page.addInitScript(() => {
@@ -259,4 +261,20 @@ test("the shell reserves a bottom system inset once", async ({ page }) => {
     const touchHeight = (await settings.boundingBox())!.height;
     expect(touchHeight).toBeGreaterThanOrEqual(44);
     expect(touchHeight).toBeLessThanOrEqual(50);
+    const colors = await settings.evaluate((button) => {
+        const bar = button.parentElement!;
+        let bottom: Element | null = document.elementFromPoint(
+            20,
+            window.innerHeight - 1
+        );
+        let color = "rgba(0, 0, 0, 0)";
+        while (bottom && color === "rgba(0, 0, 0, 0)") {
+            color = getComputedStyle(bottom).backgroundColor;
+            bottom = bottom.parentElement;
+        }
+        return { bar: getComputedStyle(bar).backgroundColor, bottom: color };
+    });
+    expect(colors.bottom).toBe(colors.bar);
+    expect(colors.bottom).not.toBe("rgba(0, 0, 0, 0)");
+    await page.screenshot({ path: info.outputPath("safe-area-34px.png") });
 });

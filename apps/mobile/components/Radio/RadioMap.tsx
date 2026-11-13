@@ -1,6 +1,6 @@
 import { memo } from "react";
 import countries from "@/assets/data/radio-world.json";
-import type { BaseStationResponse } from "@rockit/shared";
+import { locatedRadioStations, type BaseStationResponse } from "@rockit/shared";
 import { useDesignTheme } from "@rockit/ui";
 import { Platform, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -70,45 +70,40 @@ export default memo(function RadioMap({
                             : {})}
                     />
                 ))}
-                {stations
-                    .filter(
-                        (station) =>
-                            station.geoLat != null && station.geoLong != null
-                    )
-                    .map((station) => (
-                        <Circle
-                            key={station.publicId}
-                            cx={(station.geoLong! + 180) * 2}
-                            cy={(90 - station.geoLat!) * 2}
-                            r={4}
-                            fill={theme.colors.primary}
-                            stroke={theme.colors.foreground}
-                            strokeWidth={1}
-                            onPress={(event) => {
-                                onStation(station);
-                                return event;
-                            }}
-                            accessibilityLabel={station.name}
-                            {...(Platform.OS === "web"
-                                ? {
-                                      "aria-label": station.name,
-                                      tabIndex: 0,
-                                      onKeyDown: (event: {
-                                          key: string;
-                                          preventDefault: () => void;
-                                      }) => {
-                                          if (
-                                              event.key === "Enter" ||
-                                              event.key === " "
-                                          ) {
-                                              event.preventDefault();
-                                              onStation(station);
-                                          }
-                                      },
-                                  }
-                                : {})}
-                        />
-                    ))}
+                {locatedRadioStations(stations).map((station) => (
+                    <Circle
+                        key={station.publicId}
+                        cx={(station.geoLong! + 180) * 2}
+                        cy={(90 - station.geoLat!) * 2}
+                        r={4}
+                        fill={theme.colors.primary}
+                        stroke={theme.colors.foreground}
+                        strokeWidth={1}
+                        onPress={(event) => {
+                            onStation(station);
+                            return event;
+                        }}
+                        accessibilityLabel={station.name}
+                        {...(Platform.OS === "web"
+                            ? {
+                                  "aria-label": station.name,
+                                  tabIndex: 0,
+                                  onKeyDown: (event: {
+                                      key: string;
+                                      preventDefault: () => void;
+                                  }) => {
+                                      if (
+                                          event.key === "Enter" ||
+                                          event.key === " "
+                                      ) {
+                                          event.preventDefault();
+                                          onStation(station);
+                                      }
+                                  },
+                              }
+                            : {})}
+                    />
+                ))}
             </Svg>
         </View>
     );

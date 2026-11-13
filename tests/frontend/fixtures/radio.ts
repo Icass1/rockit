@@ -6,7 +6,7 @@ export const mapStation: BaseStationResponse = {
     publicId: "map-france",
     providerUrl: "https://fixture.invalid/map-france",
     name: "Paris fixture radio",
-    imageUrl: "http://127.0.0.1:18899/assets/album.svg",
+    imageUrl: "http://127.0.0.1:18899/assets/artwork.svg",
     streamUrl: "http://127.0.0.1:18899/assets/silence.wav",
     country: "France",
     countryCode: "FR",

@@ -1125,4 +1125,7 @@ export interface Vocabulary {
     QUEUE_DROP_HERE: string;
     QUEUE_REORDER_HELP: string;
     QUEUE_REORDER_TOUCH: string;
+    RADIO_MAP_ZOOM_IN: string;
+    RADIO_MAP_ZOOM_OUT: string;
+    RADIO_MAP_RESET: string;
 }

@@ -131,3 +131,22 @@ featured icons, queue/search manager regressions, native badge rendering, TypeSc
 lint and the production mobile export. Opt-in screenshots cover the principal
 mobile destinations and player panels against synthetic fixture data. Real-device
 WebKit gestures and APK acceptance remain separate from these browser checks.
+
+### Interactive radio exploration — PR 212
+
+Mobile Radio now uses a full-screen vector map with one-finger pan, two-finger
+pinch, zoom/reset controls and a persistent results drawer. Search stays above
+the map; country matches focus located stations in the visible map area. Tapping
+a station previews it before Play. The drawer and its virtualized list share one
+scroll owner, so preview actions remain reachable while the panel expands.
+
+Desktop retains Leaflet pan/zoom and now plots country results alongside saved
+stations, with mouse/keyboard popups and Play. Both renderers share finite-coordinate
+validation and deduplication; stations without coordinates remain in the list
+instead of being assigned invented country-center positions. Translated map
+controls are sourced from Vocabulary.xlsx and sizing stays in shared theme tokens.
+
+Verification includes real Chromium CDP pan/pinch/drawer gestures, preview-before-play,
+desktop mouse/keyboard popup playback, shared coordinate edge cases, both production
+builds, TypeScript and lint. Screenshots use fixture stations. Physical iOS and
+native Android gesture acceptance remains to be done on devices.

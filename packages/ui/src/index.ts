@@ -22,3 +22,5 @@ export { RockitLikeButton } from "@rockit/ui/primitives/RockitLikeButton";
 export { ProfileAvatar } from "./primitives/ProfileAvatar";
 
 export { ListeningCircle } from "@rockit/ui/primitives/ListeningCircle";
+
+export { ListeningEmblem } from "@rockit/ui/primitives/ListeningEmblem";

@@ -319,3 +319,6 @@ directly at the equator. Each stone remains a separate closed solid with a small
 clearance from its neighbors. Add two small rhombi beside the upper crown stone,
 with proportionate depth and shared miniature/3D placement. Preserve the smooth
 metal field, root mounts and reverse engraving.
+
+The two new shoulder rhombi follow the frame angle and their depth clears the
+front lip and rear plate, so they appear seated rather than as detached tips.

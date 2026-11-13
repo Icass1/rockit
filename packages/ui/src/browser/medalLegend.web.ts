@@ -152,9 +152,13 @@ export function createLegendCrystals() {
         // Separate neighboring stones slightly so every gem remains a closed solid.
         const points = outline.map((point) => point.clone().lerp(center, 0.02));
         const table = points.map((point) => point.clone().lerp(center, 0.58));
-        const depth = Math.min(
-            0.2,
-            Math.sqrt(Math.abs(THREE.ShapeUtils.area(points))) * 0.6
+        // Small shoulder stones must clear the metal lip on both faces.
+        const depth = Math.max(
+            0.17,
+            Math.min(
+                0.2,
+                Math.sqrt(Math.abs(THREE.ShapeUtils.area(points))) * 0.6
+            )
         );
         band(facets, points, 0, table, depth);
         cap(facets, table, [], depth, true);

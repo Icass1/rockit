@@ -5,7 +5,12 @@ import {
 } from "@rockit/ui/browser/medalEngraving.web";
 import { expect, it } from "vitest";
 
-function capArea(geometry: ReturnType<typeof createEngravedRear>["surface"]) {
+function capArea(
+    geometry: Pick<
+        ReturnType<typeof createEngravedRear>["surface"],
+        "computeBoundingBox" | "boundingBox" | "getAttribute" | "getIndex"
+    >
+) {
     geometry.computeBoundingBox();
     const z = geometry.boundingBox!.max.z;
     const points = geometry.getAttribute("position");
@@ -44,7 +49,7 @@ it("cuts the brand into the plate while retaining its enclosed metal islands", (
         const plateArea =
             capArea(cut.surface) +
             cut.islands.reduce((sum, geometry) => sum + capArea(geometry), 0);
-        expect(plateArea).toBeLessThan(plainArea - 0.001);
+        expect(plainArea - plateArea).toBeGreaterThan(capArea(cut.floor) * 0.5);
         expect(plateArea).toBeGreaterThan(plainArea * 0.5);
         expect(cut.floor.getAttribute("position").count).toBeGreaterThan(0);
         expect(

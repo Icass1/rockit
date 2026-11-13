@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [FRIENDS] Perfiles musicales y vitrina de emblemas en web y móvil
+
+- tags: [mobile, web, friends, emblems, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Acceso al perfil desde el círculo, directorio y ranking web; perfil propio desde el avatar central. Horas, nivel/XP, racha y escuchas reales. Emblemas originales compartidos, detalle de desbloqueo y catálogo paginado. API existente con permiso de amistad, lecturas bajo demanda y aislamiento de cuenta. Verificado en navegador y contratos nativos; aceptación física iOS/APK pendiente.
+    ```
+
 ### [FRIENDS] Círculo musical interactivo compartido entre web y móvil
 
 - tags: [mobile, web, friends, ui, ux]

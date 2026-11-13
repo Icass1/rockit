@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX } from "react";
+import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { ListeningCircle } from "@rockit/ui";
 import { Headphones, Music2, Send, Users } from "lucide-react";
@@ -9,6 +9,7 @@ import FriendLeaderboard from "@/components/Friends/FriendLeaderboard";
 import FriendRequests from "@/components/Friends/FriendRequests";
 import styles from "@/components/Friends/Friends.module.css";
 import FriendsList from "@/components/Friends/FriendsList";
+import ListeningProfileDialog from "@/components/Friends/ListeningProfileDialog";
 import ListenTogetherPanel from "@/components/Friends/ListenTogetherPanel";
 import SharedMediaInbox from "@/components/Friends/SharedMediaInbox";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
@@ -30,6 +31,16 @@ function FriendsContent(): JSX.Element {
     const self = useStore(userManager.sessionAtom);
     const inviting = useStore(listenTogetherManager.loadingAtom);
     const v = useVocabulary();
+    const [profile, setProfile] = useState<{
+        publicId?: string;
+        name: string;
+    } | null>(null);
+    const openProfile = (publicId: string): void => {
+        const friend = friendManager.friendsAtom
+            .get()
+            .find((person) => person.publicId === publicId);
+        if (friend) setProfile({ publicId, name: friend.username });
+    };
     const friends = useStore(friendManager.friendsAtom);
     const activity = useStore(friendManager.activityAtom);
     const error = useStore(friendManager.errorAtom);
@@ -91,6 +102,10 @@ function FriendsContent(): JSX.Element {
                     friends={friends}
                     self={self ?? undefined}
                     vocabulary={v}
+                    onViewProfile={openProfile}
+                    onViewSelf={() =>
+                        setProfile({ name: self?.username ?? v.SOCIAL_YOU })
+                    }
                     busy={inviting}
                     onInvite={(publicId) => {
                         void listenTogetherManager
@@ -159,7 +174,10 @@ function FriendsContent(): JSX.Element {
                             <div />
                         </div>
                     ) : (
-                        <FriendsList friends={friends} />
+                        <FriendsList
+                            friends={friends}
+                            onViewProfile={openProfile}
+                        />
                     )}
                 </section>
                 <section
@@ -210,9 +228,13 @@ function FriendsContent(): JSX.Element {
                     className={styles.progressRegion}
                     aria-label={v.FRIENDS_PERSONAL_PROGRESS}
                 >
-                    <FriendLeaderboard />
+                    <FriendLeaderboard onViewProfile={openProfile} />
                 </aside>
             </div>
+            <ListeningProfileDialog
+                target={profile}
+                onClose={() => setProfile(null)}
+            />
         </div>
     );
 }

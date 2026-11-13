@@ -42,8 +42,10 @@ function Avatar({
 
 export default function FriendsList({
     friends,
+    onViewProfile,
 }: {
     friends: Friend[];
+    onViewProfile: (publicId: string) => void;
 }): JSX.Element {
     const { friendManager, listenTogetherManager } = useRuntimeServices();
     const blocked = useStore(friendManager.blockedAtom);
@@ -183,15 +185,30 @@ export default function FriendsList({
                     {(expanded ? sorted : sorted.slice(0, 6)).map((friend) => (
                         <li key={friend.publicId}>
                             <div className={styles.directoryRow}>
-                                <Avatar
-                                    imageUrl={friend.imageUrl}
-                                    username={friend.username}
-                                    online={friend.isOnline}
-                                />
+                                <button
+                                    aria-label={v.SOCIAL_PROFILE_OPEN.replace(
+                                        "{name}",
+                                        friend.username
+                                    )}
+                                    onClick={() =>
+                                        onViewProfile(friend.publicId)
+                                    }
+                                >
+                                    <Avatar
+                                        imageUrl={friend.imageUrl}
+                                        username={friend.username}
+                                        online={friend.isOnline}
+                                    />
+                                </button>
                                 <div className={styles.personCopy}>
-                                    <span className={styles.personName}>
+                                    <button
+                                        className={`${styles.personName} text-left hover:underline`}
+                                        onClick={() =>
+                                            onViewProfile(friend.publicId)
+                                        }
+                                    >
                                         {friend.username}
-                                    </span>
+                                    </button>
                                     <span className={styles.personAction}>
                                         {friend.isOnline
                                             ? v.FRIENDS_ONLINE

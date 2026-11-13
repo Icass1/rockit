@@ -39,6 +39,7 @@ import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayerServices } from "@/lib/PlayerContext";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
+import ListeningProfileModal from "@/components/Friends/ListeningProfileModal";
 
 export default function FriendsScreen() {
     const theme = useDesignTheme();
@@ -63,6 +64,15 @@ export default function FriendsScreen() {
     const loading = useStore(manager.loadingAtom);
     const error = useStore(manager.errorAtom);
     const scope = useStore(manager.scopeAtom);
+    const [profile, setProfile] = useState<{
+        scope: number;
+        publicId?: string;
+        name: string;
+    } | null>(null);
+    const openProfile = (publicId: string) => {
+        const friend = friends.find((person) => person.publicId === publicId);
+        if (friend) setProfile({ scope, publicId, name: friend.username });
+    };
     const [tab, setTab] = useState<MobileSocialTab>("friends");
     const [query, setQuery] = useState("");
     const ranks = useAsyncResource(
@@ -130,7 +140,7 @@ export default function FriendsScreen() {
     const confirm = async (label: string, action: () => Promise<unknown>) => {
         if (await confirmAction(label, label, label, v.CANCEL)) await action();
     };
-    return (
+    const list = (
         <FlatList
             style={{ flex: 1, backgroundColor: theme.colors.background }}
             data={rows}
@@ -243,6 +253,13 @@ export default function FriendsScreen() {
                                 friends={friends}
                                 self={session ?? undefined}
                                 vocabulary={v}
+                                onViewProfile={openProfile}
+                                onViewSelf={() =>
+                                    setProfile({
+                                        scope,
+                                        name: session?.username ?? v.SOCIAL_YOU,
+                                    })
+                                }
                                 busy={busy}
                                 onInvite={(publicId) => {
                                     void listening
@@ -273,7 +290,10 @@ export default function FriendsScreen() {
                     {(error || ranks.error) && (
                         <Text
                             accessibilityRole="alert"
-                            style={{ ...copy, color: theme.colors.destructive }}
+                            style={{
+                                ...copy,
+                                color: theme.colors.destructive,
+                            }}
                         >
                             {error ?? v.ERROR}
                         </Text>
@@ -340,7 +360,18 @@ export default function FriendsScreen() {
                                             paddingVertical: theme.spacing.sm,
                                         }}
                                     >
-                                        <View style={{ flex: 1 }}>
+                                        <Pressable
+                                            style={{ flex: 1 }}
+                                            disabled={item.kind === "blocked"}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={v.SOCIAL_PROFILE_OPEN.replace(
+                                                "{name}",
+                                                user.username
+                                            )}
+                                            onPress={() =>
+                                                openProfile(user.publicId)
+                                            }
+                                        >
                                             <MediaIdentity
                                                 title={user.username}
                                                 subtitle={
@@ -367,7 +398,7 @@ export default function FriendsScreen() {
                                                     {user.levelTitle}
                                                 </Text>
                                             )}
-                                        </View>
+                                        </Pressable>
                                         {item.kind === "blocked" ? (
                                             <IconButton
                                                 label={v.FRIENDS_UNBLOCK}
@@ -662,5 +693,14 @@ export default function FriendsScreen() {
                 </View>
             )}
         />
+    );
+    return (
+        <>
+            {list}
+            <ListeningProfileModal
+                target={profile?.scope === scope ? profile : null}
+                onClose={() => setProfile(null)}
+            />
+        </>
     );
 }

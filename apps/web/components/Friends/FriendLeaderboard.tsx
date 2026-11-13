@@ -10,7 +10,11 @@ import styles from "@/components/Friends/Friends.module.css";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
-export default function FriendLeaderboard(): JSX.Element {
+export default function FriendLeaderboard({
+    onViewProfile,
+}: {
+    onViewProfile: (publicId: string) => void;
+}): JSX.Element {
     const { friendManager } = useRuntimeServices();
     const v = useVocabulary() as unknown as Record<string, string>;
     const friends = useStore(friendManager.friendsAtom);
@@ -266,6 +270,20 @@ export default function FriendLeaderboard(): JSX.Element {
                                         <small>{v.SOCIAL_XP}</small>
                                     </span>
                                 </button>
+                                {!isSelf && (
+                                    <button
+                                        className="text-muted-foreground text-xs underline underline-offset-4"
+                                        aria-label={v.SOCIAL_PROFILE_OPEN.replace(
+                                            "{name}",
+                                            entry.username
+                                        )}
+                                        onClick={() =>
+                                            onViewProfile(entry.userId)
+                                        }
+                                    >
+                                        {v.SOCIAL_PROFILE_ACTION}
+                                    </button>
+                                )}
                             </li>
                         );
                     })}

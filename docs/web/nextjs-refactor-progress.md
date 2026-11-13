@@ -178,3 +178,34 @@ keyboard selection and mobile layouts at 320, 390 and 768 pixels. Screenshots
 use synthetic fixture identities. TypeScript, lint, theme/vocabulary tooling and
 both production builds are checked separately. Physical iOS and APK acceptance
 remains a device check; Chromium screenshots do not establish native rendering.
+
+### Listening passports and shared emblems — PR 212
+
+The listening circle and friend directory now open a listening passport on web
+and mobile. The center avatar opens the current user's passport; desktop ranking
+entries also link to friend profiles. Passports expose backend-provided listening
+hours, recorded listens, streak, level/XP and earned emblem counts. They load only
+on request through the existing authenticated friend-level/self-level endpoints.
+Backend friendship authorization is unchanged. Account changes and late replies
+cannot publish a previous account's profile.
+
+`ListeningProfile` in `packages/ui` owns the shared view and bounded emblem catalog:
+three highlights, nine items per catalog page, earned/all filters and an inspectable
+description/progress for each emblem. The original RockIt! die, engravings and
+shared palette now have one SVG source. Browsers use isolated SVG images; Expo
+supplies its installed native SVG adapter and bundled logo. Gradient identifiers
+are unique when the SVG adapter renders several emblems inline. No new package,
+background polling or continuous animation is introduced.
+
+Web composes the existing focus-managed Dialog; mobile composes its native Modal,
+safe-area container and one scroll owner. Both retain current friend actions and
+explicit listen-together invitations. Profile loads have error/retry states, and
+missing/denied responses do not become fabricated zero-valued statistics.
+
+Verification includes three portable profile tests, a native control test, two
+manager contracts for account isolation/endpoints, and Chromium mobile/desktop
+flows for hours, medal inspection/paging, retry, own profiles, keyboard access and
+Escape/focus restoration. Existing circle tests also pass. Production builds,
+application lint, frontend/test types and generated theme/vocabulary checks cover
+the integration. Screenshots use synthetic fixture identities. Physical iPhone
+and APK acceptance remains separate from these automated checks.

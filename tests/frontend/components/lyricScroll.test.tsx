@@ -80,14 +80,20 @@ it("centers immediately without scheduling animation for reduced motion", () => 
     expect(frames.size).toBe(0);
 });
 
-it("finishes the fast PiP scroll without changing the default player clock", () => {
+it("finishes both player and PiP scrolling within the shared fast duration", () => {
     vi.spyOn(window.performance, "now").mockReturnValue(0);
     const player = render(<Probe />);
-    const pip = render(<Probe duration={designTokens.motion.normal} />);
+    const pip = render(<Probe duration={designTokens.motion.lyricsScroll} />);
     const pending = [...frames.values()];
     frames.clear();
-    pending.forEach((frame) => frame(designTokens.motion.normal));
-    expect(pip.container.firstElementChild!.scrollTop).toBe(300);
+    expect(designTokens.motion.lyricsScroll).toBeLessThanOrEqual(250);
+    pending.forEach((frame) => frame(designTokens.motion.lyricsScroll / 2));
+    expect(player.container.firstElementChild!.scrollTop).toBeGreaterThan(0);
     expect(player.container.firstElementChild!.scrollTop).toBeLessThan(300);
-    expect(frames.size).toBe(1);
+    const finishing = [...frames.values()];
+    frames.clear();
+    finishing.forEach((frame) => frame(designTokens.motion.lyricsScroll));
+    expect(pip.container.firstElementChild!.scrollTop).toBe(300);
+    expect(player.container.firstElementChild!.scrollTop).toBe(300);
+    expect(frames.size).toBe(0);
 });

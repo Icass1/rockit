@@ -5,7 +5,7 @@ import {
     lyricPlaybackTime,
     lyricSeekTime,
 } from "@/shared/index";
-import { withAlpha } from "@rockit/theme";
+import { designTokens, withAlpha } from "@rockit/theme";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
@@ -27,6 +27,14 @@ export default function PlayerLyrics() {
     const lyrics =
         publicId && loadedPublicId === publicId ? fetchedLyrics : undefined;
     const scrollRef = useRef<ScrollView>(null);
+    const scrollOffset = useRef(0);
+    const scrollFrame = useRef<number | undefined>(undefined);
+    const cancelScroll = useCallback(() => {
+        if (scrollFrame.current !== undefined)
+            cancelAnimationFrame(scrollFrame.current);
+        scrollFrame.current = undefined;
+    }, []);
+    useEffect(() => cancelScroll, [cancelScroll, publicId]);
     const lineLayouts = useRef(
         new Map<number, { y: number; height: number }>()
     );
@@ -84,14 +92,31 @@ export default function PlayerLyrics() {
             if (currentIndex === null || !viewportHeight) return;
             const line = lineLayouts.current.get(currentIndex);
             if (!line) return;
-            scrollRef.current?.scrollTo({
-                // Lines are measured inside the unpadded wrapper. The content's
-                // half-viewport leading space cancels the centering subtraction.
-                y: Math.max(0, line.y + line.height / 2),
-                animated: animated && !reducedMotion,
-            });
+            cancelScroll();
+            // Preserve measured centering, with one bounded duration on all targets.
+            const target = Math.max(0, line.y + line.height / 2);
+            if (!animated || reducedMotion) {
+                scrollOffset.current = target;
+                scrollRef.current?.scrollTo({ y: target, animated: false });
+                return;
+            }
+            const from = scrollOffset.current;
+            const started = Date.now();
+            const tick = () => {
+                const progress = Math.min(
+                    1,
+                    (Date.now() - started) / designTokens.motion.lyricsScroll
+                );
+                const eased = progress * progress * (3 - 2 * progress);
+                const y = from + (target - from) * eased;
+                scrollOffset.current = y;
+                scrollRef.current?.scrollTo({ y, animated: false });
+                scrollFrame.current =
+                    progress < 1 ? requestAnimationFrame(tick) : undefined;
+            };
+            scrollFrame.current = requestAnimationFrame(tick);
         },
-        [currentIndex, reducedMotion, viewportHeight]
+        [cancelScroll, currentIndex, reducedMotion, viewportHeight]
     );
     useEffect(() => centerActiveLine(), [centerActiveLine, lyrics]);
 
@@ -138,6 +163,11 @@ export default function PlayerLyrics() {
                     ref={scrollRef}
                     testID="lyrics-scroll"
                     style={styles.scroll}
+                    scrollEventThrottle={16}
+                    onScroll={({ nativeEvent }) => {
+                        scrollOffset.current = nativeEvent.contentOffset.y;
+                    }}
+                    onScrollBeginDrag={cancelScroll}
                     onLayout={({ nativeEvent }) =>
                         setViewportHeight(nativeEvent.layout.height)
                     }

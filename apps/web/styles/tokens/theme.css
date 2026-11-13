@@ -121,8 +121,8 @@
     --motion-fast: 150ms;
     --motion-normal: 250ms;
     --motion-slow: 400ms;
-    --motion-lyricsHighlight: 650ms;
-    --motion-lyricsScroll: 900ms;
+    --motion-lyricsHighlight: 150ms;
+    --motion-lyricsScroll: 250ms;
     --motion-likeHold: 1000ms;
     --motion-collectionPlayHint: 3000ms;
 }

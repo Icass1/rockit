@@ -158,10 +158,10 @@ test("collection playback stays on the artwork and the map keeps its proportions
     expect(await icon.getAttribute("fill")).not.toBe("none");
     await page.screenshot({ path: testInfo.outputPath("album.png") });
     await page.goto(mobile + "/radio");
-    const map = page.locator('svg[viewBox="0 10 720 290"]');
+    const map = page.locator('svg[viewBox="0 0 720 720"]');
     await expect(map).toBeVisible();
     const bounds = await map.boundingBox();
-    expect(bounds!.width / bounds!.height).toBeCloseTo(720 / 290, 1);
+    expect(bounds!.width / bounds!.height).toBeCloseTo(1, 1);
     await expect(map).toHaveAttribute("preserveAspectRatio", "xMidYMid meet");
     expect(
         (await page.getByTestId("navigation-settings").boundingBox())!.y +

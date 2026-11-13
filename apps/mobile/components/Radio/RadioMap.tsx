@@ -1,6 +1,11 @@
 import { memo } from "react";
 import countries from "@/assets/data/radio-world.json";
-import { locatedRadioStations, type BaseStationResponse } from "@rockit/shared";
+import {
+    locatedRadioStations,
+    projectRadioLocation,
+    RADIO_MAP_SIZE,
+    type BaseStationResponse,
+} from "@rockit/shared";
 import { useDesignTheme } from "@rockit/ui";
 import { Platform, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -24,13 +29,13 @@ export default memo(function RadioMap({
         <View
             style={{
                 width: "100%",
-                aspectRatio: 720 / 290,
+                aspectRatio: 1,
             }}
         >
             <Svg
                 width="100%"
                 height="100%"
-                viewBox="0 10 720 290"
+                viewBox={`0 0 ${RADIO_MAP_SIZE} ${RADIO_MAP_SIZE}`}
                 preserveAspectRatio="xMidYMid meet"
                 accessibilityLabel={vocabulary.RADIO}
             >
@@ -73,8 +78,18 @@ export default memo(function RadioMap({
                 {locatedRadioStations(stations).map((station) => (
                     <Circle
                         key={station.publicId}
-                        cx={(station.geoLong! + 180) * 2}
-                        cy={(90 - station.geoLat!) * 2}
+                        cx={
+                            projectRadioLocation(
+                                station.geoLat!,
+                                station.geoLong!
+                            ).x
+                        }
+                        cy={
+                            projectRadioLocation(
+                                station.geoLat!,
+                                station.geoLong!
+                            ).y
+                        }
                         r={4}
                         fill={theme.colors.primary}
                         stroke={theme.colors.foreground}

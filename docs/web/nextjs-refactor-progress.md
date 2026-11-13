@@ -150,3 +150,8 @@ Verification includes real Chromium CDP pan/pinch/drawer gestures, preview-befor
 desktop mouse/keyboard popup playback, shared coordinate edge cases, both production
 builds, TypeScript and lint. Screenshots use fixture stations. Physical iOS and
 native Android gesture acceptance remains to be done on devices.
+
+The mobile vector map now uses square Web Mercator geometry. The build generator,
+station markers and country-focus calculations share the world size and projection;
+poles are clamped to the finite Mercator latitude limit. This preserves rectangular
+map navigation and keeps station positions aligned with the regenerated country paths.

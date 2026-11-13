@@ -1,5 +1,9 @@
 import { useEffect, useState, type ReactNode } from "react";
-import type { BaseStationResponse } from "@rockit/shared";
+import {
+    projectRadioLocation,
+    RADIO_MAP_SIZE,
+    type BaseStationResponse,
+} from "@rockit/shared";
 import { IconButton, useDesignTheme } from "@rockit/ui";
 import { Minus, Plus, RotateCcw } from "@rockit/ui/icons";
 import { StyleSheet, View } from "react-native";
@@ -31,14 +35,17 @@ export default function MapViewport({
         focalY = useSharedValue(0);
     useEffect(() => {
         if (!focusStations?.length || !size.width || !size.height) return;
-        const xs = focusStations.map((station) => (station.geoLong! + 180) * 2);
-        const ys = focusStations.map((station) => (90 - station.geoLat!) * 2);
+        const points = focusStations.map((station) =>
+            projectRadioLocation(station.geoLat!, station.geoLong!)
+        );
+        const xs = points.map((point) => point.x);
+        const ys = points.map((point) => point.y);
         const left = Math.min(...xs),
             right = Math.max(...xs);
         const top = Math.min(...ys),
             bottom = Math.max(...ys);
-        if (right - left > 360) return;
-        const unit = size.width / 720;
+        if (right - left > RADIO_MAP_SIZE / 2) return;
+        const unit = size.width / RADIO_MAP_SIZE;
         const visibleTop =
             theme.layout.mobileContentTop +
             theme.layout.touchTarget +
@@ -56,9 +63,9 @@ export default function MapViewport({
             )
         );
         scale.value = zoom;
-        x.value = -((left + right) / 2 - 360) * unit * zoom;
+        x.value = -((left + right) / 2 - RADIO_MAP_SIZE / 2) * unit * zoom;
         y.value =
-            -((top + bottom) / 2 - 155) * unit * zoom +
+            -((top + bottom) / 2 - RADIO_MAP_SIZE / 2) * unit * zoom +
             (visibleTop + visibleBottom - size.height) / 2;
     }, [focusStations, size.width, size.height, theme, scale, x, y]);
     const pan = Gesture.Pan()
@@ -77,8 +84,11 @@ export default function MapViewport({
                 )
             );
             y.value = Math.max(
-                -size.height / 2,
-                Math.min(size.height / 2, startY.value + event.translationY)
+                (-size.width * scale.value) / 2,
+                Math.min(
+                    (size.width * scale.value) / 2,
+                    startY.value + event.translationY
+                )
             );
         });
     const pinch = Gesture.Pinch()
@@ -142,10 +152,8 @@ export default function MapViewport({
                             {
                                 position: "absolute",
                                 width: size.width,
-                                height: (size.width * 290) / 720,
-                                top:
-                                    (size.height - (size.width * 290) / 720) /
-                                    2,
+                                height: size.width,
+                                top: (size.height - size.width) / 2,
                             },
                             transform,
                         ]}

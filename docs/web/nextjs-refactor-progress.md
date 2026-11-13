@@ -299,9 +299,15 @@ flush enamel field. Replace its smoothed tubular motif with the SVG loader's
 exact planar stroke geometry, preserving video-icon corners and line proportions.
 Both sides of each crystal now have a polished table and cut crown, joined
 through a narrow belt. Eight instanced metal claws seat their roots on the rim.
-A small shared local satin roughness texture differentiates the metal from the
-enamel and crystal material. The cut reverse logo remains intact.
+Smooth roughness values differentiate the metal, enamel and crystal material. The cut reverse logo remains intact.
 
 Geometry contracts cover closed crystal/cup topology, the shallow lip and planar
 video inlay. The interactive preview uses the production renderer. Remaining
 leagues stay outside this design pass; physical iPhone GPU acceptance is separate.
+
+### Smooth Legend surface — PR 212
+
+Remove the generated grain roughness map after visual review showed a cardboard-like
+surface. Legend now uses uniform smooth material roughness, with a more polished
+front field and inlay. Crystal cuts, metal claws and the reverse engraving remain.
+The preview uses the same production material settings.

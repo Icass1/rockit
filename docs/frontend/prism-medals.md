@@ -23,9 +23,8 @@ boundary vertices, with side walls only on the exposed perimeter. The enamel
 and rear plates follow the core rather than copying the wing silhouette, keeping
 them clear of the crystals. Miniatures use the same core, well and crystal layout.
 Eight small instanced metal claws seat the side-crystal roots against the rim on
-both faces. One local 128×128 roughness texture adds a restrained satin finish to Legend metal;
-it is shared across surfaces and disposed with the viewer. No post-processing,
-remote textures or animation loop is introduced.
+both faces. Metal and enamel use uniform smooth roughness without a grain map.
+No post-processing, remote textures or animation loop is introduced.
 
 The reverse carries the original RockIt! vector logo, the viewed profile's
 existing username, a Roman rank and the persisted award date without a timezone

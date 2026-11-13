@@ -151,29 +151,11 @@ export function createMedalViewer(
             );
             enamel.color.set(palette.face).lerp(new THREE.Color(ink), 0.14);
             enamel.metalness = 0.65;
-            enamel.roughness = 0.38;
+            enamel.roughness = 0.22;
             relief.color
                 .copy(metal.color)
                 .lerp(new THREE.Color(palette.highlight), 0.35);
-            relief.roughness = 0.3;
-            // One small local satin texture, shared by the metal surfaces.
-            const grain = new Uint8Array(128 * 128 * 4);
-            for (let y = 0; y < 128; y++)
-                for (let x = 0; x < 128; x++) {
-                    const value =
-                        180 +
-                        ((x * 13 + y * 71 + x * y * 3) % 19) +
-                        (y % 3) * 5;
-                    const offset = (y * 128 + x) * 4;
-                    grain[offset] =
-                        grain[offset + 1] =
-                        grain[offset + 2] =
-                            value;
-                    grain[offset + 3] = 255;
-                }
-            const satin = own(new THREE.DataTexture(grain, 128, 128));
-            satin.needsUpdate = true;
-            metal.roughnessMap = enamel.roughnessMap = satin;
+            relief.roughness = 0.2;
         }
         const group = new THREE.Group();
         group.rotation.set(0.2, -0.52, 0);

@@ -6,15 +6,17 @@ import {
     lyricSeekTime,
 } from "@/shared/index";
 import { designTokens, withAlpha } from "@rockit/theme";
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { Http } from "@/lib/http";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
+import LyricLine from "@/components/Player/LyricLine";
 
 export default function PlayerLyrics() {
     const styles = useThemedStyles(createStyles);
+    const theme = useDesignTheme();
     const { currentMedia, seekTo } = usePlayer();
     const { currentTime } = usePlayerTime();
     const { vocabulary } = useVocabulary();
@@ -180,8 +182,20 @@ export default function PlayerLyrics() {
                 >
                     <View>
                         {lyrics.lines.map((line, index) => (
-                            <Text
+                            <LyricLine
                                 key={index}
+                                reducedMotion={reducedMotion}
+                                color={
+                                    currentIndex === index
+                                        ? theme.colors["foreground-strong"]
+                                        : withAlpha(
+                                              theme.colors["foreground-strong"],
+                                              currentIndex !== null &&
+                                                  index < currentIndex
+                                                  ? 0.2
+                                                  : 0.35
+                                          )
+                                }
                                 testID={
                                     currentIndex === index
                                         ? "active-lyric"
@@ -196,17 +210,10 @@ export default function PlayerLyrics() {
                                         centerActiveLine(false);
                                 }}
                                 onPress={() => goToLine(index)}
-                                style={[
-                                    styles.lyricLine,
-                                    currentIndex === index &&
-                                        styles.lyricLineActive,
-                                    currentIndex !== null &&
-                                        index < currentIndex &&
-                                        styles.lyricLinePast,
-                                ]}
+                                style={styles.lyricLine}
                             >
                                 {line.text}
-                            </Text>
+                            </LyricLine>
                         ))}
 
                         <View style={styles.footer}>
@@ -275,12 +282,6 @@ const createStyles = (theme: DesignTheme) =>
             lineHeight: theme.typography.heading + theme.spacing.xs,
             marginBottom: theme.spacing.sm,
             paddingRight: theme.spacing.lg,
-        },
-        lyricLineActive: {
-            color: theme.legacy.white,
-        },
-        lyricLinePast: {
-            color: withAlpha(theme.colors["foreground-strong"], 0.2),
         },
         footer: {
             alignItems: "center",

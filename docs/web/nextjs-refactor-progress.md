@@ -265,3 +265,12 @@ an engraved brand/rank texture. Rotation/zoom and keyboard controls render on
 change; disposal and context-loss fallbacks preserve the lightweight catalog.
 Native keeps a static preview without browser GL imports. See
 [Prism medals](../frontend/prism-medals.md) for engraving and verification limits.
+
+### Legend hierarchy and brand engraving — PR 212
+
+Legend now has an expanded crystalline crown and seven raised side/crest facets,
+with one shared silhouette/palette for miniatures and the browser viewer. The
+reverse logo is a physical cut in the plate with preserved metal islands and a
+recessed floor. The award date keeps its existing instant and omits the visible
+timezone suffix. Text engraving remains texture-based. The inline preview uses
+the production geometry and palette.

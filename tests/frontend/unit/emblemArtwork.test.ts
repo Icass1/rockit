@@ -1,6 +1,6 @@
 import { getTheme } from "@rockit/theme";
 import { emblemArtwork } from "@rockit/ui/headless/emblemArtwork";
-import { romanTier } from "@rockit/ui/headless/medalDesign";
+import { medalAwardDate, romanTier } from "@rockit/ui/headless/medalDesign";
 import { describe, expect, it } from "vitest";
 
 describe("collectible artwork", () => {
@@ -42,4 +42,10 @@ it("uses Roman engraving ranks while keeping invalid ranks blank", () => {
     ]);
     expect(romanTier(-1)).toBe("");
     expect(romanTier(2.5)).toBe("");
+});
+
+it("engraves only the award date, leaving invalid or locked dates blank", () => {
+    expect(medalAwardDate("2026-11-13T17:00:00Z")).toBe("2026-11-13");
+    expect(medalAwardDate(null)).toBe("");
+    expect(medalAwardDate("invalid")).toBe("");
 });

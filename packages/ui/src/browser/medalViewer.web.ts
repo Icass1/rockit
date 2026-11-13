@@ -1,12 +1,17 @@
 import type { ListeningBadgeResponse } from "@rockit/shared";
 import type { getTheme } from "@rockit/theme";
 import {
+    createEngravedRear,
+    createMedalOutline,
+} from "@rockit/ui/browser/medalEngraving.web";
+import {
     emblemEngravings,
     emblemInks,
     emblemPalette,
     emblemSilhouettes,
+    legendFacets,
 } from "@rockit/ui/headless/emblemArtwork";
-import { emblemBrandPaths, romanTier } from "@rockit/ui/headless/medalDesign";
+import { medalAwardDate, romanTier } from "@rockit/ui/headless/medalDesign";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
@@ -125,10 +130,7 @@ export function createMedalViewer(
         group.rotation.set(0.2, -0.52, 0);
         scene.add(group);
         const loader = new SVGLoader();
-        const die = loader.parse(
-            `<svg xmlns="http://www.w3.org/2000/svg"><path d="${emblemSilhouettes[league]}"/></svg>`
-        ).paths[0];
-        const baseShape = SVGLoader.createShapes(die)[0];
+        const outline = (scale: number) => createMedalOutline(league, scale);
         const solid = (
             scale: number,
             depth: number,
@@ -137,31 +139,9 @@ export function createMedalViewer(
             bevel: number,
             hole = 0
         ) => {
-            const shape = new THREE.Shape(
-                baseShape
-                    .getPoints(4)
-                    .map(
-                        (point) =>
-                            new THREE.Vector2(
-                                ((point.x - 40) * scale) / 36,
-                                ((40 - point.y) * scale) / 36
-                            )
-                    )
-            );
+            const shape = outline(scale);
             if (hole > 0)
-                shape.holes.push(
-                    new THREE.Path(
-                        baseShape
-                            .getPoints(4)
-                            .map(
-                                (point) =>
-                                    new THREE.Vector2(
-                                        ((point.x - 40) * hole) / 36,
-                                        ((40 - point.y) * hole) / 36
-                                    )
-                            )
-                    )
-                );
+                shape.holes.push(new THREE.Path(outline(hole).getPoints()));
             const geometry = own(
                 new THREE.ExtrudeGeometry(shape, {
                     depth,
@@ -220,6 +200,45 @@ export function createMedalViewer(
                 );
             }
         }
+        if (league === "legend") {
+            for (const points of legendFacets) {
+                const mapped = points.map(
+                    ([x, y]) =>
+                        new THREE.Vector3(
+                            ((x - 40) * 0.97) / 36,
+                            ((40 - y) * 0.97) / 36,
+                            0.145
+                        )
+                );
+                const center = mapped
+                    .reduce((sum, point) => sum.add(point), new THREE.Vector3())
+                    .divideScalar(mapped.length);
+                center.z = 0.23;
+                const vertices: number[] = [];
+                for (let i = 0; i < mapped.length; i++) {
+                    let a = mapped[i],
+                        b = mapped[(i + 1) % mapped.length];
+                    if (
+                        (a.x - center.x) * (b.y - center.y) -
+                            (a.y - center.y) * (b.x - center.x) <
+                        0
+                    )
+                        [a, b] = [b, a];
+                    vertices.push(
+                        ...center.toArray(),
+                        ...a.toArray(),
+                        ...b.toArray()
+                    );
+                }
+                const geometry = own(new THREE.BufferGeometry());
+                geometry.setAttribute(
+                    "position",
+                    new THREE.Float32BufferAttribute(vertices, 3)
+                );
+                geometry.computeVertexNormals();
+                group.add(new THREE.Mesh(geometry, edge));
+            }
+        }
         const engraving = document.createElement("canvas");
         engraving.width = engraving.height = 1024;
         const context = engraving.getContext("2d");
@@ -227,11 +246,6 @@ export function createMedalViewer(
         context.fillStyle = colors["recap-foreground"];
         context.fillRect(0, 0, 1024, 1024);
         context.fillStyle = colors["explicit-foreground"];
-        context.save();
-        context.translate(345, 200);
-        context.scale(0.65, 0.65);
-        for (const path of emblemBrandPaths) context.fill(new Path2D(path));
-        context.restore();
         context.textAlign = "center";
         context.textBaseline = "middle";
         context.font = "600 44px sans-serif";
@@ -245,11 +259,7 @@ export function createMedalViewer(
         context.restore();
         context.font = "32px sans-serif";
         if (badge.earnedAt && Number.isFinite(Date.parse(badge.earnedAt)))
-            context.fillText(
-                new Date(badge.earnedAt).toISOString().slice(0, 10) + " UTC",
-                512,
-                700
-            );
+            context.fillText(medalAwardDate(badge.earnedAt), 512, 700);
         context.font = "36px serif";
         context.fillText(romanTier(badge.tier), 512, 775);
         const bump = own(new THREE.CanvasTexture(engraving));
@@ -268,9 +278,35 @@ export function createMedalViewer(
         reverseMaterial.bumpMap = bump;
         reverseMaterial.bumpScale = 0.04;
         reverseMaterial.roughness = 0.4;
-        const reverse = solid(0.82, 0.012, -0.113, reverseMaterial, 0.16);
+        const engraved = createEngravedRear(outline(0.82));
+        const reverse = new THREE.Mesh(own(engraved.surface), [
+            reverseMaterial,
+            metal,
+        ]);
+        reverse.position.z = -0.109;
         reverse.rotation.y = Math.PI;
-        // Use the same planar UVs as the front, normalized to the entire medal.
+        group.add(reverse);
+        for (const geometry of engraved.islands) {
+            const island = new THREE.Mesh(own(geometry), metal);
+            island.position.copy(reverse.position);
+            island.rotation.copy(reverse.rotation);
+            group.add(island);
+        }
+        const recess = own(
+            new THREE.MeshStandardMaterial({
+                color: new THREE.Color(palette.metal).lerp(
+                    new THREE.Color(palette.shadow),
+                    0.32
+                ),
+                metalness: 0.94,
+                roughness: 0.32,
+            })
+        );
+        const floor = new THREE.Mesh(own(engraved.floor), recess);
+        floor.rotation.y = Math.PI;
+        floor.position.z = -0.1137;
+        group.add(floor);
+        // The text is a relief texture; the brand itself has cut walls and a recessed floor.
         const position = reverse.geometry.getAttribute("position");
         const uv = reverse.geometry.getAttribute("uv");
         for (let i = 0; i < position.count; i++)

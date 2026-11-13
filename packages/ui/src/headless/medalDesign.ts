@@ -29,3 +29,9 @@ export function romanTier(value: number): string {
     }
     return result;
 }
+
+/** Preserve the award instant while displaying just its calendar date. */
+export function medalAwardDate(value?: string | null): string {
+    if (!value || !Number.isFinite(Date.parse(value))) return "";
+    return new Date(value).toISOString().slice(0, 10);
+}

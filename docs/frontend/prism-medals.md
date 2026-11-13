@@ -13,13 +13,16 @@ motifs. Miniatures clip motifs to a reserved interior and omit overlaid logos
 and numeric labels. Three.js builds beveled extrusions from those same outlines;
 raised tubular contours give the motif physical depth and react to studio light.
 The league metal and colored enamel come from shared semantic theme tokens.
+Legend adds a seven-part faceted crest with raised crystalline wings and an
+amethyst finish; the family motif keeps its clear central field.
 
 The reverse carries the original RockIt! vector logo, the viewed profile's
-existing username, a Roman rank and the persisted award date in UTC. Locked
-medals have no award date. No legal name or surname is inferred or stored.
+existing username, a Roman rank and the persisted award date without a timezone
+suffix. Locked medals have no award date. No legal name or surname is inferred or stored.
 Names are drawn into a fitted canvas texture, never interpolated into SVG/HTML.
-The personalized engraving uses bump and subtle occlusion maps; it does not
-create expensive Boolean cuts for every letter. This is a visual collectible,
+The logo is cut into the rear plate using the original vector contours, including
+recess walls, a deeper floor and the enclosed metal islands. Text uses bump and
+subtle occlusion maps, avoiding per-letter geometry. This is a visual collectible,
 not a manufacturing model.
 
 ## Interaction and cost

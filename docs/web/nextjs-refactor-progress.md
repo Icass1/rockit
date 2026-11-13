@@ -254,3 +254,14 @@ Replace the font-dependent explicit label with one shared filled vector silhouet
 border. Web and native adapters render the same path and retain the translated
 accessible name and positive-evidence policy. Existing DOM/native media-identity
 checks and both app type checks pass; the browser preview measures 12×12 px.
+
+### Prism medal inspection — PR 212
+
+Shared miniatures now reserve a clipped family-motif field and remove the logo/
+rank overlap. A browser-only, dynamically imported Three.js inspector builds
+six beveled league forms with shared metal/enamel colors and raised family
+contours. The reverse uses the existing profile name and persisted UTC date with
+an engraved brand/rank texture. Rotation/zoom and keyboard controls render on
+change; disposal and context-loss fallbacks preserve the lightweight catalog.
+Native keeps a static preview without browser GL imports. See
+[Prism medals](../frontend/prism-medals.md) for engraving and verification limits.

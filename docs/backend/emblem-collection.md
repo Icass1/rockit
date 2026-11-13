@@ -36,9 +36,10 @@ objectives explicitly identify UTC rather than claiming to use local time.
 ## Leagues and artwork
 
 Bronze, silver, gold, platinum, diamond and legend progress through each family.
-They have separate silhouettes and shared theme palettes. Category engravings,
-league finish and tier numbering provide distinct collectible designs while
-retaining the RockIt! logo. The browser and native SVG adapter use the same
+They have separate silhouettes and shared theme palettes. Category relief,
+league finish and distinct silhouettes provide collectible designs. Front faces
+reserve a clear interior; the logo and Roman rank appear on the inspectable
+reverse rather than overlapping the family motif. The browser and native SVG adapter use the same
 artwork source; gradient IDs remain unique across inline native-web instances.
 
 The first 115 keys, thresholds and title keys are preserved. Adding milestones
@@ -70,3 +71,5 @@ cover artwork, filters and bounded rendering against a 615-item fixture. Browser
 checks exercise both profile hosts. The optional PostgreSQL persistence suite
 requires `ROCKIT_TEST_DATABASE_URL`; SQL-capture tests do not establish live
 PostgreSQL persistence or query latency.
+
+See [Prism inspection](../frontend/prism-medals.md) for browser rendering, engraving and native fallback limits.

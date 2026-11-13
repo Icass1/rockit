@@ -1,5 +1,6 @@
 import { getTheme } from "@rockit/theme";
 import { emblemArtwork } from "@rockit/ui/headless/emblemArtwork";
+import { romanTier } from "@rockit/ui/headless/medalDesign";
 import { describe, expect, it } from "vitest";
 
 describe("collectible artwork", () => {
@@ -28,4 +29,17 @@ describe("collectible artwork", () => {
             emblemArtwork(colors, "<script>", true, "one", "unknown")
         ).not.toContain("<script>");
     });
+});
+
+it("uses Roman engraving ranks while keeping invalid ranks blank", () => {
+    expect([1, 4, 9, 40, 99, 100].map(romanTier)).toEqual([
+        "I",
+        "IV",
+        "IX",
+        "XL",
+        "XCIX",
+        "C",
+    ]);
+    expect(romanTier(-1)).toBe("");
+    expect(romanTier(2.5)).toBe("");
 });

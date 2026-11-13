@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [EMBLEMS] Prism: medallas con relieve e inspección 3D
+
+- tags: [mobile, web, friends, emblems, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Conservar las seis siluetas y tonos; contener los motivos sin solapar logo/rango. Inspector Three.js bajo demanda en web/PWA, giro/zoom y reverso con logo, nombre visible y fecha persistida. Liberar GPU al cerrar y mantener vista estática si WebGL falla; APK con adaptación estática. Pruebas y límites en docs/frontend/prism-medals.md; aceptación física de iPhone pendiente.
+    ```
+
 ### [RECAP] Historias del año compartidas entre web y móvil
 
 - tags: [mobile, web, stats, recap, ux]

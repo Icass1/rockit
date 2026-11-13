@@ -82,6 +82,14 @@ events, including track changes where the logical playing state remains true,
 and when the keepalive becomes active. Registering only during app initialization
 does not cover the moment WebKit selects its Now Playing media session.
 
+Outgoing deck `pause`, `ended` and `emptied` events also trigger state reporting,
+even when they leave the active transport untouched. One coalesced next-task
+update refreshes the MediaSession declaration (`none`, then `playing`) if playback
+is still active; it reads the latest state so a real pause or emptied queue wins.
+This handles native controls that infer a pause after the incoming deck starts
+and ignore another assignment of the already-declared `playing` value. It never
+calls play, pause or seek, and pending reporting is cancelled on teardown.
+
 Manager tests cover handler recovery and listener cleanup. A Chromium test starts
 real HTML audio and checks registration after its `playing` event. Neither check
 proves which buttons iOS renders: on a physical Home Screen PWA, start a song,

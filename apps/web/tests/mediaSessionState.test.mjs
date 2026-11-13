@@ -54,6 +54,7 @@ function song(id) {
 }
 function setup({
     playing = true,
+    deduplicateWrites = false,
     supported = true,
     noMedia = false,
     writable = true,
@@ -68,11 +69,13 @@ function setup({
     const playingAtom = atom(playing);
     const currentTimeAtom = atom(0);
     const nativePlayingRevisionAtom = atom(0);
+    const nativePlaybackRevisionAtom = atom(0);
     const audios = [];
     const transport = { play: 0, pause: 0, seek: 0, next: 0, previous: 0 };
     const handlers = new Map();
     let metadata;
     let state = "none";
+    let nativeState = "none";
     const writes = [];
     const session = {
         get playbackState() {
@@ -80,8 +83,15 @@ function setup({
         },
         set playbackState(value) {
             if (!writable) throw new Error("playbackState unsupported");
-            state = value;
             writes.push(value);
+            if (!deduplicateWrites || state !== value) nativeState = value;
+            state = value;
+        },
+        get nativePlaybackState() {
+            return nativeState;
+        },
+        inferNativePause() {
+            nativeState = "paused";
         },
         get metadata() {
             return metadata;
@@ -119,6 +129,7 @@ function setup({
     const player = {
         playingAtom,
         nativePlayingRevisionAtom,
+        nativePlaybackRevisionAtom,
         volumeAtom: atom(1),
         currentTimeAtom,
         currentTime: 0,
@@ -208,6 +219,7 @@ function setup({
     return {
         manager,
         nativePlayingRevisionAtom,
+        nativePlaybackRevisionAtom,
         audios,
         lifecycle,
         services,
@@ -538,4 +550,58 @@ test("iOS keepalive playing republishes navigation without touching music transp
     assertTransportUntouched(e);
     e.manager.destroy();
     assert.equal(audio.onplaying, null);
+});
+
+const nextTask = () => new Promise((resolve) => setTimeout(resolve, 10));
+
+test("outgoing deck events repair a later native pause even when same-state writes are ignored", async () => {
+    const e = setup({ deduplicateWrites: true });
+    e.currentMedia.set(song("incoming"));
+    assert.equal(e.playingAtom.get(), true);
+    e.nativePlaybackRevisionAtom.set(1);
+    e.session.inferNativePause();
+    assert.equal(e.session.playbackState, "playing");
+    assert.equal(e.session.nativePlaybackState, "paused");
+    await nextTask();
+    assert.equal(e.session.nativePlaybackState, "playing");
+    assert.equal(e.session.metadata.title, "incoming");
+    assertTransportUntouched(e);
+    e.manager.destroy();
+});
+
+test("coalesced native deck events honor a real pause before their deferred reporting", async () => {
+    const e = setup({ deduplicateWrites: true });
+    e.nativePlaybackRevisionAtom.set(1);
+    e.nativePlaybackRevisionAtom.set(2);
+    e.nativePlayingRevisionAtom.set(1);
+    e.playingAtom.set(false);
+    const writes = e.writes.length;
+    await nextTask();
+    assert.equal(e.session.nativePlaybackState, "paused");
+    assert.deepEqual(e.writes.slice(writes), ["paused"]);
+    assertTransportUntouched(e);
+    e.manager.destroy();
+});
+
+test("native reporting cancels pending work and subscriptions on destroy", async () => {
+    const e = setup();
+    e.nativePlaybackRevisionAtom.set(1);
+    e.manager.destroy();
+    const writes = e.writes.length;
+    await nextTask();
+    assert.equal(e.nativePlaybackRevisionAtom.listenerCount, 0);
+    assert.equal(e.writes.length, writes);
+    assert.equal(e.session.playbackState, "none");
+    assertTransportUntouched(e);
+});
+
+test("an emptied queue cannot be reclaimed as playing by deferred native reporting", async () => {
+    const e = setup();
+    e.nativePlaybackRevisionAtom.set(1);
+    e.currentMedia.set(undefined);
+    await nextTask();
+    assert.equal(e.session.playbackState, "none");
+    assert.equal(e.session.metadata, null);
+    assertTransportUntouched(e);
+    e.manager.destroy();
 });

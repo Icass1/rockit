@@ -8,6 +8,7 @@ import type {
 export interface MediaSessionServices {
     mediaPlayerManager: {
         nativePlayingRevisionAtom?: ReadonlyAtom<number>;
+        nativePlaybackRevisionAtom?: ReadonlyAtom<number>;
     } & Pick<
         BaseMediaPlayerManager,
         | "play"

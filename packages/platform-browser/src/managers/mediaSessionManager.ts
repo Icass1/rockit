@@ -26,6 +26,7 @@ const ACTION_HANDLERS: MediaSessionAction[] = [
 
 export class MediaSessionManager {
     private _initialized = false;
+    private _nativeStateTimer?: ReturnType<typeof setTimeout>;
     private _generation = 0;
     private _keepaliveCtx?: AudioContext;
     private _keepaliveOsc?: OscillatorNode;
@@ -85,6 +86,8 @@ export class MediaSessionManager {
 
     destroy(): void {
         this._generation++;
+        clearTimeout(this._nativeStateTimer);
+        this._nativeStateTimer = undefined;
         this._unsubscribers.forEach((fn): void => fn());
         this._unsubscribers = [];
         this._stopKeepalive();
@@ -299,8 +302,16 @@ export class MediaSessionManager {
                     // WebKit advertises commands only once a media element owns Now Playing.
                     // Reassert for every actual start; playingAtom may stay true across fades.
                     this._registerActionHandlers();
-                    this._updatePlaybackState();
+                    this._reconcileNativePlaybackState();
                 })
+            );
+        const nativePlayback =
+            this.services.mediaPlayerManager.nativePlaybackRevisionAtom;
+        if (nativePlayback)
+            this._unsubscribers.push(
+                nativePlayback.listen(() =>
+                    this._reconcileNativePlaybackState()
+                )
             );
         const unsubMedia =
             this.services.queueManager.currentMediaAtom.subscribe(
@@ -336,16 +347,34 @@ export class MediaSessionManager {
         }
     }
 
-    private _updatePlaybackState(): void {
+    private _reconcileNativePlaybackState(): void {
+        if (!this._initialized) return;
+        this._updatePlaybackState();
+        // The outgoing element's native pause/ended/emptied processing can run
+        // after our listener. Reclaim reporting on the next task, not by replaying
+        // the incoming element. Coalesce deck events into one short-lived task.
+        if (this._nativeStateTimer !== undefined) return;
+        this._nativeStateTimer = setTimeout(() => {
+            this._nativeStateTimer = undefined;
+            if (this._initialized) this._updatePlaybackState(true);
+        }, 0);
+    }
+
+    private _updatePlaybackState(reclaimNativeState = false): void {
         // Report the latest player state only. Never start, pause or seek media
         // to repair a stale lock-screen indicator, including during transitions.
         try {
-            navigator.mediaSession.playbackState = !this.services.queueManager
-                .currentMedia
+            const state = !this.services.queueManager.currentMedia
                 ? "none"
                 : this.services.mediaPlayerManager.playingAtom.get()
                   ? "playing"
                   : "paused";
+            // A browser may retain the declared "playing" value while its native
+            // controls infer "paused" from the old deck. A same-value assignment
+            // can be ignored. Refresh the declaration without touching transport.
+            if (reclaimNativeState && state === "playing")
+                navigator.mediaSession.playbackState = "none";
+            navigator.mediaSession.playbackState = state;
         } catch {
             /* Some mediaSession implementations do not support playbackState. */
         }

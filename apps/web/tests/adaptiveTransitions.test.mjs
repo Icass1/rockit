@@ -365,9 +365,19 @@ test("handoff promotes buffered audio once and preserves the outgoing tail", asy
     assert.equal(e.player.audioElement.paused, false);
     assert.equal(e.player.audioElement.src, "https://test/b");
     assert.equal(e.messages.filter((m) => m.kind === "ended").length, 1);
+    const revision = e.player.nativePlaybackRevisionAtom.get();
+    const incoming = e.player.audioElement;
+    const playCalls = incoming.playCalls;
     old.onended();
+    assert.ok(e.player.nativePlaybackRevisionAtom.get() > revision);
+    const afterEnd = e.player.nativePlaybackRevisionAtom.get();
+    old.onemptied();
+    assert.ok(e.player.nativePlaybackRevisionAtom.get() > afterEnd);
     assert.equal(e.queue.currentQueueMediaId, 2);
     assert.equal(old.paused, true);
+    assert.equal(incoming.paused, false);
+    assert.equal(incoming.playCalls, playCalls);
+    assert.equal(e.player.playingAtom.get(), true);
     e.player.pause();
 });
 test("incoming awaits server grant and revocation pauses both decks", async () => {

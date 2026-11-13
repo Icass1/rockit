@@ -29,6 +29,15 @@ import {
  */
 export class MediaPlayerManager extends BaseMediaPlayerManager {
     private readonly nativePlayingRevision = createAtom(0);
+    private readonly nativePlaybackRevision = createAtom(0);
+    /** Reporting only: inactive decks may also change the browser's Now Playing state. */
+    get nativePlaybackRevisionAtom(): ReadonlyAtom<number> {
+        return this.nativePlaybackRevision.getReadonlyAtom();
+    }
+    private reportNativePlaybackChange = (): void => {
+        this.nativePlaybackRevision.set(this.nativePlaybackRevision.get() + 1);
+    };
+
     /** Emitted for confirmed native playing events, including buffered deck handoffs. */
     get nativePlayingRevisionAtom(): ReadonlyAtom<number> {
         return this.nativePlayingRevision.getReadonlyAtom();
@@ -219,7 +228,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             }
             this.confirmNativePlaying();
         };
+        this._video.onemptied = this.reportNativePlaybackChange;
         this._video.onpause = (): void => {
+            this.reportNativePlaybackChange();
             if (
                 this._video?.paused &&
                 this._effectiveKind(getRockIt().queueManager.currentMedia) ===
@@ -259,6 +270,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this.onNativeTimeUpdate(this._video?.currentTime ?? 0);
         };
         this._video.onended = (): void => {
+            this.reportNativePlaybackChange();
             if (
                 this._effectiveKind(getRockIt().queueManager.currentMedia) !==
                 "video"
@@ -360,7 +372,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this.confirmNativePlaying();
             if (!el.paused && this._playingAtom.get()) this._startBlend();
         };
+        el.onemptied = this.reportNativePlaybackChange;
         el.onpause = (): void => {
+            this.reportNativePlaybackChange();
             if (
                 !el.paused ||
                 el !== this._audio ||
@@ -407,6 +421,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._transitionTick();
         };
         el.onended = (): void => {
+            this.reportNativePlaybackChange();
             if (el === this._outgoing) {
                 this._cancelTransition();
                 return;

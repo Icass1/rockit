@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import L from "leaflet";
 import {
+    CircleMarker,
     GeoJSON,
     MapContainer,
-    Marker,
     Popup,
     Tooltip,
     useMap,
@@ -17,7 +17,7 @@ import type { Topology } from "topojson-specification";
 import worldData from "world-atlas/countries-110m.json";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import "leaflet/dist/leaflet.css";
-import type { BaseStationResponse } from "@rockit/shared";
+import { locatedRadioStations, type BaseStationResponse } from "@rockit/shared";
 import { Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -332,37 +332,6 @@ export default function RadioMap({
         (_, index) => index - worldRadius
     );
     const renderer = useMemo(() => L.svg({ padding: 1 }), []);
-    const stationIcons = useMemo(() => {
-        const icons = new Map<string, L.DivIcon>();
-        if (typeof document === "undefined") return icons;
-        for (let world = -worldRadius; world <= worldRadius; world++) {
-            for (const station of savedStations) {
-                const image = document.createElement("img");
-                image.src =
-                    station.imageUrl?.trim() || "/radio-placeholder.png";
-                image.alt = "";
-                image.width = 44;
-                image.height = 44;
-                image.style.cssText =
-                    "width:44px;height:44px;object-fit:cover;border:2px solid var(--theme-primary);border-radius:8px;background:var(--theme-secondary);box-shadow:0 2px 8px color-mix(in srgb, var(--theme-backdrop) 53.33%, transparent)";
-                image.onerror = (): void => {
-                    image.onerror = null;
-                    image.src = "/radio-placeholder.png";
-                };
-                icons.set(
-                    `${station.publicId}:${world}`,
-                    L.divIcon({
-                        html: image,
-                        className: "radio-station-marker",
-                        iconSize: [44, 44],
-                        iconAnchor: [22, 22],
-                        popupAnchor: [0, -22],
-                    })
-                );
-            }
-        }
-        return icons;
-    }, [savedStations, worldRadius]);
     const vocabulary = useVocabulary();
     const countries: FeatureCollection | null = useMemo(() => {
         try {
@@ -380,42 +349,10 @@ export default function RadioMap({
         return null;
     }, []);
 
-    const locatedStations = useMemo(() => {
-        const countryCenters = new Map<
-            string,
-            { center: L.LatLng; area: number }
-        >();
-        for (const country of countries?.features ?? []) {
-            const bounds = L.geoJSON(country).getBounds();
-            if (!bounds.isValid()) continue;
-            const area =
-                (bounds.getEast() - bounds.getWest()) *
-                (bounds.getNorth() - bounds.getSouth());
-            const name = String(country.properties?.name).toLowerCase();
-            if (area > (countryCenters.get(name)?.area ?? -1)) {
-                countryCenters.set(name, { center: bounds.getCenter(), area });
-            }
-        }
-        return savedStations.flatMap((station) => {
-            if (
-                station.geoLat !== null &&
-                station.geoLong !== null &&
-                Number.isFinite(station.geoLat) &&
-                Number.isFinite(station.geoLong)
-            )
-                return [station];
-            const name =
-                station.country === "United States"
-                    ? "United States of America"
-                    : station.country;
-            const location = countryCenters.get(
-                name?.toLowerCase() ?? ""
-            )?.center;
-            return location
-                ? [{ ...station, geoLat: location.lat, geoLong: location.lng }]
-                : [];
-        });
-    }, [countries, savedStations]);
+    const locatedStations = useMemo(
+        () => locatedRadioStations(savedStations),
+        [savedStations]
+    );
 
     return (
         <div className="radio-map-container h-full w-full overflow-hidden [&_.leaflet-control-zoom_a]:h-11 [&_.leaflet-control-zoom_a]:w-11 [&_.leaflet-control-zoom_a]:leading-11">
@@ -469,17 +406,43 @@ export default function RadioMap({
                                 Number.isFinite(station.geoLong)
                         )
                         .map((station) => (
-                            <Marker
+                            <CircleMarker
                                 key={`${station.publicId}:${world}`}
-                                position={[
+                                center={[
                                     station.geoLat!,
                                     station.geoLong! + world * 360,
                                 ]}
-                                icon={stationIcons.get(
-                                    `${station.publicId}:${world}`
-                                )}
-                                title={station.name}
-                                alt={station.name}
+                                eventHandlers={{
+                                    add: (event) => {
+                                        const layer =
+                                            event.target as L.CircleMarker;
+                                        const element = layer.getElement();
+                                        if (!(element instanceof SVGElement))
+                                            return;
+                                        element.setAttribute("role", "button");
+                                        element.setAttribute("tabindex", "0");
+                                        element.setAttribute(
+                                            "aria-label",
+                                            station.name
+                                        );
+                                        element.onkeydown = (event) => {
+                                            if (
+                                                event.key === "Enter" ||
+                                                event.key === " "
+                                            ) {
+                                                event.preventDefault();
+                                                layer.openPopup();
+                                            }
+                                        };
+                                    },
+                                }}
+                                radius={6}
+                                pathOptions={{
+                                    color: "var(--theme-foreground-strong)",
+                                    fillColor: "var(--theme-primary)",
+                                    fillOpacity: 1,
+                                    weight: 2,
+                                }}
                             >
                                 <Tooltip>{station.name}</Tooltip>
                                 <Popup>
@@ -502,7 +465,7 @@ export default function RadioMap({
                                         </button>
                                     </div>
                                 </Popup>
-                            </Marker>
+                            </CircleMarker>
                         ))
                 )}
             </MapContainer>

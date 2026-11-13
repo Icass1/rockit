@@ -232,3 +232,17 @@ Both production builds and frontend/backend type and lint checks are included.
 See [backend rules and limits](../backend/emblem-collection.md), including UTC
 habit counters and optional PostgreSQL persistence acceptance. Screenshots use
 representative fixture entries; artwork previews use the production SVG source.
+
+### Annual recap stories — PR 212
+
+The current user's listening profile now opens a shared annual story presenter.
+A single existing Stats V2 request provides the calendar-year facts. Shared rules
+produce a bounded artist countdown and conservative narrative templates; current
+years are labeled in progress, and the previous year remains selectable. Web
+uses the existing Dialog with a portrait stage; mobile reuses its Modal and safe
+areas. Progress pauses on hold, explicit pause and app backgrounding; reduced
+motion uses manual navigation. The presenter does not alter music playback.
+
+Research, exact rules, data coverage and validation are documented in
+[Annual recap](../frontend/annual-recap.md). Browser screenshots use synthetic history;
+physical iPhone/APK background acceptance remains separate.

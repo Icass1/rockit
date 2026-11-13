@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [RECAP] Historias del año compartidas entre web y móvil
+
+- tags: [mobile, web, stats, recap, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Recap del usuario desde su perfil: minutos, actividad, canciones, cuenta atrás de artistas y frases con reglas verificables. Año natural, preview del año actual y acceso al anterior. Componente compartido, pausa/mantener pulsado/segundo plano y movimiento reducido; formato vertical centrado en web. Reutilizar Stats V2, sin APIs externas ni algoritmos de percentiles con muestras pequeñas. Investigación y reglas en docs/frontend/annual-recap.md.
+    ```
+
 ### [EMBLEMS] Ampliar la colección con 500 objetivos y seis ligas
 
 - tags: [backend, mobile, web, friends, emblems]

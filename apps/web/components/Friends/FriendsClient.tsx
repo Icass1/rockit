@@ -232,6 +232,7 @@ function FriendsContent(): JSX.Element {
                 </aside>
             </div>
             <ListeningProfileDialog
+                key={profile ? (profile.publicId ?? "self") : "closed"}
                 target={profile}
                 onClose={() => setProfile(null)}
             />

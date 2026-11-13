@@ -698,6 +698,7 @@ export default function FriendsScreen() {
         <>
             {list}
             <ListeningProfileModal
+                key={`${scope}:${profile ? (profile.publicId ?? "self") : "closed"}`}
                 target={profile?.scope === scope ? profile : null}
                 onClose={() => setProfile(null)}
             />

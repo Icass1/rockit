@@ -4,6 +4,7 @@ import {
     useEffect,
     useRef,
     useSyncExternalStore,
+    type CSSProperties,
     type JSX,
     type ReactNode,
 } from "react";
@@ -20,12 +21,14 @@ export function Dialog({
     titleId,
     children,
     className = "",
+    style,
 }: {
     open: boolean;
     onClose: () => void;
     titleId: string;
     children: ReactNode;
     className?: string;
+    style?: CSSProperties;
 }): JSX.Element | null {
     const mounted = useSyncExternalStore(
         subscribe,
@@ -35,10 +38,20 @@ export function Dialog({
     const ref = useRef<HTMLDialogElement>(null);
     useEffect(() => {
         const dialog = ref.current;
-        if (open && !dialog?.open) dialog?.showModal();
-        else if (!open && dialog?.open) dialog.close();
+        if (!dialog) return;
+        if (!open) {
+            if (dialog.open) dialog.close();
+            return;
+        }
+        const trigger =
+            document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+        if (!dialog.open) dialog.showModal();
         return () => {
-            if (dialog?.open) dialog.close();
+            if (dialog.open) dialog.close();
+            // A keyed owner can remove the node before native close restores focus.
+            if (trigger?.isConnected) trigger.focus({ preventScroll: true });
         };
     }, [open, mounted]);
 
@@ -48,6 +61,7 @@ export function Dialog({
     return createPortal(
         <dialog
             ref={ref}
+            style={style}
             aria-labelledby={titleId}
             onCancel={onClose}
             onClose={onClose}

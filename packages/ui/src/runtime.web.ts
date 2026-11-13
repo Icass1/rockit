@@ -4,6 +4,7 @@ import * as web from "react-native-web";
 /** Both renderers implement this primitive contract; platform selection stays here. */
 export const {
     AccessibilityInfo,
+    AppState,
     Animated,
     ActivityIndicator,
     Image,
@@ -15,6 +16,7 @@ export const {
 } = web as unknown as Pick<
     typeof Native,
     | "AccessibilityInfo"
+    | "AppState"
     | "Animated"
     | "ActivityIndicator"
     | "Image"

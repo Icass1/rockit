@@ -120,6 +120,15 @@
     --theme-medal-legend-metal: #e89fc7;
     --theme-medal-legend-shadow: #8a486c;
     --theme-medal-legend-face: #321d30;
+    --theme-recap-ink: #15121b;
+    --theme-recap-plum: #35152e;
+    --theme-recap-blue: #162e48;
+    --theme-recap-amber: #3d291b;
+    --theme-recap-foreground: #ffffff;
+    --theme-recap-muted: #e3d8e6;
+    --theme-recap-accent: #ff85b7;
+    --theme-recap-highlight: #ffe89b;
+    --theme-recap-track: #ffffff33;
     --lyrics-emphasis-scale: 1.25;
     --radius-none: 0px;
     --radius-xs: 2px;
@@ -149,6 +158,8 @@
     --motion-lyricsScroll: 250ms;
     --motion-likeHold: 1000ms;
     --motion-collectionPlayHint: 3000ms;
+    --motion-recapStoryDuration: 6500ms;
+    --motion-recapProgressTick: 50ms;
 }
 
 @theme inline {

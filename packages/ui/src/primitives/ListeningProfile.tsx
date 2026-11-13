@@ -33,9 +33,13 @@ export function ListeningProfile({
     resourceKey,
     vocabulary: v,
     renderEmblem,
+    onOpenRecap,
+    recapYear,
 }: {
     loadProfile: () => Promise<UserLevelResponse | null>;
     resourceKey: string;
+    onOpenRecap?: () => void;
+    recapYear?: number;
     vocabulary: Vocabulary;
     renderEmblem?: (badge: ListeningBadgeResponse, size: number) => ReactNode;
 }) {
@@ -251,6 +255,30 @@ export function ListeningProfile({
                     );
                 })}
             </View>
+            {onOpenRecap && recapYear !== undefined && (
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={onOpenRecap}
+                    style={{
+                        minHeight: theme.layout.touchTarget,
+                        borderRadius: theme.radius.full,
+                        paddingHorizontal: theme.spacing.lg,
+                        paddingVertical: theme.spacing.md,
+                        backgroundColor: theme.colors.primary,
+                        alignItems: "center",
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: theme.colors["primary-foreground"],
+                            fontSize: theme.typography.body,
+                            fontWeight: "700",
+                        }}
+                    >
+                        {v.RECAP_OPEN.replace("{year}", String(recapYear))}
+                    </Text>
+                </Pressable>
+            )}
             <View style={{ gap: theme.spacing.md }}>
                 <View
                     style={{

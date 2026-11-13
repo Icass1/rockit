@@ -26,3 +26,8 @@ export { ListeningCircle } from "@rockit/ui/primitives/ListeningCircle";
 export { ListeningEmblem } from "@rockit/ui/primitives/ListeningEmblem";
 
 export { ListeningProfile } from "@rockit/ui/primitives/ListeningProfile";
+
+export {
+    AnnualRecap,
+    type AnnualRecapControls,
+} from "@rockit/ui/primitives/AnnualRecap";

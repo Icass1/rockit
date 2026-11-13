@@ -1,5 +1,6 @@
 export {
     AccessibilityInfo,
+    AppState,
     Animated,
     ActivityIndicator,
     Image,

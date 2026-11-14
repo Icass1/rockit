@@ -2,8 +2,9 @@
 
 The shared collection has six league designs. SVG miniatures and the browser
 inspector use the same silhouettes, gemstone contours, family palette and frames.
-The existing 615 achievement identities, sixteen families, thresholds and saved
-award dates are unchanged.
+The existing 615 achievement identities, thresholds and dates are preserved.
+The expanded catalog has 903 achievements across 64 families and six leagues,
+providing 384 family/league artwork combinations.
 
 ## Visual progression
 
@@ -30,8 +31,9 @@ previous grain texture.
 
 ## Family symbols
 
-`emblemFamilies.ts` owns sixteen original filled vector marks on one 32-unit grid.
-They use substantial silhouettes and open counters instead of thin outline icons,
+`emblemFamilies.ts` owns 64 original filled vector marks on one 32-unit grid.
+The 48 additional families reuse the approved six league shapes and add their
+own distinct master symbols. They use substantial silhouettes and open counters instead of thin outline icons,
 fonts or emoji. The waveform, clock, vinyl, compass, flame, plane, companions, video,
 infinity, checked calendar, crescent, dawn, ticket, book, jubilee crown and keyhole
 provide a distinct visual identifier for every family.

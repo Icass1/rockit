@@ -384,3 +384,41 @@ frame rate. Safari/iPhone GPU acceptance remains a device check.
 
 Three compiled-app Chromium flows also pass: six front/reverse finishes, keyboard
 rotation, close/reopen, context-loss fallback and phone bounds/render-buffer cap.
+
+### 64 families and 903 persistent achievements — PR 212
+
+Expand the collectible system from sixteen to 64 families, with 384 family/league
+artwork combinations. Preserve the previous 615 definitions byte-for-byte in their
+identity/goal/title/variant/rank fields and add 288 achievements: six increasing
+ranks for each of 48 new families. Add distinct original filled symbols for all
+new families, reusing the approved six die/gem designs and physical relief path.
+The single selected canvas, reverse engraving and mobile pixel-ratio cap remain.
+
+New evidence covers four listening windows, seven weekdays, four fixed seasonal
+month groups, five special dates, six kinds of calendar diversity, three rotation
+patterns, eight saved-library counters and eleven sharing counters. Use only
+persisted play/library/recommendation records. Calendar diversity does not imply
+consecutive listening, and account age does not imply active years. Preserve
+library awards after deletions and deduplicate recommendations by their actual
+sender/recipient/item semantics. Three additional batch statements serve all 48
+counters; summary reads now use seven fixed statements for any user/badge count.
+No database migration, provider inference, polling or new dependency is added.
+
+Expand the backend scope contract and regenerate shared DTOs. Add all 432 copy
+keys to Vocabulary.xlsx in English, Spanish and French and regenerate vocabulary
+types/fallbacks. Both profile hosts discover the expanded families from API data;
+render only nine collection entries per page. Portable coverage exercises a
+903-entry catalog, all 64 family filters and every symbol over all six crowns.
+
+Validation: 758 backend tests and 43 subtests pass; 14 optional integration cases
+skip without configured services. Ruff and strict Python/UI/web/mobile/test types
+pass. The focused portable/DOM suite passes 88 tests, native controls pass, and
+the web test command passes. Both production builds and application lint pass.
+Three compiled-app Chromium flows exercise new habit/library/rotation/sharing
+symbols on all six finishes, front/reverse, keyboard rotation, close/reopen and
+context-loss recovery. PWA checks cover phone bounds and render-buffer caps.
+The preview exposes all 64 symbols over four pages and fits 320/390/768 px.
+Touch/DPR-3 review measures at most 37 calls, fewer than 16,000 triangles, five
+textures and one canvas at the 1.5 cap for the measured flower mark. These are
+resource counts, not physical iPhone frame-rate measurements. Live PostgreSQL
+persistence and physical iPhone/native GPU acceptance remain separate.

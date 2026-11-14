@@ -22,8 +22,44 @@ from core.framework.models.listeningRewards import ListeningRewardSummary
 from result import Result, ResultCode
 
 
-def test_catalog_adds_500_without_changing_legacy_award_identity() -> None:
-    assert len(LISTENING_BADGES) == len({badge.key for badge in LISTENING_BADGES}) == 615
+def test_catalog_expands_to_64_families_without_changing_existing_awards() -> None:
+    assert len(LISTENING_BADGES) == len({badge.key for badge in LISTENING_BADGES}) == 903
+    from core.framework.friend.listeningBadgeExpansion import EXPANDED_BADGE_FAMILIES
+
+    new_scopes = {family.scope for family in EXPANDED_BADGE_FAMILIES}
+    previous = sorted(
+        (
+            b.key,
+            b.scope,
+            b.target,
+            b.title_key,
+            b.description_key,
+            b.visual_variant,
+            b.tier,
+            b.league,
+            b.secret,
+            b.metric,
+        )
+        for b in LISTENING_BADGES
+        if b.scope not in new_scopes
+    )
+    assert len(previous) == 615
+    assert (
+        hashlib.sha256(json.dumps(previous, separators=(",", ":")).encode()).hexdigest()
+        == "45593b2a9323e51c910b4605194ba2fb54d2e9f15b672ddbcfc3b67440070209"
+    )
+    for family in EXPANDED_BADGE_FAMILIES:
+        ranks = [badge for badge in LISTENING_BADGES if badge.scope == family.scope]
+        assert len(ranks) == 6
+        assert [b.target for b in ranks] == sorted(set(b.target for b in ranks))
+        assert [b.league for b in ranks] == [
+            "bronze",
+            "silver",
+            "gold",
+            "platinum",
+            "diamond",
+            "legend",
+        ]
     originals = sorted(
         (badge.key, badge.scope, badge.target, badge.title_key)
         for badge in LISTENING_BADGES
@@ -34,7 +70,7 @@ def test_catalog_adds_500_without_changing_legacy_award_identity() -> None:
         hashlib.sha256(json.dumps(originals, separators=(",", ":")).encode()).hexdigest()
         == "404d4a5e0ff5149906fa44040ba1e9dd893fe16a3caf997005f71f4d22c1968c"
     )
-    assert len({badge.scope for badge in LISTENING_BADGES}) == 16
+    assert len({badge.scope for badge in LISTENING_BADGES}) == 64
     assert len({badge.league for badge in LISTENING_BADGES}) == 6
     assert sum(badge.secret for badge in LISTENING_BADGES) == 25
     for badge in LISTENING_BADGES:
@@ -121,7 +157,7 @@ async def test_catalog_synchronization_is_batched_and_preserves_old_award_dates(
     assert len(awards) == len(set(awards))
 
 
-async def test_recorded_habits_and_membership_share_four_batch_queries() -> None:
+async def test_recorded_habits_and_membership_share_seven_batch_queries() -> None:
     joined = datetime(2020, 1, 1, tzinfo=UTC)
     session = SimpleNamespace(
         execute=AsyncMock(
@@ -130,6 +166,9 @@ async def test_recorded_habits_and_membership_share_four_batch_queries() -> None
                 [(1, 10, 8, 3, 2, 4, 5, 1)],
                 [(1, 2)],
                 [(1, 1)],
+                SimpleNamespace(mappings=lambda: list[dict[str, int]]()),
+                SimpleNamespace(mappings=lambda: list[dict[str, int]]()),
+                SimpleNamespace(mappings=lambda: list[dict[str, int]]()),
             ]
         )
     )
@@ -147,7 +186,7 @@ async def test_recorded_habits_and_membership_share_four_batch_queries() -> None
     assert (first.recorded_listens, first.unique_recordings, first.videos) == (10, 8, 1)
     assert first.joined_at == joined
     assert result.result()[2].recorded_listens == 0
-    assert session.execute.await_count == 4
+    assert session.execute.await_count == 7
     statement = session.execute.call_args_list[1].args[0]
     sql = str(statement.compile(dialect=postgresql.dialect()))
     assert "timezone" in sql and "isodow" in sql and "count(distinct" in sql.lower()

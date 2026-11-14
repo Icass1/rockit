@@ -59,12 +59,12 @@ it("uses the actual family for legacy awards and safely resolves unknown variant
     expect(emblemFamilyVariant("longplay")).toBe("flame");
     expect(emblemFamilyVariant("<script>", "__proto__")).toBe("ignition");
 });
-it("makes all sixteen filled family marks visible on every league's static artwork", async () => {
+it("makes all sixty-four filled family marks visible on every league's static artwork", async () => {
     const { emblemFamilyMarks } =
         await import("@rockit/ui/headless/emblemFamilies");
     const { medalLeagues } = await import("@rockit/ui/headless/medalShapes");
-    expect(Object.keys(emblemFamilyMarks)).toHaveLength(16);
-    expect(new Set(Object.values(emblemFamilyMarks)).size).toBe(16);
+    expect(Object.keys(emblemFamilyMarks)).toHaveLength(64);
+    expect(new Set(Object.values(emblemFamilyMarks)).size).toBe(64);
     for (const [variant, path] of Object.entries(emblemFamilyMarks))
         for (const league of medalLeagues)
             expect(

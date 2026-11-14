@@ -100,6 +100,24 @@ test("six league finishes retain their outlines and family colors in the inspect
                 listeningBadges: leagues.map((league, index) => ({
                     ...listeningProfile.listeningBadges[index],
                     key: `league-${league}`,
+                    scope: (
+                        [
+                            "morning",
+                            "summer",
+                            "library_albums",
+                            "repeats",
+                            "halloween",
+                            "radio_shares",
+                        ] as const
+                    )[index],
+                    visualVariant: [
+                        "morning",
+                        "summer",
+                        "library_albums",
+                        "repeats",
+                        "halloween",
+                        "radio_shares",
+                    ][index],
                     tier: 1,
                     league,
                     earnedAt: "2026-01-01T00:00:00Z",

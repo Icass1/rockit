@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
 from core.framework.friend.listeningBadgeCatalog import LISTENING_BADGES
+from core.framework.friend.listeningBadgeExpansion import EXPANDED_BADGE_FAMILIES
 from core.framework.friend.notifications import notify_after_commit
 from core.framework.models.listeningRewards import (
     ListeningBadgeDefinition,
@@ -32,6 +33,10 @@ def badge_metrics(
         )
         years = max(0, now.year - joined.year - int(now < anniversary))
     return {
+        **{
+            family.scope: max(0, summary.additional_metrics.get(family.scope, 0))
+            for family in EXPANDED_BADGE_FAMILIES
+        },
         "session": summary.session_ms // 60000,
         "total": summary.total_ms // 60000,
         "plays": summary.recorded_listens,

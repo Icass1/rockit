@@ -18,7 +18,24 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
     await request.post(backend + "/__fixture/fault", {
         data: {
             path: "/friends/levels",
-            body: { ...listeningProfile, username: "Fixture listener" },
+            body: {
+                ...listeningProfile,
+                username: "Fixture listener",
+                listeningBadges: [
+                    {
+                        ...listeningProfile.listeningBadges[0],
+                        key: "library_albums_milestone_10",
+                        scope: "library_albums",
+                        visualVariant: "library_albums",
+                        titleKey: "FRIENDS_BADGE_LIBRARY_ALBUMS_MILESTONE_10",
+                        descriptionKey:
+                            "FRIENDS_BADGE_LIBRARY_ALBUMS_DESCRIPTION",
+                        league: "legend",
+                        tier: 3,
+                        earnedAt: "2026-01-01T00:00:00Z",
+                    },
+                ],
+            },
         },
     });
     await page.setViewportSize({ width: 390, height: 844 });

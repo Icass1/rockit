@@ -1,5 +1,6 @@
 """Provider-neutral collectible catalog; all display copy lives in Vocabulary.xlsx."""
 
+from core.framework.friend.listeningBadgeExpansion import EXPANDED_BADGE_FAMILIES
 from core.framework.models.listeningRewards import (
     ListeningBadgeDefinition,
     ListeningBadgeFamily,
@@ -152,28 +153,34 @@ _EXTENSIONS = {
     "videos": (25, 10000),
     "mixed": (20, 2500),
 }
-BADGE_FAMILIES = tuple(
-    ListeningBadgeFamily(
-        family.scope,
-        tuple(
-            sorted(family.targets + _additional_targets(family.targets, *_EXTENSIONS[family.scope]))
+BADGE_FAMILIES = (
+    tuple(
+        ListeningBadgeFamily(
+            family.scope,
+            tuple(
+                sorted(
+                    family.targets + _additional_targets(family.targets, *_EXTENSIONS[family.scope])
+                )
+            )
+            if family.scope in _EXTENSIONS
+            else family.targets,
+            {"friends": "companions", "videos": "camera", "mixed": "fusion", "streak": "flame"}.get(
+                family.scope, family.visual_variant
+            ),
         )
-        if family.scope in _EXTENSIONS
-        else family.targets,
-        {"friends": "companions", "videos": "camera", "mixed": "fusion", "streak": "flame"}.get(
-            family.scope, family.visual_variant
-        ),
+        for family in _ORIGINAL_FAMILIES
     )
-    for family in _ORIGINAL_FAMILIES
-) + (
-    ListeningBadgeFamily("active_days", _additional_targets((), 50, 3650), "calendar"),
-    ListeningBadgeFamily("night", _additional_targets((), 25, 10000), "moon"),
-    ListeningBadgeFamily("early", _additional_targets((), 25, 10000), "sunrise"),
-    ListeningBadgeFamily("weekend", _additional_targets((), 25, 25000), "weekend"),
-    ListeningBadgeFamily(
-        "tenure", (1, 2, 3, 7, 14, 21, 30, 45, 60, 90, 120, 150, 180, 270, 300), "hourglass"
-    ),
-    ListeningBadgeFamily("anniversary", tuple(range(1, 21)), "anniversary"),
+    + (
+        ListeningBadgeFamily("active_days", _additional_targets((), 50, 3650), "calendar"),
+        ListeningBadgeFamily("night", _additional_targets((), 25, 10000), "moon"),
+        ListeningBadgeFamily("early", _additional_targets((), 25, 10000), "sunrise"),
+        ListeningBadgeFamily("weekend", _additional_targets((), 25, 25000), "weekend"),
+        ListeningBadgeFamily(
+            "tenure", (1, 2, 3, 7, 14, 21, 30, 45, 60, 90, 120, 150, 180, 270, 300), "hourglass"
+        ),
+        ListeningBadgeFamily("anniversary", tuple(range(1, 21)), "anniversary"),
+    )
+    + EXPANDED_BADGE_FAMILIES
 )
 
 

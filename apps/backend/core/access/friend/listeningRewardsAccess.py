@@ -17,6 +17,7 @@ from core.access.db.ormModels.friend.userLevel import UserLevelRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.user import UserRow
 from core.access.db.ormModels.user_media_listened import UserMediaListenedRow
+from core.access.friend.listeningCollectionMetricsAccess import ListeningCollectionMetricsAccess
 from core.access.friend.userLevelAccess import UserLevelAccess
 from core.enums.friend.friendStatusEnum import FriendStatusEnum
 from core.enums.mediaTypeEnum import MediaTypeEnum
@@ -161,7 +162,7 @@ class ListeningRewardsAccess:
     async def get_summaries_async(
         session: AsyncSession, user_ids: list[int], active_after: datetime
     ) -> Result[dict[int, ListeningRewardSummary]]:
-        """Fetch verified duration and real play counts in four batch queries."""
+        """Fetch verified progress and collectible counters in seven fixed batch queries."""
         if not user_ids:
             return Result(code=ResultCode.OK, message="OK", result={})
         cursors = await session.execute(
@@ -236,6 +237,13 @@ class ListeningRewardsAccess:
             .group_by(FriendRow.user_id)
         )
         friends = {user_id: int(count) for user_id, count in friend_counts}
+        additional = await ListeningCollectionMetricsAccess.get_async(
+            session=session, user_ids=user_ids
+        )
+        if additional.is_not_ok():
+            logger.error("Cannot load collectible metrics: %s", additional.info())
+            return Result(code=additional.code(), message=additional.message())
+        additional_by_user = additional.result()
         by_user = progress_rows
         result: dict[int, ListeningRewardSummary] = {}
         for user_id in user_ids:
@@ -254,5 +262,6 @@ class ListeningRewardsAccess:
                 early_listens=play[5],
                 weekend_listens=play[6],
                 joined_at=join_dates.get(user_id),
+                additional_metrics=additional_by_user.get(user_id, {}),
             )
         return Result(code=ResultCode.OK, message="OK", result=result)

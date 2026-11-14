@@ -103,7 +103,7 @@ it("filters a large collection by family and league without rendering hundreds o
         await import("../fixtures/emblemCollection");
     const profile = {
         ...emblemCollectionProfile,
-        listeningBadges: Array.from({ length: 615 }, (_, index) => ({
+        listeningBadges: Array.from({ length: 903 }, (_, index) => ({
             ...emblemCollectionProfile.listeningBadges[
                 index % emblemCollectionProfile.listeningBadges.length
             ],
@@ -112,7 +112,7 @@ it("filters a large collection by family and league without rendering hundreds o
     };
     render(panel(async () => profile));
     fireEvent.click(
-        await screen.findByRole("button", { name: "Explore all 615 emblems" })
+        await screen.findByRole("button", { name: "Explore all 903 emblems" })
     );
     expect(
         screen
@@ -129,4 +129,45 @@ it("filters a large collection by family and league without rendering hundreds o
     const detail = screen.getByTestId("profile-emblem-detail");
     expect(detail.textContent).toContain("This secret reveals itself");
     expect(detail.textContent).not.toContain("0 / 0");
+});
+
+it("exposes all 64 families while keeping only one catalog page mounted", async () => {
+    const { ListeningBadgeScopeSchema } = await import("@rockit/shared");
+    const { emblemFamilyVariant } =
+        await import("@rockit/ui/headless/emblemFamilies");
+    const profile = {
+        ...listeningProfile,
+        listeningBadges: ListeningBadgeScopeSchema.options.map(
+            ({ value: scope }) => ({
+                ...listeningProfile.listeningBadges[0],
+                key: `scope-${scope}`,
+                scope,
+                league: "bronze" as const,
+                visualVariant: emblemFamilyVariant("ignition", scope),
+                titleKey: `FRIENDS_BADGE_FAMILY_${scope.toUpperCase()}`,
+                descriptionKey:
+                    scope === "library_albums"
+                        ? "FRIENDS_BADGE_LIBRARY_ALBUMS_DESCRIPTION_ONE"
+                        : "FRIENDS_BADGE_SESSION_DESCRIPTION_ONE",
+            })
+        ),
+    };
+    render(panel(async () => profile));
+    fireEvent.click(
+        await screen.findByRole("button", { name: "Explore all 64 emblems" })
+    );
+    expect(
+        screen
+            .getByTestId("profile-emblems")
+            .querySelectorAll('[role="button"]')
+    ).toHaveLength(9);
+    fireEvent.click(screen.getByRole("button", { name: /^Album curator$/ }));
+    expect(
+        screen
+            .getByTestId("profile-emblems")
+            .querySelectorAll('[role="button"]')
+    ).toHaveLength(1);
+    expect(screen.getByTestId("profile-emblem-detail").textContent).toContain(
+        "Keep 1 album"
+    );
 });

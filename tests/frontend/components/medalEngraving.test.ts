@@ -3,6 +3,7 @@ import {
     createEngravedRear,
     createMedalOutline,
 } from "@rockit/ui/browser/medalEngraving.web";
+import { medalLeagues } from "@rockit/ui/headless/medalShapes";
 import { expect, it } from "vitest";
 
 function capArea(
@@ -32,7 +33,7 @@ function capArea(
     return area;
 }
 
-it.each(["gold", "legend"])(
+it.each(medalLeagues)(
     "cuts the brand into the %s plate while retaining its enclosed metal islands",
     (league) => {
         const outline = createMedalOutline(league, 0.82);
@@ -58,7 +59,28 @@ it.each(["gold", "legend"])(
                 capArea(cut.floor) * 0.5
             );
             expect(plateArea).toBeGreaterThan(plainArea * 0.5);
-            expect(cut.floor.getAttribute("position").count).toBeGreaterThan(0);
+            const floor = cut.floor.getAttribute("position");
+            expect(floor.count).toBeGreaterThan(0);
+            // The original brand must fit inside even narrow/star-shaped reverse plates.
+            for (let vertex = 0; vertex < floor.count; vertex++) {
+                const x = floor.getX(vertex),
+                    y = floor.getY(vertex);
+                let inside = false;
+                for (
+                    let i = 0, j = points.length - 1;
+                    i < points.length;
+                    j = i++
+                ) {
+                    const a = points[i],
+                        b = points[j];
+                    if (
+                        a.y > y !== b.y > y &&
+                        x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x
+                    )
+                        inside = !inside;
+                }
+                expect(inside).toBe(true);
+            }
             expect(
                 Array.from(cut.surface.getAttribute("position").array).every(
                     Number.isFinite

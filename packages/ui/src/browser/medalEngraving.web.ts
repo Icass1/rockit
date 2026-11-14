@@ -1,5 +1,5 @@
-import { emblemSilhouettes } from "@rockit/ui/headless/emblemArtwork";
 import { emblemBrandPaths } from "@rockit/ui/headless/medalDesign";
+import { emblemSilhouettes } from "@rockit/ui/headless/medalShapes";
 import * as THREE from "three";
 import { SVGLoader } from "three/addons/loaders/SVGLoader.js";
 
@@ -15,7 +15,7 @@ export function createMedalOutline(league: string, scale: number) {
         const path = new SVGLoader().parse(
             `<svg xmlns="http://www.w3.org/2000/svg"><path d="${emblemSilhouettes[safeLeague]}"/></svg>`
         ).paths[0];
-        points = path.toShapes()[0].getPoints(4);
+        points = path.toShapes()[0].getPoints(safeLeague === "bronze" ? 24 : 4);
         contours.set(safeLeague, points);
     }
     return new THREE.Shape(
@@ -34,7 +34,8 @@ export function createEngravedRear(outer: THREE.Shape) {
     const paths = new SVGLoader().parse(
         `<svg xmlns="http://www.w3.org/2000/svg">${emblemBrandPaths.map((d) => `<path d="${d}"/>`).join("")}</svg>`
     ).paths;
-    const transform = (path: THREE.Path) =>
+    const sources = paths.flatMap((path) => path.toShapes());
+    const base = (path: THREE.Path) =>
         path
             .getPoints(5)
             .map(
@@ -44,15 +45,45 @@ export function createEngravedRear(outer: THREE.Shape) {
                         1 - (200 + point.y * 0.65) / 512
                     )
             );
-    const marks = paths
-        .flatMap((path) => path.toShapes())
-        .map((source) => {
-            const shape = new THREE.Shape(transform(source));
-            shape.holes = source.holes.map(
-                (hole) => new THREE.Path(transform(hole))
-            );
-            return shape;
-        });
+    const samples = sources.flatMap((source) => base(source));
+    const center = new THREE.Box2()
+        .setFromPoints(samples)
+        .getCenter(new THREE.Vector2());
+    const boundary = outer
+        .getPoints()
+        .map((point) => point.clone().multiplyScalar(0.98));
+    const contains = (point: THREE.Vector2) => {
+        let inside = false;
+        for (let i = 0, j = boundary.length - 1; i < boundary.length; j = i++) {
+            const a = boundary[i],
+                b = boundary[j];
+            if (
+                a.y > point.y !== b.y > point.y &&
+                point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x
+            )
+                inside = !inside;
+        }
+        return inside;
+    };
+    let scale = 1;
+    const fitted = (point: THREE.Vector2) =>
+        point.clone().sub(center).multiplyScalar(scale).add(center);
+    for (
+        let attempt = 0;
+        attempt < 32 && !samples.every((point) => contains(fitted(point)));
+        attempt++
+    )
+        scale *= 0.96;
+    if (!samples.every((point) => contains(fitted(point))))
+        throw new Error("Brand does not fit medal plate");
+    const transform = (path: THREE.Path) => base(path).map(fitted);
+    const marks = sources.map((source) => {
+        const shape = new THREE.Shape(transform(source));
+        shape.holes = source.holes.map(
+            (hole) => new THREE.Path(transform(hole))
+        );
+        return shape;
+    });
     const plate = outer.clone();
     plate.holes.push(
         ...marks.map((shape) => new THREE.Path(shape.getPoints()))

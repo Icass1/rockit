@@ -5,23 +5,20 @@ import {
     createMedalOutline,
 } from "@rockit/ui/browser/medalEngraving.web";
 import {
-    createLegendCrystals,
-    createLegendCup,
-    createLegendMotif,
-    LEGEND_MOTIF_HEIGHT,
-} from "@rockit/ui/browser/medalLegend.web";
+    createMedalGem,
+    createMedalHalos,
+    createMedalInlay,
+    createMedalPavilion,
+} from "@rockit/ui/browser/medalGeometry.web";
 import {
-    emblemEngravings,
     emblemInks,
-    emblemMotifPlacement,
     emblemPalette,
     emblemSilhouettes,
 } from "@rockit/ui/headless/emblemArtwork";
 import { medalAwardDate, romanTier } from "@rockit/ui/headless/medalDesign";
+import { medalDesign } from "@rockit/ui/headless/medalShapes";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { SVGLoader } from "three/addons/loaders/SVGLoader.js";
 
 /** Browser-only, loaded on inspection. No animation loop or remote textures. */
 export function createMedalViewer(
@@ -52,7 +49,10 @@ export function createMedalViewer(
             renderer.forceContextLoss();
             renderer.domElement.remove();
         });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        const maxDpr = window.matchMedia?.("(pointer: coarse)").matches
+            ? 1.5
+            : 2;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.9;
@@ -65,11 +65,49 @@ export function createMedalViewer(
         controls.minDistance = 3.1;
         controls.maxDistance = 7;
         const pmrem = new THREE.PMREMGenerator(renderer);
-        const room = new RoomEnvironment();
-        const environment = own(pmrem.fromScene(room, 0.04));
-        scene.environment = environment.texture;
-        room.dispose();
-        pmrem.dispose();
+        const room = new THREE.Scene();
+        room.background = new THREE.Color(
+            colors["medal-silver-metal"]
+        ).multiplyScalar(0.35);
+        const cards: THREE.Mesh[] = [];
+        const card = (
+            x: number,
+            y: number,
+            z: number,
+            w: number,
+            h: number,
+            color: string,
+            power: number
+        ) => {
+            const mesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(w, h),
+                new THREE.MeshBasicMaterial({
+                    color: new THREE.Color(color).multiplyScalar(power),
+                    side: THREE.DoubleSide,
+                    toneMapped: false,
+                })
+            );
+            mesh.position.set(x, y, z);
+            mesh.lookAt(0, 0, 0);
+            room.add(mesh);
+            cards.push(mesh);
+        };
+        card(-4, 1, 2, 1.2, 5, colors["medal-silver-highlight"], 2);
+        card(-3.5, 1, 4, 0.3, 7, colors["medal-silver-highlight"], 4);
+        card(4, 1, 2, 0.8, 5, colors["medal-silver-highlight"], 1.5);
+        card(0, 5, 1, 5, 1.5, colors["medal-silver-highlight"], 1.7);
+        card(-3, -1, -4, 2, 5, colors["medal-diamond-highlight"], 1.3);
+        card(3, 0, -4, 1, 4, colors.primary, 0.5);
+        try {
+            const environment = own(pmrem.fromScene(room, 0.015));
+            scene.environment = environment.texture;
+        } finally {
+            for (const mesh of cards) {
+                mesh.geometry.dispose();
+                (mesh.material as THREE.Material).dispose();
+            }
+            pmrem.dispose();
+        }
         scene.add(
             new THREE.HemisphereLight(
                 colors["medal-silver-highlight"],
@@ -78,14 +116,14 @@ export function createMedalViewer(
             )
         );
         const key = new THREE.DirectionalLight(
-            colors["medal-gold-highlight"],
-            4
+            colors["medal-silver-highlight"],
+            3
         );
         key.position.set(-3, 4, 5);
         scene.add(key);
         const fill = new THREE.DirectionalLight(
             colors["medal-diamond-highlight"],
-            2.5
+            1
         );
         fill.position.set(4, 0, -3);
         scene.add(fill);
@@ -113,54 +151,20 @@ export function createMedalViewer(
                 roughness: 0.14,
             })
         );
-        const enamel = own(
-            new THREE.MeshPhysicalMaterial({
-                color: new THREE.Color(palette.face).lerp(
-                    new THREE.Color(ink),
-                    0.22
-                ),
-                metalness: 0.35,
-                roughness: 0.32,
-                clearcoat: 0.9,
-                clearcoatRoughness: 0.14,
-            })
-        );
-        const relief = own(
-            new THREE.MeshStandardMaterial({
-                color: ink,
-                metalness: 0.8,
-                roughness: 0.24,
-            })
-        );
-        const crystal = own(
-            new THREE.MeshPhysicalMaterial({
-                color: new THREE.Color(palette.highlight).lerp(
-                    new THREE.Color(palette.metal),
-                    0.3
-                ),
-                metalness: 0.12,
-                roughness: 0.16,
-                clearcoat: 1,
-                clearcoatRoughness: 0.08,
-            })
-        );
-        if (league === "legend") {
+        if (league === "legend")
             metal.color.lerp(
                 new THREE.Color(colors["medal-silver-metal"]),
                 0.45
             );
-            enamel.color.set(palette.face).lerp(new THREE.Color(ink), 0.14);
-            enamel.metalness = 0.65;
-            enamel.roughness = 0.22;
-            relief.color
-                .copy(metal.color)
-                .lerp(new THREE.Color(palette.highlight), 0.35);
-            relief.roughness = 0.2;
-        }
+        const design = medalDesign(league);
+        const gemColor = new THREE.Color(
+            badge.earnedAt
+                ? colors[`medal-${league}-gem`]
+                : colors["medal-muted-metal"]
+        );
         const group = new THREE.Group();
-        group.rotation.set(0.2, -0.52, 0);
+        group.rotation.set(0.1, -0.35, 0);
         scene.add(group);
-        const loader = new SVGLoader();
         const outline = (scale: number) => createMedalOutline(league, scale);
         const solid = (
             scale: number,
@@ -189,84 +193,97 @@ export function createMedalViewer(
             group.add(mesh);
             return mesh;
         };
-        if (league === "legend") {
+        const matte = own(
+            new THREE.MeshStandardMaterial({
+                color: colors["recap-ink"],
+                metalness: 0.85,
+                roughness: 0.5,
+            })
+        );
+        solid(1, 0.18, -0.09, metal, 0.35);
+        solid(0.98, 0.018, 0.112, edge, 0.1, 0.91);
+        if (design.jewel) {
+            const jewel = own(
+                new THREE.MeshPhysicalMaterial({
+                    color: new THREE.Color(palette.highlight).lerp(
+                        gemColor,
+                        0.16
+                    ),
+                    metalness: 0,
+                    roughness: 0.035,
+                    transmission: 0.92,
+                    thickness: 0.45,
+                    ior: 2.1,
+                    attenuationColor: gemColor,
+                    attenuationDistance: 0.6,
+                    clearcoat: 0.7,
+                    clearcoatRoughness: 0.03,
+                    envMapIntensity: 1,
+                    specularIntensity: 1,
+                })
+            );
+            const pavilionColor = gemColor
+                .clone()
+                .lerp(
+                    new THREE.Color(
+                        league === "legend" && badge.earnedAt
+                            ? colors.primary
+                            : ink
+                    ),
+                    league === "legend" ? 0.1 : 0.08
+                );
+            const pavilion = own(
+                new THREE.MeshPhysicalMaterial({
+                    color: pavilionColor,
+                    metalness: 0.9,
+                    roughness: 0.075,
+                    clearcoat: 1,
+                    envMapIntensity: 1.5,
+                })
+            );
+            solid(0.9, 0.008, 0.104, matte, 0.02);
             group.add(
-                new THREE.Mesh(own(createLegendCup()), [metal, enamel, edge])
+                new THREE.Mesh(own(createMedalPavilion(league)), pavilion)
             );
-            group.add(new THREE.Mesh(own(createLegendCrystals()), crystal));
-            // Tiny shared claws seat the crystal roots against the medal's metal rim.
-            const claws = own(
-                new THREE.InstancedMesh(
-                    own(new THREE.CapsuleGeometry(0.014, 0.055, 3, 8)),
-                    edge,
-                    8
-                )
-            );
-            const mount = new THREE.Object3D();
-            mount.rotation.z = Math.PI / 2;
-            let index = 0;
-            for (const x of [-0.535, 0.535])
-                for (const y of [-1 / 6, 1 / 6])
-                    for (const z of [0.126, -0.145]) {
-                        mount.position.set(x, y, z);
-                        mount.updateMatrix();
-                        claws.setMatrixAt(index++, mount.matrix);
-                    }
-            group.add(claws);
+            group.add(new THREE.Mesh(own(createMedalGem(league)), jewel));
         } else {
-            solid(1, 0.18, -0.09, metal, 0.8);
-            solid(0.91, 0.025, 0.112, edge, 0.15, 0.83);
-            solid(0.82, 0.012, 0.113, enamel, 0.16);
-        }
-        const placement = emblemMotifPlacement(league);
-        const rearRim = solid(0.91, 0.025, -0.112, edge, 0.15, 0.83);
-        rearRim.rotation.y = Math.PI;
-        const motifs = loader.parse(
-            `<svg xmlns="http://www.w3.org/2000/svg">${emblemEngravings[variant]}</svg>`
-        ).paths;
-        if (league === "legend") {
-            for (const geometry of createLegendMotif(variant))
-                group.add(new THREE.Mesh(own(geometry), relief));
-        }
-        for (const path of league === "legend" ? [] : motifs) {
-            for (const contour of path.subPaths) {
-                const points = contour
-                    .getPoints(20)
-                    .map(
-                        (point) =>
-                            new THREE.Vector3(
-                                ((point.x - 40) * placement.scale) / 36,
-                                ((35 - point.y) * placement.scale +
-                                    40 -
-                                    placement.centerY) /
-                                    36,
-                                league === "legend"
-                                    ? LEGEND_MOTIF_HEIGHT
-                                    : 0.158
-                            )
-                    );
-                if (points.length < 2) continue;
-                const curve = new THREE.CatmullRomCurve3(
-                    points,
-                    false,
-                    "centripetal"
+            const face = own(
+                new THREE.MeshStandardMaterial({
+                    color: new THREE.Color(palette.metal).lerp(
+                        new THREE.Color(palette.face),
+                        0.25
+                    ),
+                    metalness: 0.9,
+                    roughness: 0.45,
+                })
+            );
+            const stamp = own(
+                new THREE.MeshStandardMaterial({
+                    color: palette.highlight,
+                    metalness: 0.95,
+                    roughness: 0.18,
+                })
+            );
+            solid(0.85, 0.012, 0.115, face, 0.1);
+            if (league === "silver") solid(0.79, 0.008, 0.132, edge, 0.1, 0.76);
+            for (const geometry of createMedalInlay(variant, league))
+                group.add(new THREE.Mesh(own(geometry), stamp));
+            if (league === "bronze") {
+                const rim = new THREE.Mesh(
+                    own(new THREE.TorusGeometry(0.86, 0.007, 6, 96)),
+                    edge
                 );
-                group.add(
-                    new THREE.Mesh(
-                        own(
-                            new THREE.TubeGeometry(
-                                curve,
-                                Math.min(96, points.length * 2),
-                                0.018,
-                                6,
-                                false
-                            )
-                        ),
-                        relief
-                    )
-                );
+                rim.position.z = 0.134;
+                group.add(rim);
             }
         }
+        for (const geometry of createMedalHalos(league)) {
+            const arc = new THREE.Mesh(own(geometry), [metal, matte]);
+            arc.position.z = -0.06;
+            group.add(arc);
+        }
+        const rearRim = solid(0.91, 0.025, -0.112, edge, 0.15, 0.83);
+        rearRim.rotation.y = Math.PI;
         const engraving = document.createElement("canvas");
         engraving.width = engraving.height = 1024;
         const context = engraving.getContext("2d");
@@ -281,18 +298,33 @@ export function createMedalViewer(
         const name = ownerName.trim();
         const nameWidth = Math.max(1, context.measureText(name).width);
         context.save();
-        context.translate(512, 625);
+        context.translate(512, league === "platinum" ? 610 : 625);
         context.scale(
-            Math.min(1, (league === "legend" ? 330 : 510) / nameWidth),
+            Math.min(
+                1,
+                (["silver", "platinum", "legend"].includes(league)
+                    ? 330
+                    : 510) / nameWidth
+            ),
             1
         );
         context.fillText(name, 0, 0);
         context.restore();
         context.font = "32px sans-serif";
         if (badge.earnedAt && Number.isFinite(Date.parse(badge.earnedAt)))
-            context.fillText(medalAwardDate(badge.earnedAt), 512, 700);
+            context.fillText(
+                medalAwardDate(badge.earnedAt),
+                512,
+                league === "platinum" ? 660 : 700,
+                league === "platinum" ? 220 : 350
+            );
         context.font = "36px serif";
-        context.fillText(romanTier(badge.tier), 512, 775);
+        context.fillText(
+            romanTier(badge.tier),
+            512,
+            league === "platinum" ? 710 : 775,
+            league === "platinum" ? 150 : 210
+        );
         const bump = own(new THREE.CanvasTexture(engraving));
         const reverseMaterial = own(metal.clone());
         const etching = document.createElement("canvas");
@@ -344,7 +376,9 @@ export function createMedalViewer(
             uv.setXY(i, position.getX(i) / 2 + 0.5, position.getY(i) / 2 + 0.5);
         uv.needsUpdate = true;
         const draw = () => {
-            if (!disposed && !document.hidden) renderer.render(scene, camera);
+            if (!disposed && !document.hidden) {
+                renderer.render(scene, camera);
+            }
         };
         const resize = () => {
             const { width, height } = container.getBoundingClientRect();
@@ -373,7 +407,7 @@ export function createMedalViewer(
         resize();
         const turn = (back = false) => {
             controls.reset();
-            group.rotation.set(0.2, back ? Math.PI - 0.52 : -0.52, 0);
+            group.rotation.set(0.1, back ? Math.PI - 0.35 : -0.35, 0);
             draw();
         };
         return {
@@ -384,6 +418,13 @@ export function createMedalViewer(
                 group.rotation.x += y;
                 draw();
             },
+            getDiagnostics: () => ({
+                calls: renderer.info.render.calls,
+                triangles: renderer.info.render.triangles,
+                geometries: renderer.info.memory.geometries,
+                textures: renderer.info.memory.textures,
+                pixelRatio: renderer.getPixelRatio(),
+            }),
             dispose,
         };
     } catch (error) {

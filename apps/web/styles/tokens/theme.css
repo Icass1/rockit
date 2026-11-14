@@ -112,10 +112,10 @@
     --theme-medal-platinum-metal: #87c5c6;
     --theme-medal-platinum-shadow: #376b7a;
     --theme-medal-platinum-face: #192a32;
-    --theme-medal-diamond-highlight: #e9e4ff;
-    --theme-medal-diamond-metal: #b29fe8;
-    --theme-medal-diamond-shadow: #61508f;
-    --theme-medal-diamond-face: #231d37;
+    --theme-medal-diamond-highlight: #e2f1ff;
+    --theme-medal-diamond-metal: #88b9e8;
+    --theme-medal-diamond-shadow: #274d79;
+    --theme-medal-diamond-face: #13253d;
     --theme-medal-legend-highlight: #fff0ff;
     --theme-medal-legend-metal: #baa0ea;
     --theme-medal-legend-shadow: #4c2c70;
@@ -130,6 +130,12 @@
     --theme-recap-highlight: #ffe89b;
     --theme-recap-track: #ffffff33;
     --theme-medal-stage: #101016;
+    --theme-medal-bronze-gem: #b77950;
+    --theme-medal-silver-gem: #8d9eaf;
+    --theme-medal-gold-gem: #e9a817;
+    --theme-medal-platinum-gem: #20aeb3;
+    --theme-medal-diamond-gem: #3288ed;
+    --theme-medal-legend-gem: #883aea;
     --lyrics-emphasis-scale: 1.25;
     --radius-none: 0px;
     --radius-xs: 2px;

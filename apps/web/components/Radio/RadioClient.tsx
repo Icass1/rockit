@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import {
     EEvent,
     isSearchResult,
+    locatedRadioStations,
     type BaseSearchResultsItem,
     type BaseStationResponse,
 } from "@rockit/shared";
@@ -145,7 +146,13 @@ export default function RadioClient(): JSX.Element {
                 <RadioMap
                     onCountryClick={selectCountry}
                     selectedCountry={country}
-                    savedStations={savedStations}
+                    savedStations={locatedRadioStations([
+                        ...savedStations,
+                        ...displayed.filter(
+                            (station): station is BaseStationResponse =>
+                                !isSearchResult(station)
+                        ),
+                    ])}
                 />
             </div>
             <div

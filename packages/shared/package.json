@@ -12,6 +12,10 @@
         "./dto/*": {
             "types": "./src/dto/*.ts",
             "default": "./src/dto/*.ts"
+        },
+        "./models/*": {
+            "types": "./src/models/*.ts",
+            "default": "./src/models/*.ts"
         }
     },
     "scripts": {

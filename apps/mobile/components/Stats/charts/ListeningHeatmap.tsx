@@ -106,7 +106,10 @@ export default function ListeningHeatmap({ data }: ListeningHeatmapProps) {
                     </Text>
                     <Text style={styles.tooltipValue}>
                         {tooltip.value > 0
-                            ? `${tooltip.value} min`
+                            ? vocabulary.TIME_MINUTES.replace(
+                                  "{n}",
+                                  tooltip.value.toLocaleString(lang)
+                              )
                             : vocabulary.NO_DATA}
                     </Text>
                 </View>

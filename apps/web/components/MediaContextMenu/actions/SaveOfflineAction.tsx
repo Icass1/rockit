@@ -58,7 +58,9 @@ export default function SaveOfflineAction({
             );
         } catch (err) {
             if (err instanceof Error && err.message === "STORAGE_FULL") {
-                rockIt.notificationManager.notifyError("Storage full");
+                rockIt.notificationManager.notifyError(
+                    vocabulary.OFFLINE_STORAGE_FULL
+                );
             }
         } finally {
             setDownloading(false);

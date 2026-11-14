@@ -32,7 +32,7 @@ export function PiPLyrics({
         glance || currentLineIndex < 0
             ? null
             : `[data-lyric-index="${currentLineIndex}"]`,
-        designTokens.motion.normal
+        designTokens.motion.lyricsScroll
     );
 
     const goToLine = (index: number): void => {

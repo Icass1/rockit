@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useStore } from "@nanostores/react";
 import { getMediaArtistsString } from "@rockit/shared";
 import { designTokens, withAlpha } from "@rockit/theme";
 import {
@@ -20,7 +21,11 @@ import {
 } from "react-native";
 import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { useContextMenu } from "@/lib/ContextMenuContext";
-import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
+import {
+    usePlayer,
+    usePlayerServices,
+    usePlayerTime,
+} from "@/lib/PlayerContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -31,13 +36,17 @@ export default function MiniPlayer() {
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const {
-        currentMedia,
+        currentMedia: playingMedia,
         isPlaying,
-        isLoading,
+        isLoading: nativeLoading,
         togglePlayPause,
         skipForward,
         showPlayer,
     } = usePlayer();
+    const services = usePlayerServices();
+    const pending = useStore(services.queueManager.pendingSelectionAtom);
+    const currentMedia = pending ?? playingMedia;
+    const isLoading = !!pending || nativeLoading;
     const imageUrl = useOfflineArtwork(
         currentMedia?.publicId,
         currentMedia?.imageUrl
@@ -91,7 +100,8 @@ export default function MiniPlayer() {
     if (!currentMedia) return null;
     if (shouldHide && isHidden) return null;
 
-    const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+    const progressPercent =
+        !pending && duration > 0 ? (currentTime / duration) * 100 : 0;
 
     return (
         <Animated.View
@@ -106,6 +116,7 @@ export default function MiniPlayer() {
                 style={styles.content}
                 accessibilityRole="button"
                 accessibilityLabel={currentMedia.name}
+                disabled={!!pending}
                 onPress={showPlayer}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
@@ -150,6 +161,7 @@ export default function MiniPlayer() {
                     accessibilityLabel={
                         isPlaying ? vocabulary.PAUSE : vocabulary.PLAY
                     }
+                    disabled={!!pending}
                     style={styles.controlButton}
                     onPress={(e) => {
                         e.stopPropagation();
@@ -164,13 +176,13 @@ export default function MiniPlayer() {
                         />
                     ) : isPlaying ? (
                         <Pause
-                            fill="currentColor"
+                            fill={theme.legacy.white}
                             size={22}
                             color={theme.legacy.white}
                         />
                     ) : (
                         <Play
-                            fill="currentColor"
+                            fill={theme.legacy.white}
                             size={22}
                             color={theme.legacy.white}
                         />
@@ -181,6 +193,7 @@ export default function MiniPlayer() {
                 <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={vocabulary.NEXT_MEDIA}
+                    disabled={!!pending}
                     style={styles.controlButton}
                     onPress={(e) => {
                         e.stopPropagation();
@@ -189,7 +202,7 @@ export default function MiniPlayer() {
                     hitSlop={12}
                 >
                     <SkipForward
-                        fill="currentColor"
+                        fill={theme.legacy.white}
                         size={22}
                         color={theme.legacy.white}
                     />

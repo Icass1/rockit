@@ -34,6 +34,9 @@ export default function PlayerTabsBar({
                 return (
                     <Pressable
                         key={tab.key}
+                        accessibilityRole="button"
+                        accessibilityLabel={vocabulary[tab.label]}
+                        accessibilityState={{ selected: isActive }}
                         style={[
                             styles.tabButton,
                             isActive && styles.tabButtonActive,
@@ -41,8 +44,6 @@ export default function PlayerTabsBar({
                         onPress={() => onTabPress(tab.key)}
                     >
                         <Text
-                            accessibilityRole="button"
-                            accessibilityState={{ selected: isActive }}
                             style={[
                                 styles.tabLabel,
                                 isActive && styles.tabLabelActive,
@@ -63,21 +64,24 @@ const createStyles = (theme: DesignTheme) =>
             flexDirection: "row",
             justifyContent: "space-around",
             paddingHorizontal: theme.spacing.lg,
-            paddingTop: theme.spacing.sm,
+            paddingTop: theme.spacing.xl,
         },
         tabButton: {
+            flex: 1,
+            minHeight: theme.layout.touchTarget,
             alignItems: "center",
+            justifyContent: "center",
             paddingVertical: theme.spacing.sm,
-            paddingHorizontal: 20,
-            borderRadius: 10,
+            paddingHorizontal: theme.spacing.sm,
+            borderRadius: theme.radius.md,
             gap: theme.spacing.xs,
         },
         tabButtonActive: {
             backgroundColor: withAlpha(theme.colors["primary"], 0.15),
         },
         tabLabel: {
-            fontSize: theme.typography.caption,
-            fontWeight: "500",
+            fontSize: theme.typography.subtitle,
+            fontWeight: "600",
             color: theme.colors["muted-foreground"],
         },
         tabLabelActive: {

@@ -3,6 +3,7 @@ import {
     getOfflineStorageBytes,
     hasOfflineSong,
     saveOfflineSongCover,
+    saveOfflineSongMetadata,
     saveSongOffline,
 } from "@rockit/platform-browser/offline/db";
 import {
@@ -11,6 +12,10 @@ import {
     resolveOfflineAudioUrl,
     resolveOfflineCoverUrl,
 } from "@rockit/platform-browser/offline/store";
+import type {
+    BaseSongWithAlbumResponse,
+    BaseSongWithoutAlbumResponse,
+} from "@rockit/shared";
 
 class BrowserMediaStorage {
     async init(): Promise<void> {}
@@ -23,9 +28,11 @@ class BrowserMediaStorage {
         publicId: string,
         url: string,
         coverUrl?: string | null,
-        name?: string
+        name?: string,
+        media?: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse
     ): Promise<string | null> {
         await saveSongOffline(publicId, url, coverUrl ?? null, [], [], name);
+        if (media) await saveOfflineSongMetadata(media);
         releaseOfflineUrls(publicId);
         void navigator.storage?.persist?.().catch(() => false);
         return (await resolveOfflineAudioUrl(publicId)) ?? null;

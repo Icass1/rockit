@@ -52,7 +52,7 @@ export default function ArtistScreen({
             renderItem={({ item }) => <MediaRow media={item} />}
             contentContainerStyle={{
                 paddingTop: theme.layout.mobileContentTop,
-                paddingBottom: theme.layout.mobileContentBottom,
+                paddingBottom: theme.spacing.lg,
                 gap: theme.spacing.sm,
             }}
             initialNumToRender={10}

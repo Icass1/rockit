@@ -238,10 +238,10 @@ export default function LibraryClient({
                                 }
                                 title={
                                     viewMode === EViewMode.Grid
-                                        ? "Grid view"
+                                        ? $vocabulary.LIBRARY_VIEW_GRID
                                         : viewMode === EViewMode.List
-                                          ? "List view"
-                                          : "Masonry view"
+                                          ? $vocabulary.LIBRARY_VIEW_LIST
+                                          : $vocabulary.LIBRARY_VIEW_MASONRY
                                 }
                                 className="text-muted-foreground hover:text-foreground-strong flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition select-none"
                             >

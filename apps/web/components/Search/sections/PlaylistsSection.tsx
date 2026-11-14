@@ -47,7 +47,8 @@ export default function PlaylistsSection({
                                 {playlist.name}
                             </span>
                             <span className="text-muted-foreground block truncate text-center text-sm">
-                                {playlist.artists[0]?.name || "Unknown"}
+                                {playlist.artists[0]?.name ||
+                                    $vocabulary.UNKNOWN}
                             </span>
                         </div>
                     </SearchResultCard>

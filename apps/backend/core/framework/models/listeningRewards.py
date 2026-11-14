@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 
@@ -35,6 +35,12 @@ class ListeningRewardSummary:
     recommendations: int = 0
     friends: int = 0
     videos: int = 0
+    active_days: int = 0
+    night_listens: int = 0
+    early_listens: int = 0
+    weekend_listens: int = 0
+    joined_at: datetime | None = None
+    additional_metrics: dict[str, int] = field(default_factory=dict[str, int])
 
 
 ListeningBadgeScope = Literal[
@@ -47,7 +53,65 @@ ListeningBadgeScope = Literal[
     "friends",
     "videos",
     "mixed",
+    "active_days",
+    "night",
+    "early",
+    "weekend",
+    "tenure",
+    "anniversary",
+    "secrets",
+    "morning",
+    "midday",
+    "afternoon",
+    "evening",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+    "winter",
+    "spring",
+    "summer",
+    "autumn",
+    "new_year",
+    "leap_day",
+    "music_day",
+    "halloween",
+    "year_end",
+    "months_active",
+    "years_active",
+    "weeks_active",
+    "all_hours",
+    "all_weekdays",
+    "music_months",
+    "repeats",
+    "favorites",
+    "deep_rotation",
+    "library_songs",
+    "library_albums",
+    "library_artists",
+    "library_playlists",
+    "library_radios",
+    "library_videos",
+    "library_total",
+    "library_diversity",
+    "share_reach",
+    "shared_discoveries",
+    "recommendations_received",
+    "curators",
+    "sharing_days",
+    "album_shares",
+    "artist_shares",
+    "playlist_shares",
+    "radio_shares",
+    "video_shares",
+    "song_shares",
 ]
+
+
+ListeningBadgeLeague = Literal["bronze", "silver", "gold", "platinum", "diamond", "legend"]
 
 
 @dataclass(frozen=True)
@@ -66,3 +130,6 @@ class ListeningBadgeDefinition:
     description_key: str
     visual_variant: str
     tier: int
+    league: ListeningBadgeLeague = "gold"
+    secret: bool = False
+    metric: ListeningBadgeScope | None = None

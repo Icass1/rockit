@@ -18,8 +18,10 @@ import RenderList from "@/components/RenderList/RenderList";
 export default function CollectionScreen({
     publicId,
     initial,
+    featuredKind,
 }: {
     publicId: string;
+    featuredKind?: string;
     initial?: Partial<CollectionPageState>;
 }) {
     const theme = useDesignTheme();
@@ -59,6 +61,7 @@ export default function CollectionScreen({
     const seedSongPublicId = state.media[0]?.publicId;
     return (
         <RenderList
+            featuredKind={featuredKind}
             title={collection.name}
             imageUrl={collection.imageUrl}
             artists={album ? collection.artists : [collection.owner]}

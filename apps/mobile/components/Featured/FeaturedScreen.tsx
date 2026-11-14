@@ -25,6 +25,7 @@ export default function FeaturedScreen({
     if (resource.data)
         return (
             <CollectionScreen
+                featuredKind={kind}
                 key={resource.data.publicId}
                 publicId={resource.data.publicId}
                 initial={featuredCollectionSeed({

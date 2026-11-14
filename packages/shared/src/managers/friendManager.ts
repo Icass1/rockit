@@ -1,3 +1,4 @@
+import type { UserLevelResponse } from "@/dto";
 import type {
     Friend,
     FriendActivity,
@@ -446,6 +447,25 @@ export class FriendManager {
                     : friend
             )
         );
+    }
+
+    /** Read on demand; results from a previous account must never reach a profile. */
+    async fetchListeningProfile(
+        userPublicId?: string
+    ): Promise<UserLevelResponse | null> {
+        const generation = this._generation;
+        if (!this.isCurrent(generation)) return null;
+        try {
+            const result = userPublicId
+                ? await this.services.http.getUserLevel(userPublicId)
+                : await this.services.http.getMyLevel();
+            if (!this.isCurrent(generation)) return null;
+            if (!result.isOk()) throw new Error(String(result.detail));
+            return result.result;
+        } catch (error) {
+            if (!this.isCurrent(generation)) return null;
+            throw error;
+        }
     }
 
     async fetchLeaderboard(): Promise<{

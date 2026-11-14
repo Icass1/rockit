@@ -34,7 +34,8 @@ export default function HomeClient({
 }): JSX.Element {
     const greeting = useGreeting(initialHour);
     const $vocabulary = useVocabulary();
-    const $username = username;
+    const session = useStore(rockIt.userManager.sessionAtom);
+    const $username = session?.username ?? username;
 
     const [ambientColor, setAmbientColor] = useState(
         "var(--color-media-accent-default)"
@@ -145,6 +146,8 @@ export default function HomeClient({
                 {coverflowCards.length > 0 && (
                     <HomeHeroCoverflow
                         greetingName={greetingName}
+                        username={$username}
+                        imageUrl={session?.image}
                         cards={coverflowCards}
                         streak={data.currentStreak}
                         minutesThisWeek={data.minutesListenedThisWeek}

@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
-import { Header, PageContainer } from "@/components/layout";
+import { PageContainer } from "@/components/layout";
 import { MediaCardSkeleton } from "@/components/Media";
 import {
     EmptyState,
@@ -72,7 +72,6 @@ export default function SearchScreen() {
 
     return (
         <>
-            <Header />
             <PageContainer>
                 <SearchBar
                     value={query}

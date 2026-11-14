@@ -68,7 +68,10 @@ function FooterLeftForMedia({
                     width={64}
                     height={64}
                     src={coverSrc}
-                    alt={`Cover of ${currentMedia.name}`}
+                    alt={vocabulary.COVER_OF.replace(
+                        "{name}",
+                        currentMedia.name
+                    )}
                     className="absolute h-9 w-9 rounded-md object-cover transition duration-300 select-none group-hover:brightness-50 md:h-16 md:w-16"
                 />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">

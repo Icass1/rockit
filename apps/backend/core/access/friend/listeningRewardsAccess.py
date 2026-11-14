@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import case, func, select, tuple_, update
+from sqlalchemy import case, extract, func, select, tuple_, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
@@ -15,7 +15,9 @@ from core.access.db.ormModels.friend.listeningXpEvent import ListeningXpEventRow
 from core.access.db.ormModels.friend.sharedMedia import SharedMediaRow
 from core.access.db.ormModels.friend.userLevel import UserLevelRow
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.user import UserRow
 from core.access.db.ormModels.user_media_listened import UserMediaListenedRow
+from core.access.friend.listeningCollectionMetricsAccess import ListeningCollectionMetricsAccess
 from core.access.friend.userLevelAccess import UserLevelAccess
 from core.enums.friend.friendStatusEnum import FriendStatusEnum
 from core.enums.mediaTypeEnum import MediaTypeEnum
@@ -160,19 +162,30 @@ class ListeningRewardsAccess:
     async def get_summaries_async(
         session: AsyncSession, user_ids: list[int], active_after: datetime
     ) -> Result[dict[int, ListeningRewardSummary]]:
-        """Fetch verified duration and real play counts in four batch queries."""
+        """Fetch verified progress and collectible counters in seven fixed batch queries."""
         if not user_ids:
             return Result(code=ResultCode.OK, message="OK", result={})
-        cursors = (
-            await session.scalars(
-                select(ListeningProgressRow).where(ListeningProgressRow.user_id.in_(user_ids))
-            )
-        ).all()
+        cursors = await session.execute(
+            select(UserRow.id, UserRow.date_added, ListeningProgressRow)
+            .outerjoin(ListeningProgressRow, ListeningProgressRow.user_id == UserRow.id)
+            .where(UserRow.id.in_(user_ids))
+        )
+        cursor_rows = list(cursors)
+        progress_rows = {user_id: progress for user_id, _, progress in cursor_rows}
+        join_dates = {user_id: joined_at for user_id, joined_at, _ in cursor_rows}
+        # One materialization: SQLAlchemy results are consumed after iteration.
+        # Join dates and cursors share the same batch query.
+        utc_play = func.timezone("UTC", UserMediaListenedRow.date_added)
+        hour = extract("hour", utc_play)
         counts = await session.execute(
             select(
                 UserMediaListenedRow.user_id,
                 func.count(),
                 func.count(func.distinct(UserMediaListenedRow.media_id)),
+                func.count(func.distinct(func.date(utc_play))),
+                func.sum(case((hour < 5, 1), else_=0)),
+                func.sum(case(((hour >= 5) & (hour < 9), 1), else_=0)),
+                func.sum(case((extract("isodow", utc_play).in_([6, 7]), 1), else_=0)),
                 func.sum(
                     case(
                         (CoreMediaRow.media_type_key == MediaTypeEnum.VIDEO.value, 1),
@@ -185,8 +198,16 @@ class ListeningRewardsAccess:
             .group_by(UserMediaListenedRow.user_id)
         )
         plays = {
-            user_id: (int(count), int(unique), int(videos))
-            for user_id, count, unique, videos in counts
+            user_id: (
+                int(count),
+                int(unique),
+                int(videos),
+                int(days),
+                int(night),
+                int(early),
+                int(weekend),
+            )
+            for user_id, count, unique, days, night, early, weekend, videos in counts
         }
         shares = await session.execute(
             select(
@@ -216,17 +237,31 @@ class ListeningRewardsAccess:
             .group_by(FriendRow.user_id)
         )
         friends = {user_id: int(count) for user_id, count in friend_counts}
-        by_user = {row.user_id: row for row in cursors}
+        additional = await ListeningCollectionMetricsAccess.get_async(
+            session=session, user_ids=user_ids
+        )
+        if additional.is_not_ok():
+            logger.error("Cannot load collectible metrics: %s", additional.info())
+            return Result(code=additional.code(), message=additional.message())
+        additional_by_user = additional.result()
+        by_user = progress_rows
         result: dict[int, ListeningRewardSummary] = {}
         for user_id in user_ids:
             row = by_user.get(user_id)
+            play = plays.get(user_id, (0, 0, 0, 0, 0, 0, 0))
             result[user_id] = ListeningRewardSummary(
                 total_ms=row.total_ms if row else 0,
                 session_ms=(row.session_ms if row and row.active_at >= active_after else 0),
-                recorded_listens=plays.get(user_id, (0, 0))[0],
-                unique_recordings=plays.get(user_id, (0, 0))[1],
+                recorded_listens=play[0],
+                unique_recordings=play[1],
                 recommendations=recommendations.get(user_id, 0),
                 friends=friends.get(user_id, 0),
-                videos=plays.get(user_id, (0, 0, 0))[2],
+                videos=play[2],
+                active_days=play[3],
+                night_listens=play[4],
+                early_listens=play[5],
+                weekend_listens=play[6],
+                joined_at=join_dates.get(user_id),
+                additional_metrics=additional_by_user.get(user_id, {}),
             )
         return Result(code=ResultCode.OK, message="OK", result=result)

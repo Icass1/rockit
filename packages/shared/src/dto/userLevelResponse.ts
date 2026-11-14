@@ -18,6 +18,8 @@ export const UserLevelResponseSchema = z.object({
     levelStartXp: z.number().default(0),
     totalListeningSeconds: z.number().default(0),
     sessionListeningSeconds: z.number().default(0),
+    listeningBadgeCount: z.number().default(0),
+    listeningBadgeTotal: z.number().default(0),
     listeningBadges: z
         .array(z.lazy(() => ListeningBadgeResponseSchema))
         .default([]),

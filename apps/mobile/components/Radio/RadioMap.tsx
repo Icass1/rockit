@@ -1,6 +1,11 @@
 import { memo } from "react";
 import countries from "@/assets/data/radio-world.json";
-import type { BaseStationResponse } from "@rockit/shared";
+import {
+    locatedRadioStations,
+    projectRadioLocation,
+    RADIO_MAP_SIZE,
+    type BaseStationResponse,
+} from "@rockit/shared";
 import { useDesignTheme } from "@rockit/ui";
 import { Platform, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -24,15 +29,14 @@ export default memo(function RadioMap({
         <View
             style={{
                 width: "100%",
-                height: theme.layout.radioMapHeight,
-                minHeight: theme.layout.artistArtwork,
+                aspectRatio: 1,
             }}
         >
             <Svg
                 width="100%"
                 height="100%"
-                viewBox="0 10 720 290"
-                preserveAspectRatio="none"
+                viewBox={`0 0 ${RADIO_MAP_SIZE} ${RADIO_MAP_SIZE}`}
+                preserveAspectRatio="xMidYMid meet"
                 accessibilityLabel={vocabulary.RADIO}
             >
                 {countries.map((country) => (
@@ -71,45 +75,50 @@ export default memo(function RadioMap({
                             : {})}
                     />
                 ))}
-                {stations
-                    .filter(
-                        (station) =>
-                            station.geoLat != null && station.geoLong != null
-                    )
-                    .map((station) => (
-                        <Circle
-                            key={station.publicId}
-                            cx={(station.geoLong! + 180) * 2}
-                            cy={(90 - station.geoLat!) * 2}
-                            r={4}
-                            fill={theme.colors.primary}
-                            stroke={theme.colors.foreground}
-                            strokeWidth={1}
-                            onPress={(event) => {
-                                onStation(station);
-                                return event;
-                            }}
-                            accessibilityLabel={station.name}
-                            {...(Platform.OS === "web"
-                                ? {
-                                      "aria-label": station.name,
-                                      tabIndex: 0,
-                                      onKeyDown: (event: {
-                                          key: string;
-                                          preventDefault: () => void;
-                                      }) => {
-                                          if (
-                                              event.key === "Enter" ||
-                                              event.key === " "
-                                          ) {
-                                              event.preventDefault();
-                                              onStation(station);
-                                          }
-                                      },
-                                  }
-                                : {})}
-                        />
-                    ))}
+                {locatedRadioStations(stations).map((station) => (
+                    <Circle
+                        key={station.publicId}
+                        cx={
+                            projectRadioLocation(
+                                station.geoLat!,
+                                station.geoLong!
+                            ).x
+                        }
+                        cy={
+                            projectRadioLocation(
+                                station.geoLat!,
+                                station.geoLong!
+                            ).y
+                        }
+                        r={4}
+                        fill={theme.colors.primary}
+                        stroke={theme.colors.foreground}
+                        strokeWidth={1}
+                        onPress={(event) => {
+                            onStation(station);
+                            return event;
+                        }}
+                        accessibilityLabel={station.name}
+                        {...(Platform.OS === "web"
+                            ? {
+                                  "aria-label": station.name,
+                                  tabIndex: 0,
+                                  onKeyDown: (event: {
+                                      key: string;
+                                      preventDefault: () => void;
+                                  }) => {
+                                      if (
+                                          event.key === "Enter" ||
+                                          event.key === " "
+                                      ) {
+                                          event.preventDefault();
+                                          onStation(station);
+                                      }
+                                  },
+                              }
+                            : {})}
+                    />
+                ))}
             </Svg>
         </View>
     );

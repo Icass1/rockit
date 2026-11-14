@@ -73,7 +73,7 @@ it("exposes selected and disabled actions through the native accessibility tree"
     expect(press).not.toHaveBeenCalled();
 });
 
-it("renders the explicit marker through native Text and excludes unknown evidence", async () => {
+it("renders an accessible native explicit marker and excludes unknown evidence", async () => {
     const view = await render(
         <ExplicitBadge explicit label="Explicit recording" />
     );
@@ -82,4 +82,28 @@ it("renders the explicit marker through native Text and excludes unknown evidenc
         <ExplicitBadge explicit={null} label="Explicit recording" />
     );
     expect(view.queryByLabelText("Explicit recording")).toBeNull();
+});
+
+it("renders the user's profile photo and falls back to an initial only after an image failure", async () => {
+    const { ProfileAvatar } = require("@rockit/ui");
+    await render(
+        <ProfileAvatar
+            name="Nico"
+            imageUrl="https://fixture.invalid/avatar.png"
+        />
+    );
+    expect(screen.getByLabelText("Nico")).toHaveProp("source", {
+        uri: "https://fixture.invalid/avatar.png",
+    });
+    await fireEvent(screen.getByLabelText("Nico"), "error");
+    expect(screen.getByText("N")).toBeTruthy();
+    await screen.rerender(
+        <ProfileAvatar
+            name="Nico"
+            imageUrl="https://fixture.invalid/updated.png"
+        />
+    );
+    expect(screen.getByLabelText("Nico")).toHaveProp("source", {
+        uri: "https://fixture.invalid/updated.png",
+    });
 });

@@ -8,6 +8,7 @@ import {
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
+import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 interface MediaCardProps {
@@ -20,6 +21,10 @@ const MediaCardInner = memo(function MediaCardInner({
     aspectRatio = 1,
 }: MediaCardProps) {
     const styles = useThemedStyles(createStyles);
+    const imageUrl = useOfflineArtwork(
+        isSearchResult(media) ? undefined : media.publicId,
+        media.imageUrl
+    );
     return (
         <MediaPressableWrapper
             media={media}
@@ -27,7 +32,7 @@ const MediaCardInner = memo(function MediaCardInner({
         >
             <View style={styles.container}>
                 <Image
-                    source={media.imageUrl}
+                    source={imageUrl}
                     style={[styles.image, aspectRatio !== 1 && { aspectRatio }]}
                     contentFit="cover"
                 />

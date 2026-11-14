@@ -29,12 +29,16 @@ const HOUR_FMT: Intl.DateTimeFormatOptions = {
     hour12: false,
 };
 
-export function formatHour(date: Date): string {
-    return date.toLocaleTimeString("en-US", HOUR_FMT);
+export function formatHour(date: Date, locale?: string): string {
+    return date.toLocaleTimeString(locale, HOUR_FMT);
 }
 
-export function formatHourRange(start: Date, end: Date): string {
-    return `${formatHour(start)} — ${formatHour(end)}`;
+export function formatHourRange(
+    start: Date,
+    end: Date,
+    locale?: string
+): string {
+    return `${formatHour(start, locale)} — ${formatHour(end, locale)}`;
 }
 
 export function toLocalHHMM(isoString: string): string {

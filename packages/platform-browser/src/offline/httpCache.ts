@@ -11,7 +11,7 @@ import {
     SessionResponseSchema,
 } from "@rockit/shared";
 
-const CACHE_PREFIX = "rockit-mobile-api:";
+export const BROWSER_METADATA_CACHE_PREFIX = "rockit-mobile-api:";
 export { OFFLINE_METADATA_POLICY as BROWSER_METADATA_POLICY } from "@rockit/shared";
 
 /** One middleware instance belongs to one application HTTP adapter. */
@@ -39,7 +39,9 @@ export function createOfflineMetadataCache() {
             try {
                 await Promise.all(
                     (await caches.keys())
-                        .filter((key) => key.startsWith(CACHE_PREFIX))
+                        .filter((key) =>
+                            key.startsWith(BROWSER_METADATA_CACHE_PREFIX)
+                        )
                         .map((key) => caches.delete(key))
                 );
             } catch {
@@ -95,7 +97,8 @@ export function createOfflineMetadataCache() {
             const session = await loadSessionOffline().catch(() => null);
             if (!session || stamp !== generation) return result;
             const cache = await caches.open(
-                CACHE_PREFIX + encodeURIComponent(session.username)
+                BROWSER_METADATA_CACHE_PREFIX +
+                    encodeURIComponent(session.username)
             );
             const key = new URL(context.path, "https://rockit-cache.invalid")
                 .href;

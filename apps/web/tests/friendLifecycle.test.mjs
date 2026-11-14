@@ -366,3 +366,38 @@ test("successful removal cannot be undone by an older friends response", async (
     assert.equal(f.manager.loadingAtom.get(), false);
     f.manager.stop();
 });
+
+test("listening profiles use the explicit friend or self endpoint and propagate current errors", async () => {
+    const f = setup();
+    f.start();
+    const pending = f.manager.fetchListeningProfile("friend-public-id");
+    const request = f.requests.find((item) => item.name === "getUserLevel");
+    assert.deepEqual(request.args, ["friend-public-id"]);
+    request.resolve(
+        ok({ userId: "friend-public-id", totalListeningSeconds: 3600 })
+    );
+    assert.equal((await pending).totalListeningSeconds, 3600);
+    const own = f.manager.fetchListeningProfile();
+    f.requests.find((item) => item.name === "getMyLevel").resolve(fail);
+    await assert.rejects(own, /failed/);
+    f.manager.stop();
+    const count = f.requests.length;
+    assert.equal(
+        await f.manager.fetchListeningProfile("friend-public-id"),
+        null
+    );
+    assert.equal(f.requests.length, count);
+});
+test("listening profiles discard old-account responses and failures", async () => {
+    for (const rejected of [false, true]) {
+        const f = setup();
+        f.start();
+        const pending = f.manager.fetchListeningProfile("private");
+        const request = f.requests.find((item) => item.name === "getUserLevel");
+        f.session.set({ username: "replacement" });
+        if (rejected) request.reject(new Error("old account"));
+        else request.resolve(ok({ userId: "private" }));
+        assert.equal(await pending, null);
+        f.manager.stop();
+    }
+});

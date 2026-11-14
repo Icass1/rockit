@@ -1,25 +1,42 @@
+from calendar import monthrange
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
 from core.framework.friend.listeningBadgeCatalog import LISTENING_BADGES
+from core.framework.friend.listeningBadgeExpansion import EXPANDED_BADGE_FAMILIES
 from core.framework.friend.notifications import notify_after_commit
 from core.framework.models.listeningRewards import (
     ListeningBadgeDefinition,
     ListeningRewardSummary,
 )
+from core.responses.friend.userLevelResponse import ListeningBadgeResponse
 from logger import getLogger
 from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
 
-def badge_current(
-    badge: ListeningBadgeDefinition, summary: ListeningRewardSummary, streak: int
-) -> int:
-    """Use recorded core data; never derive achievements from XP or provider names."""
+def badge_metrics(
+    summary: ListeningRewardSummary, streak: int, now: datetime | None = None
+) -> dict[str, int]:
+    """Recorded counters and UTC account anniversaries, projected once per user."""
+    now = now or datetime.now(UTC)
+    joined = summary.joined_at
+    days = years = 0
+    if joined and summary.recorded_listens > 0:
+        joined = joined.replace(tzinfo=UTC) if joined.tzinfo is None else joined.astimezone(UTC)
+        days = max(0, (now - joined).days)
+        anniversary = joined.replace(
+            year=now.year, day=min(joined.day, monthrange(now.year, joined.month)[1])
+        )
+        years = max(0, now.year - joined.year - int(now < anniversary))
     return {
+        **{
+            family.scope: max(0, summary.additional_metrics.get(family.scope, 0))
+            for family in EXPANDED_BADGE_FAMILIES
+        },
         "session": summary.session_ms // 60000,
         "total": summary.total_ms // 60000,
         "plays": summary.recorded_listens,
@@ -29,7 +46,45 @@ def badge_current(
         "friends": summary.friends,
         "videos": summary.videos,
         "mixed": min(summary.unique_recordings, summary.recommendations),
-    }[badge.scope]
+        "active_days": summary.active_days,
+        "night": summary.night_listens,
+        "early": summary.early_listens,
+        "weekend": summary.weekend_listens,
+        "tenure": days,
+        "anniversary": years,
+    }
+
+
+def badge_current(
+    badge: ListeningBadgeDefinition, summary: ListeningRewardSummary, streak: int
+) -> int:
+    """Never derive achievements from XP, elapsed playback or provider names."""
+    return badge_metrics(summary=summary, streak=streak)[badge.metric or badge.scope]
+
+
+def badge_response(
+    badge: ListeningBadgeDefinition,
+    metrics: dict[str, int],
+    earned_at: datetime | None = None,
+    holder_percentage: float | None = None,
+) -> ListeningBadgeResponse:
+    """Reveal a secret's objective only after its persisted unlock."""
+    hidden = badge.secret and earned_at is None
+    return ListeningBadgeResponse(
+        key=badge.key,
+        scope=badge.scope,
+        tier=badge.tier,
+        league=badge.league,
+        secret=badge.secret,
+        titleKey="FRIENDS_BADGE_SECRET_HIDDEN" if hidden else badge.title_key,
+        descriptionKey="FRIENDS_BADGE_SECRET_HINT" if hidden else badge.description_key,
+        targetMinutes=badge.target if badge.scope in {"session", "total"} else 0,
+        target=0 if hidden else badge.target,
+        current=0 if hidden else metrics[badge.metric or badge.scope],
+        visualVariant=badge.visual_variant,
+        earnedAt=earned_at,
+        holderPercentage=holder_percentage,
+    )
 
 
 class ListeningBadges:
@@ -88,12 +143,9 @@ class ListeningBadges:
                 ),
                 default=0,
             )
+            metrics = badge_metrics(summary=summaries[user_id], streak=streaks.get(user_id, 0))
             for badge in LISTENING_BADGES:
-                current = badge_current(
-                    badge=badge,
-                    summary=summaries[user_id],
-                    streak=streaks.get(user_id, 0),
-                )
+                current = metrics[badge.metric or badge.scope]
                 eligible = max(current, proven_session) if badge.scope == "session" else current
                 if badge.key not in owned and eligible >= badge.target:
                     awards.append((user_id, badge.key))

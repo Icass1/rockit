@@ -1,4 +1,6 @@
 import type {
+    BaseSongWithAlbumResponse,
+    BaseSongWithoutAlbumResponse,
     HomeStatsResponse,
     LibraryMediasResponse,
     SessionResponse,
@@ -9,6 +11,7 @@ import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 export interface OfflineSongRecord {
     publicId: string;
     name?: string;
+    media?: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse;
     audioBlob: Blob;
     coverBlob: Blob | null;
     downloadedAt: number;
@@ -132,6 +135,7 @@ export async function saveSongOffline(
         await db.put("songs", {
             publicId,
             name: name ?? existing?.name,
+            media: existing?.media,
             audioBlob,
             coverBlob: coverBlob ?? existing?.coverBlob ?? null,
             downloadedAt: Date.now(),
@@ -174,6 +178,16 @@ export async function saveOfflineSongCover(
             sizeBytes: song.audioBlob.size + cover.size,
         });
     await transaction.done;
+}
+
+export async function saveOfflineSongMetadata(
+    media: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse
+): Promise<void> {
+    const db = await getDB();
+    const tx = db.transaction("songs", "readwrite");
+    const record = await tx.store.get(media.publicId);
+    if (record) await tx.store.put({ ...record, media });
+    await tx.done;
 }
 
 export async function listOfflineSongRecords(): Promise<OfflineSongRecord[]> {

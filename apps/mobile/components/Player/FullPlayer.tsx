@@ -53,6 +53,12 @@ export default function FullPlayer() {
 
     const insets = useSafeAreaInsets();
     const containerHeight = SCREEN_HEIGHT - theme.layout.tabBar - insets.bottom;
+    const contentTop =
+        insets.top + theme.layout.mobileHeaderHeight + theme.spacing.sm;
+    const [viewportHeight, setViewportHeight] = useState(containerHeight);
+    const [topBarHeight, setTopBarHeight] = useState(
+        theme.layout.touchTarget + theme.spacing.lg
+    );
     const landscape = width > SCREEN_HEIGHT;
     const translateY = useSharedValue(SCREEN_HEIGHT + 10);
     const isHiding = useSharedValue(false);
@@ -173,6 +179,9 @@ export default function FullPlayer() {
             <GestureDetector gesture={panGesture}>
                 <ScrollView
                     style={styles.gestureContent}
+                    onLayout={({ nativeEvent }) =>
+                        setViewportHeight(nativeEvent.layout.height)
+                    }
                     contentContainerStyle={{ flexGrow: 1 }}
                     showsVerticalScrollIndicator={false}
                 >
@@ -180,7 +189,7 @@ export default function FullPlayer() {
                         style={[
                             styles.inner,
                             {
-                                paddingTop: insets.top + theme.spacing.md,
+                                paddingTop: contentTop,
                                 paddingBottom: theme.spacing.lg,
                             },
                         ]}
@@ -195,8 +204,15 @@ export default function FullPlayer() {
                             }
                             onBookmarkPress={handleBookmarkPress}
                             media={currentMedia}
+                            onHeightChange={setTopBarHeight}
                         />
                         <PlayerMediaInfo
+                            availableHeight={
+                                viewportHeight -
+                                contentTop -
+                                topBarHeight -
+                                theme.spacing.lg
+                            }
                             currentMedia={currentMedia}
                             onSeek={seekTo}
 
@@ -214,7 +230,7 @@ export default function FullPlayer() {
             <PlayerTabsBar
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
-                insetBottom={Math.max(insets.bottom, 8)}
+                insetBottom={theme.spacing.md}
             />
 
             <PlayerTabsPanel
@@ -236,7 +252,6 @@ const createStyles = (theme: DesignTheme) =>
             left: 0,
             right: 0,
             bottom: 0,
-            paddingBottom: theme.layout.touchTarget,
             // Height will be set dynamically to avoid covering the footer
             zIndex: 0, // default stacking; MiniPlayer is hidden when FullPlayer visible
             backgroundColor: theme.colors["background"],

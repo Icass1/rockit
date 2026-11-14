@@ -16,7 +16,7 @@ import {
     type BottomSheetBackdropProps,
     type BottomSheetModal as BottomSheetModalType,
 } from "@gorhom/bottom-sheet";
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
     Dimensions,
     Platform,
@@ -48,6 +48,7 @@ export function useSheet() {
 }
 
 export function SheetProvider({ children }: { children: ReactNode }) {
+    const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const sheetRef = useRef<BottomSheetModalType>(null);
     const isPresented = useRef(false);
@@ -225,6 +226,7 @@ export function SheetProvider({ children }: { children: ReactNode }) {
                 <BottomSheetModal
                     ref={attachSheetRef}
                     index={0}
+                    handleStyle={{ height: theme.layout.sheetHandleHeight }}
                     snapPoints={options?.snapPoints ?? ["70%"]}
                     enableDynamicSizing={false}
                     enableContentPanningGesture={false}

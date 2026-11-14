@@ -1,14 +1,18 @@
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { useStore } from "@nanostores/react";
+import { ProfileAvatar, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useGreeting } from "@/hooks/useGreeting";
-import { Http } from "@/lib/http";
-import useFetch from "@/lib/useFetch";
+import { userManager } from "@/lib/managers/userManager";
+import { useTypedRouter } from "@/lib/useTypedRouter";
+import { useVocabulary } from "@/lib/vocabulary";
 
 export default function HomeHeader() {
     const styles = useThemedStyles(createStyles);
     const greeting = useGreeting();
-    const { data: session } = useFetch(Http.getSession);
-    const username = session?.username ?? "Rockit User";
+    const session = useStore(userManager.sessionAtom);
+    const { vocabulary } = useVocabulary();
+    const router = useTypedRouter();
+    const username = session?.username ?? vocabulary.USER;
 
     return (
         <View style={styles.container}>
@@ -18,12 +22,13 @@ export default function HomeHeader() {
                     {username}
                 </Text>
             </View>
-            <TouchableOpacity style={styles.avatar}>
-                <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarLetter}>
-                        {(username[0] ?? "R").toUpperCase()}
-                    </Text>
-                </View>
+            <TouchableOpacity
+                style={styles.avatar}
+                accessibilityRole="button"
+                accessibilityLabel={vocabulary.SETTINGS}
+                onPress={() => router.push("/settings")}
+            >
+                <ProfileAvatar imageUrl={session?.image} name={username} />
             </TouchableOpacity>
         </View>
     );

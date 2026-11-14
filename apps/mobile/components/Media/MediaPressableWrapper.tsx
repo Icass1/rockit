@@ -187,7 +187,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                         if (listPublicId)
                             void rockIt.queueManager.playCollection(
                                 listPublicId,
-                                media.publicId
+                                media.publicId,
+                                media
                             );
                         else handlePlay(media, getAllPlayableMedia(allMedia));
                         hide();
@@ -285,7 +286,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                                 song.publicId,
                                                 song.audioUrl!,
                                                 song.imageUrl,
-                                                song.name
+                                                song.name,
+                                                song
                                             );
                                         if (!isCurrent()) return;
                                         if (!local)
@@ -359,7 +361,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                     media.publicId,
                                     url,
                                     media.imageUrl,
-                                    media.name
+                                    media.name,
+                                    media
                                 );
 
                             if (localPath) {
@@ -596,7 +599,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             if (listPublicId)
                 void rockIt.queueManager.playCollection(
                     listPublicId,
-                    media.publicId
+                    media.publicId,
+                    media
                 );
             else handlePlay(media, getAllPlayableMedia(allMedia));
         } else if (isList(media) || media.type === "artist") {

@@ -47,8 +47,11 @@ export function Dialog({
             document.activeElement instanceof HTMLElement
                 ? document.activeElement
                 : null;
+        const overflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
         if (!dialog.open) dialog.showModal();
         return () => {
+            document.body.style.overflow = overflow;
             if (dialog.open) dialog.close();
             // A keyed owner can remove the node before native close restores focus.
             if (trigger?.isConnected) trigger.focus({ preventScroll: true });
@@ -63,7 +66,10 @@ export function Dialog({
             ref={ref}
             style={style}
             aria-labelledby={titleId}
-            onCancel={onClose}
+            onCancel={(event) => {
+                event.preventDefault();
+                onClose();
+            }}
             onClose={onClose}
             className={`overlay-surface border-border bg-popover text-popover-foreground backdrop:bg-scrim fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-2xl border p-6 shadow-xl ${className}`}
         >

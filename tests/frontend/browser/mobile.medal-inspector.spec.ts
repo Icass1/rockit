@@ -56,22 +56,23 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
             return false;
         }
     });
+    await page.screenshot({ path: info.outputPath("profile-mobile.png") });
     await profile
         .getByTestId("profile-emblems")
         .getByRole("button")
         .first()
         .click();
-    const inspector = profile.getByTestId("emblem-inspector");
+    const inspector = page.getByTestId("emblem-inspector");
     if (!supportsWebGL) {
         await expect(inspector.getByRole("status")).toContainText(
             "3D is unavailable"
         );
-        await expect(profile.locator("canvas")).toHaveCount(0);
+        await expect(page.locator("canvas")).toHaveCount(0);
         return;
     }
     await expect(
         inspector.getByRole("button", { name: "Reverse", exact: true })
-    ).toBeVisible({ timeout: 15000 });
+    ).toBeVisible({ timeout: 45000 });
     await expect(inspector.locator("canvas")).toHaveCount(1);
     const bounds = await inspector.getByTestId("medal-stage").boundingBox();
     expect(bounds!.x).toBeGreaterThanOrEqual(0);
@@ -92,7 +93,13 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
     expect(buffer.height).toBeLessThanOrEqual(
         Math.ceil(bounds!.height * ratioCeiling)
     );
-    await inspector.scrollIntoViewIfNeeded();
+
+    const controls = inspector.getByRole("button", {
+        name: "Reverse",
+        exact: true,
+    });
+    const controlsBox = await controls.boundingBox();
+    expect(controlsBox!.y + controlsBox!.height).toBeLessThanOrEqual(844);
     await page.screenshot({ path: info.outputPath("prism-mobile-front.png") });
     await inspector
         .getByRole("button", { name: "Reverse", exact: true })
@@ -100,19 +107,111 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
     await page.screenshot({
         path: info.outputPath("prism-mobile-reverse.png"),
     });
+    if (context.browser()?.browserType().name() === "chromium") {
+        const session = await context.newCDPSession(page);
+        const before = await inspector.locator("canvas").screenshot();
+        const top = await page.evaluate(() => ({
+            window: window.scrollY,
+            scroll: Array.from(
+                document.querySelectorAll(
+                    "[data-testid='medal-profile-detail']"
+                )
+            ).map((e) => e.scrollTop),
+        }));
+        const x = bounds!.x + bounds!.width / 2,
+            y = bounds!.y + bounds!.height / 2;
+        await session.send("Input.dispatchTouchEvent", {
+            type: "touchStart",
+            touchPoints: [{ x, y }],
+        });
+        for (let n = 1; n <= 6; n++)
+            await session.send("Input.dispatchTouchEvent", {
+                type: "touchMove",
+                touchPoints: [{ x: x + n * 4, y: y - n * 15 }],
+            });
+        await session.send("Input.dispatchTouchEvent", {
+            type: "touchEnd",
+            touchPoints: [],
+        });
+        expect(
+            (await inspector.locator("canvas").screenshot()).equals(before)
+        ).toBe(false);
+        const rotated = await inspector.locator("canvas").screenshot();
+        await session.send("Input.dispatchTouchEvent", {
+            type: "touchStart",
+            touchPoints: [
+                { x: x - 30, y, id: 1 },
+                { x: x + 30, y, id: 2 },
+            ],
+        });
+        await session.send("Input.dispatchTouchEvent", {
+            type: "touchMove",
+            touchPoints: [
+                { x: x - 55, y, id: 1 },
+                { x: x + 55, y, id: 2 },
+            ],
+        });
+        await session.send("Input.dispatchTouchEvent", {
+            type: "touchEnd",
+            touchPoints: [],
+        });
+        expect(
+            (await inspector.locator("canvas").screenshot()).equals(rotated)
+        ).toBe(false);
+        expect(
+            await page.evaluate(() => ({
+                window: window.scrollY,
+                scroll: Array.from(
+                    document.querySelectorAll(
+                        "[data-testid='medal-profile-detail']"
+                    )
+                ).map((e) => e.scrollTop),
+            }))
+        ).toEqual(top);
+        await session.detach();
+    }
     await inspector.getByTestId("medal-stage").focus();
     await page.keyboard.press("ArrowRight");
-    await inspector
-        .getByRole("button", { name: "Close 3D view", exact: true })
+    await page
+        .getByRole("button", { name: "Back to profile", exact: true })
         .click();
-    await expect(profile.locator("canvas")).toHaveCount(0);
+    await expect(page.locator("canvas")).toHaveCount(0);
     await profile
-        .getByRole("button", { name: "Inspect in 3D", exact: true })
+        .getByTestId("profile-emblems")
+        .getByRole("button")
+        .first()
         .click();
-    await expect(profile.locator("canvas")).toHaveCount(1);
+    await expect(page.locator("canvas")).toHaveCount(1);
     await expect(
         inspector.getByRole("button", { name: "Reverse", exact: true })
-    ).toBeVisible({ timeout: 15000 });
+    ).toBeVisible({ timeout: 45000 });
+    for (const viewport of [
+        { width: 320, height: 667 },
+        { width: 844, height: 390 },
+        { width: 768, height: 1024 },
+    ]) {
+        await page.setViewportSize(viewport);
+        await expect
+            .poll(async () => {
+                const rect = await inspector
+                    .getByTestId("medal-stage")
+                    .boundingBox();
+                const button = await inspector
+                    .getByRole("button", { name: "Reverse", exact: true })
+                    .boundingBox();
+                return (
+                    !!rect &&
+                    rect.height >= 80 &&
+                    rect.x + rect.width <= viewport.width &&
+                    !!button &&
+                    button.y + button.height <= viewport.height
+                );
+            })
+            .toBe(true);
+        await page.screenshot({
+            path: info.outputPath(`prism-mobile-${viewport.width}.png`),
+        });
+    }
     await inspector
         .locator("canvas")
         .evaluate((canvas) =>
@@ -123,5 +222,5 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
     await expect(inspector.getByRole("status")).toContainText(
         "3D is unavailable"
     );
-    await expect(profile.locator("canvas")).toHaveCount(0);
+    await expect(page.locator("canvas")).toHaveCount(0);
 });

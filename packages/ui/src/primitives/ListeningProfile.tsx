@@ -34,6 +34,7 @@ export function ListeningProfile({
     resourceKey,
     vocabulary: v,
     renderEmblem,
+    onInspectEmblem,
     onOpenRecap,
     recapYear,
 }: {
@@ -43,6 +44,10 @@ export function ListeningProfile({
     recapYear?: number;
     vocabulary: Vocabulary;
     renderEmblem?: (badge: ListeningBadgeResponse, size: number) => ReactNode;
+    onInspectEmblem?: (
+        badge: ListeningBadgeResponse,
+        ownerName: string
+    ) => void;
 }) {
     const theme = useDesignTheme();
     const resource = useAsyncResource(loadProfile, resourceKey);
@@ -489,7 +494,10 @@ export function ListeningProfile({
                                 selected: selected?.key === badge.key,
                             }}
                             aria-pressed={selected?.key === badge.key}
-                            onPress={() => setSelectedKey(badge.key)}
+                            onPress={() => {
+                                setSelectedKey(badge.key);
+                                onInspectEmblem?.(badge, profile.username);
+                            }}
                             style={{
                                 alignItems: "center",
                                 width: "29%",
@@ -535,7 +543,7 @@ export function ListeningProfile({
                         accessibilityLiveRegion="polite"
                         style={{ gap: theme.spacing.xs }}
                     >
-                        {selectedKey === selected.key && (
+                        {!onInspectEmblem && selectedKey === selected.key && (
                             <EmblemInspector
                                 key={selected.key}
                                 badge={selected}

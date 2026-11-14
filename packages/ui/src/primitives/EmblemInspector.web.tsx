@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { createMedalViewer } from "@rockit/ui/browser/medalViewer.web";
 import { ListeningEmblem } from "@rockit/ui/primitives/ListeningEmblem";
+import { MedalControls } from "@rockit/ui/primitives/MedalControls";
 import { useDesignTheme } from "@rockit/ui/theme";
 import type { EmblemInspectorProps } from "./EmblemInspector.types";
 
@@ -10,12 +11,15 @@ export function EmblemInspector({
     badge,
     ownerName,
     vocabulary: v,
+    fill = false,
+    onClose,
 }: EmblemInspectorProps) {
     const instructionsId = useId();
     const theme = useDesignTheme();
     const stage = useRef<HTMLDivElement>(null);
     const viewer = useRef<ReturnType<typeof createMedalViewer> | null>(null);
     const [open, setOpen] = useState(true);
+    const [attempt, setAttempt] = useState(0);
     const [status, setStatus] = useState<"loading" | "ready" | "unavailable">(
         "loading"
     );
@@ -40,7 +44,8 @@ export function EmblemInspector({
                     fail
                 );
                 setStatus("ready");
-                stage.current.scrollIntoView?.({ block: "nearest" });
+                if (fill) stage.current.focus({ preventScroll: true });
+                else stage.current.scrollIntoView?.({ block: "nearest" });
             } catch {
                 fail();
             }
@@ -51,14 +56,14 @@ export function EmblemInspector({
             viewer.current?.dispose();
             viewer.current = null;
         };
-    }, [badge, ownerName, theme.colors, open]);
+    }, [badge, ownerName, theme.colors, open, attempt, fill]);
     useEffect(() => {
         if (status === "unavailable") {
             viewer.current?.dispose();
             viewer.current = null;
         }
     }, [status]);
-    const style = {
+    const buttonStyle = {
         minHeight: theme.layout.touchTarget,
         paddingInline: theme.spacing.md,
         border: 0,
@@ -71,7 +76,7 @@ export function EmblemInspector({
     if (!open)
         return (
             <button
-                style={style}
+                style={buttonStyle}
                 onClick={() => {
                     setStatus("loading");
                     setOpen(true);
@@ -88,6 +93,7 @@ export function EmblemInspector({
                 display: "flex",
                 flexDirection: "column",
                 gap: theme.spacing.sm,
+                ...(fill ? { height: "100%", minHeight: 0 } : {}),
             }}
         >
             <div
@@ -96,6 +102,7 @@ export function EmblemInspector({
                     borderRadius: theme.radius.lg,
                     background: theme.colors["medal-stage"],
                     overflow: "hidden",
+                    ...(fill ? { flex: 1, minHeight: 0 } : {}),
                 }}
             >
                 <div
@@ -120,9 +127,14 @@ export function EmblemInspector({
                         }
                     }}
                     style={{
-                        height: theme.layout.medalStageHeight,
+                        ...(fill
+                            ? ({ position: "absolute", inset: 0 } as const)
+                            : {}),
+                        height: fill ? "100%" : theme.layout.medalStageHeight,
                         width: "100%",
                         touchAction: "none",
+                        overscrollBehavior: "contain",
+                        userSelect: "none",
                     }}
                 />
                 {status !== "ready" && (
@@ -140,66 +152,47 @@ export function EmblemInspector({
                             color: theme.colors["recap-muted"],
                             fontSize: theme.typography.caption,
                             textAlign: "center",
+                            pointerEvents: "none",
                         }}
                     >
-                        {
-                            <ListeningEmblem
-                                variant={badge.visualVariant}
-                                scope={badge.scope}
-                                league={badge.league}
-                                earned={!!badge.earnedAt}
-                                size={theme.layout.medalFallbackSize}
-                            />
-                        }
+                        <ListeningEmblem
+                            variant={badge.visualVariant}
+                            scope={badge.scope}
+                            league={badge.league}
+                            earned={!!badge.earnedAt}
+                            size={theme.layout.medalFallbackSize}
+                        />
                         {status === "loading"
                             ? v.MEDAL_3D_LOADING
                             : v.MEDAL_3D_UNAVAILABLE}
                     </div>
                 )}
             </div>
-            <p
-                id={instructionsId}
-                style={{
-                    color: theme.colors["muted-foreground"],
-                    fontSize: theme.typography.caption,
-                    margin: 0,
-                }}
-            >
-                {v.MEDAL_3D_HINT}
-            </p>
-            <div
-                style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: theme.spacing.xs,
-                }}
-            >
-                {status === "ready" && (
-                    <>
-                        <button
-                            style={style}
-                            onClick={() => viewer.current?.front()}
-                        >
-                            {v.MEDAL_3D_FRONT}
-                        </button>
-                        <button
-                            style={style}
-                            onClick={() => viewer.current?.back()}
-                        >
-                            {v.MEDAL_3D_BACK}
-                        </button>
-                        <button
-                            style={style}
-                            onClick={() => viewer.current?.front()}
-                        >
-                            {v.MEDAL_3D_RESET}
-                        </button>
-                    </>
-                )}
-                <button style={style} onClick={() => setOpen(false)}>
+            <div id={instructionsId}>
+                <MedalControls
+                    ready={status === "ready"}
+                    vocabulary={v}
+                    onFront={() => viewer.current?.front()}
+                    onBack={() => viewer.current?.back()}
+                    onReset={() => viewer.current?.front()}
+                    onRetry={
+                        status === "unavailable"
+                            ? () => {
+                                  setStatus("loading");
+                                  setAttempt((n) => n + 1);
+                              }
+                            : undefined
+                    }
+                />
+            </div>
+            {!fill && (
+                <button
+                    style={buttonStyle}
+                    onClick={() => (onClose ? onClose() : setOpen(false))}
+                >
                     {v.MEDAL_3D_CLOSE}
                 </button>
-            </div>
+            )}
         </section>
     );
 }

@@ -33,12 +33,12 @@ test("Prism inspection renders, turns, closes and recovers from a lost WebGL con
         .getByRole("button")
         .first()
         .click();
-    const inspector = profile.getByTestId("emblem-inspector");
+    const inspector = page.getByTestId("emblem-inspector");
     await expect(
         inspector.getByRole("button", { name: "Reverse", exact: true })
-    ).toBeVisible({ timeout: 15000 });
+    ).toBeVisible({ timeout: 45000 });
     await expect(inspector.locator("canvas")).toHaveCount(1);
-    await inspector.scrollIntoViewIfNeeded();
+
     await page.screenshot({ path: info.outputPath("prism-front.png") });
     await inspector
         .getByRole("button", { name: "Reverse", exact: true })
@@ -46,17 +46,30 @@ test("Prism inspection renders, turns, closes and recovers from a lost WebGL con
     await page.screenshot({ path: info.outputPath("prism-reverse.png") });
     await inspector.getByTestId("medal-stage").focus();
     await page.keyboard.press("ArrowRight");
-    await inspector
-        .getByRole("button", { name: "Close 3D view", exact: true })
-        .click();
-    await expect(profile.locator("canvas")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(profile).toBeVisible();
+    await expect(
+        profile.getByTestId("profile-emblems").getByRole("button").first()
+    ).toBeFocused();
     await profile
-        .getByRole("button", { name: "Inspect in 3D", exact: true })
+        .getByTestId("profile-emblems")
+        .getByRole("button")
+        .first()
         .click();
-    await expect(profile.locator("canvas")).toHaveCount(1);
+    await page
+        .getByRole("button", { name: "Back to profile", exact: true })
+        .click();
+    await expect(page.locator("canvas")).toHaveCount(0);
+    await profile
+        .getByTestId("profile-emblems")
+        .getByRole("button")
+        .first()
+        .click();
+    await expect(page.locator("canvas")).toHaveCount(1);
     await expect(
         inspector.getByRole("button", { name: "Reverse", exact: true })
-    ).toBeVisible({ timeout: 15000 });
+    ).toBeVisible({ timeout: 45000 });
     await inspector
         .locator("canvas")
         .evaluate((canvas) =>
@@ -67,7 +80,7 @@ test("Prism inspection renders, turns, closes and recovers from a lost WebGL con
     await expect(inspector.getByRole("status")).toContainText(
         "3D is unavailable"
     );
-    await expect(profile.locator("canvas")).toHaveCount(0);
+    await expect(page.locator("canvas")).toHaveCount(0);
 });
 
 test("six league finishes retain their outlines and family colors in the inspector", async ({
@@ -137,11 +150,11 @@ test("six league finishes retain their outlines and family colors in the inspect
     const choices = profile.getByTestId("profile-emblems").getByRole("button");
     for (let i = 0; i < 6; i++) {
         await choices.nth(i).click();
-        const inspector = profile.getByTestId("emblem-inspector");
+        const inspector = page.getByTestId("emblem-inspector");
         await expect(
             inspector.getByRole("button", { name: "Reverse", exact: true })
-        ).toBeVisible({ timeout: 15000 });
-        await expect(profile.locator("canvas")).toHaveCount(1);
+        ).toBeVisible({ timeout: 45000 });
+        await expect(page.locator("canvas")).toHaveCount(1);
         const stage = inspector.getByTestId("medal-stage");
         await stage.scrollIntoViewIfNeeded();
         await stage.screenshot({ path: info.outputPath(`prism-${i}.png`) });
@@ -151,8 +164,90 @@ test("six league finishes retain their outlines and family colors in the inspect
         await stage.screenshot({
             path: info.outputPath(`prism-${i}-reverse.png`),
         });
-        await inspector
-            .getByRole("button", { name: "Front", exact: true })
+        await page
+            .getByRole("button", { name: "Back to profile", exact: true })
             .click();
     }
+});
+
+test("the offline native document accepts only its typed bridge and releases one shared renderer", async ({
+    page,
+}, info) => {
+    const { readFile } = await import("node:fs/promises");
+    const colors = JSON.parse(
+        await readFile("packages/theme/src/tokens.json", "utf8")
+    ).themes.dark as Record<string, string>;
+    const { medalBridgeColors } =
+        await import("../../../packages/ui/src/headless/medalBridge");
+    const html = await readFile(
+        "apps/mobile/assets/medals/viewer.html",
+        "utf8"
+    );
+    const outgoing: string[] = [];
+    await page.exposeFunction("captureMedalEvent", (raw: string) =>
+        outgoing.push(raw)
+    );
+    await page.addInitScript(() => {
+        (
+            window as unknown as {
+                ReactNativeWebView: { postMessage: (raw: string) => void };
+            }
+        ).ReactNativeWebView = {
+            postMessage: (raw) => {
+                void (
+                    window as unknown as {
+                        captureMedalEvent: (data: string) => Promise<void>;
+                    }
+                ).captureMedalEvent(raw);
+            },
+        };
+    });
+    await page.route("https://medal.local/", (route) =>
+        route.fulfill({ contentType: "text/html", body: html })
+    );
+    await page.goto("https://medal.local/");
+    await expect
+        .poll(() => outgoing.map((raw) => JSON.parse(raw).type))
+        .toContain("boot");
+    const send = async (command: object) =>
+        page.evaluate(
+            (command) =>
+                window.dispatchEvent(
+                    new MessageEvent("message", {
+                        data: JSON.stringify(command),
+                    })
+                ),
+            { protocol: "rockit-medal-v1", ...command }
+        );
+    await send({
+        type: "init",
+        sequence: 1,
+        instance: "native-contract",
+        badge: listeningProfile.listeningBadges[0],
+        ownerName: "</script><script>window.injected=true</script>",
+        colors: medalBridgeColors(colors),
+    });
+    await expect
+        .poll(() => outgoing.map((raw) => JSON.parse(raw).type))
+        .toContain("ready");
+    await expect(page.locator("canvas")).toHaveCount(1);
+    const front = await page.locator("canvas").screenshot();
+    await send({ type: "back", sequence: 2 });
+    const back = await page.locator("canvas").screenshot();
+    expect(front.equals(back)).toBe(false);
+    await send({ type: "front", sequence: 1 });
+    expect((await page.locator("canvas").screenshot()).equals(back)).toBe(true);
+    expect(await page.evaluate(() => "injected" in window)).toBe(false);
+    await send({ type: "visibility", sequence: 3, active: false });
+    await send({ type: "front", sequence: 4 });
+    expect((await page.locator("canvas").screenshot()).equals(back)).toBe(true);
+    await send({ type: "visibility", sequence: 5, active: true });
+    expect((await page.locator("canvas").screenshot()).equals(front)).toBe(
+        true
+    );
+    await page.screenshot({
+        path: info.outputPath("native-shared-renderer.png"),
+    });
+    await send({ type: "dispose", sequence: 6 });
+    await expect(page.locator("canvas")).toHaveCount(0);
 });

@@ -8,6 +8,15 @@ module.exports = {
     moduleNameMapper: {
         ...preset.moduleNameMapper,
         "^@mobile/(.*)$": "<rootDir>/apps/mobile/$1",
+        "^expo-asset$": "<rootDir>/apps/mobile/node_modules/expo-asset",
+        "^expo-file-system$":
+            "<rootDir>/apps/mobile/node_modules/expo-file-system",
+        "^react-native-webview$":
+            "<rootDir>/apps/mobile/node_modules/react-native-webview",
+        "^react-native-svg$":
+            "<rootDir>/apps/mobile/node_modules/react-native-svg",
+        "^@/assets/medals/viewer.html$":
+            "<rootDir>/tests/frontend/fixtures/nativeMedalAsset.cjs",
         "^@/lib/http$": "<rootDir>/apps/mobile/lib/http.native.ts",
         "^@/lib/api$": "<rootDir>/apps/mobile/lib/api.native.ts",
         "^@/(.*)$": "<rootDir>/packages/shared/src/$1",

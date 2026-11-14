@@ -70,18 +70,46 @@ the logo's proportions. Names, dates and Roman ranks use bounded canvas text and
 subtle bump/occlusion maps. Platinum's compact text layout fits its star-shaped
 plate. User text is never interpolated into SVG or HTML.
 
-The browser inspector opens on desktop and the Expo PWA. Pointer/touch rotation,
-pinch/wheel zoom, arrow keys and front/reverse/reset controls work on one active
-canvas. Closing, changing medal/account or losing the context releases resources.
-Initialization or context failure retains the shared static miniature. Native
-apps retain the SVG adapter without importing Three.js or a native GL dependency.
+Both profile hosts open a dedicated medal detail view from a miniature. The collection
+stays mounted while inspecting, retaining its filters, page and scroll position.
+The desktop host reuses its existing Dialog: Back/Escape first returns to the
+collection and restores the trigger; a second Escape closes the profile. Native
+uses the same Modal, safe areas and Android Back behavior. Account/target changes
+replace the entire profile scope.
+
+The common detail composition keeps the interactive stage outside every ScrollView;
+only the bounded objective/status copy scrolls. Pointer/touch rotation, pinch/wheel
+zoom, arrow keys and shared front/reverse/reset controls operate one canvas. Touch
+scrolling is canceled at the stage, while captured pointer moves/up must propagate
+to the document listeners used by OrbitControls. CSS owns the canvas dimensions;
+the renderer updates only its drawing buffer. The camera fits portrait and landscape
+bounds and preserves relative zoom across resize. Closing, changing medal/account
+or losing the context releases resources. Initialization/context failure retains
+the shared SVG miniature and offers retry.
+
+Native iOS/Android use react-native-webview 13.16.1 to host the exact shared Three.js
+renderer in a bundled local HTML asset, rather than maintaining a second geometry
+implementation. The document contains all code, shapes and studio lighting; it
+makes no network requests and needs no native GL package. A validated, sequenced
+message bridge carries badge data, owner text, theme colors and orientation controls.
+User text is never inserted into executable code. Stale instance replies are
+ignored; duplicate commands do not replay. AppState pauses drawing in background.
+The local document denies network connections/navigation; file access and shared
+cookies are disabled. Process/context failures retain the static preview with retry.
+A new native development/release build is required for WebView; Metro reload is
+insufficient for older clients.
+
+Generate the checked-in document with `pnpm build:medal-embed` after changing the
+renderer; `pnpm check:medal-embed` in frontend CI checks it byte for byte. The
+asset cache stores only static code, never user data.
 
 ## Rendering budget and verification
 
 Rendering happens only on interaction, resizing and returning to a visible page.
 There is no animation loop, automatic rotation, post-processing or remote asset
 request. Local studio reflection cards are baked once per inspector and released
-after environment creation. Coarse pointers use a pixel-ratio ceiling of 1.5;
+after environment creation. An additional narrow reflection card and soft rim light
+make metal edges respond while rotating without an animation loop. Coarse pointers use a pixel-ratio ceiling of 1.5;
 desktop uses two. Only selected medals load the Three.js runtime.
 
 The family-symbol Chromium review measures resource counts for all six designs
@@ -95,5 +123,11 @@ Fast contracts cover closed/wound crowns, flat gem bases, the round bronze
 contour, complete symbol coverage and positive relief clearance on every gem facet,
 open counters, legacy family resolution, original-logo containment in all six plates, lifecycle,
 context-loss fallback and bounded profile rendering. Browser flows cover all six
-finishes, front/reverse, close/reopen and recovery. Native controls retain the
-static profile path. Captures use synthetic names and award dates.
+finishes, front/reverse, close/reopen, keyboard/focus restoration and recovery.
+Real Chromium touch input verifies rotation and two-finger zoom without page
+scroll. The bundled native document is tested separately with the same renderer,
+including stale commands, safe text and background/resume. Native adapter tests
+cover the bridge, rejected navigation, process failure/retry and AppState cleanup.
+Production iOS/Android exports verify packaging and platform imports; these do not
+establish physical WKWebView/Android GPU or gesture performance. Captures use
+synthetic names and award dates.

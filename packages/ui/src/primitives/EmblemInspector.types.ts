@@ -6,4 +6,6 @@ export interface EmblemInspectorProps {
     badge: ListeningBadgeResponse;
     ownerName: string;
     vocabulary: Vocabulary;
+    fill?: boolean;
+    onClose?: () => void;
 }

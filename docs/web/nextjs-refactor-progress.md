@@ -456,3 +456,40 @@ rotations, reverse views and 390 px bounds. One canvas and the existing resource
 budget are retained. The 75 geometry/artwork contracts and strict UI/web/mobile
 types pass; generated-theme and frontend-boundary checks pass. Physical device
 GPU acceptance remains separate.
+
+### Integrate Prism collectibles into profile detail navigation — PR 212
+
+Open a dedicated medal detail view when selecting a profile miniature. Compose
+one shared header, stage, objective/progress copy and orientation controls across
+desktop, PWA and native. Keep collection filters, pagination and scroll position
+mounted while inspecting. Desktop reuses the native Dialog and restores focus;
+Back/Escape returns to the profile before dismissing it. Native uses the same
+Modal, safe areas and Android Back semantics. Key the complete profile by
+account/target and the native viewer by medal/owner/theme.
+
+Keep the 3D stage outside scrolling content and scroll only the bounded metadata.
+Cancel touch scrolling without blocking the document pointer listeners used by
+OrbitControls. Let CSS own the canvas bounds, update only the render buffer, and
+fit the camera to portrait/landscape while preserving relative zoom. Add one
+narrow studio reflection card and a soft rim light. Rendering remains event-driven,
+with one live scene, bounded pixel ratio, context-loss fallback and retry.
+
+Native iOS/Android lazily load react-native-webview 13.16.1 and the offline HTML
+asset generated from the exact shared Three.js renderer. No duplicated model or
+native GL implementation is introduced. Validate sequenced bridge messages, keep
+owner text out of executable HTML, reject stale instance replies, deny remote
+navigation/file access/shared cookies, pause drawing on background and recover
+from renderer/process failure. Frontend CI checks the generated asset byte for
+byte. A new native client build is required for the WebView module.
+
+Validation: 81 geometry/artwork contracts, 8 focused portable/DOM tests and all
+19 native contracts pass. The existing web Node suite passes (26 test files).
+Twelve production Chromium flows cover six front/reverse finishes, context loss,
+keyboard/focus return, profile/collection/recap regressions, real vertical touch
+rotation and pinch without page scrolling, and 320×667/390×844/844×390/768×1024
+bounds. Production web/PWA builds and iOS/Android Hermes exports succeed; both
+native packages contain the exact 951,988-byte local viewer. Platform source-map
+checks exclude the other app/platform. Strict frontend/test types, application
+lint, formatting, generated-theme and boundary checks pass. Captures use fixture
+profiles. Physical WKWebView/Android gestures, GPU performance and native binary
+installation remain device acceptance; exports and Chromium do not prove them.

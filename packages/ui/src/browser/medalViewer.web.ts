@@ -31,6 +31,7 @@ export function createMedalViewer(
 ) {
     const releases: Array<() => void> = [];
     let disposed = false;
+    let active = true;
     const own = <T extends { dispose: () => void }>(resource: T): T => {
         releases.push(() => resource.dispose());
         return resource;
@@ -61,6 +62,7 @@ export function createMedalViewer(
         const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 30);
         camera.position.set(0, 0, 4.25);
         const controls = own(new OrbitControls(camera, renderer.domElement));
+        let fitDistance = 4.25;
         controls.enablePan = false;
         controls.enableDamping = false;
         controls.minDistance = 3.1;
@@ -99,6 +101,7 @@ export function createMedalViewer(
         card(0, 5, 1, 5, 1.5, colors["medal-silver-highlight"], 1.7);
         card(-3, -1, -4, 2, 5, colors["medal-diamond-highlight"], 1.3);
         card(3, 0, -4, 1, 4, colors.primary, 0.5);
+        card(4, 2, 3, 0.3, 5, colors["medal-silver-highlight"], 2.5);
         try {
             const environment = own(pmrem.fromScene(room, 0.015));
             scene.environment = environment.texture;
@@ -128,6 +131,12 @@ export function createMedalViewer(
         );
         fill.position.set(4, 0, -3);
         scene.add(fill);
+        const rimLight = new THREE.DirectionalLight(
+            colors["medal-silver-highlight"],
+            0.8
+        );
+        rimLight.position.set(4, 3, 2);
+        scene.add(rimLight);
         const palette = emblemPalette(colors, badge.league, !!badge.earnedAt);
         const league = Object.hasOwn(emblemSilhouettes, badge.league)
             ? badge.league
@@ -406,16 +415,27 @@ export function createMedalViewer(
             uv.setXY(i, position.getX(i) / 2 + 0.5, position.getY(i) / 2 + 0.5);
         uv.needsUpdate = true;
         const draw = () => {
-            if (!disposed && !document.hidden) {
+            if (!disposed && active && !document.hidden) {
                 renderer.render(scene, camera);
             }
         };
         const resize = () => {
             const { width, height } = container.getBoundingClientRect();
             if (!width || !height) return;
-            renderer.setSize(width, height);
+            renderer.setSize(width, height, false);
+            const zoom =
+                camera.position.distanceTo(controls.target) / fitDistance;
             camera.aspect = width / height;
+            fitDistance = 4.25 * Math.max(1, height / width);
+            controls.minDistance = fitDistance * 0.73;
+            controls.maxDistance = fitDistance * 1.65;
+            camera.position
+                .sub(controls.target)
+                .normalize()
+                .multiplyScalar(fitDistance * zoom)
+                .add(controls.target);
             camera.updateProjectionMatrix();
+            controls.update();
             draw();
         };
         const observer = new ResizeObserver(resize);
@@ -432,15 +452,37 @@ export function createMedalViewer(
             document.removeEventListener("visibilitychange", visible);
             renderer.domElement.removeEventListener("webglcontextlost", lost);
         });
+        // OrbitControls receives captured pointer moves/up on the document. Keep that
+        // route intact; cancel native scrolling with touch-action and touch events.
+        const consume = (event: Event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        };
+        for (const name of ["touchstart", "touchmove", "wheel"])
+            container.addEventListener(name, consume, { passive: false });
+        releases.push(() => {
+            for (const name of ["touchstart", "touchmove", "wheel"])
+                container.removeEventListener(name, consume);
+        });
+        renderer.domElement.style.touchAction = "none";
+        renderer.domElement.style.width = "100%";
+        renderer.domElement.style.height = "100%";
+        renderer.domElement.style.display = "block";
         container.appendChild(renderer.domElement);
         observer.observe(container);
         resize();
         const turn = (back = false) => {
-            controls.reset();
+            camera.position.set(0, 0, fitDistance);
+            controls.target.set(0, 0, 0);
+            controls.update();
             group.rotation.set(0.1, back ? Math.PI - 0.35 : -0.35, 0);
             draw();
         };
         return {
+            setActive: (value: boolean) => {
+                active = value;
+                if (value) draw();
+            },
             front: () => turn(false),
             back: () => turn(true),
             rotate: (x: number, y: number) => {

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type JSX } from "react";
-import { loadAnnualRecap } from "@rockit/shared";
+import { useStore } from "@nanostores/react";
+import { loadAnnualRecap, type ListeningBadgeResponse } from "@rockit/shared";
 import {
     AnnualRecap,
+    EmblemInspector,
     ListeningProfile,
+    MedalDetail,
     useDesignTheme,
     type AnnualRecapControls,
 } from "@rockit/ui";
@@ -24,6 +27,24 @@ export default function ListeningProfileDialog({
 }: {
     target: { publicId?: string; name: string } | null;
     onClose: () => void;
+}): JSX.Element | null {
+    const { friendManager } = useRuntimeServices();
+    const scope = useStore(friendManager.scopeAtom);
+    return target ? (
+        <ProfileDialog
+            key={`${scope}:${target.publicId ?? "self"}`}
+            target={target}
+            onClose={onClose}
+        />
+    ) : null;
+}
+
+function ProfileDialog({
+    target,
+    onClose,
+}: {
+    target: { publicId?: string; name: string } | null;
+    onClose: () => void;
 }): JSX.Element {
     const v = useVocabulary();
     const { friendManager } = useRuntimeServices();
@@ -31,6 +52,24 @@ export default function ListeningProfileDialog({
     const theme = useDesignTheme();
     const locale = useLanguage();
     const [recap, setRecap] = useState<number | null>(null);
+    const [medal, setMedal] = useState<{
+        badge: ListeningBadgeResponse;
+        ownerName: string;
+    } | null>(null);
+    const profile = useRef<HTMLDivElement>(null);
+    const returnPosition = useRef<{
+        scroll: number;
+        trigger: HTMLElement | null;
+    }>({ scroll: 0, trigger: null });
+    const backToProfile = (): void => {
+        setMedal(null);
+        requestAnimationFrame(() => {
+            const dialog = profile.current?.closest("dialog");
+            if (dialog) dialog.scrollTop = returnPosition.current.scroll;
+            returnPosition.current.trigger?.focus({ preventScroll: true });
+        });
+    };
+    const close = (): void => (medal ? backToProfile() : onClose());
     const controls = useRef<AnnualRecapControls>(null);
     const year = new Date().getUTCFullYear();
     useEffect(() => {
@@ -52,21 +91,48 @@ export default function ListeningProfileDialog({
     return (
         <Dialog
             open={!!target}
-            onClose={onClose}
+            onClose={close}
             titleId={id}
             style={
-                recap === null
-                    ? undefined
-                    : {
-                          width: `min(calc(100vw - ${theme.spacing.lg}px), ${theme.layout.recapMaxWidth}px)`,
-                          height: `min(calc(100dvh - ${theme.spacing.lg}px), ${theme.layout.recapMaxHeight}px)`,
+                medal
+                    ? {
+                          width: `min(calc(100vw - ${theme.spacing.lg}px), ${theme.layout.medalDialogWidth}px)`,
+                          height: `min(calc(100dvh - ${theme.spacing.lg}px), ${theme.layout.medalDialogHeight}px)`,
                           maxHeight: "none",
                           maxWidth: "none",
-                          padding: 0,
                           overflow: "hidden",
+                          overscrollBehavior: "contain",
+                          display: "flex",
+                          flexDirection: "column",
                       }
+                    : recap === null
+                      ? undefined
+                      : {
+                            width: `min(calc(100vw - ${theme.spacing.lg}px), ${theme.layout.recapMaxWidth}px)`,
+                            height: `min(calc(100dvh - ${theme.spacing.lg}px), ${theme.layout.recapMaxHeight}px)`,
+                            maxHeight: "none",
+                            maxWidth: "none",
+                            padding: 0,
+                            overflow: "hidden",
+                        }
             }
         >
+            {medal && (
+                <MedalDetail
+                    badge={medal.badge}
+                    ownerName={medal.ownerName}
+                    vocabulary={v}
+                    onBack={backToProfile}
+                    titleId={id}
+                >
+                    <EmblemInspector
+                        badge={medal.badge}
+                        ownerName={medal.ownerName}
+                        vocabulary={v}
+                        fill
+                    />
+                </MedalDetail>
+            )}
             {target && recap !== null ? (
                 <div
                     style={{
@@ -91,10 +157,10 @@ export default function ListeningProfileDialog({
                 </div>
             ) : (
                 target && (
-                    <>
+                    <div ref={profile} hidden={!!medal}>
                         <header className="mb-6 flex items-center justify-between gap-4">
                             <h2
-                                id={id}
+                                id={medal ? undefined : id}
                                 className="text-muted-foreground text-sm font-semibold"
                             >
                                 {target.publicId
@@ -122,6 +188,19 @@ export default function ListeningProfileDialog({
                                 )
                             }
                             vocabulary={v}
+                            onInspectEmblem={(badge, ownerName) => {
+                                returnPosition.current = {
+                                    scroll:
+                                        profile.current?.closest("dialog")
+                                            ?.scrollTop ?? 0,
+                                    trigger:
+                                        document.activeElement instanceof
+                                        HTMLElement
+                                            ? document.activeElement
+                                            : null,
+                                };
+                                setMedal({ badge, ownerName });
+                            }}
                             recapYear={year}
                             onOpenRecap={
                                 target.publicId
@@ -129,7 +208,7 @@ export default function ListeningProfileDialog({
                                     : () => setRecap(year)
                             }
                         />
-                    </>
+                    </div>
                 )
             )}
         </Dialog>

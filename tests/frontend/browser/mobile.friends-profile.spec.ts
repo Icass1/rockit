@@ -65,13 +65,16 @@ test("mobile opens friend hours and original emblems, explains progress and open
         .getByRole("button")
         .nth(4)
         .click();
-    await expect(profile.getByTestId("profile-emblem-detail")).toContainText(
+    await expect(page.getByTestId("medal-profile-detail")).toContainText(
         "42 / 300"
     );
-    await profile.getByTestId("profile-emblem-detail").scrollIntoViewIfNeeded();
+
     await page.screenshot({
         path: info.outputPath("friends-mobile-emblem-catalog.png"),
     });
+    await page
+        .getByRole("button", { name: "Back to profile", exact: true })
+        .click();
     await profile.getByRole("button", { name: "Next emblems" }).click();
     await expect(
         profile.getByTestId("profile-emblems").getByRole("button")

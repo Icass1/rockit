@@ -31,3 +31,7 @@ export {
     AnnualRecap,
     type AnnualRecapControls,
 } from "@rockit/ui/primitives/AnnualRecap";
+
+export { MedalDetail } from "@rockit/ui/primitives/MedalDetail";
+export { MedalControls } from "@rockit/ui/primitives/MedalControls";
+export { EmblemInspector } from "@rockit/ui/primitives/EmblemInspector";

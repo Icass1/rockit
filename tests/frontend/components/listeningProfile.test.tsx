@@ -171,3 +171,24 @@ it("exposes all 64 families while keeping only one catalog page mounted", async 
         "Keep 1 album"
     );
 });
+
+it("delegates medal inspection with the fetched owner and does not create an inline canvas", async () => {
+    const inspect = vi.fn();
+    render(
+        <DesignThemeProvider mode="dark">
+            <ListeningProfile
+                loadProfile={async () => listeningProfile}
+                resourceKey="delegate"
+                vocabulary={v}
+                onInspectEmblem={inspect}
+            />
+        </DesignThemeProvider>
+    );
+    await screen.findByText("50.6");
+    fireEvent.click(screen.getAllByRole("button", { name: /^Inspect / })[0]);
+    expect(inspect).toHaveBeenCalledWith(
+        expect.objectContaining({ key: expect.any(String) }),
+        listeningProfile.username
+    );
+    expect(screen.queryByTestId("emblem-inspector")).toBeNull();
+});

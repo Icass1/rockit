@@ -43,10 +43,13 @@ test("desktop circle opens a focused, dismissible listening passport and the ori
         .getByRole("button")
         .nth(4)
         .click();
-    await dialog.getByTestId("profile-emblem-detail").scrollIntoViewIfNeeded();
+    await expect(page.getByTestId("medal-profile-detail")).toBeVisible();
     await page.screenshot({
         path: info.outputPath("friends-desktop-emblem-catalog.png"),
     });
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeVisible();
+    await expect(page.getByTestId("listening-profile")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
     await expect(open).toBeFocused();

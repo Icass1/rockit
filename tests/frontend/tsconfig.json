@@ -22,7 +22,10 @@
             "@rockit/ui/runtime": ["packages/ui/src/runtime.web.ts"],
             "@rockit/ui/theme": ["packages/ui/src/theme.tsx"],
             "@rockit/ui/icons": ["packages/ui/src/icons.web.ts"],
-            "@/platform/socket": ["apps/mobile/platform/socket.web.ts"]
+            "@/platform/socket": ["apps/mobile/platform/socket.web.ts"],
+            "@/models/types/playerArtwork": [
+                "apps/mobile/models/types/playerArtwork.ts"
+            ]
         },
         "types": ["node", "vitest/globals"],
         "allowImportingTsExtensions": true

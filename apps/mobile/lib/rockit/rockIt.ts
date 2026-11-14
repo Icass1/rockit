@@ -1,3 +1,4 @@
+import { playerArtworkPreference } from "@/platform/playerArtworkPreference";
 import { subscribeToResume } from "@/platform/resume";
 import {
     FriendManager,
@@ -96,7 +97,7 @@ class RockIt {
     userManager = userManager;
     queueManager = new QueueManager();
     mediaPlayerManager = new MediaPlayerManager();
-    playerUIManager = new PlayerUIManager();
+    playerUIManager = new PlayerUIManager(playerArtworkPreference);
     lockScreenManager = new LockScreenManager();
     http = Http;
 
@@ -116,6 +117,7 @@ class RockIt {
         if (this._initializing) return this._initializing;
         const generation = this._generation;
         const initialize = async () => {
+            this.playerUIManager.initializeArtworkMode();
             this.friendManager.start();
             this.sharingManager.start();
             this.navigationPinsManager.start();

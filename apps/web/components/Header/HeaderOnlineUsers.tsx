@@ -2,28 +2,23 @@
 
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { User } from "lucide-react";
+import { OnlinePresence } from "@rockit/ui/primitives/OnlinePresence";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
 export default function OnlineUserIndicator(): JSX.Element {
-    const onlineUsers = useStore(rockIt.webSocketManager.onlineUsersAtom);
+    const count = useStore(rockIt.webSocketManager.onlineUsersAtom);
     const vocabulary = useVocabulary();
-    const available = onlineUsers !== undefined;
+    const locale = useLanguage();
     return (
-        <div
-            className={`flex items-center gap-1 ${available ? "text-online" : "text-foreground"}`}
-            title={vocabulary.ONLINE_LABEL}
-            aria-label={
-                available
-                    ? `${onlineUsers} · ${vocabulary.ONLINE_LABEL}`
-                    : vocabulary.ONLINE_LABEL
-            }
-        >
-            <span className="text-sm font-semibold tabular-nums" role="status">
-                {onlineUsers ?? "—"}
-            </span>
-            <User className="h-7 w-7" aria-hidden="true" />
-        </div>
+        <OnlinePresence
+            count={count}
+            label={vocabulary.ONLINE_LABEL}
+            locale={locale}
+            iconSize={28}
+        />
     );
 }

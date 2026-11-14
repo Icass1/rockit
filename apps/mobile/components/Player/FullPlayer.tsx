@@ -38,6 +38,7 @@ export default function FullPlayer() {
     const OFFSET_Y = SCREEN_HEIGHT + theme.spacing.xxl;
     const {
         currentMedia,
+        isPlaying,
         isPlayerVisible,
         seekTo,
         hidePlayer,
@@ -214,6 +215,12 @@ export default function FullPlayer() {
                                 theme.spacing.lg
                             }
                             currentMedia={currentMedia}
+                            isPlaying={isPlaying}
+                            artworkVisible={
+                                isPlayerVisible &&
+                                activeTab === null &&
+                                !isMediaFullscreen
+                            }
                             onSeek={seekTo}
 
                             hasVideo={!!hasVideo}

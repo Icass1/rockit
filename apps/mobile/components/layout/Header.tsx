@@ -1,10 +1,10 @@
 import { useStore } from "@nanostores/react";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { User } from "@rockit/ui/icons";
+import { OnlinePresence } from "@rockit/ui/primitives/OnlinePresence";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useVocabulary } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";
@@ -32,23 +32,11 @@ export default function Header({ showNotifications = false }: HeaderProps) {
                 style={styles.gradient}
             />
             <View style={styles.content}>
-                <View
-                    testID="header-online-users"
-                    accessibilityRole="text"
-                    accessibilityLabel={`${onlineUsers ?? "—"} · ${vocabulary.ONLINE_LABEL}`}
-                    style={styles.presence}
-                >
-                    <Text style={styles.onlineCount}>
-                        {onlineUsers === undefined
-                            ? "—"
-                            : new Intl.NumberFormat(lang, {
-                                  notation: "compact",
-                                  maximumFractionDigits: 1,
-                              }).format(onlineUsers)}
-                    </Text>
-                    <User
-                        size={theme.typography.subtitle}
-                        color={theme.colors.online}
+                <View style={styles.presence}>
+                    <OnlinePresence
+                        count={onlineUsers}
+                        label={vocabulary.ONLINE_LABEL}
+                        locale={lang}
                     />
                 </View>
                 <Image
@@ -103,11 +91,6 @@ const createStyles = (theme: DesignTheme) =>
             alignItems: "center",
             justifyContent: "center",
             gap: theme.spacing.xs,
-        },
-        onlineCount: {
-            color: theme.colors.online,
-            fontSize: theme.typography.body,
-            fontWeight: "600",
         },
         gradient: {
             ...StyleSheet.absoluteFill,

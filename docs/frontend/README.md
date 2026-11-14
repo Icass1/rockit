@@ -7,15 +7,17 @@ IPA; browser storage and background playback have platform-specific limits.
 
 ## Choose a guide
 
-| Task | Reference |
-| --- | --- |
-| Understand application boundaries and shared components | [Architecture and diagrams](architecture.md) |
-| Deploy desktop and mobile independently | [Deployment, authentication and offline behavior](deployment.md) |
-| Build native mobile targets | [Android APK and EAS builds](native-builds.md) |
-| Run contracts, component checks or browser acceptance | [Verification](testing.md) |
-| Diagnose iOS audio and system controls | [iOS playback](ios-playback.md) |
-| Work on transitions | [Browser song transitions](browser-song-transitions.md) |
-| Work on Library interactions | [Track search](library-song-search.md), [drag and drop](library-drag-drop.md), [navigation anchors](navigation-anchors.md) |
+| Task                                                      | Reference                                                                                                                  |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Understand application boundaries and shared components   | [Architecture and diagrams](architecture.md)                                                                               |
+| Deploy desktop and mobile independently                   | [Deployment, authentication and offline behavior](deployment.md)                                                           |
+| Build native mobile targets                               | [Android APK and EAS builds](native-builds.md)                                                                             |
+| Run contracts, component checks or browser acceptance     | [Verification](testing.md)                                                                                                 |
+| Understand annual stories, metric rules and data coverage | [Annual recap](annual-recap.md)                                                                                            |
+| Inspect collectible medals and their rendering lifecycle  | [Prism medals](prism-medals.md)                                                                                            |
+| Diagnose iOS audio and system controls                    | [iOS playback](ios-playback.md)                                                                                            |
+| Work on transitions                                       | [Browser song transitions](browser-song-transitions.md)                                                                    |
+| Work on Library interactions                              | [Track search](library-song-search.md), [drag and drop](library-drag-drop.md), [navigation anchors](navigation-anchors.md) |
 
 ## Development
 

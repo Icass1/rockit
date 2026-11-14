@@ -12,6 +12,7 @@ import Image from "next/image";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
+import { ProfileAvatar } from "@rockit/ui";
 import useMedia from "@/hooks/useMedia";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -32,6 +33,8 @@ export interface CoverflowCard {
 
 interface HomeHeroCoverflowProps {
     greetingName: string;
+    username: string;
+    imageUrl?: string | null;
     streak?: number;
     minutesThisWeek?: number;
     cards: CoverflowCard[];
@@ -163,6 +166,8 @@ function CoverflowCardComponent({
 
 export default function HomeHeroCoverflow({
     greetingName,
+    username,
+    imageUrl,
     streak,
     minutesThisWeek,
     cards,
@@ -322,9 +327,12 @@ export default function HomeHeroCoverflow({
     return (
         <section className="cf-section relative">
             <div className="relative z-10 px-[6%] pt-7 pb-0">
-                <h1 className="text-foreground text-[clamp(20px,3.4cqw,40px)] leading-tight font-bold">
-                    {greetingName}
-                </h1>
+                <div className="flex min-w-0 items-center gap-3">
+                    <ProfileAvatar imageUrl={imageUrl} name={username} />
+                    <h1 className="text-foreground min-w-0 text-[clamp(20px,3.4cqw,40px)] leading-tight font-bold">
+                        {greetingName}
+                    </h1>
+                </div>
                 {subtitle && (
                     <p className="text-foreground/50 mt-1.5 text-[13px]">
                         {subtitle}

@@ -940,6 +940,10 @@ export {
 } from "./youtubeVideoResponse";
 export { LibrarySongSortSchema, type LibrarySongSort } from "./librarySongSort";
 export {
+    ListeningBadgeLeagueSchema,
+    type ListeningBadgeLeague,
+} from "./listeningBadgeLeague";
+export {
     ListeningBadgeScopeSchema,
     type ListeningBadgeScope,
 } from "./listeningBadgeScope";

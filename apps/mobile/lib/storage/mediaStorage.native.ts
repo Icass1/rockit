@@ -1,3 +1,7 @@
+import type {
+    BaseSongWithAlbumResponse,
+    BaseSongWithoutAlbumResponse,
+} from "@rockit/shared";
 import { Directory, File, Paths } from "expo-file-system";
 
 const MEDIA_DIR_NAME = "media";
@@ -39,7 +43,8 @@ class MediaStorageManager {
         publicId: string,
         url: string,
         coverUrl?: string | null,
-        _name?: string
+        _name?: string,
+        _media?: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse
     ): Promise<string | null> {
         await this.init();
         if (coverUrl) await this.downloadImage(publicId, coverUrl);

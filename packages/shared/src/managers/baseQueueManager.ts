@@ -45,6 +45,11 @@ const AUTOPLAY_NEAR_END_OFFSET = 2;
 export class BaseQueueManager {
     // #region: Atoms
 
+    private _pendingSelectionAtom = createAtom<TPlayableMedia | undefined>();
+    get pendingSelectionAtom(): ReadonlyAtom<TPlayableMedia | undefined> {
+        return this._pendingSelectionAtom.getReadonlyAtom();
+    }
+
     protected _currentMediaAtom = createAtom<TPlayableMedia | undefined>();
     protected _currentListAtom = createAtom<string | undefined>();
 
@@ -162,6 +167,7 @@ export class BaseQueueManager {
 
     /** Release integrations without interrupting the current transport or queue. */
     stop(): void {
+        this._pendingSelectionAtom.set(undefined);
         this._init = false;
         this._initialization = undefined;
         this._lifecycleGeneration++;
@@ -194,6 +200,7 @@ export class BaseQueueManager {
         this._sortedQueueAtom.set([]);
         this._queueTotalAtom.set(0);
         this._currentQueueMediaIdAtom.set(null);
+        this._pendingSelectionAtom.set(undefined);
         this._currentMediaAtom.set(undefined);
         this._currentListAtom.set(undefined);
         this._lastNavigationDirection = 1;
@@ -456,6 +463,7 @@ export class BaseQueueManager {
     }
 
     private _beginPlaybackSelection(): () => boolean {
+        this._pendingSelectionAtom.set(undefined);
         const lifecycle = this._lifecycleGeneration;
         const request = ++this._playRequest;
         return (): boolean =>
@@ -485,7 +493,7 @@ export class BaseQueueManager {
     updateQueue(shuffleRandom?: boolean): void {
         if (!this.isQueueFullyLoaded && this._queueTotalAtom.get() > 0) {
             getRockIt().notificationManager.notifyError(
-                "Load the queue before editing it. Scroll through the queue to load more items."
+                getRockIt().vocabularyManager.vocabulary.QUEUE_LOAD_BEFORE_EDIT
             );
             void this._refreshQueueAsync(false);
             return;
@@ -719,6 +727,7 @@ export class BaseQueueManager {
     }
 
     setMedia(medias: TQueueMedia[], listPublicId: string): void {
+        this._pendingSelectionAtom.set(undefined);
         this._playRequest++;
         this._hasInitialQueue = true;
         this._initialMediaPending = false;
@@ -773,7 +782,7 @@ export class BaseQueueManager {
             .find((media): boolean => media.media.publicId === publicId);
         if (!media) {
             getRockIt().notificationManager.notifyError(
-                "(moveToMedia) Media not found in queue."
+                getRockIt().vocabularyManager.vocabulary.QUEUE_MEDIA_NOT_FOUND
             );
             return;
         }
@@ -810,6 +819,7 @@ export class BaseQueueManager {
     setQueueMediaId(): void;
     setQueueMediaId(queueMediaId: number, direction?: 1 | -1): void;
     setQueueMediaId(queueMediaId?: number, direction?: 1 | -1): void {
+        this._pendingSelectionAtom.set(undefined);
         this._playRequest++;
         if (typeof queueMediaId === "number") {
             const queue = this._queueAtom.get();
@@ -820,7 +830,8 @@ export class BaseQueueManager {
 
             if (!media) {
                 getRockIt().notificationManager.notifyError(
-                    "(setIndex) Media not found in queue."
+                    getRockIt().vocabularyManager.vocabulary
+                        .QUEUE_MEDIA_NOT_FOUND
                 );
                 return;
             }
@@ -1017,48 +1028,57 @@ export class BaseQueueManager {
 
     async playCollection(
         publicId: string,
-        startPublicId?: string
+        startPublicId?: string,
+        preview?: TPlayableMedia
     ): Promise<void> {
         const isCurrent = this._beginPlaybackSelection();
-        const payload = { startPublicId: startPublicId ?? null };
-        const featuredIds = [
-            "liked",
-            "most-listened",
-            "recent-mix",
-            "last-month",
-            "year-recap",
-            "latest-downloads",
-        ];
-        const response = featuredIds.includes(publicId)
-            ? await getRockIt().http.createFeaturedQueue(publicId, payload)
-            : await getRockIt().http.createCollectionQueue(publicId, payload);
-        if (!isCurrent()) return;
-        if (response.isNotOk()) {
-            if (response.code === 0) {
-                const cached =
-                    await getRockIt().http.resolveCollectionQueue(publicId);
-                if (!isCurrent()) return;
-                if (cached.isOk()) {
-                    this.setMedia(
-                        cached.result.queue.map((item) => item.media),
-                        publicId
-                    );
-                    if (startPublicId) this.moveToMedia(startPublicId);
-                    else this.setQueueMediaId();
-                    getRockIt().mediaPlayerManager.play();
-                    return;
+        this._pendingSelectionAtom.set(preview);
+        try {
+            const payload = { startPublicId: startPublicId ?? null };
+            const featuredIds = [
+                "liked",
+                "most-listened",
+                "recent-mix",
+                "last-month",
+                "year-recap",
+                "latest-downloads",
+            ];
+            const response = featuredIds.includes(publicId)
+                ? await getRockIt().http.createFeaturedQueue(publicId, payload)
+                : await getRockIt().http.createCollectionQueue(
+                      publicId,
+                      payload
+                  );
+            if (!isCurrent()) return;
+            if (response.isNotOk()) {
+                if (response.code === 0) {
+                    const cached =
+                        await getRockIt().http.resolveCollectionQueue(publicId);
+                    if (!isCurrent()) return;
+                    if (cached.isOk()) {
+                        this.setMedia(
+                            cached.result.queue.map((item) => item.media),
+                            publicId
+                        );
+                        if (startPublicId) this.moveToMedia(startPublicId);
+                        else this.setQueueMediaId();
+                        getRockIt().mediaPlayerManager.play();
+                        return;
+                    }
                 }
+                getRockIt().notificationManager.notifyError(response.message);
+                return;
             }
-            getRockIt().notificationManager.notifyError(response.message);
-            return;
+            if (!response.isOk()) return;
+            const queue = response.result;
+            void this.cacheCollectionQueueAsync(publicId, queue);
+            this._applyQueueResponse(queue);
+            if (queue.currentQueueMediaId !== null)
+                this.setQueueMediaId(queue.currentQueueMediaId);
+            getRockIt().mediaPlayerManager.play();
+        } finally {
+            if (isCurrent()) this._pendingSelectionAtom.set(undefined);
         }
-        if (!response.isOk()) return;
-        const queue = response.result;
-        void this.cacheCollectionQueueAsync(publicId, queue);
-        this._applyQueueResponse(queue);
-        if (queue.currentQueueMediaId !== null)
-            this.setQueueMediaId(queue.currentQueueMediaId);
-        getRockIt().mediaPlayerManager.play();
     }
 
     protected async cacheCollectionQueueAsync(
@@ -1090,7 +1110,8 @@ export class BaseQueueManager {
     /** Resolve stable occurrence IDs before loading missing queue pages. */
     async reorderQueueItemsAsync(
         fromId: number,
-        toId: number
+        toId: number,
+        placement?: "before" | "after"
     ): Promise<boolean> {
         const generation = this._queueGeneration;
         const lifecycle = this._lifecycleGeneration;
@@ -1114,7 +1135,11 @@ export class BaseQueueManager {
         );
         const to = this.queue.findIndex((item) => item.queueMediaId === toId);
         if (from < 0 || to < 0) return false;
-        this.reorderQueue(from, to);
+        const boundary = to + (placement === "after" ? 1 : 0);
+        const destination = placement
+            ? boundary - (from < boundary ? 1 : 0)
+            : to;
+        this.reorderQueue(from, destination);
         return true;
     }
 
@@ -1468,36 +1493,45 @@ export class BaseQueueManager {
             getRockIt().mediaPlayerManager.pause();
             return;
         }
-        const fresh = await getRockIt().http.getSong(song.publicId);
-        if (!isCurrent()) return;
-        if (!fresh.isOk()) {
-            getRockIt().notificationManager.notifyError(fresh.message);
-            return;
-        }
-        if (!fresh.result.downloaded) {
-            const started = await getRockIt().http.startDownload({
-                replaceExisting: false,
-                ids: [song.publicId],
-                title: song.name,
-            });
+        this._pendingSelectionAtom.set(song);
+        try {
+            const fresh = await getRockIt().http.getSong(song.publicId);
             if (!isCurrent()) return;
-            if (started.isOk())
-                getRockIt().notificationManager.notifyInfo(
-                    getRockIt().vocabularyManager.vocabulary.DOWNLOAD_STARTED
-                );
-            else getRockIt().notificationManager.notifyError(started.message);
-            return;
+            if (!fresh.isOk()) {
+                getRockIt().notificationManager.notifyError(fresh.message);
+                return;
+            }
+            if (!fresh.result.downloaded) {
+                const started = await getRockIt().http.startDownload({
+                    replaceExisting: false,
+                    ids: [song.publicId],
+                    title: song.name,
+                });
+                if (!isCurrent()) return;
+                if (started.isOk())
+                    getRockIt().notificationManager.notifyInfo(
+                        getRockIt().vocabularyManager.vocabulary
+                            .DOWNLOAD_STARTED
+                    );
+                else
+                    getRockIt().notificationManager.notifyError(
+                        started.message
+                    );
+                return;
+            }
+            this.setMedia(
+                songs
+                    .map((entry) =>
+                        entry.publicId === song.publicId ? fresh.result : entry
+                    )
+                    .filter((entry) => entry.downloaded),
+                "recommendations"
+            );
+            this.moveToMedia(song.publicId);
+            getRockIt().mediaPlayerManager.play();
+        } finally {
+            if (isCurrent()) this._pendingSelectionAtom.set(undefined);
         }
-        this.setMedia(
-            songs
-                .map((entry) =>
-                    entry.publicId === song.publicId ? fresh.result : entry
-                )
-                .filter((entry) => entry.downloaded),
-            "recommendations"
-        );
-        this.moveToMedia(song.publicId);
-        getRockIt().mediaPlayerManager.play();
     }
 
     async playAutoplayRecommendationAsync(

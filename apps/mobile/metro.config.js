@@ -22,4 +22,6 @@ config.resolver.alias = {
     ],
 };
 
+config.resolver.assetExts = [...new Set([...config.resolver.assetExts, "html"])];
+
 module.exports = config;

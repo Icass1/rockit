@@ -1,7 +1,14 @@
+import { useStore } from "@nanostores/react";
 import { getRockitListName, type FeaturedCollectionKey } from "@rockit/shared";
-import { FeaturedArtwork, useDesignTheme } from "@rockit/ui";
-import { Pin } from "@rockit/ui/icons";
+import {
+    ActionButton,
+    FeaturedArtwork,
+    MediaArtwork,
+    useDesignTheme,
+} from "@rockit/ui";
+import { Pin, PinOff } from "@rockit/ui/icons";
 import { FlatList, Pressable, Text, View } from "react-native";
+import type { LibraryCollectionEntry } from "@/models/interfaces/libraryCollectionEntry";
 import { useContextMenu } from "@/lib/ContextMenuContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useTypedRouter } from "@/lib/useTypedRouter";
@@ -20,6 +27,19 @@ export default function FeaturedCollections() {
     const { vocabulary } = useVocabulary();
     const router = useTypedRouter();
     const menu = useContextMenu();
+    const manager = rockIt.navigationPinsManager;
+    const pins = useStore(manager.pinsAtom);
+    const status = useStore(manager.statusAtom);
+    const entries: LibraryCollectionEntry[] = [
+        ...keys.map((key) => ({
+            id: key,
+            builtinKey: key,
+            pin: pins.find((pin) => pin.builtinKey === key),
+        })),
+        ...pins
+            .filter((pin) => !pin.builtinKey)
+            .map((pin) => ({ id: pin.publicId, pin })),
+    ];
     return (
         <View
             style={{ paddingVertical: theme.spacing.lg, gap: theme.spacing.md }}
@@ -35,12 +55,17 @@ export default function FeaturedCollections() {
             </Text>
             <FlatList
                 horizontal
-                data={keys}
+                style={{ flexGrow: 0, flexShrink: 0 }}
+                data={entries}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: theme.spacing.md }}
-                keyExtractor={(key) => key}
-                renderItem={({ item: key }) => {
-                    const name = getRockitListName(key, vocabulary);
+                keyExtractor={(entry) => entry.id}
+                renderItem={({ item: entry }) => {
+                    const key = entry.builtinKey;
+                    const pin = entry.pin;
+                    const name = key
+                        ? getRockitListName(key, vocabulary)
+                        : pin!.name;
                     return (
                         <Pressable
                             accessibilityRole="button"
@@ -49,19 +74,23 @@ export default function FeaturedCollections() {
                                 width: theme.layout.artistArtwork,
                                 gap: theme.spacing.sm,
                             }}
-                            onPress={() => router.push(`/playlist/${key}`)}
+                            onPress={() =>
+                                router.push(key ? `/playlist/${key}` : pin!.url)
+                            }
                             onLongPress={() =>
                                 menu.show({
                                     title: name,
                                     options: [
                                         {
-                                            label: vocabulary.NAV_PIN,
-                                            icon: Pin,
+                                            label: pin
+                                                ? vocabulary.NAV_UNPIN
+                                                : vocabulary.NAV_PIN,
+                                            icon: pin ? PinOff : Pin,
                                             onPress: () => {
                                                 menu.hide();
                                                 void rockIt.navigationPinsManager.setPinnedAsync(
-                                                    key,
-                                                    true
+                                                    pin?.publicId ?? entry.id,
+                                                    !pin
                                                 );
                                             },
                                         },
@@ -69,7 +98,37 @@ export default function FeaturedCollections() {
                                 })
                             }
                         >
-                            <FeaturedArtwork kind={key} label={name} />
+                            <View>
+                                {key ? (
+                                    <FeaturedArtwork kind={key} label={name} />
+                                ) : (
+                                    <MediaArtwork
+                                        uri={pin!.imageUrl}
+                                        label={name}
+                                        size={theme.layout.artistArtwork}
+                                        round={pin!.type === "artist"}
+                                    />
+                                )}
+                                {!!pin && (
+                                    <View
+                                        pointerEvents="none"
+                                        style={{
+                                            position: "absolute",
+                                            right: theme.spacing.xs,
+                                            bottom: theme.spacing.xs,
+                                            padding: theme.spacing.xs,
+                                            borderRadius: theme.radius.full,
+                                            backgroundColor:
+                                                theme.colors.background,
+                                        }}
+                                    >
+                                        <Pin
+                                            size={theme.typography.caption}
+                                            color={theme.colors.foreground}
+                                        />
+                                    </View>
+                                )}
+                            </View>
                             <Text
                                 numberOfLines={1}
                                 style={{
@@ -83,6 +142,12 @@ export default function FeaturedCollections() {
                     );
                 }}
             />
+            {status === "error" && (
+                <ActionButton
+                    label={vocabulary.NAV_PINS_RETRY}
+                    onPress={() => void manager.refreshAsync()}
+                />
+            )}
         </View>
     );
 }

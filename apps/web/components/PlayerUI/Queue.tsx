@@ -1,12 +1,14 @@
 "use client";
 
-import { JSX, useCallback, useEffect, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useId, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
+import type { QueueDropTarget } from "@/models/interfaces/queueDropTarget";
 import { useFixedVirtualWindow } from "@/hooks/useFixedVirtualWindow";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { QueueMedia } from "@/components/PlayerUI/QueueMedia";
+import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import AutoplayRecommendations from "@/components/Recommendations/AutoplayRecommendations";
 
 const QUEUE_ROW_HEIGHT = 66;
@@ -16,6 +18,9 @@ export default function PlayerUIQueue({
 }: {
     visible: boolean;
 }): JSX.Element {
+    const vocabulary = useVocabulary();
+    const helpId = useId();
+    const [draggingId, setDraggingId] = useState<number | null>(null);
     const $queue = useStore(rockIt.queueManager.queueAtom);
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
@@ -24,7 +29,7 @@ export default function PlayerUIQueue({
     const [reordering, setReordering] = useState(false);
     const draggedId = useRef<number | null>(null);
 
-    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    const [dropTarget, setDropTarget] = useState<QueueDropTarget | null>(null);
     const {
         containerRef,
         onScroll,
@@ -111,6 +116,7 @@ export default function PlayerUIQueue({
             return;
         }
         draggedId.current = $queue[index]?.queueMediaId ?? null;
+        setDraggingId(draggedId.current);
         e.dataTransfer.setData(
             "application/x-rockit-queue",
             String(draggedId.current)
@@ -118,34 +124,40 @@ export default function PlayerUIQueue({
         e.dataTransfer.effectAllowed = "move";
     };
 
-    const handleDragOver = (e: React.DragEvent, index: number): void => {
+    const targetAt = (
+        event: React.DragEvent,
+        index: number
+    ): QueueDropTarget => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        return {
+            queueMediaId: $queue[index].queueMediaId,
+            edge:
+                event.clientY < rect.top + rect.height / 2 ? "before" : "after",
+        };
+    };
+    const handleDragOver = (event: React.DragEvent, index: number): void => {
         if (draggedId.current === null) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        setDragOverIndex(index);
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        setDropTarget(targetAt(event, index));
     };
-
     const handleDragLeave = (): void => {
-        setDragOverIndex(null);
+        setDropTarget(null);
     };
-
-    const handleDrop = (e: React.DragEvent, toIndex: number): void => {
-        e.preventDefault();
-        const fromId = draggedId.current;
-        const toId = $queue[toIndex]?.queueMediaId;
+    const move = (fromId: number, target: QueueDropTarget): void => {
+        if (reordering || fromId === target.queueMediaId) return;
+        setReordering(true);
+        void rockIt.queueManager
+            .reorderQueueItemsAsync(fromId, target.queueMediaId, target.edge)
+            .finally(() => setReordering(false));
+    };
+    const handleDrop = (event: React.DragEvent, index: number): void => {
+        event.preventDefault();
+        if (draggedId.current !== null)
+            move(draggedId.current, targetAt(event, index));
         draggedId.current = null;
-        if (
-            fromId !== null &&
-            toId !== undefined &&
-            fromId !== toId &&
-            !reordering
-        ) {
-            setReordering(true);
-            void rockIt.queueManager
-                .reorderQueueItemsAsync(fromId, toId)
-                .finally(() => setReordering(false));
-        }
-        setDragOverIndex(null);
+        setDraggingId(null);
+        setDropTarget(null);
     };
 
     const handleClick = (queueMediaId: number): void => {
@@ -203,6 +215,9 @@ export default function PlayerUIQueue({
             onTouchMove={markUserScrolling}
             className="flex h-full max-h-full min-h-0 w-full max-w-full min-w-0 flex-col overflow-y-auto mask-t-from-90% mask-b-from-90% py-16"
         >
+            <p id={helpId} className="sr-only">
+                {vocabulary.QUEUE_REORDER_HELP}
+            </p>
             <div style={{ height: topPadding, flexShrink: 0 }} />
             {$queue
                 .slice(startIndex, endIndex)
@@ -213,20 +228,64 @@ export default function PlayerUIQueue({
                             key={queueItem.queueMediaId}
                             data-queue-media-id={queueItem.queueMediaId}
                             draggable={!reordering}
+                            tabIndex={0}
+                            aria-describedby={helpId}
+                            onKeyDown={(event) => {
+                                if (
+                                    !event.altKey ||
+                                    !["ArrowUp", "ArrowDown"].includes(
+                                        event.key
+                                    )
+                                )
+                                    return;
+                                event.preventDefault();
+                                event.stopPropagation();
+                                const other =
+                                    $queue[
+                                        index +
+                                            (event.key === "ArrowUp" ? -1 : 1)
+                                    ];
+                                if (other)
+                                    move(queueItem.queueMediaId, {
+                                        queueMediaId: other.queueMediaId,
+                                        edge:
+                                            event.key === "ArrowUp"
+                                                ? "before"
+                                                : "after",
+                                    });
+                            }}
                             onDragStart={(e): void => handleDragStart(e, index)}
                             onDragOver={(e): void => handleDragOver(e, index)}
-                            onDragLeave={handleDragLeave}
+                            onDragLeave={(event) => {
+                                if (
+                                    !(event.relatedTarget instanceof Node) ||
+                                    !event.currentTarget.contains(
+                                        event.relatedTarget
+                                    )
+                                )
+                                    handleDragLeave();
+                            }}
                             onDrop={(e): void => handleDrop(e, index)}
                             onDragEnd={() => {
                                 draggedId.current = null;
+                                setDraggingId(null);
                                 handleDragLeave();
                             }}
-                            className={`shrink-0 border-t-2 select-none [-webkit-touch-callout:none] ${
-                                dragOverIndex === index
-                                    ? "border-primary"
-                                    : "border-transparent"
-                            }`}
+                            className={`focus-visible:outline-primary relative shrink-0 border-t-2 border-transparent select-none [-webkit-touch-callout:none] focus-visible:outline-2 ${draggingId === queueItem.queueMediaId ? "opacity-40" : ""}`}
                         >
+                            {dropTarget?.queueMediaId ===
+                                queueItem.queueMediaId &&
+                                draggingId !== queueItem.queueMediaId && (
+                                    <div
+                                        data-queue-insertion={dropTarget.edge}
+                                        className={`bg-primary pointer-events-none absolute right-0 left-0 z-10 h-0.5 ${dropTarget.edge === "before" ? "top-0" : "bottom-0"}`}
+                                    >
+                                        <span className="bg-primary absolute top-1/2 left-0 h-2 w-2 -translate-y-1/2 rounded-full" />
+                                        <span className="bg-primary text-primary-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 text-xs">
+                                            {vocabulary.QUEUE_DROP_HERE}
+                                        </span>
+                                    </div>
+                                )}
                             <MediaContextMenu
                                 media={queueItem.media}
                                 location={EMediaContextLocation.QUEUE}

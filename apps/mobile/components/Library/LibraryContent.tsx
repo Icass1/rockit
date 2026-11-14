@@ -1,157 +1,69 @@
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { isSearchResult, type TMedia } from "@rockit/shared";
+import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import {
-    isSearchResult,
-    type BaseAlbumWithoutSongsResponse,
-    type BasePlaylistWithoutMediasResponse,
-    type BaseSongWithAlbumResponse,
-    type BaseStationResponse,
-    type BaseVideoResponse,
-    type TMedia,
-} from "@rockit/shared";
-import { useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { SectionList, StyleSheet, Text, View } from "react-native";
-import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
+    FlatList,
+    StyleSheet,
+    Text,
+    useWindowDimensions,
+    View,
+} from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
-import SectionTitle from "@/components/layout/SectionTitle";
 import MediaCard from "@/components/Media/MediaCard";
-import MediaRow from "@/components/Media/MediaRow";
 
 interface LibraryContentProps {
     extraData?: unknown;
     header?: ReactNode;
     footer?: ReactNode;
-    albums: BaseAlbumWithoutSongsResponse[];
-    playlists: BasePlaylistWithoutMediasResponse[];
-    songs: BaseSongWithAlbumResponse[];
-    videos: BaseVideoResponse[];
-    stations: BaseStationResponse[];
-    shared: BasePlaylistWithoutMediasResponse[];
-    activeType: ELibraryActiveType;
-    viewMode: "grid" | "list";
-}
-
-type ItemType = "album" | "playlist" | "song" | "video" | "station";
-
-interface Section {
-    title: string;
-    data: TMedia[][];
-    renderType: "grid" | "list";
+    items: TMedia[];
 }
 
 export default function LibraryContent({
     header,
     extraData,
     footer,
-    albums,
-    playlists,
-    songs,
-    videos,
-    stations,
-    shared,
-    activeType,
-    viewMode,
+    items,
 }: LibraryContentProps) {
     const styles = useThemedStyles(createStyles);
+    const theme = useDesignTheme();
+    const { width } = useWindowDimensions();
+    const [measuredWidth, setMeasuredWidth] = useState<number>();
+    const columns = Math.max(
+        2,
+        Math.floor(
+            ((measuredWidth ?? width) - theme.spacing.lg * 2) /
+                theme.layout.libraryCardMinWidth
+        )
+    );
     const { vocabulary } = useVocabulary();
 
-    const sections: Section[] = useMemo(() => {
-        const result: Section[] = [];
-
-        const createRows = (items: TMedia[]): TMedia[][] => {
-            if (viewMode === "list") {
-                return items.map((item) => [item]);
-            }
-
-            const rows: TMedia[][] = [];
-            for (let index = 0; index < items.length; index += 2) {
-                rows.push(items.slice(index, index + 2));
-            }
-            return rows;
-        };
-
-        const createItems = (items: TMedia[], type: ItemType): TMedia[] =>
-            items.filter((item) => item.type === type);
-
-        if (albums.length > 0) {
-            result.push({
-                title: vocabulary.ALBUMS,
-                data: createRows(createItems(albums, "album")),
-                renderType: viewMode,
-            });
-        }
-        if (playlists.length > 0) {
-            result.push({
-                title: vocabulary.PLAYLISTS,
-                data: createRows(createItems(playlists, "playlist")),
-                renderType: viewMode,
-            });
-        }
-        if (songs.length > 0) {
-            result.push({
-                title: vocabulary.SONGS,
-                data: createRows(createItems(songs, "song")),
-                renderType: viewMode,
-            });
-        }
-        if (videos.length > 0) {
-            result.push({
-                title: vocabulary.VIDEOS,
-                data: createRows(createItems(videos, "video")),
-                renderType: viewMode,
-            });
-        }
-        if (stations.length)
-            result.push({
-                title: vocabulary.RADIO_STATIONS,
-                data: createRows(stations),
-                renderType: viewMode,
-            });
-        if (shared.length)
-            result.push({
-                title: vocabulary.SHARED_2_YOU,
-                data: createRows(shared),
-                renderType: viewMode,
-            });
+    const rows = useMemo(() => {
+        const result: TMedia[][] = [];
+        for (let index = 0; index < items.length; index += columns)
+            result.push(items.slice(index, index + columns));
         return result;
-    }, [
-        albums,
-        playlists,
-        songs,
-        videos,
-        stations,
-        shared,
-        vocabulary,
-        viewMode,
-    ]);
-
-    const renderSectionHeader = useCallback(
-        ({ section }: { section: Section }) => (
-            <View style={styles.sectionHeader}>
-                <SectionTitle>{section.title}</SectionTitle>
-            </View>
-        ),
-        [styles]
-    );
+    }, [items, columns]);
 
     const renderItem = useCallback(
-        ({ item, section }: { item: TMedia[]; section: Section }) => {
-            if (section.renderType === "grid") {
-                return (
-                    <View style={styles.gridRow}>
-                        {item.map((media) => (
-                            <View
-                                key={`${media.type}-${isSearchResult(media) ? media.providerUrl : media.publicId}`}
-                                style={styles.gridItemWrapper}
-                            >
-                                <MediaCard media={media} />
-                            </View>
-                        ))}
-                    </View>
-                );
-            }
-            return <MediaRow media={item[0]} />;
+        ({ item }: { item: TMedia[] }) => {
+            return (
+                <View style={styles.gridRow}>
+                    {item.map((media) => (
+                        <View
+                            testID="library-grid-item"
+                            key={`${media.type}-${isSearchResult(media) ? media.providerUrl : media.publicId}`}
+                            style={[
+                                styles.gridItemWrapper,
+                                { width: `${100 / columns}%` },
+                            ]}
+                        >
+                            <MediaCard media={media} />
+                        </View>
+                    ))}
+                </View>
+            );
         },
-        [styles]
+        [styles, columns]
     );
 
     const keyExtractor = useCallback(
@@ -161,12 +73,14 @@ export default function LibraryContent({
     );
 
     return (
-        <SectionList
+        <FlatList
             testID="library-scroll"
+            onLayout={({ nativeEvent }) =>
+                setMeasuredWidth(nativeEvent.layout.width)
+            }
             extraData={extraData}
-            sections={sections}
+            data={rows}
             renderItem={renderItem}
-            renderSectionHeader={renderSectionHeader}
             keyExtractor={keyExtractor}
             ListHeaderComponent={<>{header}</>}
             ListFooterComponent={<>{footer}</>}
@@ -175,7 +89,6 @@ export default function LibraryContent({
             }
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
-            stickySectionHeadersEnabled={false}
             initialNumToRender={10}
             maxToRenderPerBatch={10}
             windowSize={5}
@@ -188,14 +101,9 @@ const createStyles = (theme: DesignTheme) =>
         listContent: {
             paddingTop: theme.layout.mobileContentTop,
             paddingHorizontal: theme.spacing.lg,
-            paddingBottom: theme.layout.mobileContentBottom,
-        },
-        sectionHeader: {
-            marginBottom: theme.spacing.sm,
+            paddingBottom: theme.spacing.lg,
         },
         gridItemWrapper: {
-            flex: 1,
-            maxWidth: "50%",
             padding: theme.spacing.xs,
         },
         gridRow: {

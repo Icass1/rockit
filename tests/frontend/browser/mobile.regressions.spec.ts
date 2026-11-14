@@ -31,7 +31,7 @@ test("mobile destinations share their theme and statistics retains five main nav
             .toBe("rgb(11, 11, 11)");
         if (route === "friends")
             await expect(
-                page.getByText("Fixture Friend", { exact: true })
+                page.getByText("Fixture Friend", { exact: true }).first()
             ).toBeVisible();
         if (route === "radio")
             await expect(page.getByRole("textbox").first()).toBeVisible();
@@ -99,7 +99,7 @@ test("short landscape keeps navigation reachable without horizontal overflow", a
     await page.setViewportSize({ width: 844, height: 390 });
     await page.goto(mobile + "/friends");
     await expect(
-        page.getByText("Fixture Friend", { exact: true })
+        page.getByText("Fixture Friend", { exact: true }).first()
     ).toBeVisible();
     const nav = page.getByTestId("navigation-settings");
     await expect(nav).toBeVisible();
@@ -227,7 +227,7 @@ test("Radio country selection and friend secondary actions use existing flows", 
         .toBe(true);
     await page.goto(mobile + "/friends");
     await expect(
-        page.getByText("Fixture Friend", { exact: true })
+        page.getByText("Fixture Friend", { exact: true }).first()
     ).toBeVisible();
     await expect(page.getByRole("tab")).toHaveCount(4);
 });

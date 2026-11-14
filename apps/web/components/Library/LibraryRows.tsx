@@ -79,11 +79,12 @@ function SelectableRow({
 /* ------------------------------------------------------- */
 
 export function groupByArtist<T extends { artists?: { name: string }[] }>(
-    items: T[]
+    items: T[],
+    unknownArtist: string
 ): [string, T[]][] {
     const groups: Record<string, T[]> = {};
     for (const item of items) {
-        const key = item.artists?.[0]?.name ?? "Unknown Artist";
+        const key = item.artists?.[0]?.name ?? unknownArtist;
         (groups[key] ??= []).push(item);
     }
     return Object.entries(groups).sort(([a], [b]): number =>
@@ -390,10 +391,11 @@ export function AlbumListView({
 }: {
     albums: BaseAlbumWithoutSongsResponse[];
 }): JSX.Element {
+    const vocabulary = useVocabulary();
     const groups = useMemo(
         (): [string, BaseAlbumWithoutSongsResponse[]][] =>
-            groupByArtist(albums),
-        [albums]
+            groupByArtist(albums, vocabulary.UNKNOWN_ARTIST),
+        [albums, vocabulary.UNKNOWN_ARTIST]
     );
 
     return (

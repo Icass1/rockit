@@ -74,8 +74,67 @@ WebKit owns background scheduling and autoplay permission. Playback must be
 initiated by the user; no PWA can guarantee execution after the OS terminates it.
 Videos lacking a separate audio source retain ordinary video playback behavior.
 
+## PWA track controls
+
+The browser MediaSession adapter publishes previous/next handlers and clears both
+relative-seek handlers. It reasserts those commands after actual native `playing`
+events, including track changes where the logical playing state remains true,
+and when the keepalive becomes active. Registering only during app initialization
+does not cover the moment WebKit selects its Now Playing media session.
+
+Outgoing deck `pause`, `ended` and `emptied` events also trigger state reporting,
+even when they leave the active transport untouched. One coalesced next-task
+update refreshes the MediaSession declaration (`none`, then `playing`) if playback
+is still active; it reads the latest state so a real pause or emptied queue wins.
+This handles native controls that infer a pause after the incoming deck starts
+and ignore another assignment of the already-declared `playing` value. It never
+calls play, pause or seek, and pending reporting is cancelled on teardown.
+
+Manager tests cover handler recovery and listener cleanup. A Chromium test starts
+real HTML audio and checks registration after its `playing` event. Neither check
+proves which buttons iOS renders: on a physical Home Screen PWA, start a song,
+lock the phone, skip forward/back and let a track transition complete. Confirm
+previous/next buttons rather than ten-second seek buttons, continuous audio and
+the correct play/pause state. Record the iOS version with the result.
+
+## Audio deck recovery
+
+The browser player permits the current audio deck and a bounded transition tail
+to play together. Preloaded and retired decks stay muted and are paused if they
+emit a late `playing` event. The inactive video/audio transport cannot start a
+second output. On foreground recovery, transition expiry is checked against both
+the media clock and a wall-clock deadline before the mixer resumes, so suspended
+JavaScript timers cannot retain a stale tail. Returning during a valid crossfade
+preserves the mix, queue occurrence and current playhead.
+
+Regression tests model delayed native events and frozen timers/audio clocks;
+they do not reproduce WebKit's physical lock/unlock behavior. Device acceptance
+should include several background transitions, rapid selection changes, pausing
+while locked and unlocking with transitions both enabled and disabled.
+
 ## References
 
 - [Apple: Delivering video content for Safari](https://developer.apple.com/documentation/webkit/delivering-video-content-for-safari)
 - [Expo SDK 57 video](https://docs.expo.dev/versions/v57.0.0/sdk/video/)
 - [Expo SDK 57 audio](https://docs.expo.dev/versions/v57.0.0/sdk/audio/)
+- [WebKit MediaSession command registration](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/Modules/mediasession/MediaSession.cpp)
+- [Playing-event registration and iOS simulator observations](https://github.com/weitzman/splitopen/pull/15)
+
+## Offline PWA launch and library
+
+The installed worker caches all public route chunks, fonts and bundled artwork
+before installation completes. Navigation falls back to the saved shell on
+network failure or unsuccessful HTTP responses. Private API data stays in the
+account-scoped metadata cache; audio and covers stay in IndexedDB. Radio and
+uncached server data still need a connection.
+
+The mobile Library Offline filter reads saved audio records rather than server
+download flags. New saves retain song metadata; older records use matching
+cached library or collection metadata when available. Offline search filters the
+local catalog. Collection playback traverses the cached pages saved during download and skips songs
+without a local file; it does not create a server queue while disconnected.
+
+Browser acceptance closes the page, disables networking, opens a new page,
+plays a saved Blob with an advancing audio clock, then opens and reloads a route
+not previously visited. This is not physical iOS acceptance or a guarantee
+against OS storage eviction. Install/update the worker online before testing.

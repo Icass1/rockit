@@ -96,7 +96,7 @@ export default function Navigation(): JSX.Element {
         },
         {
             name: "Admin" as const,
-            title: "Admin",
+            title: $vocabulary.NAV_ADMIN,
             href: "/admin",
             icon: ShieldEllipsis,
             adminOnly: true,

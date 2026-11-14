@@ -1,8 +1,15 @@
-import type { BaseMediaPlayerManager, BaseQueueManager } from "@rockit/shared";
+import type {
+    BaseMediaPlayerManager,
+    BaseQueueManager,
+    ReadonlyAtom,
+} from "@rockit/shared";
 
 /** Browser controls consume generic playback owners, never desktop UI services. */
 export interface MediaSessionServices {
-    mediaPlayerManager: Pick<
+    mediaPlayerManager: {
+        nativePlayingRevisionAtom?: ReadonlyAtom<number>;
+        nativePlaybackRevisionAtom?: ReadonlyAtom<number>;
+    } & Pick<
         BaseMediaPlayerManager,
         | "play"
         | "pause"

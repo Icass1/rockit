@@ -5,18 +5,23 @@ import type {
     CollectionPager,
     TMedia,
 } from "@rockit/shared";
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { Play } from "@rockit/ui/icons";
+import {
+    FeaturedArtwork,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { StyleSheet, Text, View } from "react-native";
+import { usePlayerServices } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
+import CollectionArtworkPlay from "@/components/RenderList/CollectionArtworkPlay";
 import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 interface RenderListProps {
     title: string;
+    featuredKind?: string;
     subtitle?: string;
     imageUrl: string;
     artists?: BaseArtistResponse[];
@@ -35,6 +40,7 @@ interface RenderListProps {
 
 export default memo(function RenderList({
     title,
+    featuredKind,
     subtitle,
     imageUrl,
     artists = [],
@@ -47,13 +53,14 @@ export default memo(function RenderList({
     total,
     footer,
 }: RenderListProps) {
+    const services = usePlayerServices();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.container}>
             <VirtualCollectionList
                 pager={pager}
                 showMediaIndex={showMediaIndex}
@@ -67,15 +74,32 @@ export default memo(function RenderList({
                                 colors={[theme.legacy.bgCard, "transparent"]}
                                 style={styles.gradient}
                             />
-                            <View style={styles.imageContainer}>
-                                <Image
-                                    source={{
-                                        uri: imageUrl || PLACEHOLDER.playlist,
-                                    }}
-                                    style={styles.coverImage}
-                                    contentFit="cover"
-                                />
-                            </View>
+                            <CollectionArtworkPlay
+                                key={pager.publicId}
+                                onPlay={() =>
+                                    void services.queueManager.playCollection(
+                                        pager.publicId
+                                    )
+                                }
+                            >
+                                {featuredKind ? (
+                                    <FeaturedArtwork
+                                        kind={featuredKind}
+                                        label={title}
+                                        size={theme.layout.collectionArtwork}
+                                    />
+                                ) : (
+                                    <Image
+                                        source={{
+                                            uri:
+                                                imageUrl ||
+                                                PLACEHOLDER.playlist,
+                                        }}
+                                        style={styles.coverImage}
+                                        contentFit="cover"
+                                    />
+                                )}
+                            </CollectionArtworkPlay>
                             <View style={styles.titleContainer}>
                                 <Text style={styles.title} numberOfLines={5}>
                                     {title}
@@ -97,38 +121,17 @@ export default memo(function RenderList({
                                     </Text>
                                 )}
                                 <Text style={styles.mediaCount}>
-                                    {total ?? media.length}{" "}
+                                    {Math.max(total ?? 0, media.length)}{" "}
                                     {media.length === 1
                                         ? vocabulary.SONG
                                         : vocabulary.SONGS}
                                 </Text>
                             </View>
                         </View>
-                        {listPublicId && (
-                            <Pressable
-                                accessibilityRole="button"
-                                accessibilityLabel={vocabulary.PLAY}
-                                onPress={() =>
-                                    void rockIt.queueManager.playCollection(
-                                        listPublicId
-                                    )
-                                }
-                                style={{
-                                    padding: 12,
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Play
-                                    size={theme.layout.touchTarget}
-                                    color={theme.colors.primary}
-                                    fill="currentColor"
-                                />
-                            </Pressable>
-                        )}
                     </>
                 }
             />
-        </SafeAreaView>
+        </View>
     );
 });
 
@@ -143,7 +146,7 @@ const createStyles = (theme: DesignTheme) =>
         },
         header: {
             alignItems: "center",
-            paddingTop: 80,
+            paddingTop: theme.layout.mobileContentTop,
             paddingBottom: theme.spacing.xl,
             paddingHorizontal: 20,
         },
@@ -154,16 +157,9 @@ const createStyles = (theme: DesignTheme) =>
             right: 0,
             height: 200,
         },
-        imageContainer: {
-            shadowColor: theme.colors["backdrop"],
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.4,
-            shadowRadius: 16,
-            elevation: 8,
-        },
         coverImage: {
-            width: 220,
-            height: 220,
+            width: theme.layout.collectionArtwork,
+            height: theme.layout.collectionArtwork,
             borderRadius: theme.radius.lg,
             backgroundColor: theme.legacy.bgCard,
         },

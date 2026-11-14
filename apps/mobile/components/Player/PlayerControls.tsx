@@ -77,7 +77,7 @@ export default function PlayerControls() {
                 hitSlop={12}
             >
                 <SkipBack
-                    fill="currentColor"
+                    fill={theme.legacy.white}
                     size={24}
                     color={theme.legacy.white}
                 />
@@ -97,13 +97,13 @@ export default function PlayerControls() {
             >
                 {isPlaying ? (
                     <Pause
-                        fill="currentColor"
+                        fill={theme.colors["primary-foreground"]}
                         size={34}
                         color={theme.colors["primary-foreground"]}
                     />
                 ) : (
                     <Play
-                        fill="currentColor"
+                        fill={theme.colors["primary-foreground"]}
                         size={34}
                         color={theme.colors["primary-foreground"]}
                     />
@@ -119,7 +119,7 @@ export default function PlayerControls() {
                 hitSlop={12}
             >
                 <SkipForward
-                    fill="currentColor"
+                    fill={theme.legacy.white}
                     size={24}
                     color={theme.legacy.white}
                 />

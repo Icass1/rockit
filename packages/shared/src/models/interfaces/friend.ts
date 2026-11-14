@@ -45,6 +45,8 @@ export interface LeaderboardEntry {
     totalListeningSeconds?: number;
     sessionListeningSeconds?: number;
     listeningMilestones?: ListeningMilestoneResponse[];
+    listeningBadgeCount?: number;
+    listeningBadgeTotal?: number;
     listeningBadges?: ListeningBadgeResponse[];
 }
 

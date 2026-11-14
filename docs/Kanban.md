@@ -8,6 +8,240 @@
 
 ## To Review
 
+### [EMBLEMS] Prism: medallas con relieve e inspección 3D
+
+- tags: [mobile, web, friends, emblems, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Conservar las seis siluetas y tonos; contener los motivos sin solapar logo/rango. Inspector Three.js bajo demanda en web/PWA, giro/zoom y reverso con logo, nombre visible y fecha persistida. Liberar GPU al cerrar y mantener vista estática si WebGL falla; APK con adaptación estática. Pruebas y límites en docs/frontend/prism-medals.md; aceptación física de iPhone pendiente.
+    ```
+
+### [RECAP] Historias del año compartidas entre web y móvil
+
+- tags: [mobile, web, stats, recap, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Recap del usuario desde su perfil: minutos, actividad, canciones, cuenta atrás de artistas y frases con reglas verificables. Año natural, preview del año actual y acceso al anterior. Componente compartido, pausa/mantener pulsado/segundo plano y movimiento reducido; formato vertical centrado en web. Reutilizar Stats V2, sin APIs externas ni algoritmos de percentiles con muestras pequeñas. Investigación y reglas en docs/frontend/annual-recap.md.
+    ```
+
+### [EMBLEMS] Ampliar la colección con 500 objetivos y seis ligas
+
+- tags: [backend, mobile, web, friends, emblems]
+- priority: normal
+- workload: Normal
+    ```md
+    Catálogo de 615 emblemas, conservando los 115 identificadores anteriores. Dieciséis familias, objetivos cortos/medios/largos, aniversarios hasta veinte años y 25 secretos. Bronce/plata/oro/platino/diamante/leyenda con siluetas y motivos distintos. Concesión batched, ranking sin objetivos bloqueados y catálogos paginados con filtros de familia/liga. Traducciones en Excel y documentación de límites UTC.
+    ```
+
+### [FRIENDS] Perfiles musicales y vitrina de emblemas en web y móvil
+
+- tags: [mobile, web, friends, emblems, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Acceso al perfil desde el círculo, directorio y ranking web; perfil propio desde el avatar central. Horas, nivel/XP, racha y escuchas reales. Emblemas originales compartidos, detalle de desbloqueo y catálogo paginado. API existente con permiso de amistad, lecturas bajo demanda y aislamiento de cuenta. Verificado en navegador y contratos nativos; aceptación física iOS/APK pendiente.
+    ```
+
+### [FRIENDS] Círculo musical interactivo compartido entre web y móvil
+
+- tags: [mobile, web, friends, ui, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Avatares alrededor del usuario, selección para previsualizar presencia/canción e invitación explícita para escuchar juntos. Componente compartido, sin polling ni animaciones continuas; conservar directorio y acciones existentes. Estados vacío/offline, teclado y tamaños móvil/tablet/escritorio comprobados con fixtures; aceptación física iOS/APK pendiente.
+    ```
+
+### [SEARCH] Descartar búsquedas móviles obsoletas y verificar escritorio
+
+- tags: [mobile, web, search]
+- priority: high
+- workload: Normal
+    ```md
+    Solo el último término puede publicar resultados, errores o loading. Invalidar al borrar y desmontar, mantener debounce. Verificación con respuestas fuera de orden y las regresiones existentes de escritorio.
+    ```
+
+### [FEATURED] Restaurar iconos sobre las portadas de las listas RockIt!
+
+- tags: [mobile, featured, artwork]
+- priority: normal
+- workload: Easy
+    ```md
+    Reutilizar FeaturedArtwork en los headers, con corazón, disco e historial sobre la portada oficial.
+    ```
+
+### [EXPLICIT] Distintivo relleno con E negra en web y móvil
+
+- tags: [mobile, web, design]
+- priority: normal
+- workload: Easy
+    ```md
+    Fondo gris claro y letra E oscura, sin iconos de Lucide. Colores semánticos compartidos y etiqueta accesible existente.
+    ```
+
+### [QUEUE] Restaurar arrastre táctil para reordenar la cola móvil
+
+- tags: [mobile, queue, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Activar tiradores accesibles, autoscroll y reordenado por ID de ocurrencia. Conservar reproducción, paginación y gesto de borrado.
+    ```
+
+### [PLAYER] Mostrar inmediatamente la selección en el footer móvil
+
+- tags: [mobile, playback, performance]
+- priority: high
+- workload: Normal
+    ```md
+    Mostrar metadatos y carga antes de esperar a la creación de cola. Limpiar selecciones fallidas, antiguas o canceladas sin publicar un falso estado de reproducción.
+    ```
+
+### [LYRICS] Centrar la línea activa en el player móvil
+
+- tags: [mobile, lyrics, layout]
+- priority: high
+- workload: Normal
+    ```md
+    Medir líneas y viewport reales; centrar también al abrir el panel, cambiar canción o ajustar el tamaño de texto. No asumir alturas fijas.
+    ```
+
+### [PLAYER] Ampliar y separar Cola, Letras y Related
+
+- tags: [mobile, player, ux]
+- priority: normal
+- workload: Easy
+    ```md
+    Texto aproximadamente 1,5 veces mayor, targets accesibles y más espacio sobre los accesos. Mantener los colores actuales.
+    ```
+
+### [PLAYER] Mantener el logo de RockIt! por encima del reproductor
+
+- tags: [mobile, player, branding]
+- priority: normal
+- workload: Normal
+    ```md
+    Mostrar el header compartido también en el player, reservando su espacio sin solapar contenido ni duplicar safe areas.
+    ```
+
+### [LIBRARY] Mezclar los tipos de elementos en una lista móvil
+
+- tags: [mobile, library, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Eliminar secciones por tipo, aplicar un orden global y conservar filtros, grid/lista y selección múltiple.
+    ```
+
+### [HEADER] Mover usuarios conectados a la izquierda del logo
+
+- tags: [mobile, friends, presence]
+- priority: normal
+- workload: Easy
+    ```md
+    Contador global con icono de persona de Lucide y color online del tema; notificaciones a la derecha. Quitar el contador duplicado de Friends.
+    ```
+
+### [PLAYER] Evitar canciones simultáneas al recuperar la PWA iOS
+
+- tags: [mobile, ios, playback, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Se detienen inicios tardíos de precargas y audios retirados; las transiciones caducadas se limpian al recuperar foreground sin desactivar las válidas. 54 regresiones de reproducción aprobadas. Pendiente validación física al bloquear/desbloquear iPhone.
+    ```
+
+### [STATS] Contener gráficos de barras en pantallas móviles
+
+- tags: [mobile, stats, layout]
+- priority: high
+- workload: Normal
+    ```md
+    Medir el contenedor y limitar etiquetas y barras al ancho disponible.
+    ```
+
+### [QUEUE] Aclarar el destino al reordenar canciones en web
+
+- tags: [web, queue, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Mostrar una posición de inserción precisa durante el arrastre, también en colas paginadas.
+    ```
+
+### [PLAYER] Corregir relleno azul de iconos en iOS
+
+- tags: [mobile, icons, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Usar colores explícitos del tema en SVG nativo/web; evitar currentColor heredado del navegador.
+    ```
+
+### [COLLECTION] Quitar botón Play gigante de álbumes y playlists móviles
+
+- tags: [mobile, collection, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Integrar reproducción en una barra compacta de acciones sin un botón aislado gigante.
+    ```
+
+### [LIBRARY] Unificar anclados y destacadas en una misma fila móvil
+
+- tags: [mobile, library, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Un carrusel horizontal, destacadas primero y anclados personales después sin duplicados.
+    ```
+
+### [SAFE AREA] Revisar insets y espacios de la navegación móvil
+
+- tags: [mobile, safe-area, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Evitar padding duplicado; barra y mini player respetan insets superiores e inferiores.
+    ```
+
+### [HOME] Quitar destacadas de Home móvil
+
+- tags: [mobile, home, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Las colecciones de RockIt permanecen en Library.
+    ```
+
+### [PROFILE] Mostrar foto real del usuario en Home móvil y web
+
+- tags: [mobile, web, profile]
+- priority: high
+- workload: Normal
+    ```md
+    Usar la sesión actual y fallback de inicial si no hay imagen o falla.
+    ```
+
+### [RADIO] Respetar proporciones naturales del mapa
+
+- tags: [mobile, radio, layout]
+- priority: high
+- workload: Normal
+    ```md
+    Mantener relación del SVG sin compresión ni estiramiento.
+    ```
+
+### [MEDIA SESSION] Corregir ±10 segundos persistentes en PWA iOS
+
+- tags: [mobile, ios, playback, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Reanunciar next/previous al iniciar el audio real y el keepalive, sin cambiar reproducción ni transiciones. Pruebas de registro aprobadas; pendiente confirmar botones del sistema en un iPhone real.
+    ```
+
 ### [LIBRARY] Selección múltiple y exportación ZIP en móvil
 
 - tags: [frontend, mobile, library, zip]

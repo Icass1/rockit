@@ -148,7 +148,7 @@ export default function NotificationButton() {
     const unread = useStore(notificationInbox.unreadCountAtom);
     const { open } = useSheet();
     return (
-        <View style={{ position: "absolute", right: theme.spacing.lg }}>
+        <View>
             <IconButton
                 label={vocabulary.NOTIFICATIONS_TITLE}
                 onPress={() =>

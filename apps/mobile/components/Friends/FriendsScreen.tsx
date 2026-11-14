@@ -4,6 +4,7 @@ import { useStore } from "@nanostores/react";
 import {
     ActionButton,
     IconButton,
+    ListeningCircle,
     MediaIdentity,
     useDesignTheme,
 } from "@rockit/ui";
@@ -38,19 +39,19 @@ import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayerServices } from "@/lib/PlayerContext";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
-import { webSocketManager } from "@/lib/webSocketManager";
+import ListeningProfileModal from "@/components/Friends/ListeningProfileModal";
 
 export default function FriendsScreen() {
     const theme = useDesignTheme();
-    const onlineUsers = useStore(webSocketManager.onlineUsersAtom);
     const menu = useContextMenu();
-    const { vocabulary: v } = useVocabulary();
+    const { vocabulary: v, lang } = useVocabulary();
     const services = usePlayerServices();
     const manager = services.friendManager;
     const listening = services.listenTogetherManager;
     const sharing = services.sharingManager;
     const router = useTypedRouter();
     const friends = useStore(manager.friendsAtom);
+    const session = useStore(services.userManager.sessionAtom);
     const blocked = useStore(manager.blockedAtom);
     const incoming = useStore(manager.incomingRequestsAtom);
     const sentRequests = useStore(manager.sentRequestsAtom);
@@ -63,6 +64,15 @@ export default function FriendsScreen() {
     const loading = useStore(manager.loadingAtom);
     const error = useStore(manager.errorAtom);
     const scope = useStore(manager.scopeAtom);
+    const [profile, setProfile] = useState<{
+        scope: number;
+        publicId?: string;
+        name: string;
+    } | null>(null);
+    const openProfile = (publicId: string) => {
+        const friend = friends.find((person) => person.publicId === publicId);
+        if (friend) setProfile({ scope, publicId, name: friend.username });
+    };
     const [tab, setTab] = useState<MobileSocialTab>("friends");
     const [query, setQuery] = useState("");
     const ranks = useAsyncResource(
@@ -130,7 +140,7 @@ export default function FriendsScreen() {
     const confirm = async (label: string, action: () => Promise<unknown>) => {
         if (await confirmAction(label, label, label, v.CANCEL)) await action();
     };
-    return (
+    const list = (
         <FlatList
             style={{ flex: 1, backgroundColor: theme.colors.background }}
             data={rows}
@@ -142,7 +152,7 @@ export default function FriendsScreen() {
             windowSize={5}
             contentContainerStyle={{
                 paddingTop: theme.layout.mobileContentTop,
-                paddingBottom: theme.layout.mobileContentBottom,
+                paddingBottom: theme.spacing.lg,
                 paddingHorizontal: theme.spacing.lg,
                 gap: theme.spacing.lg,
             }}
@@ -159,21 +169,10 @@ export default function FriendsScreen() {
                             style={{
                                 ...copy,
                                 fontSize: theme.typography.heading,
-                            }}
-                        >
-                            {v.FRIENDS}
-                        </Text>
-                        <Text
-                            accessibilityRole="text"
-                            accessibilityLabel={`${onlineUsers ?? "—"} · ${v.ONLINE_LABEL}`}
-                            style={{
-                                color: theme.colors.online,
-                                fontSize: theme.typography.label,
-                                fontWeight: "600",
                                 flex: 1,
                             }}
                         >
-                            {onlineUsers ?? "—"}
+                            {v.FRIENDS}
                         </Text>
                         <IconButton
                             label={v.FRIENDS_SEARCH_PLACEHOLDER}
@@ -211,6 +210,7 @@ export default function FriendsScreen() {
                                 key={item.key}
                                 accessibilityRole="tab"
                                 accessibilityLabel={item.label}
+                                aria-selected={tab === item.key}
                                 accessibilityState={{
                                     selected: tab === item.key,
                                 }}
@@ -246,6 +246,36 @@ export default function FriendsScreen() {
                             </Pressable>
                         ))}
                     </ScrollView>
+                    {tab === "friends" &&
+                        ((!loading && !error) || friends.length > 0) && (
+                            <ListeningCircle
+                                key={scope}
+                                friends={friends}
+                                self={session ?? undefined}
+                                vocabulary={v}
+                                onViewProfile={openProfile}
+                                onViewSelf={() =>
+                                    setProfile({
+                                        scope,
+                                        name: session?.username ?? v.SOCIAL_YOU,
+                                    })
+                                }
+                                busy={busy}
+                                onInvite={(publicId) => {
+                                    void listening
+                                        .invite(publicId)
+                                        .then((ok) => {
+                                            if (
+                                                ok &&
+                                                manager.scopeAtom.get() ===
+                                                    scope
+                                            )
+                                                setTab("sessions");
+                                        });
+                                }}
+                                onFindFriends={() => setTab("search")}
+                            />
+                        )}
                     {!tabs.some((item) => item.key === tab) && (
                         <Text style={copy}>
                             {tab === "search"
@@ -260,7 +290,10 @@ export default function FriendsScreen() {
                     {(error || ranks.error) && (
                         <Text
                             accessibilityRole="alert"
-                            style={{ ...copy, color: theme.colors.destructive }}
+                            style={{
+                                ...copy,
+                                color: theme.colors.destructive,
+                            }}
                         >
                             {error ?? v.ERROR}
                         </Text>
@@ -278,6 +311,10 @@ export default function FriendsScreen() {
                                     v.FRIENDS_SEARCH_PLACEHOLDER
                                 }
                                 placeholder={v.FRIENDS_SEARCH_PLACEHOLDER}
+                                placeholderTextColor={
+                                    theme.colors["muted-foreground"]
+                                }
+                                autoFocus
                                 value={query}
                                 onChangeText={setQuery}
                                 onSubmitEditing={() =>
@@ -303,7 +340,7 @@ export default function FriendsScreen() {
                 </View>
             }
             ListEmptyComponent={
-                !loading && !ranks.loading ? (
+                tab !== "friends" && !loading && !ranks.loading ? (
                     <Text style={copy}>{v.NO_DATA}</Text>
                 ) : null
             }
@@ -323,7 +360,18 @@ export default function FriendsScreen() {
                                             paddingVertical: theme.spacing.sm,
                                         }}
                                     >
-                                        <View style={{ flex: 1 }}>
+                                        <Pressable
+                                            style={{ flex: 1 }}
+                                            disabled={item.kind === "blocked"}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={v.SOCIAL_PROFILE_OPEN.replace(
+                                                "{name}",
+                                                user.username
+                                            )}
+                                            onPress={() =>
+                                                openProfile(user.publicId)
+                                            }
+                                        >
                                             <MediaIdentity
                                                 title={user.username}
                                                 subtitle={
@@ -350,7 +398,7 @@ export default function FriendsScreen() {
                                                     {user.levelTitle}
                                                 </Text>
                                             )}
-                                        </View>
+                                        </Pressable>
                                         {item.kind === "blocked" ? (
                                             <IconButton
                                                 label={v.FRIENDS_UNBLOCK}
@@ -562,7 +610,7 @@ export default function FriendsScreen() {
                                 return (
                                     <MediaIdentity
                                         title={item.value.username}
-                                        subtitle={`${item.value.level} · ${item.value.xp.toLocaleString()}`}
+                                        subtitle={`${item.value.level} · ${item.value.xp.toLocaleString(lang)}`}
                                         imageUrl={item.value.imageUrl}
                                         round
                                     />
@@ -645,5 +693,15 @@ export default function FriendsScreen() {
                 </View>
             )}
         />
+    );
+    return (
+        <>
+            {list}
+            <ListeningProfileModal
+                key={`${scope}:${profile ? (profile.publicId ?? "self") : "closed"}`}
+                target={profile?.scope === scope ? profile : null}
+                onClose={() => setProfile(null)}
+            />
+        </>
     );
 }

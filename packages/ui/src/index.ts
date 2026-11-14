@@ -18,3 +18,20 @@ export { ExplicitBadge } from "@rockit/ui/primitives/ExplicitBadge";
 export { FeaturedArtwork } from "@rockit/ui/primitives/FeaturedArtwork";
 
 export { RockitLikeButton } from "@rockit/ui/primitives/RockitLikeButton";
+
+export { ProfileAvatar } from "./primitives/ProfileAvatar";
+
+export { ListeningCircle } from "@rockit/ui/primitives/ListeningCircle";
+
+export { ListeningEmblem } from "@rockit/ui/primitives/ListeningEmblem";
+
+export { ListeningProfile } from "@rockit/ui/primitives/ListeningProfile";
+
+export {
+    AnnualRecap,
+    type AnnualRecapControls,
+} from "@rockit/ui/primitives/AnnualRecap";
+
+export { MedalDetail } from "@rockit/ui/primitives/MedalDetail";
+export { MedalControls } from "@rockit/ui/primitives/MedalControls";
+export { EmblemInspector } from "@rockit/ui/primitives/EmblemInspector";

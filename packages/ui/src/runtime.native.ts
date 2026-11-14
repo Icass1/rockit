@@ -1,9 +1,11 @@
 export {
     AccessibilityInfo,
+    AppState,
     Animated,
     ActivityIndicator,
     Image,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     View,

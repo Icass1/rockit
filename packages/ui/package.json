@@ -26,17 +26,24 @@
             "browser": "./src/featuredAssets.ts",
             "react-native": "./src/featuredAssets.native.ts",
             "default": "./src/featuredAssets.ts"
-        }
+        },
+        "./primitives/EmblemInspector": {
+            "browser": "./src/primitives/EmblemInspector.web.tsx",
+            "react-native": "./src/primitives/EmblemInspector.native.tsx",
+            "default": "./src/primitives/EmblemInspector.web.tsx"
+        },
+        "./browser/*": "./src/browser/*.ts"
     },
     "scripts": {
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
+        "@rockit/shared": "workspace:*",
         "@rockit/theme": "workspace:*",
-        "react-native-web": "~0.21.0",
         "lucide-react": "^0.487.0",
         "lucide-react-native": "^1.8.0",
-        "@rockit/shared": "workspace:*"
+        "react-native-web": "~0.21.0",
+        "three": "0.187.0"
     },
     "peerDependencies": {
         "react": "19.2.3",
@@ -44,6 +51,7 @@
     },
     "devDependencies": {
         "@types/react": "~19.2.4",
-        "@types/react-native-web": "^0.19.2"
+        "@types/react-native-web": "^0.19.2",
+        "@types/three": "0.187.0"
     }
 }

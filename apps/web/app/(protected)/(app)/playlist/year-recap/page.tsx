@@ -6,6 +6,7 @@ import {
     TMedia,
 } from "@rockit/shared";
 import { getFeaturedListAsync } from "@/lib/server/resources";
+import { getRequestVocabulary } from "@/lib/server/vocabulary";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
@@ -18,9 +19,14 @@ const lastYear = new Date().getFullYear() - 1;
 const yearDigits = String(lastYear).split("");
 
 export async function generateMetadata(): Promise<{ title: string }> {
-    const playlist = await getFeatured();
+    const [playlist, { vocabulary }] = await Promise.all([
+        getFeatured(),
+        getRequestVocabulary(),
+    ]);
     return {
-        title: playlist?.name ?? `${lastYear} Recap`,
+        title:
+            playlist?.name ??
+            vocabulary.RECAP_OPEN.replace("{year}", String(lastYear)),
     };
 }
 

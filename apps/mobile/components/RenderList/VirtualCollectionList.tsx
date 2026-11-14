@@ -19,6 +19,7 @@ import {
     type IMediaDownloadedEvent,
     type IMediaRemovedFromPlaylistEvent,
 } from "@rockit/shared";
+import { useDesignTheme } from "@rockit/ui";
 import { FlatList, View, type ViewToken } from "react-native";
 import CollectionControls from "@/components/RenderList/CollectionControls";
 import CollectionFooter from "@/components/RenderList/CollectionFooter";
@@ -96,6 +97,7 @@ export default function VirtualCollectionList({
     header: ReactNode;
     footer?: ReactNode;
 }) {
+    const theme = useDesignTheme();
     const tree = useMemo(
         () => new CollectionTree(pager, { showMediaIndex, showMediaImage }),
         [pager, showMediaIndex, showMediaImage]
@@ -170,7 +172,7 @@ export default function VirtualCollectionList({
             windowSize={7}
             maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: 120 }}
+            contentContainerStyle={{ paddingBottom: theme.spacing.lg }}
             showsVerticalScrollIndicator={false}
         />
     );

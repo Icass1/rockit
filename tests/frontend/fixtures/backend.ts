@@ -927,6 +927,22 @@ export async function createFixtureBackend(port = 0) {
     });
     const sockets = new WebSocketServer({ server, path: "/ws" });
     sockets.on("connection", (socket) => {
+        // Desktop receives its initial friend list through the social handshake.
+        // Opt into the same DTO-backed snapshot as an injected HTTP friend list.
+        const social = dto.FriendListResponseSchema.safeParse(
+            faults.get("/friends")?.body
+        );
+        if (social.success)
+            socket.send(
+                JSON.stringify(
+                    dto.SocialSnapshotMessageSchema.parse({
+                        friends: social.data.friends,
+                        incoming: [],
+                        sent: [],
+                        activities: [],
+                    })
+                )
+            );
         socket.send(
             JSON.stringify(dto.OnlineUsersMessageSchema.parse({ count: 12 }))
         );

@@ -348,7 +348,8 @@ export default function AdminRequests(): JSX.Element {
                                         <div className="text-disabled-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                                             <span className="flex items-center gap-1">
                                                 <Search className="h-3 w-3" />
-                                                {req.userName || "Unknown user"}
+                                                {req.userName ||
+                                                    vocabulary.UNKNOWN_USER}
                                             </span>
                                             {req.mediaPublicId && (
                                                 <span className="flex items-center gap-1">

@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useStore } from "@nanostores/react";
 import type { Vocabulary } from "@rockit/shared";
 import {
     ActionButton,
@@ -23,10 +24,7 @@ import {
     type LayoutChangeEvent,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import {
-    SafeAreaView,
-    useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { ContextMenuProvider } from "@/lib/ContextMenuContext";
 import { ModalProvider } from "@/lib/ModalContext";
@@ -41,6 +39,7 @@ import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
 
 function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
+    const { bottom: safeBottom } = useSafeAreaInsets();
     const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
@@ -91,14 +90,14 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
     ];
 
     return (
-        <SafeAreaView
-            edges={["bottom"]}
+        <View
             style={{
                 position: "absolute",
                 bottom: 0,
                 left: 0,
                 right: 0,
                 backgroundColor: theme.legacy.bgCard,
+                paddingBottom: safeBottom,
                 zIndex: 1000,
             }}
         >
@@ -133,7 +132,7 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
                     );
                 })}
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -229,7 +228,8 @@ function AppLayoutInner({
     safeBottom: number;
     vocabulary: Vocabulary;
 }) {
-    const { hidePlayer, currentMedia, isPlayerVisible } = usePlayer();
+    const { hidePlayer, currentMedia } = usePlayer();
+    const pendingSelection = useStore(rockIt.queueManager.pendingSelectionAtom);
     const theme = useDesignTheme();
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -239,7 +239,7 @@ function AppLayoutInner({
                     marginBottom:
                         theme.layout.tabBar +
                         safeBottom +
-                        (currentMedia
+                        (currentMedia || pendingSelection
                             ? theme.layout.miniPlayerHeight +
                               theme.layout.miniPlayerGap
                             : 0),
@@ -339,7 +339,7 @@ function AppLayoutInner({
                     pointerEvents: "box-none",
                 }}
             >
-                {!isPlayerVisible && <Header showNotifications />}
+                <Header showNotifications />
             </View>
         </View>
     );

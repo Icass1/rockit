@@ -15,21 +15,40 @@ export default function CollectionControls({
     const state = useStore(pager.state);
     const { vocabulary } = useVocabulary();
     return (
-        <View style={{ gap: 10, padding: 8 }}>
+        <View
+            style={{
+                gap: theme.spacing.sm,
+                paddingHorizontal: theme.spacing.lg,
+                paddingVertical: theme.spacing.sm,
+            }}
+        >
             {showSearch && (
-                <TextInput
-                    accessibilityLabel={vocabulary.SEARCH}
-                    placeholder={vocabulary.SEARCH}
-                    placeholderTextColor={theme.legacy.gray400}
-                    value={state.query}
-                    onChangeText={(query) => pager.search(query)}
+                <View
                     style={{
-                        color: theme.legacy.white,
-                        backgroundColor: theme.legacy.bgCard,
-                        borderRadius: 8,
-                        padding: 12,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: theme.spacing.sm,
                     }}
-                />
+                >
+                    <TextInput
+                        accessibilityLabel={vocabulary.SEARCH}
+                        placeholder={vocabulary.SEARCH}
+                        placeholderTextColor={theme.legacy.gray400}
+                        value={state.query}
+                        onChangeText={(query) => pager.search(query)}
+                        style={{
+                            flex: 1,
+                            minWidth: 0,
+                            color: theme.legacy.white,
+                            backgroundColor: theme.legacy.bgCard,
+                            borderRadius: theme.radius.full,
+                            minHeight: theme.layout.touchTarget,
+                            fontSize: theme.typography.body,
+                            paddingHorizontal: theme.spacing.lg,
+                            paddingVertical: theme.spacing.sm,
+                        }}
+                    />
+                </View>
             )}
             {state.error && (
                 <Pressable

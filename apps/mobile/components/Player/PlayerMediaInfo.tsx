@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { TMedia } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
@@ -27,6 +27,7 @@ import PlayerProgress from "@/components/Player/PlayerProgress";
 import VideoSurface from "@/components/Player/VideoSurface";
 
 interface PlayerMediaInfoProps {
+    availableHeight: number;
     currentMedia: TMedia | undefined; // TMedia from PlayerContext
     onSeek: (seconds: number) => void;
     hasVideo: boolean;
@@ -38,6 +39,7 @@ interface PlayerMediaInfoProps {
 }
 
 export default function PlayerMediaInfo({
+    availableHeight,
     currentMedia,
     onSeek,
     hasVideo,
@@ -52,10 +54,12 @@ export default function PlayerMediaInfo({
         currentMedia?.imageUrl
     );
     const theme = useDesignTheme();
+    const [detailsHeight, setDetailsHeight] = useState(0);
     const { width, height } = useWindowDimensions();
     const COVER_SIZE = Math.min(
         width - theme.spacing.xl * 2,
         theme.layout.playerArtworkMax,
+        Math.max(theme.layout.artistArtwork, availableHeight - detailsHeight),
         width > height ? height * 0.4 : theme.layout.playerArtworkMax
     );
     const styles = useThemedStyles(createStyles);
@@ -120,50 +124,58 @@ export default function PlayerMediaInfo({
                 )}
             </View>
 
-            {/* Title / artist / like button */}
-            <View style={styles.infoRow}>
-                <View style={styles.infoText}>
-                    <Text style={styles.title} numberOfLines={1}>
-                        {currentMedia?.name ?? ""}
-                    </Text>
-                    {currentMedia && (
-                        <>
-                            <ExplicitBadge
-                                explicit={
-                                    currentMedia?.type === "song"
-                                        ? currentMedia.explicit
-                                        : null
-                                }
-                                label={vocabulary.CONTENT_RATING_EXPLICIT}
-                            />
-                            <MediaSubTitle
-                                media={currentMedia}
-                                style={styles.subTitle}
-                                numberOfLines={1}
-                            />
-                        </>
-                    )}
-                    <Text style={styles.subSubTitle} numberOfLines={1}>
+            <View
+                onLayout={({ nativeEvent }) =>
+                    setDetailsHeight(nativeEvent.layout.height)
+                }
+            >
+                {/* Title / artist / like button */}
+                <View style={styles.infoRow}>
+                    <View style={styles.infoText}>
+                        <Text style={styles.title} numberOfLines={1}>
+                            {currentMedia?.name ?? ""}
+                        </Text>
                         {currentMedia && (
-                            <MediaSubSubTitle media={currentMedia} />
+                            <>
+                                <ExplicitBadge
+                                    explicit={
+                                        currentMedia?.type === "song"
+                                            ? currentMedia.explicit
+                                            : null
+                                    }
+                                    label={vocabulary.CONTENT_RATING_EXPLICIT}
+                                />
+                                <MediaSubTitle
+                                    media={currentMedia}
+                                    style={styles.subTitle}
+                                    numberOfLines={1}
+                                />
+                            </>
                         )}
-                    </Text>
+                        <Text style={styles.subSubTitle} numberOfLines={1}>
+                            {currentMedia && (
+                                <MediaSubSubTitle media={currentMedia} />
+                            )}
+                        </Text>
+                    </View>
+
+                    {/* Like button – hand + flame animation */}
+                    {currentMedia?.publicId && (
+                        <MobileLikeButton
+                            mediaPublicId={currentMedia.publicId}
+                        />
+                    )}
                 </View>
 
-                {/* Like button – hand + flame animation */}
-                {currentMedia?.publicId && (
-                    <MobileLikeButton mediaPublicId={currentMedia.publicId} />
-                )}
-            </View>
+                {/* Progress slider */}
+                <View style={styles.progressContainer}>
+                    <PlayerProgress onSeek={onSeek} />
+                </View>
 
-            {/* Progress slider */}
-            <View style={styles.progressContainer}>
-                <PlayerProgress onSeek={onSeek} />
-            </View>
-
-            {/* Playback controls */}
-            <View style={styles.controlsContainer}>
-                <PlayerControls />
+                {/* Playback controls */}
+                <View style={styles.controlsContainer}>
+                    <PlayerControls />
+                </View>
             </View>
         </View>
     );

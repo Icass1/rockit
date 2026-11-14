@@ -8,10 +8,18 @@ import type { LeaderboardEntry } from "@/models/interfaces";
 import EmblemCollection from "@/components/Friends/EmblemCollection";
 import styles from "@/components/Friends/Friends.module.css";
 import { useRuntimeServices } from "@/components/providers/RuntimeProvider";
-import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import {
+    useLanguage,
+    useVocabulary,
+} from "@/components/providers/VocabularyProvider";
 
-export default function FriendLeaderboard(): JSX.Element {
+export default function FriendLeaderboard({
+    onViewProfile,
+}: {
+    onViewProfile: (publicId: string) => void;
+}): JSX.Element {
     const { friendManager } = useRuntimeServices();
+    const locale = useLanguage();
     const v = useVocabulary() as unknown as Record<string, string>;
     const friends = useStore(friendManager.friendsAtom);
     const activity = useStore(friendManager.activityAtom);
@@ -128,7 +136,7 @@ export default function FriendLeaderboard(): JSX.Element {
                             <p>{v[self.title] || self.title}</p>
                             <span>
                                 {text("SOCIAL_XP_TOTAL", {
-                                    xp: self.xp.toLocaleString(),
+                                    xp: self.xp.toLocaleString(locale),
                                 })}
                             </span>
                         </div>
@@ -136,7 +144,7 @@ export default function FriendLeaderboard(): JSX.Element {
                     <div className={styles.progressCopy}>
                         {self.xpToNext > 0
                             ? text("SOCIAL_NEXT", {
-                                  xp: self.xpToNext.toLocaleString(),
+                                  xp: self.xpToNext.toLocaleString(locale),
                               })
                             : v.SOCIAL_MAX}
                     </div>
@@ -150,7 +158,7 @@ export default function FriendLeaderboard(): JSX.Element {
                         <div>
                             <Headphones size={18} />
                             <strong>
-                                {self.songsListened.toLocaleString()}
+                                {self.songsListened.toLocaleString(locale)}
                             </strong>
                             <span>{v.SOCIAL_LISTENS}</span>
                         </div>
@@ -212,7 +220,10 @@ export default function FriendLeaderboard(): JSX.Element {
                             aria-label={v.FRIENDS_BADGES}
                         >
                             <h3>{v.FRIENDS_BADGES}</h3>
-                            <EmblemCollection badges={self.listeningBadges} />
+                            <EmblemCollection
+                                badges={self.listeningBadges}
+                                totalBadges={self.listeningBadgeTotal}
+                            />
                         </section>
                     )}
                 </section>
@@ -257,15 +268,31 @@ export default function FriendLeaderboard(): JSX.Element {
                                                 level: entry.level,
                                             })}{" "}
                                             ·{" "}
-                                            {entry.songsListened.toLocaleString()}{" "}
+                                            {entry.songsListened.toLocaleString(
+                                                locale
+                                            )}{" "}
                                             {v.SOCIAL_LISTENS?.toLowerCase()}
                                         </small>
                                     </span>
                                     <span className={styles.rankXp}>
-                                        {entry.xp.toLocaleString()}
+                                        {entry.xp.toLocaleString(locale)}
                                         <small>{v.SOCIAL_XP}</small>
                                     </span>
                                 </button>
+                                {!isSelf && (
+                                    <button
+                                        className="text-muted-foreground text-xs underline underline-offset-4"
+                                        aria-label={v.SOCIAL_PROFILE_OPEN.replace(
+                                            "{name}",
+                                            entry.username
+                                        )}
+                                        onClick={() =>
+                                            onViewProfile(entry.userId)
+                                        }
+                                    >
+                                        {v.SOCIAL_PROFILE_ACTION}
+                                    </button>
+                                )}
                             </li>
                         );
                     })}
@@ -277,7 +304,7 @@ export default function FriendLeaderboard(): JSX.Element {
                                 ? text("SOCIAL_GAP", {
                                       xp: (
                                           selected.xp - self.xp
-                                      ).toLocaleString(),
+                                      ).toLocaleString(locale),
                                       name: selected.username,
                                   })
                                 : selected.xp === self.xp
@@ -321,8 +348,12 @@ export default function FriendLeaderboard(): JSX.Element {
                                 ].map(([label, a, b]) => (
                                     <tr key={label}>
                                         <th scope="row">{label}</th>
-                                        <td>{Number(a).toLocaleString()}</td>
-                                        <td>{Number(b).toLocaleString()}</td>
+                                        <td>
+                                            {Number(a).toLocaleString(locale)}
+                                        </td>
+                                        <td>
+                                            {Number(b).toLocaleString(locale)}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -342,6 +373,7 @@ export default function FriendLeaderboard(): JSX.Element {
                                     <h4>{v.SOCIAL_YOU}</h4>
                                     <EmblemCollection
                                         badges={self.listeningBadges ?? []}
+                                        totalBadges={self.listeningBadgeTotal}
                                         compact
                                     />
                                 </section>
@@ -349,6 +381,9 @@ export default function FriendLeaderboard(): JSX.Element {
                                     <h4>{selected.username}</h4>
                                     <EmblemCollection
                                         badges={selected.listeningBadges ?? []}
+                                        totalBadges={
+                                            selected.listeningBadgeTotal
+                                        }
                                         compact
                                     />
                                 </section>

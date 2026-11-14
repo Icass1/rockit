@@ -45,6 +45,7 @@ export default defineConfig({
                 ...devices["Desktop Chrome"],
                 launchOptions: {
                     executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
+                    args: ["--enable-unsafe-swiftshader"],
                 },
             },
         },
@@ -56,6 +57,7 @@ export default defineConfig({
                 defaultBrowserType: "chromium",
                 launchOptions: {
                     executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
+                    args: ["--enable-unsafe-swiftshader"],
                 },
             },
         },

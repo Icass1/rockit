@@ -875,3 +875,61 @@ test("reorders paged queue items by occurrence identity after loading missing pa
     );
     e.queue.stop();
 });
+
+for (const [from, to, edge, expected] of [
+    [0, 2, "before", [1, 0, 2]],
+    [0, 2, "after", [1, 2, 0]],
+    [2, 0, "before", [2, 0, 1]],
+    [2, 0, "after", [0, 2, 1]],
+])
+    test(`explicit ${edge} placement preserves the highlighted queue boundary (${from} to ${to})`, async () => {
+        const e = setup({ seed: page({ ids: [0, 1, 2] }) });
+        await e.queue.init();
+        const current = e.queue.currentQueueMediaId,
+            loads = e.calls.loads;
+        assert.equal(
+            await e.queue.reorderQueueItemsAsync(from, to, edge),
+            true
+        );
+        assert.deepEqual(
+            Array.from(e.queue.queue, (item) => item.queueMediaId),
+            expected
+        );
+        assert.equal(e.queue.currentQueueMediaId, current);
+        assert.equal(e.calls.loads, loads);
+        e.queue.stop();
+    });
+
+test("collection selection publishes immediate feedback without replacing playing media before the response", async () => {
+    const e = setup();
+    await e.queue.init();
+    const previous = e.queue.currentMedia;
+    const chosen = song("chosen");
+    const pending = e.queue.playCollection("collection", "chosen", chosen);
+    const response = e.take("createCollectionQueue");
+    assert.equal(e.queue.pendingSelectionAtom.get(), chosen);
+    assert.equal(e.queue.currentMedia, previous);
+    assert.equal(e.calls.plays, 0);
+    response.resolve(fail());
+    await pending;
+    assert.equal(e.queue.pendingSelectionAtom.get(), undefined);
+    assert.equal(e.queue.currentMedia, previous);
+    e.queue.stop();
+});
+test("an old response cannot clear feedback for a newer selection and cleanup clears it", async () => {
+    const e = setup();
+    await e.queue.init();
+    const first = e.queue.playCollection("one", "a", song("a"));
+    const old = e.take("createCollectionQueue");
+    const chosen = song("b");
+    const second = e.queue.playCollection("two", "b", chosen);
+    const latest = e.take("createCollectionQueue");
+    old.resolve(fail());
+    await first;
+    assert.equal(e.queue.pendingSelectionAtom.get(), chosen);
+    e.queue.stop();
+    assert.equal(e.queue.pendingSelectionAtom.get(), undefined);
+    latest.resolve(fail());
+    await second;
+    assert.equal(e.queue.pendingSelectionAtom.get(), undefined);
+});

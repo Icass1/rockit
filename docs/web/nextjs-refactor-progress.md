@@ -322,3 +322,33 @@ metal field, root mounts and reverse engraving.
 
 The two new shoulder rhombi follow the frame angle and their depth clears the
 front lip and rear plate, so they appear seated rather than as detached tips.
+
+### Six-league medal collection — PR 212
+
+Promote the approved Resonance prototype into the production inspector and give
+each league its own construction: round bronze coin, silver rhombus, amber/gold
+hexagonal jewel, teal platinum star, stepped blue diamond and violet pick-shaped
+Legend. Shared shape data drives native/web miniatures and the browser geometry.
+Preserve all 615 achievement identities and sixteen families; lower leagues use
+precise family inlays and jewel leagues use restrained pavilion tints.
+
+Keep the flat metal reverse with its original physical brand cut, bounded owner
+text, persisted date and Roman rank. Proportionally fit the logo into narrow
+plates and adapt Platinum text to its star. Replace former shard/belt/claw geometry
+with closed front crowns and internal reflective pavilions. Diamond now has its
+own blue palette distinct from Legend. No package or API change is introduced.
+
+The event-driven viewer uses one canvas, local reflection cards and a 1.5 pixel
+ratio ceiling for coarse pointers. The six-design Chromium review records at most
+35 draw calls, under 15,000 triangles and five textures. Physical iPhone GPU
+performance remains device acceptance. See [Prism medals](../frontend/prism-medals.md)
+for construction, platform boundaries and verification.
+
+Validation: closed-crown/flat-base contracts, 96-segment bronze roundness, exact
+metal inlays and cut-brand containment pass for all six plates. Existing profile,
+artwork, native controls, lifecycle and fallback contracts pass. Strict UI/app/test
+types, both production builds, application lint and generated-theme/boundary checks
+pass. Three real-browser app flows cover all six front/reverse views, keyboard
+rotation, close/reopen, context loss and the mobile render-buffer ceiling. A
+separate touch/DPR-3 gallery review checks all six leagues at the 1.5 ceiling and
+320/390/768 px without overflow. No physical iPhone performance result is inferred.

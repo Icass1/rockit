@@ -59,6 +59,22 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
     const bounds = await inspector.getByTestId("medal-stage").boundingBox();
     expect(bounds!.x).toBeGreaterThanOrEqual(0);
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
+    const buffer = await inspector.locator("canvas").evaluate((element) => {
+        const canvas = element as HTMLCanvasElement;
+        return {
+            width: canvas.width,
+            height: canvas.height,
+            coarse: matchMedia("(pointer: coarse)").matches,
+        };
+    });
+    const ratioCeiling = buffer.coarse ? 1.5 : 2;
+    expect(buffer.width).toBeGreaterThan(0);
+    expect(buffer.width).toBeLessThanOrEqual(
+        Math.ceil(bounds!.width * ratioCeiling)
+    );
+    expect(buffer.height).toBeLessThanOrEqual(
+        Math.ceil(bounds!.height * ratioCeiling)
+    );
     await inspector.scrollIntoViewIfNeeded();
     await page.screenshot({ path: info.outputPath("prism-mobile-front.png") });
     await inspector

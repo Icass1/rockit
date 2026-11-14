@@ -82,6 +82,7 @@ test("six league finishes retain their outlines and family colors in the inspect
     await request.post(backend + "/__fixture/fault", {
         data: { path: "/friends", body: { friends: circleFriends } },
     });
+    test.setTimeout(90000);
     const leagues = [
         "bronze",
         "silver",
@@ -126,5 +127,14 @@ test("six league finishes retain their outlines and family colors in the inspect
         const stage = inspector.getByTestId("medal-stage");
         await stage.scrollIntoViewIfNeeded();
         await stage.screenshot({ path: info.outputPath(`prism-${i}.png`) });
+        await inspector
+            .getByRole("button", { name: "Reverse", exact: true })
+            .click();
+        await stage.screenshot({
+            path: info.outputPath(`prism-${i}-reverse.png`),
+        });
+        await inspector
+            .getByRole("button", { name: "Front", exact: true })
+            .click();
     }
 });

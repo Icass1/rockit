@@ -6,6 +6,7 @@ export const {
     AccessibilityInfo,
     AppState,
     Animated,
+    Easing,
     ActivityIndicator,
     Image,
     Pressable,
@@ -18,6 +19,7 @@ export const {
     | "AccessibilityInfo"
     | "AppState"
     | "Animated"
+    | "Easing"
     | "ActivityIndicator"
     | "Image"
     | "Pressable"

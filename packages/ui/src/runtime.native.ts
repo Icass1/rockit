@@ -2,6 +2,7 @@ export {
     AccessibilityInfo,
     AppState,
     Animated,
+    Easing,
     ActivityIndicator,
     Image,
     Pressable,

@@ -43,6 +43,7 @@ export async function createFixtureBackend(port = 0) {
     let theme = "dark";
     let lang = "en";
     let volume = 1;
+    let onlineCount = 12;
     const artist: dto.BaseArtistResponse = {
         type: "artist",
         provider: "Fixture",
@@ -210,6 +211,22 @@ export async function createFixtureBackend(port = 0) {
             theme = "dark";
             lang = "en";
             volume = 1;
+            onlineCount = 12;
+            return send({ ready: true });
+        }
+        if (path === "/__fixture/online-users" && method === "POST") {
+            const message = dto.OnlineUsersMessageSchema.safeParse(body);
+            if (!message.success)
+                return send(
+                    { detail: "Invalid fixture count" },
+                    undefined,
+                    400
+                );
+            onlineCount = message.data.count;
+            for (const socket of sockets.clients) {
+                if (socket.readyState === 1)
+                    socket.send(JSON.stringify(message.data));
+            }
             return send({ ready: true });
         }
         if (path === "/__fixture/health") return send({ ready: true });
@@ -944,7 +961,9 @@ export async function createFixtureBackend(port = 0) {
                 )
             );
         socket.send(
-            JSON.stringify(dto.OnlineUsersMessageSchema.parse({ count: 12 }))
+            JSON.stringify(
+                dto.OnlineUsersMessageSchema.parse({ count: onlineCount })
+            )
         );
         socket.send(
             JSON.stringify(

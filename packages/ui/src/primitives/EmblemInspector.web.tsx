@@ -145,6 +145,7 @@ export function EmblemInspector({
                         {
                             <ListeningEmblem
                                 variant={badge.visualVariant}
+                                scope={badge.scope}
                                 league={badge.league}
                                 earned={!!badge.earnedAt}
                                 size={theme.layout.medalFallbackSize}

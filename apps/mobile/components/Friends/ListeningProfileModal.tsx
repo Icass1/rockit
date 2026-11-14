@@ -104,6 +104,7 @@ export default function ListeningProfileModal({
                                     <ListeningEmblem
                                         size={size}
                                         variant={badge.visualVariant}
+                                        scope={badge.scope}
                                         tier={badge.tier}
                                         league={badge.league}
                                         earned={!!badge.earnedAt}

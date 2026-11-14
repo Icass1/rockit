@@ -125,6 +125,7 @@ export function ListeningProfile({
         renderEmblem?.(badge, size) ?? (
             <ListeningEmblem
                 variant={badge.visualVariant}
+                scope={badge.scope}
                 earned={!!badge.earnedAt}
                 tier={badge.tier}
                 league={badge.league}

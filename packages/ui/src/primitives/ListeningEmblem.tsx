@@ -8,12 +8,14 @@ import { useDesignTheme } from "@rockit/ui/theme";
 
 export function ListeningEmblem({
     variant,
+    scope,
     earned,
     league = "gold",
     size,
     renderFace,
 }: {
     variant: string;
+    scope?: string;
     earned: boolean;
     tier?: number;
     league?: string;
@@ -25,8 +27,8 @@ export function ListeningEmblem({
     const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
     const length = size ?? theme.layout.socialEmblemSize;
     const xml = useMemo(
-        () => emblemArtwork(theme.colors, variant, earned, id, league),
-        [theme.colors, variant, earned, id, league]
+        () => emblemArtwork(theme.colors, variant, earned, id, league, scope),
+        [theme.colors, variant, earned, id, league, scope]
     );
     return (
         <View

@@ -49,3 +49,35 @@ it("engraves only the award date, leaving invalid or locked dates blank", () => 
     expect(medalAwardDate(null)).toBe("");
     expect(medalAwardDate("invalid")).toBe("");
 });
+
+it("uses the actual family for legacy awards and safely resolves unknown variants", async () => {
+    const { emblemFamilyVariant } =
+        await import("@rockit/ui/headless/emblemFamilies");
+    expect(emblemFamilyVariant("orbit", "session")).toBe("ignition");
+    expect(emblemFamilyVariant("atlas", "total")).toBe("orbit");
+    expect(emblemFamilyVariant("voyager", "total")).toBe("orbit");
+    expect(emblemFamilyVariant("longplay")).toBe("flame");
+    expect(emblemFamilyVariant("<script>", "__proto__")).toBe("ignition");
+});
+it("makes all sixteen filled family marks visible on every league's static artwork", async () => {
+    const { emblemFamilyMarks } =
+        await import("@rockit/ui/headless/emblemFamilies");
+    const { medalLeagues } = await import("@rockit/ui/headless/medalShapes");
+    expect(Object.keys(emblemFamilyMarks)).toHaveLength(16);
+    expect(new Set(Object.values(emblemFamilyMarks)).size).toBe(16);
+    for (const [variant, path] of Object.entries(emblemFamilyMarks))
+        for (const league of medalLeagues)
+            expect(
+                emblemArtwork(getTheme("dark"), variant, true, "mark", league)
+            ).toContain(`d="${path}"`);
+    expect(
+        emblemArtwork(
+            getTheme("dark"),
+            "orbit",
+            true,
+            "scope",
+            "legend",
+            "session"
+        )
+    ).toContain(`d="${emblemFamilyMarks.ignition}"`);
+});

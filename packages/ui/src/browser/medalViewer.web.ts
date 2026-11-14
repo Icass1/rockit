@@ -15,6 +15,7 @@ import {
     emblemPalette,
     emblemSilhouettes,
 } from "@rockit/ui/headless/emblemArtwork";
+import { emblemFamilyVariant } from "@rockit/ui/headless/emblemFamilies";
 import { medalAwardDate, romanTier } from "@rockit/ui/headless/medalDesign";
 import { medalDesign } from "@rockit/ui/headless/medalShapes";
 import * as THREE from "three";
@@ -131,9 +132,7 @@ export function createMedalViewer(
         const league = Object.hasOwn(emblemSilhouettes, badge.league)
             ? badge.league
             : "gold";
-        const variant = Object.hasOwn(emblemInks, badge.visualVariant)
-            ? (badge.visualVariant as keyof typeof emblemInks)
-            : "ignition";
+        const variant = emblemFamilyVariant(badge.visualVariant, badge.scope);
         const ink = badge.earnedAt
             ? colors[emblemInks[variant]]
             : colors["muted-foreground"];
@@ -257,17 +256,8 @@ export function createMedalViewer(
                     roughness: 0.45,
                 })
             );
-            const stamp = own(
-                new THREE.MeshStandardMaterial({
-                    color: palette.highlight,
-                    metalness: 0.95,
-                    roughness: 0.18,
-                })
-            );
             solid(0.85, 0.012, 0.115, face, 0.1);
             if (league === "silver") solid(0.79, 0.008, 0.132, edge, 0.1, 0.76);
-            for (const geometry of createMedalInlay(variant, league))
-                group.add(new THREE.Mesh(own(geometry), stamp));
             if (league === "bronze") {
                 const rim = new THREE.Mesh(
                     own(new THREE.TorusGeometry(0.86, 0.007, 6, 96)),
@@ -277,6 +267,29 @@ export function createMedalViewer(
                 group.add(rim);
             }
         }
+        // Surface metal is drawn after glass, outside its refraction capture.
+        const stamp = own(
+            new THREE.MeshStandardMaterial({
+                color: palette.highlight,
+                metalness: 0.94,
+                roughness: 0.25,
+                transparent: true,
+            })
+        );
+        const stampWalls = own(
+            new THREE.MeshStandardMaterial({
+                color: palette.shadow,
+                metalness: 0.86,
+                roughness: 0.32,
+                transparent: true,
+            })
+        );
+        group.add(
+            new THREE.Mesh(own(createMedalInlay(variant, league)), [
+                stamp,
+                stampWalls,
+            ])
+        );
         for (const geometry of createMedalHalos(league)) {
             const arc = new THREE.Mesh(own(geometry), [metal, matte]);
             arc.position.z = -0.06;

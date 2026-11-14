@@ -209,6 +209,7 @@ export default function EmblemCollection({
                     <li key={badge.key} title={description(badge)}>
                         <RockitEmblem
                             variant={badge.visualVariant}
+                            scope={badge.scope}
                             tier={badge.tier}
                             league={badge.league}
                             earned={Boolean(badge.earnedAt)}

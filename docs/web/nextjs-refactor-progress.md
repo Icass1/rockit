@@ -352,3 +352,35 @@ pass. Three real-browser app flows cover all six front/reverse views, keyboard
 rotation, close/reopen, context loss and the mobile render-buffer ceiling. A
 separate touch/DPR-3 gallery review checks all six leagues at the 1.5 ceiling and
 320/390/768 px without overflow. No physical iPhone performance result is inferred.
+
+### Filled family symbols on every medal league — PR 212
+
+Replace the former thin engravings with sixteen original filled vector marks,
+using one shared master for web/native miniatures and physical browser relief.
+Keep the approved six constructions and reverse engraving. Add the symbol to
+Gold, Platinum, Diamond and Legend, following their existing crown facets instead
+of hiding it beneath the glass or enlarging a gem's table. Preserve open counters
+and thin metal walls; exclude the relief from the glass refraction capture to
+avoid repeated silhouettes inside the crystal.
+
+Resolve artwork from the actual family scope before legacy visual variants, so
+old session/time awards no longer show another family's symbol. Pass the scope
+through shared profiles, the web collection and both platform fallbacks. No
+achievement identity, API model, package dependency or translated copy changes.
+
+Validation: 39 portable/DOM tests and one native control test pass. The geometry
+contracts cover all sixteen symbols across all six leagues: complete projected
+area, finite and bounded meshes, open video counter, outward top faces and
+positive clearance above every crown facet. Original brand containment, closed
+gem topology, inspector lifecycle and profile filters remain covered. Strict
+UI/web/mobile/test types, both production builds, application lint and generated
+theme/boundary checks pass. Static marks were visually reviewed at 16/24/84 px.
+
+The production-renderer gallery checks six symbol-bearing fronts and the reverse,
+plus 320/390/768 px bounds. Touch/DPR-3 review retains one canvas, a 1.5 pixel-ratio
+ceiling, at most 37 draw calls, fewer than 16,000 triangles and five textures for
+the measured clock/video marks. These counts do not establish physical iPhone
+frame rate. Safari/iPhone GPU acceptance remains a device check.
+
+Three compiled-app Chromium flows also pass: six front/reverse finishes, keyboard
+rotation, close/reopen, context-loss fallback and phone bounds/render-buffer cap.

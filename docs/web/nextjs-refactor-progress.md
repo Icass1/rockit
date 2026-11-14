@@ -438,3 +438,21 @@ and artwork tests pass, as do strict UI/web/mobile/test types, application lint
 and boundary/theme checks. Production-renderer review covers the reported
 playlist-sharing symbol, another broad video mark, and 320/390/768 px bounds.
 No API, dependency or platform-integration change is involved.
+
+### Match Gold/Platinum inset hues and halve the Platinum family symbol — PR 212
+
+Give the inset between the gemstone and frame a satin material in Gold and
+Platinum. Use the existing league face/shadow palette for a dark gold-brown Gold
+field and dark blue Platinum field. Lower metalness keeps those colors visible
+under the studio lighting instead of reflecting a near-black environment.
+
+Reduce Platinum's family mark to 50 percent of its former width/height, preserving
+its center and proportions in both SVG miniatures and physical browser relief.
+The reverse engraving and the Diamond/Legend flat-table placements remain. No
+new geometry, textures, theme literals, dependencies or API changes are added.
+
+Validation: production-renderer review covers Gold/Platinum fronts, oblique
+rotations, reverse views and 390 px bounds. One canvas and the existing resource
+budget are retained. The 75 geometry/artwork contracts and strict UI/web/mobile
+types pass; generated-theme and frontend-boundary checks pass. Physical device
+GPU acceptance remains separate.

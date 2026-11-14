@@ -27,7 +27,10 @@ League silhouettes and colors stay stable, rather than changing with each family
 front crowns, reflective internal pavilions and supporting frames. Gemstones have
 flat bases entirely in front of the reverse plate. There are no detached shard
 clusters, center belts or mechanical claws. Uniform material roughness avoids the
-previous grain texture.
+previous grain texture. Gold and Platinum use satin inset fields with dark
+gold-brown and dark blue league tones, respectively, matching the miniature
+palettes. Their low metalness retains the hue between the gem and polished
+frame under studio lighting.
 
 ## Family symbols
 
@@ -49,7 +52,8 @@ and thin side walls. It clips the symbol against existing crown facets and follo
 their surface height. This keeps the full mark visible above the gemstone without enlarging its table
 or replacing its cut. Diamond and Legend use smaller league-specific placements
 so their complete family relief stays on the flat table, with clearance from the
-sloped facets. Gold and Platinum retain their existing surface-following placement. Tops are
+sloped facets. Platinum uses a half-size family mark at its original center;
+Gold retains its existing surface-following placement. Tops are
 0.016 world units above the surface, with a 0.014-unit metal thickness. Metal is
 drawn after the glass transmission capture so its silhouette does not create
 repeated refraction ghosts inside the gem. The reverse is unchanged.

@@ -240,7 +240,24 @@ export function createMedalViewer(
                     envMapIntensity: 1.5,
                 })
             );
-            solid(0.9, 0.008, 0.104, matte, 0.02);
+            // Satin fields retain their league hue between the stone and the polished frame.
+            const inset =
+                league === "gold" || league === "platinum"
+                    ? own(
+                          new THREE.MeshStandardMaterial({
+                              color:
+                                  league === "gold"
+                                      ? new THREE.Color(palette.face).lerp(
+                                            new THREE.Color(palette.shadow),
+                                            0.3
+                                        )
+                                      : palette.face,
+                              metalness: 0.12,
+                              roughness: 0.65,
+                          })
+                      )
+                    : matte;
+            solid(0.9, 0.008, 0.104, inset, 0.02);
             group.add(
                 new THREE.Mesh(own(createMedalPavilion(league)), pavilion)
             );

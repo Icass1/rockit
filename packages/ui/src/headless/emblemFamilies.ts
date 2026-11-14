@@ -135,8 +135,9 @@ export function emblemFamilyVariant(variant: string, scope?: string) {
         : "ignition";
 }
 
-/** Shared SVG/3D placement keeps Diamond and Legend symbols inside their flat tables. */
+/** Shared SVG/3D sizes: half-size Platinum and flat-table fits for Diamond/Legend. */
 export function emblemFamilyPlacement(league: string) {
+    if (league === "platinum") return { centerX: 40, centerY: 39, scale: 0.41 };
     if (league === "diamond") return { centerX: 40, centerY: 40, scale: 0.57 };
     if (league === "legend") return { centerX: 40, centerY: 37, scale: 0.38 };
     return { centerX: 40, centerY: 39, scale: 0.82 };

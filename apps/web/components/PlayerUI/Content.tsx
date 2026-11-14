@@ -251,6 +251,7 @@ export default function PlayerUIContent(): JSX.Element {
 }
 
 function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
+    const $vocabulary = useVocabulary();
     const [lyricsOpen, setLyricsOpen] = useState<boolean>(true);
 
     return (
@@ -261,8 +262,16 @@ function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
                         type="button"
                         onClick={(): void => setLyricsOpen((p) => !p)}
                         className="ignore-click-player-ui text-foreground-strong/80 hover:text-foreground-strong absolute top-1/2 left-2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors"
-                        title={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
-                        aria-label={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
+                        title={
+                            lyricsOpen
+                                ? $vocabulary.PIP_HIDE_LYRICS
+                                : $vocabulary.PIP_SHOW_LYRICS
+                        }
+                        aria-label={
+                            lyricsOpen
+                                ? $vocabulary.PIP_HIDE_LYRICS
+                                : $vocabulary.PIP_SHOW_LYRICS
+                        }
                         aria-expanded={lyricsOpen}
                     >
                         <ChevronLeft

@@ -1,19 +1,13 @@
 import { memo } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
+import { getPreviousMonthKey } from "@rockit/shared";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Image } from "expo-image";
 import { FlatList, StyleSheet, Text, View } from "react-native";
+import { useVocabulary } from "@/lib/vocabulary";
 import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
 import HorizontalScrollList from "@/components/Media/HorizontalScrollList";
-
-const VOCABULARY = {
-    QUICK_SELECTIONS: "Quick Selections",
-    RECENTLY_PLAYED: "Recently Played",
-    HIDDEN_GEMS: "Hidden Gems",
-    COMMUNITY_TOP: "Community Top",
-    MONTHLY_RECAP: "Recap",
-} as const;
 
 interface SongCardProps {
     song: BaseSongWithAlbumResponse;
@@ -81,36 +75,36 @@ interface HomeContentProps {
 
 export default function HomeContent({ data }: HomeContentProps) {
     const styles = useThemedStyles(createStyles);
-    const previousMonth = new Date().toLocaleString("default", {
-        month: "long",
-    });
+    const { vocabulary } = useVocabulary();
+    const previousMonth = vocabulary[getPreviousMonthKey()];
 
     const sections = [
         {
             key: "quick",
-            title: VOCABULARY.QUICK_SELECTIONS,
+            title: vocabulary.QUICK_SELECTIONS,
             songs: data.randomSongsLastMonth,
         },
         {
             key: "recent",
-            title: VOCABULARY.RECENTLY_PLAYED,
+            title: vocabulary.RECENTLY_PLAYED,
             songs: data.songsByTimePlayed,
         },
         {
             key: "hidden",
-            title: VOCABULARY.HIDDEN_GEMS,
+            title: vocabulary.HIDDEN_GEMS,
             songs: data.hiddenGems,
         },
         {
             key: "community",
-            title: VOCABULARY.COMMUNITY_TOP,
+            title: vocabulary.COMMUNITY_TOP,
             songs: data.communityTop,
         },
         {
             key: "monthly",
-            title: previousMonth
-                ? `${previousMonth.charAt(0).toUpperCase() + previousMonth.slice(1)} ${VOCABULARY.MONTHLY_RECAP}`
-                : VOCABULARY.MONTHLY_RECAP,
+            title: vocabulary.HOME_MONTHLY_RECAP_TITLE.replace(
+                "{month}",
+                previousMonth
+            ),
             songs: data.monthlyTop,
         },
     ].filter((s) => s.songs.length > 0);

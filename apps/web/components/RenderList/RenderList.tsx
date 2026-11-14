@@ -119,8 +119,13 @@ export default function RenderList({
                     />
                     <p className="text-muted-foreground flex items-center justify-center gap-2 text-center font-semibold text-balance">
                         <span>
-                            {total ?? playableMedia.length}{" "}
-                            {playableMedia.length === 1 ? "song" : "songs"}
+                            {((total ?? playableMedia.length) === 1
+                                ? $vocabulary.COLLECTION_SONG_COUNT_ONE
+                                : $vocabulary.COLLECTION_SONG_COUNT_OTHER
+                            ).replace(
+                                "{count}",
+                                String(total ?? playableMedia.length)
+                            )}
                         </span>
                         <DurationToggle durationMs={getTotalDuration(media)} />
                     </p>

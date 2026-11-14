@@ -189,6 +189,7 @@ function ProfileDialog({
                                 )
                             }
                             vocabulary={v}
+                            locale={locale}
                             onInspectEmblem={(badge, ownerName) => {
                                 returnPosition.current = {
                                     scroll:

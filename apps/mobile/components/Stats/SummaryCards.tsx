@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { StatsSummaryResponse } from "@rockit/shared";
+import type { StatsSummaryResponse, Vocabulary } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Clock, Music, TrendingUp, Zap } from "@rockit/ui/icons";
@@ -10,26 +10,22 @@ interface SummaryCardsProps {
     summary: StatsSummaryResponse;
 }
 
-function formatNumber(num: number): string {
-    if (num >= 1_000_000) {
-        return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-    }
-    if (num >= 10_000) {
-        return `${(num / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-    }
-    return num.toLocaleString();
+function formatNumber(num: number, lang: string): string {
+    return new Intl.NumberFormat(lang, {
+        notation: num >= 10_000 ? "compact" : "standard",
+        maximumFractionDigits: 1,
+    }).format(num);
 }
 
-function formatDuration(minutes: number): string {
+function formatDuration(minutes: number, v: Vocabulary, lang: string): string {
     const d = Math.floor(minutes / 1440);
     const h = Math.floor((minutes % 1440) / 60);
     const m = Math.round(minutes % 60);
-
     const parts: string[] = [];
-    if (d > 0) parts.push(`${d}d`);
-    if (h > 0) parts.push(`${h}h`);
-    if (m > 0 || parts.length === 0) parts.push(`${m}m`);
-
+    if (d > 0) parts.push(v.TIME_DAYS.replace("{n}", d.toLocaleString(lang)));
+    if (h > 0) parts.push(v.TIME_HOURS.replace("{n}", h.toLocaleString(lang)));
+    if (m > 0 || parts.length === 0)
+        parts.push(v.TIME_MINUTES.replace("{n}", m.toLocaleString(lang)));
     return parts.join(" ");
 }
 
@@ -65,23 +61,25 @@ function SummaryCard({ label, value, icon, accent, onPress }: CardProps) {
 export default function SummaryCards({ summary }: SummaryCardsProps) {
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
-    const { vocabulary } = useVocabulary();
+    const { vocabulary, lang } = useVocabulary();
     const { width } = useWindowDimensions();
     const numColumns = width > 500 ? 4 : 2;
     const [showMinutes, setShowMinutes] = useState(false);
 
+    const roundedMinutes = Math.round(summary.minutesListened);
     const minutesDisplay = showMinutes
-        ? `${Math.round(summary.minutesListened).toLocaleString()} ${
-              vocabulary.MINUTES
-          }`
-        : formatDuration(summary.minutesListened);
+        ? (roundedMinutes === 1
+              ? vocabulary.STATS_MINUTES_COUNT_ONE
+              : vocabulary.STATS_MINUTES_COUNT_OTHER
+          ).replace("{count}", roundedMinutes.toLocaleString(lang))
+        : formatDuration(summary.minutesListened, vocabulary, lang);
 
     const cards = [
         <SummaryCard
             key="songs"
             icon={<Music size={16} color={theme.legacy.accent} />}
             label={vocabulary.SONGS_LISTENED}
-            value={formatNumber(summary.songsListened)}
+            value={formatNumber(summary.songsListened, lang)}
             accent
         />,
         <SummaryCard
@@ -95,13 +93,19 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
             key="avg"
             icon={<TrendingUp size={16} color={theme.legacy.gray600} />}
             label={vocabulary.AVERAGE_MINUTES_PER_SONG}
-            value={summary.avgMinutesPerSong.toFixed(1)}
+            value={new Intl.NumberFormat(lang, {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+            }).format(summary.avgMinutesPerSong)}
         />,
         <SummaryCard
             key="streak"
             icon={<Zap size={16} color={theme.legacy.gray600} />}
-            label={vocabulary.LEVEL_ABBR}
-            value={`${summary.currentStreak}d`}
+            label={vocabulary.SOCIAL_STREAK}
+            value={vocabulary.TIME_DAYS.replace(
+                "{n}",
+                summary.currentStreak.toLocaleString(lang)
+            )}
         />,
     ];
 

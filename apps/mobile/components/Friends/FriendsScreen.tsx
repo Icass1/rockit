@@ -44,7 +44,7 @@ import ListeningProfileModal from "@/components/Friends/ListeningProfileModal";
 export default function FriendsScreen() {
     const theme = useDesignTheme();
     const menu = useContextMenu();
-    const { vocabulary: v } = useVocabulary();
+    const { vocabulary: v, lang } = useVocabulary();
     const services = usePlayerServices();
     const manager = services.friendManager;
     const listening = services.listenTogetherManager;
@@ -610,7 +610,7 @@ export default function FriendsScreen() {
                                 return (
                                     <MediaIdentity
                                         title={item.value.username}
-                                        subtitle={`${item.value.level} · ${item.value.xp.toLocaleString()}`}
+                                        subtitle={`${item.value.level} · ${item.value.xp.toLocaleString(lang)}`}
                                         imageUrl={item.value.imageUrl}
                                         round
                                     />

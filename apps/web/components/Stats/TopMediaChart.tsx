@@ -79,7 +79,7 @@ export default function TopMediaChart({
                                         {item.name}
                                     </p>
                                     <p className="text-subtle-foreground truncate text-xs">
-                                        {item.subtitle ?? "Rockit"}
+                                        {item.subtitle ?? "RockIt!"}
                                     </p>
                                 </div>
                                 <span className="text-muted-foreground relative text-xs font-semibold tabular-nums">

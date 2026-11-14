@@ -167,6 +167,7 @@ function ProfileModal({
                                     )
                                 }
                                 vocabulary={v}
+                                locale={lang}
                                 onInspectEmblem={(badge, ownerName) => {
                                     returnY.current = scrollY.current;
                                     setMedal({ badge, ownerName });

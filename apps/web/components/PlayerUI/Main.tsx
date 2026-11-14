@@ -193,9 +193,15 @@ export default function PlayerUIMain({
                                     rockIt.mediaPlayerManager.toggleAudioOnly();
                                 }}
                                 className="ignore-click-player-ui bg-backdrop/50 text-foreground-strong/80 hover:text-foreground-strong flex items-center justify-center rounded-full p-2 transition-colors"
-                                title={$audioOnly ? "Show video" : "Audio only"}
+                                title={
+                                    $audioOnly
+                                        ? $vocabulary.PLAYER_SHOW_VIDEO
+                                        : $vocabulary.PLAYER_AUDIO_ONLY
+                                }
                                 aria-label={
-                                    $audioOnly ? "Show video" : "Audio only"
+                                    $audioOnly
+                                        ? $vocabulary.PLAYER_SHOW_VIDEO
+                                        : $vocabulary.PLAYER_AUDIO_ONLY
                                 }
                             >
                                 {$audioOnly ? (
@@ -338,7 +344,7 @@ export default function PlayerUIMain({
                             {currentMedia.name}
                         </label>
                         <label className="text-md text-muted-foreground w-fit flex-nowrap truncate text-left font-semibold">
-                            {currentMedia.country ?? "Radio Station"}
+                            {currentMedia.country ?? $vocabulary.RADIO_STATION}
                         </label>
                     </div>
                 </div>

@@ -34,6 +34,7 @@ export function ListeningProfile({
     loadProfile,
     resourceKey,
     vocabulary: v,
+    locale,
     renderEmblem,
     onInspectEmblem,
     onOpenRecap,
@@ -44,6 +45,7 @@ export function ListeningProfile({
     onOpenRecap?: () => void;
     recapYear?: number;
     vocabulary: Vocabulary;
+    locale?: string;
     renderEmblem?: (badge: ListeningBadgeResponse, size: number) => ReactNode;
     onInspectEmblem?: (
         badge: ListeningBadgeResponse,
@@ -199,7 +201,7 @@ export function ListeningProfile({
                 >
                     {profile.xpToNext > 0
                         ? text("SOCIAL_NEXT", {
-                              xp: profile.xpToNext.toLocaleString(),
+                              xp: profile.xpToNext.toLocaleString(locale),
                           })
                         : v.SOCIAL_MAX}
                 </Text>
@@ -215,7 +217,7 @@ export function ListeningProfile({
                     [
                         Clock3,
                         (profile.totalListeningSeconds / 3600).toLocaleString(
-                            undefined,
+                            locale,
                             { maximumFractionDigits: 1 }
                         ),
                         v.SOCIAL_PROFILE_HOURS,
@@ -223,7 +225,7 @@ export function ListeningProfile({
                     [Award, String(earned), v.SOCIAL_PROFILE_BADGES],
                     [
                         Headphones,
-                        profile.songsListened.toLocaleString(),
+                        profile.songsListened.toLocaleString(locale),
                         v.SOCIAL_LISTENS,
                     ],
                     [Flame, String(profile.streak), v.SOCIAL_STREAK],
@@ -582,7 +584,7 @@ export function ListeningProfile({
                                 fontSize: theme.typography.body,
                             }}
                         >
-                            {medalStory(selected, v)}
+                            {medalStory(selected, v, locale)}
                         </Text>
                         <Text
                             style={{
@@ -593,7 +595,7 @@ export function ListeningProfile({
                             }}
                         >
                             {selected.earnedAt
-                                ? `${v.FRIENDS_BADGE_EARNED} · ${new Date(selected.earnedAt).toLocaleDateString()}`
+                                ? `${v.FRIENDS_BADGE_EARNED} · ${new Date(selected.earnedAt).toLocaleDateString(locale)}`
                                 : selected.secret
                                   ? v.FRIENDS_BADGE_LOCKED
                                   : text("FRIENDS_BADGE_PROGRESS", {

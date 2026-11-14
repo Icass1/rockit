@@ -493,7 +493,7 @@ export class BaseQueueManager {
     updateQueue(shuffleRandom?: boolean): void {
         if (!this.isQueueFullyLoaded && this._queueTotalAtom.get() > 0) {
             getRockIt().notificationManager.notifyError(
-                "Load the queue before editing it. Scroll through the queue to load more items."
+                getRockIt().vocabularyManager.vocabulary.QUEUE_LOAD_BEFORE_EDIT
             );
             void this._refreshQueueAsync(false);
             return;
@@ -782,7 +782,7 @@ export class BaseQueueManager {
             .find((media): boolean => media.media.publicId === publicId);
         if (!media) {
             getRockIt().notificationManager.notifyError(
-                "(moveToMedia) Media not found in queue."
+                getRockIt().vocabularyManager.vocabulary.QUEUE_MEDIA_NOT_FOUND
             );
             return;
         }
@@ -830,7 +830,8 @@ export class BaseQueueManager {
 
             if (!media) {
                 getRockIt().notificationManager.notifyError(
-                    "(setIndex) Media not found in queue."
+                    getRockIt().vocabularyManager.vocabulary
+                        .QUEUE_MEDIA_NOT_FOUND
                 );
                 return;
             }

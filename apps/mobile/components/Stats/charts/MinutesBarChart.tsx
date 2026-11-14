@@ -37,7 +37,8 @@ export default function MinutesBarChart({
         /^\d{2}:\d{2}$/.test(item.label)
             ? formatHourRange(
                   utcIsoToLocalDate(item.start),
-                  utcIsoToLocalDate(item.end)
+                  utcIsoToLocalDate(item.end),
+                  lang
               )
             : utcIsoToLocalDate(item.start).toLocaleDateString(lang, {
                   month: "short",
@@ -165,7 +166,8 @@ export default function MinutesBarChart({
                                               ? formatHour(
                                                     utcIsoToLocalDate(
                                                         item.start
-                                                    )
+                                                    ),
+                                                    lang
                                                 )
                                               : item.label}
                                       </Text>,

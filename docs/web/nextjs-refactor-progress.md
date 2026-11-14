@@ -522,3 +522,31 @@ phone/tablet/landscape bounds. Both production web builds and iOS/Android Hermes
 exports pass; the offline renderer is regenerated for the new contract. Captures
 use fixture users and percentages. Physical native GPU/gesture acceptance and live
 PostgreSQL persistence remain separate.
+
+### Contextual EN/ES/FR workbook and product-copy audit — PR 212
+
+Review the complete vocabulary and preserve Excel translation automation. Correct
+900 existing cells across 480 keys, fill all 754 missing formula caches, and add
+78 translated interface/singular-story keys. All 754 original formula addresses
+and TRANSLATE fallbacks remain. Guard reviewed wording with an exact English
+source match so Excel recalculation retains context and new source text resumes
+automatic translation. Keep Logs in Spanish, musical bookmarks as French repères,
+playlist/radio terminology consistent, notification messages translated, and
+singular medal objectives grammatically correct. Preserve original achievements,
+secret redaction, targets and award dates.
+
+Move remaining inline UI labels, accessible names, queue/offline notifications,
+featured metadata and collection counts to vocabulary; replace the mobile home
+component's English dictionary. Apply selected-language number/date formatting in
+profiles, leaderboards and mobile statistics. Add workbook integrity/formula tests
+and extend the AST copy guard to conditionals, templates, configuration labels,
+notifications and formatting locales. Run the workbook guard in the frontend gate.
+See docs/i18n/vocabulary-review.md for the review scope and Excel workflow.
+
+Validation: all 763 backend tests and 43 subtests pass (14 optional service cases
+skip), along with 151 portable/frontend tests, all 19 native contracts and 313 web
+Node tests. Six compiled-app browser flows use the actual workbook in EN/ES/FR
+on desktop and PWA, checking localized hours, singular stories, zero rarity and
+3D loading. Strict app/UI/test types, application lint, root Ruff/formatting,
+workbook/tooling, theme/boundary and local renderer checks pass. Production
+desktop/PWA builds and the 3,761-module PWA platform-isolation check pass.

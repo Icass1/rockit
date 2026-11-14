@@ -32,14 +32,15 @@
         "check:theme": "node scripts/generate-design-tokens.mjs --check",
         "test:frontend:unit": "vitest run",
         "test:frontend:native": "jest --config jest.native.config.cjs --json --outputFile=.test-build/frontend/native-results.json",
-        "test:frontend": "pnpm check:medal-embed && pnpm check:frontend:boundaries && pnpm test:frontend:types && pnpm test:frontend:unit && pnpm test:frontend:native && pnpm --filter @app/web test",
+        "test:frontend": "pnpm check:vocabulary && node --test tests/tooling/ui-vocabulary.test.mjs && pnpm check:medal-embed && pnpm check:frontend:boundaries && pnpm test:frontend:types && pnpm test:frontend:unit && pnpm test:frontend:native && pnpm --filter @app/web test",
         "build:mobile:web": "pnpm --filter @app/mobile build:web",
         "check:frontend:boundaries": "node scripts/check-frontend-boundaries.mjs",
         "test:frontend:types": "tsc -p tests/frontend/tsconfig.json --noEmit && tsc -p tests/frontend/tsconfig.native.json --noEmit",
         "test:frontend:build": "node scripts/build-frontend-fixtures.mjs",
         "test:frontend:browser": "playwright test",
         "check:medal-embed": "node scripts/build-medal-embed.mjs --check",
-        "build:medal-embed": "node scripts/build-medal-embed.mjs"
+        "build:medal-embed": "node scripts/build-medal-embed.mjs",
+        "check:vocabulary": "python3 scripts/check-vocabulary.py"
     },
     "devDependencies": {
         "@babel/runtime": "^8.1.0",

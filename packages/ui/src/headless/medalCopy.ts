@@ -16,9 +16,11 @@ export function medalStory(
     v: Vocabulary,
     locale?: string
 ) {
+    const familyKey = `MEDAL_STORY_${badge.scope.toUpperCase()}`;
     const story =
         (!badge.secret &&
-            lookup(v, `MEDAL_STORY_${badge.scope.toUpperCase()}`)) ||
+            ((badge.target === 1 && lookup(v, `${familyKey}_ONE`)) ||
+                lookup(v, familyKey))) ||
         lookup(v, badge.descriptionKey) ||
         badge.descriptionKey;
     const target = new Intl.NumberFormat(locale).format(badge.target);

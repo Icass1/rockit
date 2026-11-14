@@ -256,11 +256,11 @@ export default function NotificationMenu({
                                             dateTime={item.dateAdded}
                                             title={new Date(
                                                 item.dateAdded
-                                            ).toLocaleString(lang || "en")}
+                                            ).toLocaleString(lang)}
                                         >
                                             {new Date(
                                                 item.dateAdded
-                                            ).toLocaleString(lang || "en", {
+                                            ).toLocaleString(lang, {
                                                 month: "short",
                                                 day: "numeric",
                                                 hour: "2-digit",

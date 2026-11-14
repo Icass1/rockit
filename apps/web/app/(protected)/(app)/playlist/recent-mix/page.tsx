@@ -7,6 +7,7 @@ import {
 } from "@rockit/shared";
 import { History } from "lucide-react";
 import { getFeaturedListAsync } from "@/lib/server/resources";
+import { getRequestVocabulary } from "@/lib/server/vocabulary";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
@@ -16,9 +17,12 @@ const getFeatured = cache(
 );
 
 export async function generateMetadata(): Promise<{ title: string }> {
-    const playlist = await getFeatured();
+    const [playlist, { vocabulary }] = await Promise.all([
+        getFeatured(),
+        getRequestVocabulary(),
+    ]);
     return {
-        title: playlist?.name ?? "Recent Mix",
+        title: playlist?.name ?? vocabulary.RECENT_MIX,
     };
 }
 

@@ -639,7 +639,10 @@ export default function UploadModal({
                             <button
                                 onClick={(): void => removeFile(file.id)}
                                 className="text-subtle-foreground hover:bg-accent hover:text-foreground-strong mt-1 shrink-0 rounded-md p-1 transition"
-                                aria-label={`Remove ${file.file.name}`}
+                                aria-label={$vocabulary.UPLOAD_REMOVE_FILE.replace(
+                                    "{name}",
+                                    file.file.name
+                                )}
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -775,7 +778,10 @@ export default function UploadModal({
                             <button
                                 onClick={(): void => removeFile(file.id)}
                                 className="text-subtle-foreground hover:bg-accent hover:text-foreground-strong mt-1 shrink-0 rounded-md p-1 transition"
-                                aria-label={`Remove ${file.file.name}`}
+                                aria-label={$vocabulary.UPLOAD_REMOVE_FILE.replace(
+                                    "{name}",
+                                    file.file.name
+                                )}
                             >
                                 <X className="h-4 w-4" />
                             </button>

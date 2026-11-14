@@ -56,3 +56,24 @@ it("keeps hidden objectives and their original reveal copy private", () => {
     expect(medalTitle(badge, v)).toBe(v.FRIENDS_BADGE_SECRET_HIDDEN);
     expect(medalStory(badge, v)).toBe(v.FRIENDS_BADGE_SECRET_HINT);
 });
+
+it("uses reviewed singular stories without changing achievement identity or plural copy", () => {
+    const badge = {
+        ...listeningProfile.listeningBadges[0],
+        scope: "anniversary" as const,
+        target: 1,
+    };
+    expect(medalStory(badge, v, "en")).toBe(
+        "1 year since your RockIt story began."
+    );
+    expect(medalStory({ ...badge, target: 2 }, v, "en")).toBe(
+        "2 years since your RockIt story began."
+    );
+    expect(medalStory({ ...badge, scope: "friends" }, v, "en")).toContain(
+        "1 friendship that makes"
+    );
+    expect(medalStory({ ...badge, scope: "album_shares" }, v, "en")).toContain(
+        "1 album recommendation."
+    );
+    expect(badge.titleKey).toBe(listeningProfile.listeningBadges[0].titleKey);
+});

@@ -1,9 +1,20 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript";
+import { inlineVocabularyIssues } from "./lib/ui-vocabulary.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const failures = [];
+const vocabularyKeys = new Set(
+    Object.keys(
+        JSON.parse(
+            await readFile(
+                path.join(root, "packages/shared/src/i18n/en.json"),
+                "utf8"
+            )
+        )
+    )
+);
 async function files(directory) {
     const entries = await readdir(path.join(root, directory), {
         withFileTypes: true,
@@ -43,15 +54,6 @@ const domains = [
     "apps/web/styles",
 ];
 const color = /^(?:#[\da-f]{3,8}$|rgba?\(\s*\d|hsla?\(\s*\d)/i;
-const dataLabels = new Set([
-    "RockIt!",
-    "RockIt",
-    "RockIt! v",
-    "MP4 · WEBM · MKV · AVI · MOV",
-    "MB",
-    "LRC",
-    "LIB",
-]);
 for (const file of (await Promise.all(domains.map(files))).flat()) {
     const source = await readFile(path.join(root, file), "utf8");
     if (file.endsWith(".css")) continue;
@@ -120,37 +122,15 @@ for (const file of (await Promise.all(domains.map(files))).flat()) {
         }
         if (ui && ts.isStringLiteral(node) && color.test(node.text))
             fail(node, "Palette literal must come from @rockit/theme");
-        if (ui) {
-            let visible;
-            if (ts.isJsxText(node)) visible = node.text.trim();
-            else if (
-                ts.isStringLiteral(node) &&
-                ts.isJsxAttribute(node.parent) &&
-                [
-                    "label",
-                    "title",
-                    "placeholder",
-                    "alt",
-                    "accessibilityLabel",
-                    "aria-label",
-                ].includes(node.parent.name.getText(ast))
-            )
-                visible = node.text;
-            if (visible) {
-                visible = visible
-                    .replace(/&(?:[a-z]+|#\d+);/gi, "")
-                    .replace(/\s+/g, " ")
-                    .trim();
-                if (/[A-Za-zÀ-ÿ]{2}/.test(visible) && !dataLabels.has(visible))
-                    fail(
-                        node,
-                        `Inline UI text must use Vocabulary.xlsx: ${visible}`
-                    );
-            }
-        }
         ts.forEachChild(node, visit);
     }
     visit(ast);
+    if (ui || file.startsWith("packages/ui/") || shared) {
+        for (const issue of inlineVocabularyIssues(ast, vocabularyKeys))
+            failures.push(
+                `${file}:${issue.line}: ${issue.reason}: ${issue.text}`
+            );
+    }
 }
 const shell = await readFile(
     path.join(root, "apps/web/components/Layout/AppClientLayout.tsx"),

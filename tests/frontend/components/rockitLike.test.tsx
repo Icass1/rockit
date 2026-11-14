@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { RockitLikeButton } from "@rockit/ui";
+import { getTheme } from "@rockit/theme";
+import { DesignThemeProvider, RockitLikeButton } from "@rockit/ui";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
@@ -23,4 +24,29 @@ it("shares a controlled like action, accessible toggle state and disabled behavi
     expect(button.getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(button);
     expect(press).toHaveBeenCalledOnce();
+});
+
+it("fills the entire liked hand white in both themes without a second contour cutting the palm", () => {
+    const view = render(
+        <DesignThemeProvider mode="dark">
+            <RockitLikeButton liked label="Unlike fixture" onPress={() => {}} />
+        </DesignThemeProvider>
+    );
+    const check = () => {
+        const icon = screen
+            .getByTestId("rockit-like-hand")
+            .querySelector("svg")!;
+        expect(icon.getAttribute("fill")).toBe(getTheme("dark")["on-media"]);
+        const paths = icon.querySelectorAll("path");
+        expect(paths).toHaveLength(1);
+        expect(paths[0].getAttribute("d")?.match(/M/g)).toHaveLength(1);
+        expect(paths[0].getAttribute("d")?.endsWith("Z")).toBe(true);
+    };
+    check();
+    view.rerender(
+        <DesignThemeProvider mode="light">
+            <RockitLikeButton liked label="Unlike fixture" onPress={() => {}} />
+        </DesignThemeProvider>
+    );
+    check();
 });

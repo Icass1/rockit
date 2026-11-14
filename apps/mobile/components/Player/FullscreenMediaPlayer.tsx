@@ -31,7 +31,7 @@ import { useMediaFullscreen } from "@/lib/hooks/useMediaFullscreen";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import BookmarkPopup from "@/components/Player/BookmarkPopup";
-import PlayerCover from "@/components/Player/PlayerCover";
+import PlayerArtwork from "@/components/Player/PlayerArtwork";
 import PlayerProgress from "@/components/Player/PlayerProgress";
 import VideoSurface from "@/components/Player/VideoSurface";
 
@@ -190,11 +190,10 @@ function FullscreenMediaContent({
                 />
             ) : (
                 <View style={styles.cover} pointerEvents="none">
-                    <PlayerCover
-                        key={currentMedia?.publicId}
-                        uri={currentMedia?.imageUrl}
-                        mediaType={currentMedia?.type}
+                    <PlayerArtwork
+                        media={currentMedia}
                         size={coverSize}
+                        playing={isPlaying}
                     />
                 </View>
             )}

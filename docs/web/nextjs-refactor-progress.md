@@ -550,3 +550,46 @@ on desktop and PWA, checking localized hours, singular stories, zero rarity and
 3D loading. Strict app/UI/test types, application lint, root Ruff/formatting,
 workbook/tooling, theme/boundary and local renderer checks pass. Production
 desktop/PWA builds and the 3,761-module PWA platform-isolation check pass.
+
+### Restore mobile Player UI vinyl artwork after migration
+
+Add a touch-visible cover/vinyl selector to song artwork using the existing
+EN/ES/FR vocabulary. Preserve the device preference through overlay close/reopen,
+PWA reload and native restart. Restore asynchronously without overriding a newer
+user choice, serialize writes and retain in-memory control if storage fails.
+Keep videos and radio on their existing artwork surfaces.
+
+Render the record from portable primitives with the desktop proportions, grooves,
+round album label and spindle. Reuse shared recording/album identity so adjacent,
+backwards and shuffled songs from the same album retain their disc and angle.
+Drive only a transform: ramp to a steady turn, coast on pause and resume from the
+same angle. Native uses the animation driver; both renderers stop when hidden,
+backgrounded or reduced motion is enabled. Clean up animations and subscriptions.
+Use the saved offline cover and preserve vinyl in the full-screen artwork view;
+only the visible surface animates. No audio transport, queue, MediaSession,
+backend endpoint, native dependency or translation key changes are introduced.
+
+Refine the shared like affordance in the same follow-up: the selected hand is one
+closed, solid white contour with no palm cut-out. Replace the detached flame icon
+with an organic layered fire envelope, warm glow, counter-moving flicker and
+rising embers around the hand. Preserve a brief hand gesture and a finite burst;
+initial/hydrated likes do not ignite. Respect reduced motion and backgrounding,
+stop clocks after the burst/unmount and retain controlled/disabled behavior.
+Use the same vectors and native-capable animation presenter across clients.
+
+Share the global presence indicator and show it only above one confirmed online
+user. Keep the mobile logo centered with an empty layout slot when hidden; hide
+both glyph and count. Unknown/zero/one counts remain absent. The backend already
+counts unique user IDs across sessions, so opening mobile and desktop alone does
+not reveal a second user. Live WebSocket updates drive the shared presentation.
+
+Validation: all 160 portable/frontend tests and 23 native tests pass. Four
+production Chromium flows cover desktop/mobile white liked hands, finite fire,
+live online counts 1→2→1, vinyl rotation/coasting/resume, cover switching,
+preference reload, full-screen artwork with the underlying clock stopped, reduced
+motion and phone/tablet/landscape bounds. Strict app/UI/test types, application
+lint, formatting, vocabulary/theme/boundary checks and workbook tooling pass.
+Production desktop and PWA builds succeed; the PWA maps 3,769 modules without
+other-platform imports. iOS/Android Hermes exports validate the native adapters;
+physical device animation smoothness remains device acceptance. Captures use
+fixture media and users. All labels reuse existing EN/ES/FR vocabulary.

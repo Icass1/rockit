@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useStore } from "@nanostores/react";
-import { TMedia } from "@rockit/shared";
+import { isSong, type TQueueMedia } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import {
     ExplicitBadge,
@@ -8,7 +8,7 @@ import {
     useThemedStyles,
     type DesignTheme,
 } from "@rockit/ui";
-import { Maximize, Video, VideoOff } from "@rockit/ui/icons";
+import { Disc3, DiscAlbum, Maximize, Video, VideoOff } from "@rockit/ui/icons";
 import {
     Pressable,
     StyleSheet,
@@ -16,19 +16,20 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
-import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaSubSubTitle from "@/components/MediaSubSubTitle";
 import MediaSubTitle from "@/components/MediaSubTitle";
 import MobileLikeButton from "@/components/Player/MobileLikeButton";
+import PlayerArtwork from "@/components/Player/PlayerArtwork";
 import PlayerControls from "@/components/Player/PlayerControls";
-import PlayerCover from "@/components/Player/PlayerCover";
 import PlayerProgress from "@/components/Player/PlayerProgress";
 import VideoSurface from "@/components/Player/VideoSurface";
 
 interface PlayerMediaInfoProps {
     availableHeight: number;
-    currentMedia: TMedia | undefined; // TMedia from PlayerContext
+    currentMedia: TQueueMedia | undefined;
+    isPlaying: boolean;
+    artworkVisible: boolean;
     onSeek: (seconds: number) => void;
     hasVideo: boolean;
     canToggleAudioOnly: boolean;
@@ -41,6 +42,8 @@ interface PlayerMediaInfoProps {
 export default function PlayerMediaInfo({
     availableHeight,
     currentMedia,
+    isPlaying,
+    artworkVisible,
     onSeek,
     hasVideo,
     canToggleAudioOnly,
@@ -49,10 +52,7 @@ export default function PlayerMediaInfo({
     isMediaFullscreen,
     onMediaFullscreen,
 }: PlayerMediaInfoProps) {
-    const imageUrl = useOfflineArtwork(
-        currentMedia?.publicId,
-        currentMedia?.imageUrl
-    );
+    const vinylMode = useStore(rockIt.playerUIManager.vinylModeAtom);
     const theme = useDesignTheme();
     const [detailsHeight, setDetailsHeight] = useState(0);
     const { width, height } = useWindowDimensions();
@@ -83,12 +83,43 @@ export default function PlayerMediaInfo({
                             />
                         </View>
                     ) : (
-                        <PlayerCover
-                            uri={imageUrl}
-                            mediaType={currentMedia?.type}
+                        <PlayerArtwork
+                            media={currentMedia}
                             size={COVER_SIZE}
+                            playing={isPlaying}
+                            visible={artworkVisible}
                         />
                     )}
+                    {currentMedia &&
+                        isSong(currentMedia) &&
+                        !isMediaFullscreen && (
+                            <Pressable
+                                testID="player-artwork-toggle"
+                                onPress={() =>
+                                    rockIt.playerUIManager.toggleVinylMode()
+                                }
+                                style={styles.artworkModeButton}
+                                accessibilityRole="button"
+                                accessibilityLabel={
+                                    vinylMode
+                                        ? vocabulary.PLAYER_ARTWORK_COVER
+                                        : vocabulary.PLAYER_ARTWORK_VINYL
+                                }
+                                hitSlop={8}
+                            >
+                                {vinylMode ? (
+                                    <DiscAlbum
+                                        size={24}
+                                        color={theme.colors["on-media"]}
+                                    />
+                                ) : (
+                                    <Disc3
+                                        size={24}
+                                        color={theme.colors["on-media"]}
+                                    />
+                                )}
+                            </Pressable>
+                        )}
                     {currentMedia && !isMediaFullscreen && (
                         <Pressable
                             onPress={onMediaFullscreen}
@@ -201,6 +232,17 @@ const createStyles = (theme: DesignTheme) =>
         },
         videoView: {
             flex: 1,
+        },
+        artworkModeButton: {
+            position: "absolute",
+            top: 8,
+            left: 8,
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: withAlpha(theme.colors.backdrop, 0.6),
         },
         fullscreenButton: {
             position: "absolute",

@@ -71,7 +71,7 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
         return;
     }
     await expect(
-        inspector.getByRole("button", { name: "Reverse", exact: true })
+        inspector.getByRole("button", { name: /^(Front|Reverse)$/ })
     ).toBeVisible({ timeout: 45000 });
     await expect(inspector.locator("canvas")).toHaveCount(1);
     const bounds = await inspector.getByTestId("medal-stage").boundingBox();
@@ -101,9 +101,7 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
     const controlsBox = await controls.boundingBox();
     expect(controlsBox!.y + controlsBox!.height).toBeLessThanOrEqual(844);
     await page.screenshot({ path: info.outputPath("prism-mobile-front.png") });
-    await inspector
-        .getByRole("button", { name: "Reverse", exact: true })
-        .click();
+    await inspector.getByRole("button", { name: /^(Front|Reverse)$/ }).click();
     await page.screenshot({
         path: info.outputPath("prism-mobile-reverse.png"),
     });
@@ -183,7 +181,7 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
         .click();
     await expect(page.locator("canvas")).toHaveCount(1);
     await expect(
-        inspector.getByRole("button", { name: "Reverse", exact: true })
+        inspector.getByRole("button", { name: /^(Front|Reverse)$/ })
     ).toBeVisible({ timeout: 45000 });
     for (const viewport of [
         { width: 320, height: 667 },
@@ -197,7 +195,7 @@ test("PWA Prism inspection fits a phone and releases its context on close", asyn
                     .getByTestId("medal-stage")
                     .boundingBox();
                 const button = await inspector
-                    .getByRole("button", { name: "Reverse", exact: true })
+                    .getByRole("button", { name: /^(Front|Reverse)$/ })
                     .boundingBox();
                 return (
                     !!rect &&

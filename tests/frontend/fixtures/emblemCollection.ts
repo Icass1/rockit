@@ -294,6 +294,9 @@ const samples = [
 export const emblemCollectionProfile = {
     ...listeningProfile,
     listeningBadges: samples.map((badge) =>
-        ListeningBadgeResponseSchema.parse(badge)
+        ListeningBadgeResponseSchema.parse({
+            ...badge,
+            holderPercentage: badge.earnedAt ? 12.5 : 0,
+        })
     ),
 };

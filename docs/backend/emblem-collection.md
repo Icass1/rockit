@@ -87,6 +87,27 @@ family, league and earned-state filters. The older web comparison collection is
 also paginated. Locked secret objectives have generic copy and zeroed progress;
 their titles and conditions are revealed after a persisted award.
 
+## Global rarity
+
+Profile projection synchronizes persisted awards, then reads the registered user
+population and distinct holders per badge in one aggregate statement. Two CTEs
+share a database snapshot; a left join preserves zero-holder/zero-population
+results. The denominator includes registered users without awards, not just the
+viewer’s friends or active listeners. The user join excludes orphaned awards.
+This adds one fixed query per profile batch, never one query per medal/user.
+
+`holderPercentage` is `100 × distinct holders / registered users`, or zero for
+an empty population. It uses awarded records, without retroactively inferring
+awards for users who have not yet been evaluated. Errors propagate through Result;
+missing data is not presented as a measured zero. The UI formats two decimals in
+the selected language, including `0,00 %`, and exposes the full meaning to screen
+readers. Only aggregate percentages leave the server; no holder identities or
+additional endpoint, cache, polling, column or migration is introduced.
+
+Names and a single-line story for all 64 families live in the vocabulary in
+English, Spanish and French. Persistent keys, goals, award dates and Roman tiers
+are unchanged. Locked secret copy continues to use the redacted server keys.
+
 ## Verification
 
 Fast backend contracts cover catalog uniqueness and legacy identity, all workbook

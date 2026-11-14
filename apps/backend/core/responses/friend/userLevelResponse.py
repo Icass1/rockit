@@ -33,6 +33,7 @@ class ListeningBadgeResponse(BaseModel):
     league: ListeningBadgeLeague = "gold"
     secret: bool = False
     earnedAt: datetime | None = None
+    holderPercentage: float | None = Field(default=None, ge=0, le=100)
 
 
 class UserLevelResponse(BaseModel):

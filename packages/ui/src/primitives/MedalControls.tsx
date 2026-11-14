@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import type { Vocabulary } from "@rockit/shared";
-import { ActionButton } from "@rockit/ui/primitives/ActionButton";
-import { Text, View } from "@rockit/ui/runtime";
+import { withAlpha } from "@rockit/theme";
+import { FlipHorizontal2, RotateCcw, RotateCw } from "@rockit/ui/icons";
+import { IconButton } from "@rockit/ui/primitives/IconButton";
+import { View } from "@rockit/ui/runtime";
 import { useDesignTheme } from "@rockit/ui/theme";
 
+/** A compact overlay; the stage keeps its own gesture area below these touch targets. */
 export function MedalControls({
     ready,
     onFront,
@@ -21,42 +25,59 @@ export function MedalControls({
     vocabulary: Vocabulary;
 }) {
     const theme = useDesignTheme();
+    const [reverse, setReverse] = useState(false);
+    if (!ready && !onRetry) return null;
+    const icon = {
+        size: theme.typography.subtitle,
+        color: theme.colors["recap-foreground"],
+    };
     return (
-        <View style={{ gap: theme.spacing.xs, flexShrink: 0 }}>
-            <Text
-                style={{
-                    color: theme.colors["muted-foreground"],
-                    fontSize: theme.typography.caption,
-                }}
-            >
-                {v.MEDAL_3D_TOUCH_HINT}
-            </Text>
-            <View
-                style={{
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    gap: theme.spacing.xs,
-                }}
-            >
-                {ready ? (
-                    <>
-                        <ActionButton
-                            label={v.MEDAL_3D_FRONT}
-                            onPress={onFront}
-                        />
-                        <ActionButton
-                            label={v.MEDAL_3D_BACK}
-                            onPress={onBack}
-                        />
-                        <ActionButton
-                            label={v.MEDAL_3D_RESET}
-                            onPress={onReset}
-                        />
-                    </>
-                ) : onRetry ? (
-                    <ActionButton label={v.MEDAL_3D_RETRY} onPress={onRetry} />
-                ) : null}
-            </View>
+        <View
+            testID="medal-controls"
+            style={{
+                position: "absolute",
+                bottom: theme.spacing.md,
+                right: theme.spacing.md,
+                zIndex: 1,
+                flexDirection: "row",
+                gap: theme.spacing.xs,
+                padding: theme.spacing.xs,
+                borderRadius: theme.radius.full,
+                backgroundColor: withAlpha(theme.colors["medal-stage"], 0.86),
+                borderWidth: 1,
+                borderColor: withAlpha(
+                    theme.colors["medal-silver-highlight"],
+                    0.2
+                ),
+            }}
+        >
+            {ready ? (
+                <>
+                    <IconButton
+                        label={reverse ? v.MEDAL_3D_FRONT : v.MEDAL_3D_BACK}
+                        onPress={() => {
+                            if (reverse) onFront();
+                            else onBack();
+                            setReverse(!reverse);
+                        }}
+                    >
+                        <FlipHorizontal2 {...icon} />
+                    </IconButton>
+                    <IconButton
+                        label={v.MEDAL_3D_RESET}
+                        onPress={() => {
+                            onReset();
+                            setReverse(false);
+                        }}
+                    >
+                        <RotateCcw {...icon} />
+                    </IconButton>
+                </>
+            ) : onRetry ? (
+                <IconButton label={v.MEDAL_3D_RETRY} onPress={onRetry}>
+                    <RotateCw {...icon} />
+                </IconButton>
+            ) : null}
         </View>
     );
 }

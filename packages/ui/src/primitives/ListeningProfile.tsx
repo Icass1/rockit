@@ -6,6 +6,7 @@ import type {
     UserLevelResponse,
     Vocabulary,
 } from "@rockit/shared";
+import { medalStory, medalTitle } from "@rockit/ui/headless/medalCopy";
 import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
 import {
     Award,
@@ -488,7 +489,7 @@ export function ListeningProfile({
                             accessibilityRole="button"
                             accessibilityLabel={text(
                                 "SOCIAL_PROFILE_BADGE_OPEN",
-                                { name: text(badge.titleKey) }
+                                { name: medalTitle(badge, v) }
                             )}
                             accessibilityState={{
                                 selected: selected?.key === badge.key,
@@ -519,7 +520,7 @@ export function ListeningProfile({
                                     textAlign: "center",
                                 }}
                             >
-                                {text(badge.titleKey)}
+                                {medalTitle(badge, v)}
                             </Text>
                             <Text
                                 style={{
@@ -573,7 +574,7 @@ export function ListeningProfile({
                                 fontSize: theme.typography.body,
                             }}
                         >
-                            {text(selected.titleKey)}
+                            {medalTitle(selected, v)}
                         </Text>
                         <Text
                             style={{
@@ -581,10 +582,7 @@ export function ListeningProfile({
                                 fontSize: theme.typography.body,
                             }}
                         >
-                            {text(selected.descriptionKey, {
-                                target: selected.target,
-                                minutes: selected.target,
-                            })}
+                            {medalStory(selected, v)}
                         </Text>
                         <Text
                             style={{

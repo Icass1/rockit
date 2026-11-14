@@ -119,6 +119,7 @@ function ProfileDialog({
         >
             {medal && (
                 <MedalDetail
+                    locale={locale}
                     badge={medal.badge}
                     ownerName={medal.ownerName}
                     vocabulary={v}

@@ -168,7 +168,7 @@ it("exposes all 64 families while keeping only one catalog page mounted", async 
             .querySelectorAll('[role="button"]')
     ).toHaveLength(1);
     expect(screen.getByTestId("profile-emblem-detail").textContent).toContain(
-        "Keep 1 album"
+        "A home for 100 albums"
     );
 });
 

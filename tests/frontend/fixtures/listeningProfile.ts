@@ -25,6 +25,7 @@ export const listeningProfile = UserLevelResponseSchema.parse({
             scope,
             target: tier * 100,
             current: 42,
+            holderPercentage: index < 4 ? 37.5 : 0,
             visualVariant: variants[family],
             tier,
             earnedAt: index < 4 ? "2026-01-01T00:00:00Z" : null,

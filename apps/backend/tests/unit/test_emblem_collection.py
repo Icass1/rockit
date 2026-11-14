@@ -95,6 +95,12 @@ def test_catalog_copy_exists_in_every_workbook_language() -> None:
     keys = {key for badge in LISTENING_BADGES for key in (badge.title_key, badge.description_key)}
     keys |= {f"FRIENDS_BADGE_FAMILY_{badge.scope.upper()}" for badge in LISTENING_BADGES}
     keys |= {f"FRIENDS_BADGE_LEAGUE_{badge.league.upper()}" for badge in LISTENING_BADGES}
+    keys |= {
+        f"MEDAL_{kind}_{badge.scope.upper()}"
+        for badge in LISTENING_BADGES
+        for kind in ("NAME", "STORY")
+    }
+    keys.add("MEDAL_RARITY")
     for language, copy in languages.items():
         assert not (keys - copy.keys()), language
 

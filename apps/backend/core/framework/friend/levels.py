@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from core.access.db.ormModels.friend.userLevel import UserLevelRow
+from core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
 from core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
 from core.access.friend.userLevelAccess import UserLevelAccess
 from core.framework.friend.listeningBadges import ListeningBadges, badge_metrics, badge_response
@@ -95,6 +96,11 @@ class Levels:
         if badges.is_not_ok():
             logger.error("Error projecting emblem profiles: %s", badges.info())
             return Result(code=badges.code(), message=badges.message())
+        population = await ListeningBadgesAccess.get_population_async(session=session)
+        if population.is_not_ok():
+            logger.error("Error loading emblem rarity: %s", population.info())
+            return Result(code=population.code(), message=population.message())
+        total_users, holders = population.result()
         by_user = {row.user_id: row for row in levels.result()}
         responses: list[UserLevelResponse] = []
         for user in users.result():
@@ -126,7 +132,14 @@ class Levels:
                     listeningBadgeCount=sum(badge.key in owned for badge in LISTENING_BADGES),
                     listeningBadgeTotal=len(LISTENING_BADGES),
                     listeningBadges=[
-                        badge_response(badge=badge, metrics=metrics, earned_at=owned.get(badge.key))
+                        badge_response(
+                            badge=badge,
+                            metrics=metrics,
+                            earned_at=owned.get(badge.key),
+                            holder_percentage=100 * holders.get(badge.key, 0) / total_users
+                            if total_users
+                            else 0,
+                        )
                         for badge in LISTENING_BADGES
                         if include_locked_badges or badge.key in owned
                     ],

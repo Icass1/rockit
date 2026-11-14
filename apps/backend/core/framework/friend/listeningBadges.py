@@ -66,6 +66,7 @@ def badge_response(
     badge: ListeningBadgeDefinition,
     metrics: dict[str, int],
     earned_at: datetime | None = None,
+    holder_percentage: float | None = None,
 ) -> ListeningBadgeResponse:
     """Reveal a secret's objective only after its persisted unlock."""
     hidden = badge.secret and earned_at is None
@@ -82,6 +83,7 @@ def badge_response(
         current=0 if hidden else metrics[badge.metric or badge.scope],
         visualVariant=badge.visual_variant,
         earnedAt=earned_at,
+        holderPercentage=holder_percentage,
     )
 
 

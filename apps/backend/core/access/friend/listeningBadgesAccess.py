@@ -5,11 +5,39 @@ from sqlalchemy.dialects.postgresql import JSONB, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.friend.listeningBadge import ListeningBadgeRow
+from core.access.db.ormModels.user import UserRow
 from core.utils.safeAsyncCall import safe_async
 from result import Result, ResultCode
 
 
 class ListeningBadgesAccess:
+    @staticmethod
+    @safe_async
+    async def get_population_async(
+        session: AsyncSession,
+    ) -> Result[tuple[int, dict[str, int]]]:
+        """Count registered users and distinct award holders in one consistent snapshot."""
+        population = select(func.count(UserRow.id).label("total")).cte("emblem_population")
+        awards = (
+            select(
+                ListeningBadgeRow.badge_key,
+                func.count(func.distinct(ListeningBadgeRow.user_id)).label("holders"),
+            )
+            .join(UserRow, UserRow.id == ListeningBadgeRow.user_id)
+            .group_by(ListeningBadgeRow.badge_key)
+            .cte("emblem_holders")
+        )
+        rows = (
+            await session.execute(
+                select(population.c.total, awards.c.badge_key, awards.c.holders).select_from(
+                    population.outerjoin(awards, true())
+                )
+            )
+        ).all()
+        total = int(rows[0].total) if rows else 0
+        holders = {row.badge_key: int(row.holders) for row in rows if row.badge_key is not None}
+        return Result(code=ResultCode.OK, message="OK", result=(total, holders))
+
     @staticmethod
     @safe_async
     async def award_async(

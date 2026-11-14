@@ -103,6 +103,23 @@ Generate the checked-in document with `pnpm build:medal-embed` after changing th
 renderer; `pnpm check:medal-embed` in frontend CI checks it byte for byte. The
 asset cache stores only static code, never user data.
 
+## Compact detail and rarity
+
+A two-icon overlay on the stage flips between front/reverse and resets the view.
+Both controls retain localized accessible names and full touch targets. Gesture
+instructions remain available as a hidden accessible description on web and a
+native accessibility hint, without a visible instruction/button-text block.
+The footer contains the editorial name with Roman tier, one short objective
+story, and a compact league/date-or-progress/rarity row. It does not repeat the
+family name. Family names/stories share one vocabulary-driven helper across the
+collection and detail hosts; secret objectives keep their server redaction.
+
+Use the server’s `holderPercentage`, formatted to exactly two decimals in the
+current locale. Missing rarity stays hidden rather than becoming a false zero;
+zero holders renders zero. The people icon has a localized screen-reader label
+explaining that this is the proportion of all registered RockIt users. See the
+backend collection guide for snapshot and population semantics.
+
 ## Rendering budget and verification
 
 Rendering happens only on interaction, resizing and returning to a visible page.

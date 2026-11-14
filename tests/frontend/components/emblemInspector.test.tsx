@@ -43,6 +43,14 @@ it("releases the renderer on close and unmount, while forwarding explicit orient
     const view = show();
     fireEvent.click(await screen.findByRole("button", { name: "Reverse" }));
     expect(viewer.back).toHaveBeenCalledOnce();
+    expect(
+        screen.getByTestId("medal-controls").querySelectorAll("[role=button]")
+    ).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Front" }).textContent).toBe("");
+    fireEvent.click(screen.getByRole("button", { name: "Front" }));
+    expect(viewer.front).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "Reset view" }));
+    expect(viewer.front).toHaveBeenCalledTimes(2);
     fireEvent.keyDown(screen.getByTestId("medal-stage"), { key: "ArrowLeft" });
     expect(viewer.rotate).toHaveBeenCalledWith(-0.15, 0);
     fireEvent.click(screen.getByRole("button", { name: "Close 3D view" }));

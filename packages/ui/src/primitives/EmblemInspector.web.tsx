@@ -167,9 +167,9 @@ export function EmblemInspector({
                             : v.MEDAL_3D_UNAVAILABLE}
                     </div>
                 )}
-            </div>
-            <div id={instructionsId}>
+
                 <MedalControls
+                    key={attempt}
                     ready={status === "ready"}
                     vocabulary={v}
                     onFront={() => viewer.current?.front()}
@@ -185,6 +185,10 @@ export function EmblemInspector({
                     }
                 />
             </div>
+
+            <span id={instructionsId} hidden>
+                {v.MEDAL_3D_HINT}
+            </span>
             {!fill && (
                 <button
                     style={buttonStyle}

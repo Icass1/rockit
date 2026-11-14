@@ -86,6 +86,7 @@ function ProfileModal({
                         accessibilityViewIsModal
                     >
                         <MedalDetail
+                            locale={lang}
                             badge={medal.badge}
                             ownerName={medal.ownerName}
                             vocabulary={v}

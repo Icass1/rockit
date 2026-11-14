@@ -27,7 +27,7 @@ export async function verifyEmblemCollection(
         profile.getByTestId("profile-emblems").getByRole("button")
     ).toHaveCount(1);
     await expect(profile.getByTestId("profile-emblem-detail")).toContainText(
-        "calendar year"
+        "RockIt story"
     );
     await profile.getByRole("button", { name: "Diamond", exact: true }).click();
     await expect(

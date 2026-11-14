@@ -191,6 +191,7 @@ function NativeViewer({
                                 backgroundColor: theme.colors["medal-stage"],
                             }}
                             accessibilityLabel={v.MEDAL_3D_LABEL}
+                            accessibilityHint={v.MEDAL_3D_TOUCH_HINT}
                             originWhitelist={["*"]}
                             onShouldStartLoadWithRequest={(request) =>
                                 request.url === "about:blank" ||
@@ -272,23 +273,24 @@ function NativeViewer({
                         </Text>
                     </View>
                 )}
+                <MedalControls
+                    key={attempt}
+                    ready={status === "ready"}
+                    vocabulary={v}
+                    onFront={() => send({ type: "front" })}
+                    onBack={() => send({ type: "back" })}
+                    onReset={() => send({ type: "reset" })}
+                    onRetry={
+                        status === "unavailable"
+                            ? () => {
+                                  setStatus("loading");
+                                  setSource(null);
+                                  setAttempt((n) => n + 1);
+                              }
+                            : undefined
+                    }
+                />
             </View>
-            <MedalControls
-                ready={status === "ready"}
-                vocabulary={v}
-                onFront={() => send({ type: "front" })}
-                onBack={() => send({ type: "back" })}
-                onReset={() => send({ type: "reset" })}
-                onRetry={
-                    status === "unavailable"
-                        ? () => {
-                              setStatus("loading");
-                              setSource(null);
-                              setAttempt((n) => n + 1);
-                          }
-                        : undefined
-                }
-            />
         </View>
     );
 }

@@ -493,3 +493,32 @@ checks exclude the other app/platform. Strict frontend/test types, application
 lint, formatting, generated-theme and boundary checks pass. Captures use fixture
 profiles. Physical WKWebView/Android gestures, GPU performance and native binary
 installation remain device acceptance; exports and Chromium do not prove them.
+
+### Compact medal stories, overlay controls and measured rarity — PR 212
+
+Replace the visible instruction line and three text buttons with a two-icon stage
+overlay: flip to the opposite face and reset. Preserve accessible labels, keyboard
+instructions, touch targets and gesture isolation. Reduce the footer to a name,
+one restrained story and a league/date-or-progress/rarity row. Share editorial
+names and stories for all 64 families in EN/ES/FR across collection/detail hosts,
+with Roman tiers and original secret redaction. Award keys, goals and dates stay
+unchanged.
+
+Add holderPercentage to the generated badge contract. After award synchronization,
+one global SQL aggregate counts all registered users and distinct persisted award
+holders in a consistent snapshot, including zero holders. Project percentages
+without per-user/per-medal queries or additional API calls; do not expose holder
+identities. Format exactly two decimal places in the selected language. Unknown
+rarity stays hidden; errors propagate instead of producing fabricated zeros.
+
+Validation: 763 backend tests and 43 subtests pass; 14 optional persistence cases
+skip without services. Five new rarity contracts cover the SQL snapshot, empty
+population, users without awards, batch size and synchronization order. Eleven
+focused portable/DOM tests and two native control flows pass, along with all
+strict frontend/test types, Ruff/Pyright, application lint, formatting, theme and
+boundary checks. Twelve production Chromium flows cover the compact controls,
+profile/recap regressions, six designs, context loss, touch/pinch isolation and
+phone/tablet/landscape bounds. Both production web builds and iOS/Android Hermes
+exports pass; the offline renderer is regenerated for the new contract. Captures
+use fixture users and percentages. Physical native GPU/gesture acceptance and live
+PostgreSQL persistence remain separate.

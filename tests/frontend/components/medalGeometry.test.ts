@@ -4,8 +4,15 @@ import {
     createMedalGem,
     createMedalInlay,
 } from "@rockit/ui/browser/medalGeometry.web";
-import { emblemFamilyMarks } from "@rockit/ui/headless/emblemFamilies";
-import { medalDesign, medalLeagues } from "@rockit/ui/headless/medalShapes";
+import {
+    emblemFamilyMarks,
+    emblemFamilyPlacement,
+} from "@rockit/ui/headless/emblemFamilies";
+import {
+    medalDesign,
+    medalGemVertices,
+    medalLeagues,
+} from "@rockit/ui/headless/medalShapes";
 import { expect, it } from "vitest";
 
 function inspectSolid(geometry: ReturnType<typeof createMedalGem>) {
@@ -111,7 +118,45 @@ it.each(Object.keys(emblemFamilyMarks))(
                 const facets = triangles(crown).filter(
                     ([a, b, c]) => crossXY(a, b, c) > 1e-10
                 );
-                expect(projectedArea(relief)).toBeCloseTo(area, 6);
+                const scale =
+                    emblemFamilyPlacement(league).scale /
+                    emblemFamilyPlacement("bronze").scale;
+                expect(projectedArea(relief)).toBeCloseTo(
+                    area * scale * scale,
+                    6
+                );
+                if (league === "diamond" || league === "legend") {
+                    const design = medalDesign(league),
+                        tableScale = 0.91 * design.scales.at(-1)!,
+                        table = medalGemVertices(league).map(([x, y]) => ({
+                            x: ((x - 40) * tableScale) / 36,
+                            y: ((40 - y) * tableScale) / 36,
+                        }));
+                    relief.computeBoundingBox();
+                    expect(relief.boundingBox!.min.z).toBeCloseTo(
+                        design.depths.at(-1)! + 0.002,
+                        6
+                    );
+                    expect(relief.boundingBox!.max.z).toBeCloseTo(
+                        design.depths.at(-1)! + 0.016,
+                        6
+                    );
+                    const p = relief.getAttribute("position");
+                    for (let i = 0; i < p.count; i++) {
+                        const point = { x: p.getX(i), y: p.getY(i) };
+                        for (let j = 0; j < table.length; j++) {
+                            const a = table[j],
+                                b = table[(j + 1) % table.length];
+                            const clearance =
+                                -crossXY(a, b, point) /
+                                Math.hypot(b.x - a.x, b.y - a.y);
+                            expect(
+                                clearance,
+                                `${league}/${variant}`
+                            ).toBeGreaterThan(0.75 / 36);
+                        }
+                    }
+                }
                 expect(relief.groups[1].count).toBeGreaterThan(0);
                 expect(relief.getAttribute("position").count / 3).toBeLessThan(
                     2500

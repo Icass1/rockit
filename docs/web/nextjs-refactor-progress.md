@@ -422,3 +422,19 @@ Touch/DPR-3 review measures at most 37 calls, fewer than 16,000 triangles, five
 textures and one canvas at the 1.5 cap for the measured flower mark. These are
 resource counts, not physical iPhone frame-rate measurements. Live PostgreSQL
 persistence and physical iPhone/native GPU acceptance remain separate.
+
+### Contain Diamond and Legend family relief on flat gem tables — PR 212
+
+Reduce family symbols specifically on Diamond and Legend and center them within
+the usable flat face. Share the placement between native/web SVG miniatures and
+the physical browser relief. Preserve glyph proportions, gemstone cuts, materials,
+reverse engraving and the remaining league layouts.
+
+Geometry contracts cover every family on both flat tables, including thin
+sidewalls and open counters: no vertex reaches a sloped facet, with at least
+0.75 SVG units of edge clearance. Normalize projected-area checks by scale so the
+whole symbol remains present instead of being clipped. The 75 focused geometry
+and artwork tests pass, as do strict UI/web/mobile/test types, application lint
+and boundary/theme checks. Production-renderer review covers the reported
+playlist-sharing symbol, another broad video mark, and 320/390/768 px bounds.
+No API, dependency or platform-integration change is involved.

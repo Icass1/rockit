@@ -136,7 +136,7 @@ export function emblemArtwork(
     const field = design.jewel
         ? `<g transform="${transform(0.91)}"><path d="${design.gemstone}" fill="${gem}"/>${facets}<path d="${design.gemstone}" transform="${transform(design.scales.at(-1)!)}" fill="url(#gem-${id})"/></g>`
         : `<path d="${outline}" transform="${transform(0.83)}" fill="${palette.face}"/><path d="${outline}" transform="${transform(0.8)}" fill="url(#metal-${id})" fill-opacity=".55"/>`;
-    const placement = emblemFamilyPlacement;
+    const placement = emblemFamilyPlacement(design.league);
     const mark = `<g transform="translate(${placement.centerX} ${placement.centerY}) scale(${placement.scale}) translate(-16 -16)" fill-rule="evenodd"><path d="${emblemFamilyMarks[safeVariant]}" transform="translate(0 1)" fill="${palette.shadow}"/><path d="${emblemFamilyMarks[safeVariant]}" fill="${palette.highlight}"/></g>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none"><defs>
     <linearGradient id="metal-${id}" x1="10" y1="4" x2="66" y2="75" gradientUnits="userSpaceOnUse"><stop stop-color="${palette.highlight}"/><stop offset=".25" stop-color="${palette.metal}"/><stop offset=".5" stop-color="${palette.highlight}"/><stop offset=".72" stop-color="${palette.metal}"/><stop offset="1" stop-color="${palette.shadow}"/></linearGradient>

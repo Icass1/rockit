@@ -122,7 +122,7 @@ function clipFacet(polygon: THREE.Vector2[], facet: THREE.Vector3[]) {
 
 /** Physical filled relief, fitted to the existing gem facets rather than buried in glass. */
 export function createMedalInlay(variant: string, league: string) {
-    const placement = emblemFamilyPlacement,
+    const placement = emblemFamilyPlacement(league),
         toWorld = (p: THREE.Vector2) =>
             new THREE.Vector2(
                 ((p.x - 16) * placement.scale + placement.centerX - 40) / 36,

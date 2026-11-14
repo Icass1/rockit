@@ -46,8 +46,10 @@ fallback and native SVG adapters all pass the scope through.
 
 `createMedalInlay` extrudes the filled symbol with real top faces, counter walls
 and thin side walls. It clips the symbol against existing crown facets and follows
-their surface height. This keeps the full mark visible above Gold, Platinum,
-Diamond and Legend without enlarging a gem's table or replacing its cut. Tops are
+their surface height. This keeps the full mark visible above the gemstone without enlarging its table
+or replacing its cut. Diamond and Legend use smaller league-specific placements
+so their complete family relief stays on the flat table, with clearance from the
+sloped facets. Gold and Platinum retain their existing surface-following placement. Tops are
 0.016 world units above the surface, with a 0.014-unit metal thickness. Metal is
 drawn after the glass transmission capture so its silhouette does not create
 repeated refraction ghosts inside the gem. The reverse is unchanged.

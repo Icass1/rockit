@@ -46,7 +46,6 @@ function RootNavigator() {
                 <Stack.Screen name="(app)" />
                 <Stack.Screen name="(auth)" />
                 <Stack.Screen name="logs" />
-                <Stack.Screen name="storage" />
             </Stack>
         </GestureHandlerRootView>
     );

@@ -576,7 +576,13 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             menuOnly: !!menuOnly,
         });
         if (!isSearchResult(media)) {
-            show(buildMainMenu(media));
+            show({
+                ...buildMainMenu(media),
+                collectionId:
+                    !isSearchResult(media) && isList(media)
+                        ? media.publicId
+                        : undefined,
+            });
         }
     }, [media, menuOnly, show, buildMainMenu]);
 
@@ -594,7 +600,13 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
         if (onPress) {
             onPress();
         } else if (menuOnly || isSearchResult(media)) {
-            show(buildMainMenu(media));
+            show({
+                ...buildMainMenu(media),
+                collectionId:
+                    !isSearchResult(media) && isList(media)
+                        ? media.publicId
+                        : undefined,
+            });
         } else if (isPlayable(media)) {
             if (listPublicId)
                 void rockIt.queueManager.playCollection(

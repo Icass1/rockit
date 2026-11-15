@@ -8,6 +8,12 @@ export function useDocumentTheme(
     bottomBackground: string
 ): void {
     useEffect(() => {
+        if (!document.getElementById("rockit-touch-selection")) {
+            const style = document.createElement("style");
+            style.id = "rockit-touch-selection";
+            style.textContent = `body *:not(input):not(textarea):not([contenteditable="true"]) { -webkit-user-select:none !important; user-select:none !important; -webkit-touch-callout:none; } input,textarea,[contenteditable="true"],[contenteditable="true"] * { -webkit-user-select:text !important; user-select:text !important; -webkit-touch-callout:default; } img { -webkit-user-drag:none; }`;
+            document.head.appendChild(style);
+        }
         document.documentElement.style.backgroundColor = bottomBackground;
         document.documentElement.style.colorScheme = mode;
         document.body.style.backgroundColor = bottomBackground;

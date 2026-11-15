@@ -2364,4 +2364,6 @@ export interface Vocabulary {
     NAV_ADMIN: string;
     STATS_MINUTES_COUNT_ONE: string;
     STATS_MINUTES_COUNT_OTHER: string;
+    COLLECTION_LIKE_ALL: string;
+    COLLECTION_UNLIKE_ALL: string;
 }

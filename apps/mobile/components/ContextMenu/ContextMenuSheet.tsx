@@ -3,6 +3,7 @@ import { ArrowLeft, ChevronRight } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { ContextMenuConfig } from "@/lib/ContextMenuContext";
+import CollectionLikeAction from "@/components/ContextMenu/CollectionLikeAction";
 
 export function ContextMenuSheetContent({
     config,
@@ -34,16 +35,23 @@ export function ContextMenuSheetContent({
                 ) : (
                     <View style={[styles.image, styles.imagePlaceholder]} />
                 )}
-                <Text style={styles.title} numberOfLines={2}>
+                <Text selectable={false} style={styles.title} numberOfLines={2}>
                     {config.title}
                 </Text>
                 {config.subtitle && (
-                    <Text style={styles.subtitle} numberOfLines={1}>
+                    <Text
+                        selectable={false}
+                        style={styles.subtitle}
+                        numberOfLines={1}
+                    >
                         {config.subtitle}
                     </Text>
                 )}
             </View>
             <View style={styles.separator} />
+            {config.collectionId && (
+                <CollectionLikeAction publicId={config.collectionId} />
+            )}
             {config.options.map((option, index) => (
                 <Pressable
                     key={`${option.label}-${index}`}

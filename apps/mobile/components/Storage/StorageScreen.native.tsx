@@ -113,7 +113,7 @@ export default function StorageScreen() {
     const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
-    const { top: safeTop, bottom: safeBottom } = useSafeAreaInsets();
+    const { bottom: safeBottom } = useSafeAreaInsets();
     const [history, setHistory] = useState<string[]>([Paths.document.uri]);
     const [entries, setEntries] = useState<Entry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -212,7 +212,23 @@ export default function StorageScreen() {
     }, [entries, searchQuery]);
 
     return (
-        <View style={[styles.container, { paddingTop: safeTop }]}>
+        <View
+            style={[
+                styles.container,
+                { paddingTop: theme.layout.mobileContentTop },
+            ]}
+        >
+            <Text
+                style={{
+                    color: theme.colors.foreground,
+                    fontSize: theme.typography.heading,
+                    fontWeight: "700",
+                    paddingHorizontal: theme.spacing.lg,
+                    paddingBottom: theme.spacing.md,
+                }}
+            >
+                {vocabulary.MOBILE_STORAGE_BROWSER}
+            </Text>
             <View style={styles.header}>
                 <Pressable
                     onPress={goBack}

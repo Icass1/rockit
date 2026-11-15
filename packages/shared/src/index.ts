@@ -153,3 +153,8 @@ export type {
     AnnualRecap,
     AnnualRecapSlide,
 } from "@/models/interfaces/annualRecap";
+
+export {
+    getCollectionSongIds,
+    setCollectionSongsLiked,
+} from "@/utils/collectionLikes";

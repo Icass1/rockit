@@ -52,7 +52,7 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
             ? "library"
             : route === "radio"
               ? "search"
-              : route === "stats"
+              : route === "stats" || route === "storage"
                 ? "settings"
                 : route;
 
@@ -298,6 +298,7 @@ function AppLayoutInner({
                         name="friends"
                         options={{ title: vocabulary.FRIENDS }}
                     />
+                    <Tabs.Screen name="storage" options={{ href: null }} />
                     <Tabs.Screen
                         name="settings"
                         options={{

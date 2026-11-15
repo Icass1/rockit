@@ -55,7 +55,17 @@ export async function inspectPlayerAppearance(
             .click();
     const like = page.getByRole("button", { name: "Like", exact: true }).last();
     await expect(like).toBeVisible();
+    const gesture = page.getByTestId("rockit-like-hand").last();
+    const transform = () =>
+        gesture.evaluate((element) => {
+            const matrix = new DOMMatrixReadOnly(
+                getComputedStyle(element).transform
+            );
+            return { x: matrix.m41, y: matrix.m42, rotation: matrix.m12 };
+        });
     await like.click();
+    await expect.poll(async () => (await transform()).y).toBeLessThan(-0.5);
+    expect(Math.abs((await transform()).rotation)).toBeLessThan(0.001);
     await expect(
         page.getByRole("button", { name: "Unlike", exact: true }).last()
     ).toHaveAttribute("aria-pressed", "true");
@@ -85,4 +95,14 @@ export async function inspectPlayerAppearance(
         page.getByRole("button", { name: "Like", exact: true }).last()
     ).toHaveAttribute("aria-pressed", "false");
     await expect(hand).toHaveAttribute("fill", "none");
+    await expect
+        .poll(async () => (await transform()).x, { intervals: [16] })
+        .toBeGreaterThan(0.3);
+    await expect
+        .poll(async () => (await transform()).x, { intervals: [16] })
+        .toBeLessThan(-0.3);
+    await expect
+        .poll(async () => await transform())
+        .toEqual({ x: 0, y: 0, rotation: 0 });
+    await expect(fire).toHaveCSS("opacity", "0");
 }

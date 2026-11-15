@@ -664,3 +664,12 @@ web/PWA compilation. No local regression suite was run for these follow-ups, as
 requested; PR CI remains the release gate. Manual browser review confirms one stats request, an adjustable range input,
 storage shell/content and collection label changes with stateful fixture responses.
 Physical iOS/Android checks remain unavailable in this environment.
+
+### PWA viewport geometry after device feedback
+
+The device confirms that the gray background reaches the bottom, but navigation
+still sits above excessive empty space. Size the exported document and React
+root with supported dynamic viewport units, retaining the 100% fallback and
+single safe-area inset. No native layout, navigation row height or guessed
+status-bar compensation is changed. Verify geometry with a shortened ancestor
+height in a browser; actual installed-iPhone positioning remains acceptance.

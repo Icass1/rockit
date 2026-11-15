@@ -282,8 +282,8 @@ export function RockitLikeButton({
                 {liked ? (
                     <RockitHandSolid
                         size={theme.typography.title}
-                        strokeWidth={0}
-                        color={theme.colors["on-media"]}
+                        strokeWidth={1.35}
+                        color={theme.colors.backdrop}
                         fill={theme.colors["on-media"]}
                     />
                 ) : (

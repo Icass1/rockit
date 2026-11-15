@@ -593,3 +593,26 @@ Production desktop and PWA builds succeed; the PWA maps 3,769 modules without
 other-platform imports. iOS/Android Hermes exports validate the native adapters;
 physical device animation smoothness remains device acceptance. Captures use
 fixture media and users. All labels reuse existing EN/ES/FR vocabulary.
+
+### Installed iOS PWA bottom surface and outlined likes
+
+Correct the document underlay as well as the navigation inset: app routes paint
+html/body and browser theme color with the footer surface, while the React root
+keeps the content background. Set the same gray before JavaScript starts and
+request a non-translucent Apple status bar to avoid the reported standalone
+viewport offset. Preserve the single safe-area inset and native geometry. Keep
+normal service-worker activation without interrupting playback. See
+`docs/frontend/ios-pwa-safe-area.md` for the evidence and device acceptance gap.
+
+Give the shared selected hand a black contour around its closed white fill;
+preserve the finite layered fire, controlled like state, reduced motion and
+presence behavior. No user-facing copy, vocabulary keys or API contracts change.
+
+Validation: strict application/UI/test types and application lint pass. Production
+desktop and PWA builds pass, including the 3,769-module platform-isolation check.
+Seven production Chromium flows cover desktop/mobile likes and presence, vinyl,
+the existing 34 px inset, initial document colors with scripts blocked, and a
+modeled region outside React followed by reload and rotation. These checks do
+not verify the OS-owned area of a physical installed iPhone PWA; that remains
+device acceptance. All 161 portable/frontend tests, 23 native tests and 26 web
+Node test files pass. Vocabulary, theme, renderer and boundary checks also pass.

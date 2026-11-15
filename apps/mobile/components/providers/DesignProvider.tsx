@@ -8,6 +8,7 @@ import {
 } from "@react-navigation/native";
 import { getTheme, resolveTheme } from "@rockit/theme";
 import { DesignThemeProvider } from "@rockit/ui";
+import { useSegments } from "expo-router";
 import { useColorScheme } from "react-native";
 import { userManager } from "@/lib/managers/userManager";
 
@@ -19,7 +20,12 @@ export function DesignProvider({ children }: { children: ReactNode }) {
         system === "light" ? "light" : "dark"
     );
     const colors = getTheme(mode);
-    useDocumentTheme(mode, colors.background);
+    const segments = useSegments();
+    useDocumentTheme(
+        mode,
+        colors.background,
+        segments[0] === "(app)" ? colors.secondary : colors.background
+    );
     const navigation = {
         ...(mode === "light" ? DefaultTheme : DarkTheme),
         colors: {

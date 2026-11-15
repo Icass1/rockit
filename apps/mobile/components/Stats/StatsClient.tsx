@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
     formatStatsRange as getRangeLabel,
     statsDateBoundary,
@@ -7,10 +7,10 @@ import {
 } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import type { DateInputEvent } from "@/models/interfaces/dateInput";
 import { Http } from "@/lib/http";
-import useFetch from "@/lib/useFetch";
 import { useVocabulary } from "@/lib/vocabulary";
 import InsightsPanel from "@/components/Stats/InsightsPanel";
 import UserStats from "@/components/Stats/UserStats";
@@ -39,29 +39,45 @@ export default function StatsClient() {
     const [tempStartDate, setTempStartDate] = useState(new Date());
     const [tempEndDate, setTempEndDate] = useState(new Date());
 
-    const { data, error, loading, update } = useFetch(() =>
-        Http.getUserStats({
-            range: range,
-            start:
-                range === "custom" && customStart
-                    ? statsDateBoundary(customStart, "start")
-                    : null,
-            end:
-                range === "custom" && customEnd
-                    ? statsDateBoundary(customEnd, "end")
-                    : null,
-            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
-        })
+    const filter = {
+        range,
+        start:
+            range === "custom" && customStart
+                ? statsDateBoundary(customStart, "start")
+                : null,
+        end:
+            range === "custom" && customEnd
+                ? statsDateBoundary(customEnd, "end")
+                : null,
+        timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+    };
+    const {
+        data,
+        error,
+        loading,
+        refresh: update,
+    } = useAsyncResource(
+        async () => {
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            try {
+                const response = await Promise.race([
+                    Http.getUserStats(filter),
+                    new Promise<never>((_, reject) => {
+                        timer = setTimeout(
+                            () => reject(new Error(vocabulary.ERROR)),
+                            30000
+                        );
+                    }),
+                ]);
+                if (!response.isOk()) throw new Error(response.message);
+                return response.result;
+            } finally {
+                clearTimeout(timer);
+            }
+        },
+        JSON.stringify(filter),
+        range !== "custom" || !!(customStart && customEnd)
     );
-
-    const updateRef = useRef(update);
-    useEffect(() => {
-        updateRef.current = update;
-    }, [update]);
-
-    useEffect(() => {
-        updateRef.current();
-    }, [range, customStart, customEnd]);
 
     function formatDateForDisplay(dateStr: Date | undefined): string {
         if (!dateStr) return vocabulary.MOBILE_DATE_FROM;
@@ -228,6 +244,12 @@ export default function StatsClient() {
                     <Text style={styles.errorText}>
                         {vocabulary.MOBILE_STATS_ERROR}
                     </Text>
+                    <Pressable
+                        accessibilityRole="button"
+                        onPress={() => void update()}
+                    >
+                        <Text style={styles.errorText}>{vocabulary.RETRY}</Text>
+                    </Pressable>
                 </View>
             )}
             {data && (

@@ -31,7 +31,9 @@ export class MediaManager {
         const current = this._likedMediaAtom.get();
         const isLiked = current.includes(publicId);
 
-        const res = await Http.likeMediaAsync({ publicIds: [publicId] });
+        const res = isLiked
+            ? await Http.unlikeMedia(publicId)
+            : await Http.likeMediaAsync({ publicIds: [publicId] });
 
         if (res.isOk()) {
             this._likedMediaAtom.set(

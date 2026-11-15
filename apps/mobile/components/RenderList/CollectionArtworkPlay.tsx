@@ -9,9 +9,11 @@ import { useVocabulary } from "@/lib/vocabulary";
 export default function CollectionArtworkPlay({
     children,
     onPlay,
+    onLongPress,
 }: {
     children: ReactNode;
     onPlay: () => void;
+    onLongPress?: () => void;
 }) {
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
@@ -35,6 +37,10 @@ export default function CollectionArtworkPlay({
             accessibilityLabel={vocabulary.PLAY}
             accessibilityState={{ expanded: armed }}
             onBlur={reset}
+            onLongPress={() => {
+                reset();
+                onLongPress?.();
+            }}
             onPress={() => {
                 if (armedRef.current) {
                     reset();

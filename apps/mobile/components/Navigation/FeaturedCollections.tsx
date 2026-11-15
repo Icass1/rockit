@@ -80,6 +80,11 @@ export default function FeaturedCollections() {
                             onLongPress={() =>
                                 menu.show({
                                     title: name,
+                                    collectionId: key
+                                        ? `featured:${key}`
+                                        : pin?.type !== "artist"
+                                          ? pin?.publicId
+                                          : undefined,
                                     options: [
                                         {
                                             label: pin

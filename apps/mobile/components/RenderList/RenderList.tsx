@@ -11,9 +11,11 @@ import {
     useThemedStyles,
     type DesignTheme,
 } from "@rockit/ui";
+import { MoreHorizontal, Play } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayerServices } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import CollectionArtworkPlay from "@/components/RenderList/CollectionArtworkPlay";
@@ -57,6 +59,25 @@ export default memo(function RenderList({
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
+    const menu = useContextMenu();
+    const showMenu = () =>
+        menu.show({
+            title,
+            imageUrl,
+            collectionId: pager.publicId,
+            options: [
+                {
+                    label: vocabulary.PLAY,
+                    icon: Play,
+                    onPress: () => {
+                        menu.hide();
+                        void services.queueManager.playCollection(
+                            pager.publicId
+                        );
+                    },
+                },
+            ],
+        });
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
@@ -76,6 +97,7 @@ export default memo(function RenderList({
                             />
                             <CollectionArtworkPlay
                                 key={pager.publicId}
+                                onLongPress={showMenu}
                                 onPlay={() =>
                                     void services.queueManager.playCollection(
                                         pager.publicId
@@ -100,6 +122,16 @@ export default memo(function RenderList({
                                     />
                                 )}
                             </CollectionArtworkPlay>
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={vocabulary.MORE_OPTIONS}
+                                onPress={showMenu}
+                                style={{ padding: theme.spacing.md }}
+                            >
+                                <MoreHorizontal
+                                    color={theme.colors.foreground}
+                                />
+                            </Pressable>
                             <View style={styles.titleContainer}>
                                 <Text style={styles.title} numberOfLines={5}>
                                     {title}

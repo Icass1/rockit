@@ -29,15 +29,20 @@ export function RockitLikeButton({
     const previous = useRef(liked);
     const motion = useMotionEnvironment();
     const [tilt] = useState(() => new Animated.Value(0));
+    const [hop] = useState(() => new Animated.Value(0));
+    const handSize = 28;
+    const artworkScale = handSize / 26;
     const [flame] = useState(() => new Animated.Value(0));
     const [flicker] = useState(() => new Animated.Value(0));
     useEffect(() => {
         const changed = previous.current !== liked;
         previous.current = liked;
         tilt.stopAnimation();
+        hop.stopAnimation();
         flame.stopAnimation();
         flicker.stopAnimation();
         tilt.setValue(0);
+        hop.setValue(0);
         flame.setValue(0);
         flicker.setValue(0);
         if (!changed || !motion) return;
@@ -51,12 +56,22 @@ export function RockitLikeButton({
                 duration,
                 useNativeDriver: nativeAnimations,
                 isInteraction: false,
+                easing: Easing.inOut(Easing.sin),
             });
-        const hand = Animated.sequence([
-            timing(tilt, -1, theme.motion.fast),
-            timing(tilt, 0.65, theme.motion.fast),
-            timing(tilt, 0, theme.motion.normal),
-        ]);
+        const hand = liked
+            ? Animated.sequence(
+                  Array.from({ length: 3 }, () => [
+                      timing(hop, 1, 250),
+                      timing(hop, 0, 250),
+                  ]).flat()
+              )
+            : Animated.sequence([
+                  timing(tilt, 1, 87.5),
+                  timing(tilt, -1, 175),
+                  timing(tilt, 1, 175),
+                  timing(tilt, -0.5, 175),
+                  timing(tilt, 0, 87.5),
+              ]);
         const shimmer = Animated.loop(
             Animated.timing(flicker, {
                 toValue: 1,
@@ -87,18 +102,11 @@ export function RockitLikeButton({
             fire?.stop();
             shimmer.stop();
             tilt.stopAnimation();
+            hop.stopAnimation();
             flame.stopAnimation();
             flicker.stopAnimation();
         };
-    }, [
-        liked,
-        motion,
-        tilt,
-        flame,
-        flicker,
-        theme.motion.fast,
-        theme.motion.normal,
-    ]);
+    }, [liked, motion, tilt, hop, flame, flicker, theme.motion.normal]);
     return (
         <Pressable
             accessibilityRole="button"
@@ -127,21 +135,19 @@ export function RockitLikeButton({
                     width: 60,
                     height: 68,
                     left: (theme.layout.touchTarget - 60) / 2,
-                    bottom: 0,
+                    top: theme.layout.touchTarget / 2 + 14 * artworkScale - 68,
                     opacity: flame,
                     transform: [
-                        {
-                            translateY: flame.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [8, -2],
-                            }),
-                        },
+                        { translateY: 34 },
+                        { scaleX: 0.66 * artworkScale },
+                        { scaleY: 0.88 * artworkScale },
                         {
                             scale: flame.interpolate({
                                 inputRange: [0, 1],
                                 outputRange: [0.5, 1],
                             }),
                         },
+                        { translateY: -34 },
                     ],
                 }}
             >
@@ -266,14 +272,27 @@ export function RockitLikeButton({
                     borderRadius: 16,
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: liked
-                        ? withAlpha(theme.colors.backdrop, 0.16)
-                        : "transparent",
                     transform: [
+                        {
+                            translateY: hop.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, -handSize * 0.07],
+                            }),
+                        },
+                        {
+                            translateX: tilt.interpolate({
+                                inputRange: [-1, 0, 1],
+                                outputRange: [
+                                    -handSize * 0.05,
+                                    0,
+                                    handSize * 0.05,
+                                ],
+                            }),
+                        },
                         {
                             rotate: tilt.interpolate({
                                 inputRange: [-1, 0, 1],
-                                outputRange: ["-18deg", "0deg", "18deg"],
+                                outputRange: ["-5.16deg", "0deg", "5.16deg"],
                             }),
                         },
                     ],
@@ -281,14 +300,14 @@ export function RockitLikeButton({
             >
                 {liked ? (
                     <RockitHandSolid
-                        size={theme.typography.title}
-                        strokeWidth={1.35}
+                        size={handSize}
+                        strokeWidth={2}
                         color={theme.colors.backdrop}
                         fill={theme.colors["on-media"]}
                     />
                 ) : (
                     <HandMetal
-                        size={theme.typography.title}
+                        size={handSize}
                         color={theme.colors["muted-foreground"]}
                         fill="none"
                     />

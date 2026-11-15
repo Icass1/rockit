@@ -616,3 +616,51 @@ modeled region outside React followed by reload and rotation. These checks do
 not verify the OS-owned area of a physical installed iPhone PWA; that remains
 device acceptance. All 161 portable/frontend tests, 23 native tests and 26 web
 Node test files pass. Vocabulary, theme, renderer and boundary checks also pass.
+
+### Integrate the approved shared like gestures
+
+Keep one RockitLikeButton for desktop, the installed PWA and native mobile.
+Match the approved 28 px white hand with a black outline and the narrower fire
+(66% width, 88% height), anchored behind the hand near the flame base. Three
+small vertical hops accompany the 1.5 s fire burst on like. Unlike uses two
+subtle lateral sways over 700 ms and no fire. Keep the application burst finite,
+reset motion on interruption, and stop animations on unmount, backgrounding or
+reduced motion. Preserve controlled/disabled actions and vocabulary labels.
+
+Validation: shared like component and native appearance contracts pass, along
+with strict UI/application/browser-test types and application lint. Production
+desktop/PWA builds and both production browser flows pass, including actual
+vertical like motion, both unlike directions and final rest without fire. No
+physical iOS/Android device is available for animation smoothness acceptance.
+
+### Collection favorites and mobile settings follow-ups
+
+Add shared collection-song traversal and like state for desktop/mobile menus.
+Read every page and nested collection once, deduplicate songs and show unlike-all
+only when every song is liked. Filter already-liked IDs before the add POST;
+use bounded DELETE batches for unlike. Keep actions running when the menu closes,
+stop further account mutations on session change, and refresh liked state after
+completion or partial failure. Load menu membership only while the menu is open.
+Fix individual unlike persistence in both managers by using DELETE rather than
+calling the add-only POST while changing only the client-side liked state.
+Expose the action on albums/playlists, featured Library shelves and collection
+artwork (long press plus a visible options button). Suppress browser text/image
+callouts on music surfaces while preserving text input selection.
+
+Load mobile statistics once per filter key instead of twice on initial mount.
+Ignore stale responses and replace an indefinite wait with a 30-second error/retry
+state. Give PWA transitions an actual range input and full-width layout, with
+immediate local updates and persisted values. Native keeps its platform slider
+and existing transition capability policy.
+
+Move /storage into the authenticated app shell without changing its URL. Restore
+Rockit header/navigation/player, add an offline catalog hero, count/size summary,
+search and cards, and give the native directory browser the same page spacing.
+Add both collection action labels to Vocabulary.xlsx in EN/ES/FR and regenerate
+runtime vocabulary/type artifacts while preserving existing formula caches.
+
+Validation: strict app/UI types, lint, vocabulary and boundary checks and production
+web/PWA compilation. No local regression suite was run for these follow-ups, as
+requested; PR CI remains the release gate. Manual browser review confirms one stats request, an adjustable range input,
+storage shell/content and collection label changes with stateful fixture responses.
+Physical iOS/Android checks remain unavailable in this environment.

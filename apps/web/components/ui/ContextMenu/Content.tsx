@@ -24,6 +24,7 @@ export default function ContextMenuContent({
     } = useContextMenu();
     return (
         <Popup
+            className="select-none"
             open={!!_contextMenuOpen}
             onClose={() => _setContextMenuOpen?.(false)}
             position={_contextMenuPos}

@@ -7,6 +7,7 @@ import {
     EMediaContextAction,
     EMediaContextLocation,
     getMediaSubtitle,
+    isList,
     isSearchResult,
     TMediaWithSearch,
     type BaseSearchResultsItem,
@@ -18,6 +19,7 @@ import type { ActionComponentProps } from "@/components/MediaContextMenu/actions
 import AddToPlaylistAction, {
     AddToPlaylistAndDownloadAction,
 } from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
+import CollectionLikeAction from "@/components/MediaContextMenu/actions/CollectionLikeAction";
 import DeleteMediaFileAction from "@/components/MediaContextMenu/actions/DeleteAction";
 import {
     DownloadAction,
@@ -196,6 +198,9 @@ export default function MediaContextMenu({
                     title={activeMedia.name}
                     description={getMediaSubtitle(activeMedia)}
                 >
+                    {!isSearchResult(activeMedia) && isList(activeMedia) && (
+                        <CollectionLikeAction {...actionProps} />
+                    )}
                     {sources && isSearchResult(activeMedia) && (
                         <SearchSourcePicker
                             sources={sources}

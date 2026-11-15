@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Slider from "@react-native-community/slider";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { StyleSheet, Text, View } from "react-native";
@@ -7,6 +6,7 @@ import { Http } from "@/lib/http";
 import { usePlayer } from "@/lib/PlayerContext";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
+import Slider from "@/components/ui/Slider";
 
 /** Browser transitions use the shared transport; unsupported native controls are hidden. */
 export default function CrossfadeSettings() {
@@ -25,19 +25,23 @@ export default function CrossfadeSettings() {
     const handleSliderComplete = async (value: number) => {
         const seconds = Math.round(value);
         setIsSaving(true);
-        const response = await Http.updateCrossfade({ crossfade: seconds });
-
-        if (!response.isOk()) {
+        try {
+            const response = await Http.updateCrossfade({ crossfade: seconds });
+            if (!response.isOk())
+                toasterManager.notifyError(vocabulary.MOBILE_TRANSITIONS_ERROR);
+        } catch {
             toasterManager.notifyError(vocabulary.MOBILE_TRANSITIONS_ERROR);
+        } finally {
+            setIsSaving(false);
         }
-        setIsSaving(false);
     };
 
     return (
-        <View>
+        <View style={{ width: "100%" }}>
             {/* Slider for duration */}
             <View style={styles.sliderContainer}>
                 <Slider
+                    accessibilityLabel={vocabulary.AUDIO_TRANSITIONS}
                     style={styles.slider}
                     minimumValue={0}
                     maximumValue={40}

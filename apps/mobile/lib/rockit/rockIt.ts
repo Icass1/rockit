@@ -46,9 +46,10 @@ class MediaManager {
         if (!session) return;
         this.liking.add(publicId);
         try {
-            const response = await Http.likeMediaAsync({
-                publicIds: [publicId],
-            });
+            const isLiked = this.likedMediaAtom.get().includes(publicId);
+            const response = isLiked
+                ? await Http.unlikeMedia(publicId)
+                : await Http.likeMediaAsync({ publicIds: [publicId] });
             if (userManager.sessionAtom.get() !== session) return;
             if (!response.isOk()) {
                 toasterManager.notifyError(vocabularyManager.vocabulary.ERROR);

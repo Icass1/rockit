@@ -616,3 +616,19 @@ modeled region outside React followed by reload and rotation. These checks do
 not verify the OS-owned area of a physical installed iPhone PWA; that remains
 device acceptance. All 161 portable/frontend tests, 23 native tests and 26 web
 Node test files pass. Vocabulary, theme, renderer and boundary checks also pass.
+
+### Integrate the approved shared like gestures
+
+Keep one RockitLikeButton for desktop, the installed PWA and native mobile.
+Match the approved 28 px white hand with a black outline and the narrower fire
+(66% width, 88% height), anchored behind the hand near the flame base. Three
+small vertical hops accompany the 1.5 s fire burst on like. Unlike uses two
+subtle lateral sways over 700 ms and no fire. Keep the application burst finite,
+reset motion on interruption, and stop animations on unmount, backgrounding or
+reduced motion. Preserve controlled/disabled actions and vocabulary labels.
+
+Validation: shared like component and native appearance contracts pass, along
+with strict UI/application/browser-test types and application lint. Production
+desktop/PWA builds and both production browser flows pass, including actual
+vertical like motion, both unlike directions and final rest without fire. No
+physical iOS/Android device is available for animation smoothness acceptance.

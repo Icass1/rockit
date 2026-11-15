@@ -1,12 +1,16 @@
 import { useEffect } from "react";
 import type { ThemeMode } from "@rockit/theme";
 
-/** The installed WebKit status area follows the same palette as the app. */
-export function useDocumentTheme(mode: ThemeMode, background: string): void {
+/** WebKit paints outside the CSS viewport from the document, not the tab bar. */
+export function useDocumentTheme(
+    mode: ThemeMode,
+    background: string,
+    bottomBackground: string
+): void {
     useEffect(() => {
-        document.documentElement.style.backgroundColor = background;
+        document.documentElement.style.backgroundColor = bottomBackground;
         document.documentElement.style.colorScheme = mode;
-        document.body.style.backgroundColor = background;
+        document.body.style.backgroundColor = bottomBackground;
         const root = document.getElementById("root");
         if (root) root.style.backgroundColor = background;
         let meta = document.querySelector<HTMLMetaElement>(
@@ -17,6 +21,6 @@ export function useDocumentTheme(mode: ThemeMode, background: string): void {
             meta.name = "theme-color";
             document.head.appendChild(meta);
         }
-        meta.content = background;
-    }, [mode, background]);
+        meta.content = bottomBackground;
+    }, [mode, background, bottomBackground]);
 }

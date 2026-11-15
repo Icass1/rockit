@@ -37,6 +37,8 @@ it("fills the entire liked hand white in both themes without a second contour cu
             .getByTestId("rockit-like-hand")
             .querySelector("svg")!;
         expect(icon.getAttribute("fill")).toBe(getTheme("dark")["on-media"]);
+        expect(icon.getAttribute("stroke")).toBe(getTheme("dark").backdrop);
+        expect(Number(icon.getAttribute("stroke-width"))).toBeGreaterThan(0);
         const paths = icon.querySelectorAll("path");
         expect(paths).toHaveLength(1);
         expect(paths[0].getAttribute("d")?.match(/M/g)).toHaveLength(1);

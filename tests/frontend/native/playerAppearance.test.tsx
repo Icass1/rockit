@@ -10,6 +10,8 @@ it("renders the liked hand as a solid white native vector and preserves its acti
     );
     const hand = screen.getByTestId("rockit-like-hand");
     expect(hand.props.children.props.fill).toBe(getTheme("dark")["on-media"]);
+    expect(hand.props.children.props.color).toBe(getTheme("dark").backdrop);
+    expect(hand.props.children.props.strokeWidth).toBeGreaterThan(0);
     await fireEvent.press(
         screen.getByRole("button", { name: "Unlike fixture" })
     );

@@ -26,6 +26,14 @@ it("prepares an edge-to-edge installable shell with a single viewport and the fu
         );
         expect(html.match(/name="viewport"/g)).toHaveLength(1);
         expect(html).toContain("viewport-fit=cover");
+        expect(html).toContain(
+            'name="apple-mobile-web-app-status-bar-style" content="black"'
+        );
+        expect(html).not.toContain("black-translucent");
+        expect(html).toContain(
+            `html,body{background:${designTokens.themes.dark.secondary};`
+        );
+        expect(manifest.theme_color).toBe(designTokens.themes.dark.secondary);
         expect(html).toContain(designTokens.themes.dark.background);
         expect(manifest.orientation).toBe("portrait");
         expect(manifest.icons[0].sizes).toBe("512x512");

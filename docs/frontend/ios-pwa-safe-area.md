@@ -48,3 +48,13 @@ simulator is available in this execution environment.
   installed PWA's shorter visual viewport with `black-translucent`.
 - [WebKit 301994](https://bugs.webkit.org/show_bug.cgi?id=301994) records related
   standalone viewport and bottom-background behavior across iOS versions.
+
+## Viewport height follow-up
+
+The subsequent iPhone capture confirmed the gray underlay but showed navigation
+raised above an oversized gray area. Explicitly size html/body/root with 100dvh
+where supported instead of inheriting a potentially shorter percentage-height
+chain. Retain the percentage fallback and one actual safe-area bottom inset.
+This targets root geometry rather than removing the home-indicator protection
+or adding guessed pixel offsets. Device confirmation of the resulting position
+is still required.

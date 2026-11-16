@@ -61,6 +61,7 @@ export default function CollectionScreen({
     const seedSongPublicId = state.media[0]?.publicId;
     return (
         <RenderList
+            collection={collection}
             featuredKind={featuredKind}
             title={collection.name}
             imageUrl={collection.imageUrl}

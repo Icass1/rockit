@@ -12,6 +12,7 @@ import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayerServices } from "@/lib/PlayerContext";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
+import CollectionMenuTrigger from "@/components/Media/CollectionMenuTrigger";
 
 export default function NavigationAnchors() {
     const theme = useDesignTheme();
@@ -67,63 +68,72 @@ export default function NavigationAnchors() {
                           )
                         : pin.name;
                     return (
-                        <Pressable
-                            accessibilityRole="button"
-                            accessibilityLabel={name}
-                            onPress={() =>
-                                router.push(
-                                    pin.builtinKey
-                                        ? `/playlist/${pin.builtinKey}`
-                                        : pin.url
-                                )
-                            }
-                            onLongPress={() =>
-                                menu.show({
-                                    title: name,
-                                    imageUrl: pin.imageUrl ?? undefined,
-                                    options: [
-                                        {
-                                            label: vocabulary.NAV_UNPIN,
-                                            icon: PinOff,
-                                            onPress: () => {
-                                                menu.hide();
-                                                void manager.setPinnedAsync(
-                                                    pin.publicId,
-                                                    false
-                                                );
-                                            },
-                                        },
-                                    ],
-                                })
-                            }
-                            style={{
-                                width: theme.layout.artistArtwork,
-                                gap: theme.spacing.xs,
-                            }}
+                        <CollectionMenuTrigger
+                            publicId={pin.builtinKey ?? pin.publicId}
                         >
-                            {pin.builtinKey ? (
-                                <FeaturedArtwork
-                                    kind={pin.builtinKey}
-                                    label={name}
-                                />
-                            ) : (
-                                <MediaArtwork
-                                    uri={pin.imageUrl}
-                                    label={name}
-                                    size={theme.layout.artistArtwork}
-                                    round={pin.type === "artist"}
-                                />
+                            {(openCollectionMenu) => (
+                                <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={name}
+                                    onPress={() =>
+                                        router.push(
+                                            pin.builtinKey
+                                                ? `/playlist/${pin.builtinKey}`
+                                                : pin.url
+                                        )
+                                    }
+                                    onLongPress={() =>
+                                        pin.builtinKey || pin.type !== "artist"
+                                            ? openCollectionMenu()
+                                            : menu.show({
+                                                  title: name,
+                                                  imageUrl:
+                                                      pin.imageUrl ?? undefined,
+                                                  options: [
+                                                      {
+                                                          label: vocabulary.NAV_UNPIN,
+                                                          icon: PinOff,
+                                                          onPress: () => {
+                                                              menu.hide();
+                                                              void manager.setPinnedAsync(
+                                                                  pin.publicId,
+                                                                  false
+                                                              );
+                                                          },
+                                                      },
+                                                  ],
+                                              })
+                                    }
+                                    style={{
+                                        width: theme.layout.artistArtwork,
+                                        gap: theme.spacing.xs,
+                                    }}
+                                >
+                                    {pin.builtinKey ? (
+                                        <FeaturedArtwork
+                                            kind={pin.builtinKey}
+                                            label={name}
+                                        />
+                                    ) : (
+                                        <MediaArtwork
+                                            uri={pin.imageUrl}
+                                            label={name}
+                                            size={theme.layout.artistArtwork}
+                                            round={pin.type === "artist"}
+                                        />
+                                    )}
+                                    <Text
+                                        numberOfLines={1}
+                                        style={{
+                                            color: theme.colors.foreground,
+                                            fontSize: theme.typography.caption,
+                                        }}
+                                    >
+                                        {name}
+                                    </Text>
+                                </Pressable>
                             )}
-                            <Text
-                                numberOfLines={1}
-                                style={{
-                                    color: theme.colors.foreground,
-                                    fontSize: theme.typography.caption,
-                                }}
-                            >
-                                {name}
-                            </Text>
-                        </Pressable>
+                        </CollectionMenuTrigger>
                     );
                 }}
             />

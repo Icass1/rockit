@@ -1,4 +1,9 @@
-import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import {
+    FeaturedArtwork,
+    useDesignTheme,
+    useThemedStyles,
+    type DesignTheme,
+} from "@rockit/ui";
 import { ArrowLeft, ChevronRight } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -26,7 +31,13 @@ export function ContextMenuSheetContent({
                 </View>
             )}
             <View style={styles.hero}>
-                {config.imageUrl ? (
+                {config.featuredKind ? (
+                    <FeaturedArtwork
+                        kind={config.featuredKind}
+                        label={config.title}
+                        size={160}
+                    />
+                ) : config.imageUrl ? (
                     <Image
                         source={config.imageUrl}
                         style={styles.image}

@@ -8,6 +8,9 @@ export function isOfflineMetadataPath(path: string): boolean {
     const pathname = path.split("?")[0];
     return (
         pathname === "/user" ||
+        /^\/featured\/(?:liked|recent-mix|most-listened|latest-downloads|year-recap|last-month)$/.test(
+            pathname
+        ) ||
         /^\/(?:user\/(?:session|library|queue|settings|navigation\/pins|liked-media)|media\/(?:album|playlist|collection|song|artist|station)|lyrics|stats\/home|vocabulary)(?:\/|$)/.test(
             pathname
         )

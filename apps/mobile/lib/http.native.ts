@@ -1,9 +1,9 @@
 import { BACKEND_URL } from "@/environment";
-import { BaseHttp } from "@/http/baseHttp";
 import {
     isOfflineMetadataPath,
     OFFLINE_METADATA_POLICY,
 } from "@/utils/offlineMetadataPolicy";
+import { CollectionHttp as BaseHttp } from "@rockit/shared";
 import { CryptoDigestAlgorithm, digestStringAsync } from "expo-crypto";
 import { Directory, File, Paths } from "expo-file-system";
 import { fetch as expoFetch } from "expo/fetch";

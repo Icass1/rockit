@@ -7,6 +7,7 @@ import type {
     VocabularyResponse,
 } from "@rockit/shared";
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import { atom } from "nanostores";
 
 export interface OfflineSongRecord {
     publicId: string;
@@ -104,16 +105,8 @@ export async function saveSongOffline(
         throw new Error(`Offline audio download failed for ${publicId}`);
     const audioBlob = await audioRes.blob();
 
-    let coverBlob: Blob | null = null;
-    if (coverUrl) {
-        try {
-            const coverRes = await fetch(resolveArtworkUrl(coverUrl));
-            if (coverRes.ok) coverBlob = await coverRes.blob();
-        } catch {
-            // Missing optional artwork must not abort a valid audio download.
-        }
-    }
-
+    const coverBlob: Blob | null = null;
+    const savedAt = Date.now();
     const db = await getDB();
     try {
         // Merge with the existing record (if any) so that parent references
@@ -138,13 +131,42 @@ export async function saveSongOffline(
             media: existing?.media,
             audioBlob,
             coverBlob: coverBlob ?? existing?.coverBlob ?? null,
-            downloadedAt: Date.now(),
+            downloadedAt: savedAt,
             sizeBytes:
                 audioBlob.size +
                 ((coverBlob ?? existing?.coverBlob)?.size ?? 0),
             parentAlbumIds: mergedAlbumIds,
             parentPlaylistIds: mergedPlaylistIds,
         });
+        notifyOfflineLibraryChange();
+        if (coverUrl) {
+            // Artwork must never hold an already-downloaded audio file hostage.
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 10000);
+            void (async () => {
+                try {
+                    const response = await fetch(resolveArtworkUrl(coverUrl), {
+                        signal: controller.signal,
+                    });
+                    if (!response.ok) return;
+                    const image = await response.blob();
+                    const tx = db.transaction("songs", "readwrite");
+                    const current = await tx.store.get(publicId);
+                    if (current?.downloadedAt === savedAt)
+                        await tx.store.put({
+                            ...current,
+                            coverBlob: image,
+                            sizeBytes: current.audioBlob.size + image.size,
+                        });
+                    await tx.done;
+                    notifyOfflineLibraryChange();
+                } catch {
+                    /* Optional artwork may be unavailable or the account database closed. */
+                } finally {
+                    clearTimeout(timer);
+                }
+            })();
+        }
     } catch (err) {
         if (err instanceof DOMException && err.name === "QuotaExceededError") {
             throw new Error("STORAGE_FULL");
@@ -188,6 +210,7 @@ export async function saveOfflineSongMetadata(
     const record = await tx.store.get(media.publicId);
     if (record) await tx.store.put({ ...record, media });
     await tx.done;
+    notifyOfflineLibraryChange();
 }
 
 export async function listOfflineSongRecords(): Promise<OfflineSongRecord[]> {
@@ -255,6 +278,7 @@ export async function pruneOfflineSongParents(
 export async function deleteOfflineSong(publicId: string): Promise<void> {
     const db = await getDB();
     await db.delete("songs", publicId);
+    notifyOfflineLibraryChange();
 }
 
 export async function listOfflineSongIds(): Promise<string[]> {
@@ -365,4 +389,9 @@ export async function loadHomeOffline(
     if (!username) return null;
     const db = await getDB();
     return (await db.get("home", `user:${username}`))?.data ?? null;
+}
+
+export const offlineLibraryRevision = atom(0);
+function notifyOfflineLibraryChange(): void {
+    offlineLibraryRevision.set(offlineLibraryRevision.get() + 1);
 }

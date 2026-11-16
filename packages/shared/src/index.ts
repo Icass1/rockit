@@ -160,3 +160,4 @@ export {
 } from "@/utils/collectionLikes";
 
 export { CollectionHttp, isFeaturedCollectionId } from "@/http/collectionHttp";
+export { parseLyricsSourceId } from "@/utils/lyricsSource";

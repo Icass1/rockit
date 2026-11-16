@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.framework.provider.baseProvider import BaseProvider
 from core.models.lyrics import DynamicLyricsData, LyricsData
+from core.models.lyricsSource import StoredLyricsSource
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -10,6 +11,10 @@ logger = getLogger(__name__)
 
 class BaseLyricsProvider(BaseProvider):
     """Marker base class for lyrics providers."""
+
+    async def get_lyrics_source_async(self, source_id: int) -> Result[StoredLyricsSource]:
+        logger.warning("Explicit source lookup is unavailable for this lyrics provider")
+        return Result(code=ResultCode.NOT_IMPLEMENTED, message="Source lookup unavailable")
 
     async def get_lyrics_bundle_async(
         self, session: AsyncSession, media_ids: list[int]

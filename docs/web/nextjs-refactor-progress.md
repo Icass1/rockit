@@ -706,3 +706,32 @@ IDs rather than database playlist IDs: full header/shelf menus, bulk like/unlike
 adding featured songs to playlists, list download, live catalog updates and saved-song
 queue progression pass. Physical iOS/Android playback and browser eviction behavior remain
 device checks; the footer was confirmed by the user and is unchanged here.
+
+### Missing lyrics and moderated LRCLIB source suggestions
+
+Replace the bare unavailable-lyrics message in desktop and mobile players with a
+centered, borderless layout that blends into the lyrics panel. Offer an external
+LRCLIB link, a numeric recording-ID field, localized validation and a pending-review
+confirmation. Share parsing, submission and stale-response guards between the two
+presenters; keep plain lyrics visible when synchronized lyrics are unavailable.
+
+Extend existing LYRICS requests with a structured source suggestion. Resolve the
+exact LRCLIB ID through the provider abstraction using a bounded API request and
+the existing LRC parser. Only the server may populate the recording metadata and
+lyric snapshot. Creation stores the pending request without overwriting provider
+lyrics or associating the source. Admin review previews the exact recording ID,
+artist, album and snapshot. Accepted source snapshots become the player's source;
+rejected/pending requests have no effect. Existing revision/audio-bound timing
+corrections continue to apply only to their compatible source. No schema migration
+or new moderation role is needed. Imported lyrics do not currently retain LRCLIB's
+external IDs, so explicit ID resolution uses LRCLIB's API rather than guessing a
+local primary key.
+
+Add the new copy to Vocabulary.xlsx in EN/ES/FR and regenerate vocabulary and shared
+models. Checks cover ID validation, source lookup, rejection/acceptance routing,
+read-only proposal preparation and accepted-source playback, plus web/mobile types,
+lint, production web/PWA compilation and vocabulary/import boundaries. Production
+browser review covers both centered players, invalid-ID recovery, pending submission
+and the admin preview. Backend suite: 774 passed, 14 skipped; targeted source/correction
+checks: 32 passed. Physical iOS/Android and PostgreSQL persistence checks require their
+respective devices/test database.

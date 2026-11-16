@@ -2371,4 +2371,17 @@ export interface Vocabulary {
     OFFLINE_BEST_EFFORT: string;
     OFFLINE_RETENTION_INFO: string;
     OFFLINE_REQUEST_PERSISTENCE: string;
+    LYRICS_MISSING_TITLE: string;
+    LYRICS_SOURCE_HELP: string;
+    LYRICS_SOURCE_ID: string;
+    LYRICS_SOURCE_PLACEHOLDER: string;
+    LYRICS_SOURCE_SEARCH: string;
+    LYRICS_SOURCE_SUBMIT: string;
+    LYRICS_SOURCE_REVIEW: string;
+    LYRICS_SOURCE_SENT: string;
+    LYRICS_SOURCE_INVALID: string;
+    LYRICS_SOURCE_NOT_FOUND: string;
+    LYRICS_SOURCE_UNAVAILABLE: string;
+    LYRICS_SOURCE_RECORDING: string;
+    LYRICS_SOURCE_OPEN: string;
 }

@@ -13,6 +13,7 @@ import { Http } from "@/lib/http";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import LyricLine from "@/components/Player/LyricLine";
+import LyricsMissing from "@/components/Player/LyricsMissing";
 
 export default function PlayerLyrics() {
     const styles = useThemedStyles(createStyles);
@@ -152,13 +153,20 @@ export default function PlayerLyrics() {
                 </View>
             )}
 
-            {!loading && (!lyrics || lyrics.lines.length === 0) && (
-                <View style={styles.centerContent}>
-                    <Text style={styles.stateText}>
-                        {vocabulary.LYRICS_UNAVAILABLE}
-                    </Text>
-                </View>
-            )}
+            {!loading &&
+                (!lyrics || lyrics.lines.length === 0) &&
+                (currentMedia?.type === "song" ? (
+                    <LyricsMissing
+                        key={currentMedia.publicId}
+                        mediaPublicId={currentMedia.publicId}
+                    />
+                ) : (
+                    <View style={styles.centerContent}>
+                        <Text style={styles.stateText}>
+                            {vocabulary.LYRICS_UNAVAILABLE}
+                        </Text>
+                    </View>
+                ))}
 
             {!loading && lyrics && lyrics.lines.length > 0 && (
                 <ScrollView

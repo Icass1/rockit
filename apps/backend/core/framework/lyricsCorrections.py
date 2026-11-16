@@ -18,6 +18,7 @@ from core.models.lyricsCorrection import (
     LyricsCorrectionLine,
     StoredLyricsCorrection,
 )
+from core.models.lyricsSource import StoredLyricsSource
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -98,12 +99,25 @@ class LyricsCorrections:
         if not candidates:
             logger.warning("Lyrics provider unavailable")
             return Result(code=ResultCode.NOT_FOUND, message="Lyrics provider unavailable")
+        accepted = await RequestAccess.get_accepted_lyrics_async(session=session, media_id=media.id)
+        if accepted.is_not_ok():
+            logger.error("Cannot load reviewed lyrics: %s", accepted.info())
+            return Result(code=accepted.code(), message=accepted.message())
+        reviewed_source: tuple[str, StoredLyricsSource] | None = None
+        for row in accepted.result():
+            try:
+                candidate_source = StoredLyricsSource.model_validate_json(row.proposed_value)
+            except ValidationError:
+                continue
+            if provider_name is None or candidate_source.provider == provider_name:
+                reviewed_source = (row.public_id, candidate_source)
+                break
         selected = candidates[0]
         lines: list[LyricsCorrectionLine] = []
         offset = 0.0
         public_id = media.public_id
         raw_source: object = None
-        for provider in candidates:
+        for provider in [] if reviewed_source else candidates:
             bundle = await provider.get_lyrics_bundle_async(session=session, media_ids=[media.id])
             if bundle.is_not_ok():
                 logger.warning("Lyrics provider failed: %s", bundle.info())
@@ -142,6 +156,15 @@ class LyricsCorrections:
                 continue
             selected = provider
             break
+        if reviewed_source:
+            request_id, approved_source = reviewed_source
+            selected = next(
+                (p for p in candidates if p.get_name() == approved_source.provider), selected
+            )
+            public_id = str(approved_source.sourceId)
+            lines = approved_source.lines
+            offset = approved_source.offset
+            raw_source = [request_id, approved_source.model_dump()]
         source_hash = digest(
             value=[
                 media.public_id,
@@ -160,10 +183,6 @@ class LyricsCorrections:
             )
             if audio.is_ok():
                 identity = audio.result()
-        accepted = await RequestAccess.get_accepted_lyrics_async(session=session, media_id=media.id)
-        if accepted.is_not_ok():
-            logger.error("Cannot load reviewed lyrics: %s", accepted.info())
-            return Result(code=accepted.code(), message=accepted.message())
         context = LyricsContext(
             provider=selected.get_name(),
             public_id=public_id,
@@ -172,6 +191,7 @@ class LyricsCorrections:
             source_hash=source_hash,
             audio_identity=identity,
             revision=None,
+            approved=reviewed_source is not None,
         )
         context = apply_overlay(
             context=context,

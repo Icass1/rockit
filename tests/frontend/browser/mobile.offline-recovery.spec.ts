@@ -77,15 +77,23 @@ test("cold offline launch opens unvisited routes and plays the saved library", a
         .toBe(true);
     await cold.screenshot({ path: info.outputPath("offline-playing.png") });
     await cold.goto(mobile + "/storage");
+    await cold.getByRole("button", { name: "Songs", exact: true }).click();
     await expect(
         cold.getByText("Saved on this device", { exact: true })
     ).toBeVisible();
     await expect(
-        cold.getByText("Playlist exclusive", { exact: true })
+        cold.getByRole("button", {
+            name: "Play Playlist exclusive",
+            exact: true,
+        })
     ).toBeVisible();
     await cold.reload();
+    await cold.getByRole("button", { name: "Songs", exact: true }).click();
     await expect(
-        cold.getByText("Playlist exclusive", { exact: true })
+        cold.getByRole("button", {
+            name: "Play Playlist exclusive",
+            exact: true,
+        })
     ).toBeVisible();
     let queueWrites = 0;
     cold.on("request", (request) => {

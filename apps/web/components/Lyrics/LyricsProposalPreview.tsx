@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type JSX } from "react";
 import {
+    LyricsSourceSchema,
     StoredLyricsSourceSchema,
     type LyricsCorrectionContextResponse,
 } from "@/dto";
@@ -77,6 +78,18 @@ function LoadedProposalPreview({
                     {vocabulary.LYRICS_SOURCE_REVIEW}
                 </p>
             </div>
+        );
+    const removedSource = LyricsSourceSchema.safeParse(json);
+    if (removedSource.success)
+        return (
+            <a
+                className="text-primary inline-flex min-h-11 items-center text-sm underline"
+                href={`https://lrclib.net/api/get/${removedSource.data.sourceId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                {vocabulary.LYRICS_SOURCE_OPEN} · {removedSource.data.sourceId}
+            </a>
         );
     const proposal = lyricsCorrectionSchema.safeParse(json);
     if (!proposal.success) return <p>{vocabulary.LYRICS_LEGACY_PROPOSAL}</p>;

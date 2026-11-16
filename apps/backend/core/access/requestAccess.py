@@ -117,6 +117,7 @@ class RequestAccess:
         status: RequestStatusEnum,
         reviewed_by: int,
         review_comment: str | None = None,
+        proposed_value: str | None = None,
     ) -> Result[UserRequestRow]:
         result = await session.execute(
             select(UserRequestRow).where(UserRequestRow.id == request_id)
@@ -126,6 +127,8 @@ class RequestAccess:
             return Result(ResultCode.NOT_FOUND, "Request not found.", None)
 
         row.status_key = status.value
+        if proposed_value is not None:
+            row.proposed_value = proposed_value
         row.reviewed_by = reviewed_by
         if review_comment is not None:
             row.review_comment = review_comment
@@ -226,6 +229,29 @@ class RequestAccess:
                         UserRequestRow.media_id == media_id,
                         UserRequestRow.request_type_key == RequestTypeEnum.LYRICS.value,
                         UserRequestRow.status_key == RequestStatusEnum.ACCEPTED.value,
+                    )
+                    .order_by(UserRequestRow.id.desc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
+
+    @staticmethod
+    @safe_async
+    async def get_pending_lyrics_async(
+        session: AsyncSession, media_id: int, user_id: int
+    ) -> Result[list[UserRequestRow]]:
+        rows = (
+            (
+                await session.execute(
+                    select(UserRequestRow)
+                    .where(
+                        UserRequestRow.media_id == media_id,
+                        UserRequestRow.user_id == user_id,
+                        UserRequestRow.request_type_key == RequestTypeEnum.LYRICS.value,
+                        UserRequestRow.status_key == RequestStatusEnum.PENDING.value,
                     )
                     .order_by(UserRequestRow.id.desc())
                 )

@@ -161,3 +161,5 @@ export {
 
 export { CollectionHttp, isFeaturedCollectionId } from "@/http/collectionHttp";
 export { parseLyricsSourceId } from "@/utils/lyricsSource";
+
+export type { OfflineCollectionReference } from "@/models/interfaces/offlineCollection";

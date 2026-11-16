@@ -23,7 +23,8 @@ export function LyricsMissing({
             !!session &&
             rockIt.userManager.sessionAtom.get() === session &&
             rockIt.queueManager.currentMediaAtom.get()?.publicId ===
-                mediaPublicId
+                mediaPublicId,
+        () => window.dispatchEvent(new Event("lyrics-updated"))
     );
     const id = useId();
     const error =

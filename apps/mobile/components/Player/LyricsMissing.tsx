@@ -17,8 +17,10 @@ import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LyricsMissing({
     mediaPublicId,
+    onSubmitted,
 }: {
     mediaPublicId: string;
+    onSubmitted: () => void;
 }) {
     const theme = useDesignTheme();
     const { vocabulary } = useVocabulary();
@@ -30,7 +32,8 @@ export default function LyricsMissing({
             !!session &&
             rockIt.userManager.sessionAtom.get() === session &&
             rockIt.queueManager.currentMediaAtom.get()?.publicId ===
-                mediaPublicId
+                mediaPublicId,
+        onSubmitted
     );
     const error =
         proposal.error === "invalid"

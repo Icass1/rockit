@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.userRequest import UserRequestRow
 from core.access.mediaAccess import MediaAccess
 from core.access.requestAccess import RequestAccess
 from core.enums.mediaTypeEnum import MediaTypeEnum
@@ -41,6 +42,7 @@ class LyricsContext:
     audio_identity: str | None
     revision: str | None
     approved: bool = False
+    pending: bool = False
 
 
 def apply_overlay(context: LyricsContext, proposals: list[tuple[str, str]]) -> LyricsContext:
@@ -73,6 +75,7 @@ class LyricsCorrections:
         session: AsyncSession,
         public_id: str,
         provider_name: str | None = None,
+        viewer_id: int | None = None,
     ) -> Result[LyricsContext]:
         found = await MediaAccess.get_media_from_public_id_async(
             session=session,
@@ -86,13 +89,17 @@ class LyricsCorrections:
             session=session,
             media=found.result(),
             provider_name=provider_name,
+            viewer_id=viewer_id,
         )
 
     @staticmethod
     async def context_async(
-        session: AsyncSession, media: CoreMediaRow, provider_name: str | None = None
+        session: AsyncSession,
+        media: CoreMediaRow,
+        provider_name: str | None = None,
+        viewer_id: int | None = None,
     ) -> Result[LyricsContext]:
-        """Get originals and apply only reviewed corrections matching their current revision."""
+        """Resolve approved text, or the viewer's provisional source, then compatible overlays."""
         candidates = providers.get_lyrics_providers()
         if provider_name is not None:
             candidates = [p for p in candidates if p.get_name() == provider_name]
@@ -103,8 +110,18 @@ class LyricsCorrections:
         if accepted.is_not_ok():
             logger.error("Cannot load reviewed lyrics: %s", accepted.info())
             return Result(code=accepted.code(), message=accepted.message())
+        pending_rows: list[UserRequestRow] = []
+        if viewer_id is not None:
+            pending_result = await RequestAccess.get_pending_lyrics_async(
+                session=session, media_id=media.id, user_id=viewer_id
+            )
+            if pending_result.is_not_ok():
+                logger.warning("Cannot load provisional lyrics: %s", pending_result.info())
+                return Result(code=pending_result.code(), message=pending_result.message())
+            pending_rows = pending_result.result()
+        pending_ids = {row.public_id for row in pending_rows}
         reviewed_source: tuple[str, StoredLyricsSource] | None = None
-        for row in accepted.result():
+        for row in [*pending_rows, *accepted.result()]:
             try:
                 candidate_source = StoredLyricsSource.model_validate_json(row.proposed_value)
             except ValidationError:
@@ -191,7 +208,8 @@ class LyricsCorrections:
             source_hash=source_hash,
             audio_identity=identity,
             revision=None,
-            approved=reviewed_source is not None,
+            approved=reviewed_source is not None and reviewed_source[0] not in pending_ids,
+            pending=reviewed_source is not None and reviewed_source[0] in pending_ids,
         )
         context = apply_overlay(
             context=context,

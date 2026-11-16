@@ -8,6 +8,7 @@ from core.enums.requestStatusEnum import RequestStatusEnum
 from core.enums.requestTypeEnum import RequestTypeEnum
 from core.framework.contentRating import ContentRatings
 from core.framework.lyricsCorrections import LyricsCorrections
+from core.framework.lyricsSources import LyricsSources
 from core.responses.userRequestResponse import (
     AdminRequestStatsResponse,
     UserRequestListResponse,
@@ -79,7 +80,12 @@ class UserRequest:
         media_id = a_result_media.result()
 
         if request_type == RequestTypeEnum.LYRICS:
-            prepared = await LyricsCorrections.prepare_async(
+            handler = (
+                LyricsSources
+                if LyricsSources.is_proposal(payload=proposed_value)
+                else LyricsCorrections
+            )
+            prepared = await handler.prepare_async(
                 session=session, media_id=media_id, payload=proposed_value
             )
             if prepared.is_not_ok():
@@ -188,7 +194,12 @@ class UserRequest:
             request_row.request_type_key == RequestTypeEnum.LYRICS.value
             and status == RequestStatusEnum.ACCEPTED
         ):
-            checked = await LyricsCorrections.validate_review_async(
+            handler = (
+                LyricsSources
+                if LyricsSources.is_proposal(payload=request_row.proposed_value)
+                else LyricsCorrections
+            )
+            checked = await handler.validate_review_async(
                 session=session, media_id=request_row.media_id, payload=request_row.proposed_value
             )
             if checked.is_not_ok():

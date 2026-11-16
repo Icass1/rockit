@@ -1,9 +1,16 @@
+import asyncio
+
+import httpx
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.framework.provider.baseLyricsProvider import BaseLyricsProvider
 from core.models.lyrics import DynamicLyricsData, LyricsData
+from core.models.lyricsCorrection import LyricsCorrectionLine
+from core.models.lyricsSource import StoredLyricsSource
 from logger import getLogger
 from lrclib.framework.lrclib import Lrclib
+from lrclib.models.api import LyricsResponse
 from result import Result, ResultCode
 
 logger = getLogger(__name__)
@@ -16,6 +23,59 @@ class LrclibProvider(BaseLyricsProvider):
 
         self._id = provider_id
         self._name = provider_name
+
+    async def get_lyrics_source_async(self, source_id: int) -> Result[StoredLyricsSource]:
+        """A fixed LRCLIB endpoint; resolving a suggestion never saves song lyrics."""
+        if not 0 < source_id <= 9007199254740991:
+            logger.warning("Invalid LRCLIB source ID")
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid LRCLIB ID")
+        try:
+            async with (
+                asyncio.timeout(10),
+                httpx.AsyncClient(
+                    timeout=8, headers={"User-Agent": "Rockit (https://github.com/Icass1/rockit)"}
+                ) as client,
+            ):
+                response = await client.get(url=f"https://lrclib.net/api/get/{source_id}")
+            if response.status_code == 404:
+                logger.warning("LRCLIB source not found: %s", source_id)
+                return Result(code=ResultCode.NOT_FOUND, message="LRCLIB ID not found")
+            response.raise_for_status()
+            record = LyricsResponse.model_validate(response.json())
+            if record.id != source_id or record.instrumental:
+                logger.warning("LRCLIB source has no matching vocal lyrics")
+                return Result(code=ResultCode.BAD_REQUEST, message="No vocal lyrics at this ID")
+            parsed = Lrclib.parse_lyrics(parsed=record)
+            if parsed.is_not_ok():
+                logger.warning("Cannot parse LRCLIB source: %s", parsed.info())
+                return Result(code=parsed.code(), message=parsed.message())
+            plain, dynamic = parsed.result()
+            lines = (
+                [
+                    LyricsCorrectionLine(text=line.text, timestamp_s=line.timestamp_s)
+                    for line in dynamic.lines
+                ]
+                if dynamic
+                else [LyricsCorrectionLine(text=line.text) for line in (plain or [])]
+            )
+            snapshot = StoredLyricsSource(
+                kind="lyrics_source",
+                provider="LRCLIB",
+                sourceId=source_id,
+                trackName=record.trackName,
+                artistName=record.artistName,
+                albumName=record.albumName,
+                duration=record.duration,
+                offset=dynamic.offset if dynamic else 0,
+                lines=lines,
+            )
+            return Result(code=ResultCode.OK, message="OK", result=snapshot)
+        except ValidationError as exc:
+            logger.warning("Invalid LRCLIB source lyrics: %s", exc)
+            return Result(code=ResultCode.BAD_REQUEST, message="No usable lyrics at this ID")
+        except (TimeoutError, httpx.HTTPError, ValueError) as exc:
+            logger.warning("LRCLIB source lookup failed: %s", exc)
+            return Result(code=ResultCode.GENERAL_ERROR, message="LRCLIB temporarily unavailable")
 
     async def get_lyrics_bundle_async(
         self, session: AsyncSession, media_ids: list[int]

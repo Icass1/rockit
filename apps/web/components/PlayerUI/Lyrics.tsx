@@ -9,6 +9,7 @@ import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { LyricsMissing } from "@/components/Lyrics/LyricsMissing";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
@@ -102,6 +103,21 @@ function DynamicLyrics(): JSX.Element {
                 <p className="text-muted-foreground text-lg">
                     {$vocabulary.LYRICS_LOADING}
                 </p>
+            </div>
+        );
+    }
+
+    if (
+        !lyrics &&
+        !snapshot.data?.lines.length &&
+        $currentMedia?.type === "song"
+    ) {
+        return (
+            <div className="h-full overflow-y-auto">
+                <LyricsMissing
+                    key={$currentMedia.publicId}
+                    mediaPublicId={$currentMedia.publicId}
+                />
             </div>
         );
     }

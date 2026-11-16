@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import useHandlePlay from "@/callbacks/handlePlay";
 import { capabilities } from "@/platform/capabilities";
 import {
@@ -10,6 +10,7 @@ import {
     getMediaAudioUrl,
     getMediaSubtitle,
     getMediaVideoUrl,
+    isFeaturedCollectionId,
     isList,
     isPlayable,
     isQueueable,
@@ -66,6 +67,8 @@ interface MediaCardProps {
     extraOptions?: ContextMenuOption[];
     listPublicId?: string;
     menuOnly?: boolean;
+    openInitially?: boolean;
+    renderTrigger?: (open: () => void) => React.ReactNode;
     onPress?: () => void;
 }
 
@@ -76,6 +79,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     extraOptions,
     listPublicId,
     menuOnly,
+    renderTrigger,
+    openInitially,
     onPress,
 }: MediaCardProps) {
     const selection = useLibrarySelection();
@@ -143,34 +148,35 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     },
                 });
 
-            options.push({
-                label: vocabulary.ADD_TO_LIBRARY,
-                icon: Heart,
-                onPress: async () => {
-                    hide();
-                    if (isSearchResult(media)) {
-                        toasterManager.notifyWarn(vocabulary.TODO);
-                    } else {
-                        const response = await Http.addMediaToLibrary(
-                            media.publicId
-                        );
-
-                        if (response.isOk()) {
-                            toasterManager.notifyInfo(
-                                vocabulary.MEDIA_ADDED_TO_LIBRARY
-                            );
-                            EventManager.getInstance().dispatchEvent(
-                                EEvent.MediaAddedToLibrary,
-                                { publicId: media.publicId }
-                            );
+            if (!isFeaturedCollectionId(media.publicId ?? ""))
+                options.push({
+                    label: vocabulary.ADD_TO_LIBRARY,
+                    icon: Heart,
+                    onPress: async () => {
+                        hide();
+                        if (isSearchResult(media)) {
+                            toasterManager.notifyWarn(vocabulary.TODO);
                         } else {
-                            toasterManager.notifyError(
-                                vocabulary.FAILED_TO_ADD_MEDIA_TO_LIBRARY
+                            const response = await Http.addMediaToLibrary(
+                                media.publicId
                             );
+
+                            if (response.isOk()) {
+                                toasterManager.notifyInfo(
+                                    vocabulary.MEDIA_ADDED_TO_LIBRARY
+                                );
+                                EventManager.getInstance().dispatchEvent(
+                                    EEvent.MediaAddedToLibrary,
+                                    { publicId: media.publicId }
+                                );
+                            } else {
+                                toasterManager.notifyError(
+                                    vocabulary.FAILED_TO_ADD_MEDIA_TO_LIBRARY
+                                );
+                            }
                         }
-                    }
-                },
-            });
+                    },
+                });
 
             options.push({
                 label: vocabulary.ADD_MEDIA_TO_PLAYLIST,
@@ -235,6 +241,14 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             }
 
             if (!isSearchResult(media) && isList(media)) {
+                options.push({
+                    label: vocabulary.PLAY,
+                    icon: Play,
+                    onPress: () => {
+                        hide();
+                        void rockIt.queueManager.playCollection(media.publicId);
+                    },
+                });
                 options.push({
                     label: vocabulary.ADD_LIST_TO_QUEUE,
                     icon: ListStart,
@@ -449,7 +463,10 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 });
             }
 
-            if (!isSearchResult(media)) {
+            if (
+                !isSearchResult(media) &&
+                !isFeaturedCollectionId(media.publicId)
+            ) {
                 options.push({
                     label: vocabulary.FRIENDS_SHARE,
                     icon: Share2,
@@ -497,8 +514,22 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             }
 
             return {
+                collectionId:
+                    !isSearchResult(media) && isList(media)
+                        ? media.publicId
+                        : undefined,
                 imageUrl: media.imageUrl,
                 title: media.name,
+                featuredKind: [
+                    "liked",
+                    "recent-mix",
+                    "most-listened",
+                    "latest-downloads",
+                    "year-recap",
+                    "last-month",
+                ].includes(media.publicId ?? "")
+                    ? (media.publicId ?? undefined)
+                    : undefined,
                 subtitle: getMediaSubtitle(media),
                 options: options,
             };
@@ -534,6 +565,72 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     icon: Music,
                     onPress: async () => {
                         hide();
+                        if (!isSearchResult(item)) {
+                            const session =
+                                rockIt.userManager.sessionAtom.get();
+                            try {
+                                const ids = isFeaturedCollectionId(
+                                    item.publicId
+                                )
+                                    ? await Http.resolveCollectionQueue(
+                                          item.publicId
+                                      ).then((response) => {
+                                          if (!response.isOk())
+                                              throw new Error(response.message);
+                                          return [
+                                              ...new Set(
+                                                  response.result.queue.map(
+                                                      (entry) =>
+                                                          entry.media.publicId
+                                                  )
+                                              ),
+                                          ];
+                                      })
+                                    : [item.publicId];
+                                if (!ids.length)
+                                    throw new Error("Empty collection");
+                                for (const mediaPublicId of ids) {
+                                    if (
+                                        rockIt.userManager.sessionAtom.get() !==
+                                        session
+                                    )
+                                        return;
+                                    const result =
+                                        await Http.addMediaToPlaylistAsync(
+                                            pl.publicId,
+                                            { mediaPublicId }
+                                        );
+                                    if (!result.isOk())
+                                        throw new Error(result.message);
+                                }
+                                if (
+                                    rockIt.userManager.sessionAtom.get() !==
+                                    session
+                                )
+                                    return;
+                                EventManager.getInstance().dispatchEvent(
+                                    EEvent.MediaAddedToPlaylist,
+                                    {
+                                        publicId: ids[0] ?? item.publicId,
+                                        playlistPublicId: pl.publicId,
+                                        position: 0,
+                                    }
+                                );
+                                toasterManager.notifySuccess(
+                                    vocabulary.ADDED_TO_PLAYLIST
+                                );
+                            } catch {
+                                if (
+                                    rockIt.userManager.sessionAtom.get() !==
+                                    session
+                                )
+                                    return;
+                                toasterManager.notifyError(
+                                    vocabulary.FAILED_TO_ADD_MEDIA_TO_PLAYLIST
+                                );
+                            }
+                            return;
+                        }
                         const response = await Http.addFromUrlAsync({
                             url: item.providerUrl,
                             addToPlaylist: true,
@@ -631,51 +728,63 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
         selection,
     ]);
 
+    const openedInitially = useRef(false);
+    useEffect(() => {
+        if (openInitially && !openedInitially.current) {
+            openedInitially.current = true;
+            handleLongPress();
+        }
+    }, [openInitially, handleLongPress]);
+
     return (
         <>
-            <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={media.name}
-                aria-pressed={
-                    selection?.active && !isSearchResult(media)
-                        ? selection.selected.includes(media.publicId)
-                        : undefined
-                }
-                accessibilityState={{
-                    selected:
-                        !isSearchResult(media) &&
-                        !!selection?.selected.includes(media.publicId),
-                }}
-                onPress={handlePress}
-                onLongPress={handleLongPress}
-                delayLongPress={250}
-                style={({ pressed }) =>
-                    pressed && { transform: [{ scale: 0.98 }] }
-                }
-            >
-                {children}
-                {selection?.active &&
-                    canSelectForZip(media) &&
-                    !isSearchResult(media) && (
-                        <View
-                            pointerEvents="none"
-                            style={{
-                                position: "absolute",
-                                top: theme.spacing.sm,
-                                right: theme.spacing.sm,
-                                padding: theme.spacing.xs,
-                                borderRadius: theme.radius.sm,
-                                backgroundColor: theme.colors.background,
-                            }}
-                        >
-                            {selection.selected.includes(media.publicId) ? (
-                                <CheckSquare color={theme.colors.primary} />
-                            ) : (
-                                <Square color={theme.colors.foreground} />
-                            )}
-                        </View>
-                    )}
-            </Pressable>
+            {renderTrigger ? (
+                renderTrigger(handleLongPress)
+            ) : (
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={media.name}
+                    aria-pressed={
+                        selection?.active && !isSearchResult(media)
+                            ? selection.selected.includes(media.publicId)
+                            : undefined
+                    }
+                    accessibilityState={{
+                        selected:
+                            !isSearchResult(media) &&
+                            !!selection?.selected.includes(media.publicId),
+                    }}
+                    onPress={handlePress}
+                    onLongPress={handleLongPress}
+                    delayLongPress={250}
+                    style={({ pressed }) =>
+                        pressed && { transform: [{ scale: 0.98 }] }
+                    }
+                >
+                    {children}
+                    {selection?.active &&
+                        canSelectForZip(media) &&
+                        !isSearchResult(media) && (
+                            <View
+                                pointerEvents="none"
+                                style={{
+                                    position: "absolute",
+                                    top: theme.spacing.sm,
+                                    right: theme.spacing.sm,
+                                    padding: theme.spacing.xs,
+                                    borderRadius: theme.radius.sm,
+                                    backgroundColor: theme.colors.background,
+                                }}
+                            >
+                                {selection.selected.includes(media.publicId) ? (
+                                    <CheckSquare color={theme.colors.primary} />
+                                ) : (
+                                    <Square color={theme.colors.foreground} />
+                                )}
+                            </View>
+                        )}
+                </Pressable>
+            )}
             {editMetadataMedia && (
                 <EditMetadataModal
                     visible={!!editMetadataMedia}

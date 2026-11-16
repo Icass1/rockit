@@ -158,3 +158,5 @@ export {
     getCollectionSongIds,
     setCollectionSongsLiked,
 } from "@/utils/collectionLikes";
+
+export { CollectionHttp, isFeaturedCollectionId } from "@/http/collectionHttp";

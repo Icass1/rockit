@@ -2366,4 +2366,9 @@ export interface Vocabulary {
     STATS_MINUTES_COUNT_OTHER: string;
     COLLECTION_LIKE_ALL: string;
     COLLECTION_UNLIKE_ALL: string;
+    OFFLINE_SAVED_ON: string;
+    OFFLINE_PERSISTENT: string;
+    OFFLINE_BEST_EFFORT: string;
+    OFFLINE_RETENTION_INFO: string;
+    OFFLINE_REQUEST_PERSISTENCE: string;
 }

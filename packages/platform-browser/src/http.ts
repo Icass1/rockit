@@ -1,7 +1,7 @@
 import {
     ArtistPageResponseSchema,
     BACKEND_URL,
-    BaseHttp,
+    CollectionHttp as BaseHttp,
     DownloadZipRequestSchema,
     HttpResult,
     IApiFetchOptions,

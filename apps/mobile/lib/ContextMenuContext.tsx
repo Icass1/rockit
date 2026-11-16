@@ -20,6 +20,7 @@ export interface ContextMenuOption {
 
 export interface ContextMenuConfig {
     collectionId?: string;
+    featuredKind?: string;
     imageUrl?: string;
     title: string;
     subtitle?: string;

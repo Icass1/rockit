@@ -2384,4 +2384,8 @@ export interface Vocabulary {
     LYRICS_SOURCE_UNAVAILABLE: string;
     LYRICS_SOURCE_RECORDING: string;
     LYRICS_SOURCE_OPEN: string;
+    LYRICS_SOURCE_PENDING: string;
+    OFFLINE_STORAGE_OTHER: string;
+    OFFLINE_STORAGE_UNGROUPED: string;
+    OFFLINE_STORAGE_GROUP_EMPTY: string;
 }

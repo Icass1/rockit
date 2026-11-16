@@ -1,6 +1,7 @@
 import type {
     BaseSongWithAlbumResponse,
     BaseSongWithoutAlbumResponse,
+    OfflineCollectionReference,
 } from "@rockit/shared";
 import { Directory, File, Paths } from "expo-file-system";
 
@@ -44,7 +45,8 @@ class MediaStorageManager {
         url: string,
         coverUrl?: string | null,
         _name?: string,
-        _media?: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse
+        _media?: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse,
+        _collections: OfflineCollectionReference[] = []
     ): Promise<string | null> {
         await this.init();
         if (coverUrl) await this.downloadImage(publicId, coverUrl);

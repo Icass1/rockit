@@ -735,3 +735,36 @@ browser review covers both centered players, invalid-ID recovery, pending submis
 and the admin preview. Backend suite: 774 passed, 14 skipped; targeted source/correction
 checks: 32 passed. Physical iOS/Android and PostgreSQL persistence checks require their
 respective devices/test database.
+
+### Provisional source lyrics and grouped device downloads
+
+Use the source snapshot already saved in a LYRICS request immediately for its
+author while review is pending. Authenticate the lyrics viewer and scope provisional
+reads to that user, song and pending status. Keep accepted sources available to all
+users. Show a pending label and refresh after submission; while provisional lyrics
+are displayed, recheck review status every 30 seconds on both players. Approval
+retains the snapshot; rejection atomically removes its lyric content from the request,
+retaining the source-ID audit reference, and restores the previous source. Original
+provider lyrics and unrelated timing corrections are not overwritten. Update the
+source-proposal copy in all three workbook languages and regenerate the pending
+context DTO. Keep the centered, borderless lyrics layout.
+
+Turn the PWA storage catalog into Albums, Playlists and Songs views. Use locally
+saved metadata for album groups, preserve collection references with each list
+download, and retain all memberships when the same song is downloaded again.
+Drill into groups, search track/artist/album names, play the selected song followed
+by the visible group, and order albums by disc/track. Keep unique byte totals,
+per-song deletion, saved dates and persistence information. Old ungrouped files
+remain reachable. Compact the heading so the list is usable on narrow screens.
+Fix the recursive offline-library refresh listener found during this work. No
+footer geometry changes or IndexedDB schema migration are needed.
+
+Validation: production Next.js and Expo web builds; application/UI/test types,
+web/mobile lint, Ruff/Pyright, vocabulary and portable import/bundle checks.
+Backend suite: 776 passed and 14 optional tests skipped. Focused moderation checks
+cover author isolation, rejection cleanup and previous-source restoration; offline
+checks cover grouping, disc/track order and multiple saved playlist memberships.
+Production Chromium review verifies immediate lyrics, approval/rejection refresh
+on both players, album/playlist browsing, group queue order, search, offline browsing
+and a narrow phone viewport. Physical iOS/Android and PostgreSQL persistence checks
+still require their respective devices/test database.

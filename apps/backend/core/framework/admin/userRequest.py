@@ -237,13 +237,32 @@ class UserRequest:
                 if applied.is_not_ok():
                     logger.error("Cannot apply reviewed content rating: %s", applied.info())
                     return Result(code=applied.code(), message=applied.message())
-        a_result = await RequestAccess.update_request_status_async(
-            session=session,
-            request_id=request_row.id,
-            status=status,
-            reviewed_by=reviewer_id,
-            review_comment=review_comment,
-        )
+        if (
+            request_row.request_type_key == RequestTypeEnum.LYRICS.value
+            and status == RequestStatusEnum.REJECTED
+            and LyricsSources.is_proposal(payload=request_row.proposed_value)
+        ):
+            try:
+                discarded = LyricsSources.discard_text(payload=request_row.proposed_value)
+            except ValueError:
+                logger.warning("Rejected source snapshot was already unavailable")
+                discarded = ""
+            a_result = await RequestAccess.update_request_status_async(
+                session=session,
+                request_id=request_row.id,
+                status=status,
+                reviewed_by=reviewer_id,
+                review_comment=review_comment,
+                proposed_value=discarded,
+            )
+        else:
+            a_result = await RequestAccess.update_request_status_async(
+                session=session,
+                request_id=request_row.id,
+                status=status,
+                reviewed_by=reviewer_id,
+                review_comment=review_comment,
+            )
         if a_result.is_not_ok():
             logger.error(f"Error updating request. {a_result.info()}")
             return Result(code=a_result.code(), message=a_result.message())

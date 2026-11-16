@@ -5,7 +5,8 @@ import { parseLyricsSourceId, type BaseHttp } from "@rockit/shared";
 export function useLyricsSourceProposal(
     http: typeof BaseHttp,
     mediaPublicId: string,
-    isCurrent: () => boolean
+    isCurrent: () => boolean,
+    onSubmitted?: () => void
 ) {
     const [value, setValue] = useState("");
     const [busy, setBusy] = useState(false);
@@ -43,8 +44,10 @@ export function useLyricsSourceProposal(
                 comment: null,
             });
             if (!mounted.current || !isCurrent()) return;
-            if (response.isOk()) setSent(true);
-            else
+            if (response.isOk()) {
+                setSent(true);
+                onSubmitted?.();
+            } else
                 setError(
                     response.code === 400 || response.code === 404
                         ? "notFound"

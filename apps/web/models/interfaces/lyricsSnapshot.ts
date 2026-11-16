@@ -4,7 +4,7 @@ export interface LyricsSnapshot {
     provider: string;
     revision: string | null;
     offset: number;
-    syncStatus: "provider" | "approved";
+    syncStatus: "provider" | "approved" | "pending";
     lines: { text: string; timestamp_s: number | null }[];
     dynamic?: BaseDynamicLyricsResponse;
 }

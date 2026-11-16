@@ -205,3 +205,93 @@ async def test_admin_review_routes_source_snapshots_without_applying_on_rejectio
     assert result.is_ok()
     assert check.await_count == int(accept)
     assert update.await_count == 1
+    if not accept:
+        assert update.await_args is not None
+        discarded = LyricsSource.model_validate_json(update.await_args.kwargs["proposed_value"])
+        assert discarded.sourceId == 123
+        assert "lines" not in update.await_args.kwargs["proposed_value"]
+
+
+@pytest.mark.asyncio
+async def test_provisional_source_is_private_then_removed_on_rejection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from core.enums.requestStatusEnum import RequestStatusEnum
+
+    provider = LrclibProvider()
+    provider.set_info(provider_id=1, provider_name="LRCLIB")
+    monkeypatch.setattr(providers, "get_lyrics_providers", lambda: [provider])
+    monkeypatch.setattr(
+        provider,
+        "get_lyrics_bundle_async",
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result={})),
+    )
+
+    def no_local_provider(provider_id: int) -> None:
+        return None
+
+    monkeypatch.setattr(providers, "find_local_media_provider", no_local_provider)
+    approved = snapshot().model_copy(
+        update={"lines": [LyricsCorrectionLine(text="Previous lyrics")]}
+    )
+    original = UserRequestRow(
+        user_id=2,
+        media_id=7,
+        request_type_key=RequestTypeEnum.LYRICS.value,
+        proposed_value=approved.model_dump_json(),
+        public_id="approved",
+        status_key=2,
+    )
+    pending = UserRequestRow(
+        user_id=1,
+        media_id=7,
+        request_type_key=RequestTypeEnum.LYRICS.value,
+        proposed_value=snapshot().model_dump_json(),
+        public_id="pending",
+        status_key=1,
+    )
+    monkeypatch.setattr(
+        RequestAccess,
+        "get_accepted_lyrics_async",
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[original])),
+    )
+
+    async def proposals(
+        session: AsyncSession, media_id: int, user_id: int
+    ) -> Result[list[UserRequestRow]]:
+        visible = [pending] if user_id == pending.user_id and pending.status_key == 1 else []
+        return Result(code=ResultCode.OK, message="OK", result=visible)
+
+    monkeypatch.setattr(RequestAccess, "get_pending_lyrics_async", proposals)
+    session = cast(AsyncSession, object())
+    own = await LyricsCorrections.context_async(session=session, media=media(), viewer_id=1)
+    assert own.is_ok() and own.result().pending and not own.result().approved
+    assert own.result().lines[0].text == "Reviewed words"
+    other = await LyricsCorrections.context_async(session=session, media=media(), viewer_id=2)
+    assert other.is_ok() and other.result().lines[0].text == "Previous lyrics"
+    pending.status_key = RequestStatusEnum.REJECTED.value
+    pending.proposed_value = LyricsSources.discard_text(payload=pending.proposed_value)
+    restored = await LyricsCorrections.context_async(session=session, media=media(), viewer_id=1)
+    assert restored.is_ok() and not restored.result().pending
+    assert restored.result().lines[0].text == "Previous lyrics"
+
+
+@pytest.mark.asyncio
+async def test_pending_query_is_scoped_to_author_media_and_status() -> None:
+    from unittest.mock import MagicMock
+
+    result = MagicMock()
+    result.scalars.return_value.all.return_value = []
+    execute = AsyncMock(return_value=result)
+    session = MagicMock(spec=AsyncSession)
+    session.execute = execute
+    response = await RequestAccess.get_pending_lyrics_async(
+        session=cast(AsyncSession, session), media_id=7, user_id=42
+    )
+    assert response.is_ok()
+    assert execute.await_args is not None
+    parameters = execute.await_args.args[0].compile().params
+    assert parameters["media_id_1"] == 7
+    assert parameters["user_id_1"] == 42
+    assert parameters["status_key_1"] == 1
+    assert parameters["request_type_key_1"] == RequestTypeEnum.LYRICS.value

@@ -15,6 +15,7 @@ import {
 import type {
     BaseSongWithAlbumResponse,
     BaseSongWithoutAlbumResponse,
+    OfflineCollectionReference,
 } from "@rockit/shared";
 
 class BrowserMediaStorage {
@@ -29,10 +30,11 @@ class BrowserMediaStorage {
         url: string,
         coverUrl?: string | null,
         name?: string,
-        media?: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse
+        media?: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse,
+        collections: OfflineCollectionReference[] = []
     ): Promise<string | null> {
         await saveSongOffline(publicId, url, coverUrl ?? null, [], [], name);
-        if (media) await saveOfflineSongMetadata(media);
+        if (media) await saveOfflineSongMetadata(media, collections);
         releaseOfflineUrls(publicId);
         void navigator.storage?.persist?.().catch(() => false);
         return (await resolveOfflineAudioUrl(publicId)) ?? null;

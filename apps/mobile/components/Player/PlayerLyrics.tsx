@@ -24,6 +24,7 @@ export default function PlayerLyrics() {
 
     const [fetchedLyrics, setLyrics] =
         useState<LyricsCorrectionContextResponse>();
+    const [reload, setReload] = useState(0);
     const [loadedPublicId, setLoadedPublicId] = useState<string>();
     const publicId = currentMedia?.publicId;
     const loading = !!publicId && loadedPublicId !== publicId;
@@ -64,7 +65,13 @@ export default function PlayerLyrics() {
         return () => {
             cancelled = true;
         };
-    }, [publicId]);
+    }, [publicId, reload]);
+
+    useEffect(() => {
+        if (lyrics?.syncStatus !== "pending") return;
+        const timer = setInterval(() => setReload((value) => value + 1), 30000);
+        return () => clearInterval(timer);
+    }, [lyrics?.syncStatus]);
 
     const currentIndex = useMemo(() => {
         if (
@@ -134,6 +141,11 @@ export default function PlayerLyrics() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>{vocabulary.LYRICS}</Text>
+                {lyrics?.syncStatus === "pending" && (
+                    <Text style={styles.headerSubtitle}>
+                        {vocabulary.LYRICS_SOURCE_PENDING}
+                    </Text>
+                )}
                 {currentMedia && (
                     <Text style={styles.headerSubtitle} numberOfLines={1}>
                         {currentMedia.name}
@@ -159,6 +171,7 @@ export default function PlayerLyrics() {
                     <LyricsMissing
                         key={currentMedia.publicId}
                         mediaPublicId={currentMedia.publicId}
+                        onSubmitted={() => setReload((value) => value + 1)}
                     />
                 ) : (
                     <View style={styles.centerContent}>

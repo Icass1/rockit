@@ -1,5 +1,8 @@
 import type { BaseHttp } from "@/http/baseHttp";
-import type { OfflineCollectionOptions } from "@/models/interfaces/offlineCollection";
+import type {
+    OfflineCollectionOptions,
+    OfflineCollectionReference,
+} from "@/models/interfaces/offlineCollection";
 
 /** Traverse paged and nested collections without concurrent media transfers. */
 export async function downloadCollectionOffline(
@@ -11,6 +14,7 @@ export async function downloadCollectionOffline(
     const collections = new Set<string>();
     const songs = new Set<string>();
     let saved = 0;
+    let root: OfflineCollectionReference | undefined;
     const assertCurrent = () => {
         if (!options.isCurrent()) throw new Error("Obsolete offline request");
     };
@@ -25,6 +29,16 @@ export async function downloadCollectionOffline(
             assertCurrent();
             if (!response.isOk()) throw new Error(response.message);
             const page = response.result;
+            const collection: OfflineCollectionReference = {
+                publicId: page.collection.publicId,
+                type: page.collection.type,
+                name: page.collection.name,
+            };
+            root ??= collection;
+            const references =
+                root.publicId === collection.publicId
+                    ? [collection]
+                    : [root, collection];
             for (const { item } of page.items) {
                 assertCurrent();
                 if (item.type === "album" || item.type === "playlist")
@@ -35,7 +49,7 @@ export async function downloadCollectionOffline(
                     !songs.has(item.publicId)
                 ) {
                     songs.add(item.publicId);
-                    await options.save(item);
+                    await options.save(item, references);
                     assertCurrent();
                     saved++;
                 }

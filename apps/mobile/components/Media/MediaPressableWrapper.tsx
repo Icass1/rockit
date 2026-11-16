@@ -294,14 +294,15 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                 media.publicId,
                                 {
                                     isCurrent,
-                                    save: async (song) => {
+                                    save: async (song, collections) => {
                                         const local =
                                             await mediaStorage.downloadSong(
                                                 song.publicId,
                                                 song.audioUrl!,
                                                 song.imageUrl,
                                                 song.name,
-                                                song
+                                                song,
+                                                collections
                                             );
                                         if (!isCurrent()) return;
                                         if (!local)

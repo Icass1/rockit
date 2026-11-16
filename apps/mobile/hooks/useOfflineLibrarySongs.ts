@@ -19,13 +19,16 @@ export function useOfflineLibrarySongs(
     const { refresh } = resource;
     useEffect(() => {
         if (!enabled) return;
-        const refresh = () => {
+        const refreshDownloaded = () => {
             void refresh();
         };
         const events = EventManager.getInstance();
-        events.addEventListener(EEvent.MediaDownloaded, refresh);
+        events.addEventListener(EEvent.MediaDownloaded, refreshDownloaded);
         return () =>
-            events.removeEventListener(EEvent.MediaDownloaded, refresh);
+            events.removeEventListener(
+                EEvent.MediaDownloaded,
+                refreshDownloaded
+            );
     }, [enabled, refresh]);
     return resource;
 }

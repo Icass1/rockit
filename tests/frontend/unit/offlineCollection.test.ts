@@ -12,6 +12,7 @@ function fixture(pages: Record<string, unknown[]>) {
         getCollectionItems: vi.fn(async (id: string, offset: number) => ({
             isOk: () => true,
             result: {
+                collection: { publicId: id, type: "playlist", name: id },
                 items: pages[id]
                     .slice(offset, offset + 2)
                     .map((item) => ({ item })),
@@ -55,11 +56,12 @@ it("stops after a save fails and does not claim a complete collection", async ()
 it("discards listing responses after the account changes", async () => {
     const f = fixture({ root: [song("a")] });
     let active = true;
-    f.http.getCollectionItems.mockImplementationOnce(async () => {
+    f.http.getCollectionItems.mockImplementationOnce(async (id: string) => {
         active = false;
         return {
             isOk: () => true,
             result: {
+                collection: { publicId: id, type: "playlist", name: id },
                 items: [{ item: song("a") }],
                 offset: 0,
                 limit: 2,
@@ -90,7 +92,13 @@ it("rejects non-advancing pages and skips unavailable songs and streams", async 
     ).toBe(0);
     f.http.getCollectionItems.mockResolvedValueOnce({
         isOk: () => true,
-        result: { items: [], offset: 0, limit: 0, hasMore: true },
+        result: {
+            collection: { publicId: "root", type: "playlist", name: "root" },
+            items: [],
+            offset: 0,
+            limit: 0,
+            hasMore: true,
+        },
     });
     await expect(
         downloadCollectionOffline(f.client, "root", {

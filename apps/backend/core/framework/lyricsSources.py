@@ -1,4 +1,4 @@
-"""Resolve suggestions without changing provider data; approval activates the snapshot."""
+"""Resolve source suggestions and expose provisional snapshots to their authors."""
 
 import json
 from typing import cast
@@ -64,6 +64,15 @@ class LyricsSources:
             logger.error("Lyrics source provider returned a different identity")
             return Result(code=ResultCode.BAD_REQUEST, message="Invalid lyrics source identity")
         return Result(code=ResultCode.OK, message="OK", result=snapshot.model_dump_json())
+
+    @staticmethod
+    def discard_text(payload: str) -> str:
+        """Keep the audit reference but remove rejected provisional lyric content."""
+        stored = StoredLyricsSource.model_validate_json(payload)
+        proposal = LyricsSource(
+            kind=stored.kind, provider=stored.provider, sourceId=stored.sourceId
+        )
+        return proposal.model_dump_json()
 
     @staticmethod
     async def validate_review_async(

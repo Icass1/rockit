@@ -20,10 +20,15 @@ router = APIRouter(
 
 
 async def _context(request: Request, public_id: str, provider: str | None) -> LyricsContext:
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.warning("Lyrics viewer unavailable: %s", user.info())
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
     snapshot = await LyricsCorrections.for_public_id_async(
         session=DBSessionMiddleware.get_session(request=request),
         public_id=public_id,
         provider_name=provider,
+        viewer_id=user.result().id,
     )
     if snapshot.is_not_ok():
         logger.warning("Lyrics unavailable: %s", snapshot.info())
@@ -78,5 +83,5 @@ async def get_lyrics_correction_context_async(
         revision=context.revision,
         offset=context.offset,
         lines=context.lines,
-        syncStatus="approved" if context.approved else "provider",
+        syncStatus="pending" if context.pending else "approved" if context.approved else "provider",
     )

@@ -10,7 +10,11 @@ export const LyricsCorrectionContextResponseSchema = z.object({
     revision: z.string().nullable(),
     offset: z.number(),
     lines: z.array(z.lazy(() => LyricsCorrectionLineSchema)),
-    syncStatus: z.union([z.literal("provider"), z.literal("approved")]),
+    syncStatus: z.union([
+        z.literal("provider"),
+        z.literal("approved"),
+        z.literal("pending"),
+    ]),
 });
 
 export type LyricsCorrectionContextResponse = z.infer<

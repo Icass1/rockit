@@ -158,3 +158,8 @@ export {
     getCollectionSongIds,
     setCollectionSongsLiked,
 } from "@/utils/collectionLikes";
+
+export { CollectionHttp, isFeaturedCollectionId } from "@/http/collectionHttp";
+export { parseLyricsSourceId } from "@/utils/lyricsSource";
+
+export type { OfflineCollectionReference } from "@/models/interfaces/offlineCollection";

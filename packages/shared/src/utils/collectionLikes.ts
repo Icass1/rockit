@@ -1,20 +1,11 @@
 import type { BaseHttp } from "@/http/baseHttp";
-import { loadFeaturedCollection } from "@/managers/featuredCollections";
-import type { FeaturedCollectionKey } from "@/models/interfaces/featuredCollection";
 
 /** Read every page and nested collection once, preserving unique song identities. */
 export async function getCollectionSongIds(
     http: typeof BaseHttp,
     publicId: string
 ): Promise<string[]> {
-    const id = publicId.startsWith("featured:")
-        ? (
-              await loadFeaturedCollection(
-                  http,
-                  publicId.slice(9) as FeaturedCollectionKey
-              )
-          ).publicId
-        : publicId;
+    const id = publicId.startsWith("featured:") ? publicId.slice(9) : publicId;
     const pending = [id],
         visited = new Set<string>(),
         songs = new Set<string>();

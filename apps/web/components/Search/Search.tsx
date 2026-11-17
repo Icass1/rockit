@@ -12,6 +12,7 @@ import ArtistsSection from "@/components/Search/sections/ArtistsSection";
 import PlaylistsSection from "@/components/Search/sections/PlaylistsSection";
 import RadioSection from "@/components/Search/sections/RadioSection";
 import SongsSection from "@/components/Search/sections/SongsSection";
+import TopResultSection from "@/components/Search/sections/TopResultSection";
 import VideosSection from "@/components/Search/sections/VideosSection";
 
 function EmptyState(): JSX.Element {
@@ -109,6 +110,7 @@ function SearchResults(): JSX.Element {
                     {vocabulary.SEARCH_NO_RESULTS}
                 </p>
             )}
+            {mediaResults[0] && <TopResultSection media={mediaResults[0]} />}
             <SongsSection
                 songs={mediaResults.filter(
                     (item): boolean => item.type === "song"

@@ -11,4 +11,4 @@ class LyricsCorrectionContextResponse(BaseModel):
     revision: str | None
     offset: float
     lines: list[LyricsCorrectionLine]
-    syncStatus: Literal["provider", "approved"]
+    syncStatus: Literal["provider", "approved", "pending"]

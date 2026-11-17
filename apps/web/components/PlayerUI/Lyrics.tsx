@@ -9,6 +9,7 @@ import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { LyricsMissing } from "@/components/Lyrics/LyricsMissing";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
@@ -106,9 +107,34 @@ function DynamicLyrics(): JSX.Element {
         );
     }
 
+    if (
+        !lyrics &&
+        !snapshot.data?.lines.length &&
+        $currentMedia?.type === "song"
+    ) {
+        return (
+            <div className="h-full overflow-y-auto">
+                <LyricsMissing
+                    key={$currentMedia.publicId}
+                    mediaPublicId={$currentMedia.publicId}
+                />
+            </div>
+        );
+    }
+
+    const pendingLabel =
+        snapshot.data?.syncStatus === "pending" ? (
+            <p
+                role="status"
+                className="text-primary px-4 py-2 text-center text-xs"
+            >
+                {$vocabulary.LYRICS_SOURCE_PENDING}
+            </p>
+        ) : null;
     if (!lyrics) {
         return (
             <div className="scrollbar-none h-full overflow-y-auto pl-7">
+                {pendingLabel}
                 {snapshot.data?.lines.map((line, index) => (
                     <p
                         key={index}
@@ -129,6 +155,7 @@ function DynamicLyrics(): JSX.Element {
             ref={containerRef}
             className="player-lyrics-scroll scrollbar-none relative h-full min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto pb-24 pl-4"
         >
+            {pendingLabel}
             {lyrics?.lines.map((line, index) => (
                 <p
                     onClick={() => goToLine(index)}

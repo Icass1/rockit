@@ -14,6 +14,7 @@ from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from logger import getLogger
 from lrclib.access.lyricsAccess import LyricsAccess
 from lrclib.framework.lyricsLookup import lookup_lyrics_async
+from lrclib.models.api import LyricsResponse
 from result import Result, ResultCode
 
 if TYPE_CHECKING:
@@ -227,8 +228,14 @@ class Lrclib:
         if lookup.is_not_ok():
             logger.warning("Lyrics lookup failed: %s", lookup.info())
             return Result(code=lookup.code(), message=lookup.message())
-        parsed = lookup.result()
+        return Lrclib.parse_lyrics(parsed=lookup.result())
 
+    @staticmethod
+    def parse_lyrics(
+        parsed: LyricsResponse,
+    ) -> Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]]:
+        """Parse automatic matches and explicit IDs through the same timestamp rules."""
+        track_name = parsed.trackName
         lyrics: list[Lyrics] | None = None
         dynamicLyrics: list[DynamicLyrics] | None = None
 

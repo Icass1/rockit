@@ -673,3 +673,98 @@ root with supported dynamic viewport units, retaining the 100% fallback and
 single safe-area inset. No native layout, navigation row height or guessed
 status-bar compensation is changed. Verify geometry with a shortened ancestor
 height in a browser; actual installed-iPhone positioning remains acceptance.
+
+### Featured collection actions and responsive offline catalog
+
+Route the six virtual Rockit collection IDs through a shared collection HTTP
+adapter on desktop, mobile web and native. Read featured snapshots instead of
+sending virtual IDs to database collection endpoints; validate the resulting
+collection/queue DTOs. Bulk favorites, queue resolution and offline list downloads
+now use the same transport. Keep account-scoped featured snapshots in the existing
+offline metadata cache.
+
+Use the complete mobile media context menu for collection headers and lazily loaded
+featured/pinned shelf cards. Preserve featured artwork in the menu. Add existing
+media to playlists by ID, expanding virtual lists into their song IDs; hide actions
+that cannot persist or share a virtual list as a database resource. Keep regular
+song, album and playlist actions and the existing footer geometry.
+
+Publish successful offline audio writes immediately, without waiting for optional
+artwork; cap artwork fetches at ten seconds and prevent stale artwork from reviving
+a deleted/replaced record. Refresh the storage catalog on write/delete notifications,
+page focus and foregrounding. Saved rows play the selected song followed by the
+remaining visible saved songs, with deletion on a separate control. Show download
+dates and actual browser persistence status, with an optional persistence request.
+Do not invent eviction dates: IndexedDB audio has no app expiry timer, and browser
+storage APIs expose no per-file deletion deadline. Add all five labels to the
+EN/ES/FR workbook and regenerate vocabulary artifacts, preserving formula caches.
+
+Validation: web/mobile types, mobile lint, production Next.js and Expo web builds,
+portable bundle/import boundaries and vocabulary validation. Three focused transport
+and offline-write regressions pass. Production PWA browser review uses real virtual
+IDs rather than database playlist IDs: full header/shelf menus, bulk like/unlike,
+adding featured songs to playlists, list download, live catalog updates and saved-song
+queue progression pass. Physical iOS/Android playback and browser eviction behavior remain
+device checks; the footer was confirmed by the user and is unchanged here.
+
+### Missing lyrics and moderated LRCLIB source suggestions
+
+Replace the bare unavailable-lyrics message in desktop and mobile players with a
+centered, borderless layout that blends into the lyrics panel. Offer an external
+LRCLIB link, a numeric recording-ID field, localized validation and a pending-review
+confirmation. Share parsing, submission and stale-response guards between the two
+presenters; keep plain lyrics visible when synchronized lyrics are unavailable.
+
+Extend existing LYRICS requests with a structured source suggestion. Resolve the
+exact LRCLIB ID through the provider abstraction using a bounded API request and
+the existing LRC parser. Only the server may populate the recording metadata and
+lyric snapshot. Creation stores the pending request without overwriting provider
+lyrics or associating the source. Admin review previews the exact recording ID,
+artist, album and snapshot. Accepted source snapshots become the player's source;
+rejected/pending requests have no effect. Existing revision/audio-bound timing
+corrections continue to apply only to their compatible source. No schema migration
+or new moderation role is needed. Imported lyrics do not currently retain LRCLIB's
+external IDs, so explicit ID resolution uses LRCLIB's API rather than guessing a
+local primary key.
+
+Add the new copy to Vocabulary.xlsx in EN/ES/FR and regenerate vocabulary and shared
+models. Checks cover ID validation, source lookup, rejection/acceptance routing,
+read-only proposal preparation and accepted-source playback, plus web/mobile types,
+lint, production web/PWA compilation and vocabulary/import boundaries. Production
+browser review covers both centered players, invalid-ID recovery, pending submission
+and the admin preview. Backend suite: 774 passed, 14 skipped; targeted source/correction
+checks: 32 passed. Physical iOS/Android and PostgreSQL persistence checks require their
+respective devices/test database.
+
+### Provisional source lyrics and grouped device downloads
+
+Use the source snapshot already saved in a LYRICS request immediately for its
+author while review is pending. Authenticate the lyrics viewer and scope provisional
+reads to that user, song and pending status. Keep accepted sources available to all
+users. Show a pending label and refresh after submission; while provisional lyrics
+are displayed, recheck review status every 30 seconds on both players. Approval
+retains the snapshot; rejection atomically removes its lyric content from the request,
+retaining the source-ID audit reference, and restores the previous source. Original
+provider lyrics and unrelated timing corrections are not overwritten. Update the
+source-proposal copy in all three workbook languages and regenerate the pending
+context DTO. Keep the centered, borderless lyrics layout.
+
+Turn the PWA storage catalog into Albums, Playlists and Songs views. Use locally
+saved metadata for album groups, preserve collection references with each list
+download, and retain all memberships when the same song is downloaded again.
+Drill into groups, search track/artist/album names, play the selected song followed
+by the visible group, and order albums by disc/track. Keep unique byte totals,
+per-song deletion, saved dates and persistence information. Old ungrouped files
+remain reachable. Compact the heading so the list is usable on narrow screens.
+Fix the recursive offline-library refresh listener found during this work. No
+footer geometry changes or IndexedDB schema migration are needed.
+
+Validation: production Next.js and Expo web builds; application/UI/test types,
+web/mobile lint, Ruff/Pyright, vocabulary and portable import/bundle checks.
+Backend suite: 776 passed and 14 optional tests skipped. Focused moderation checks
+cover author isolation, rejection cleanup and previous-source restoration; offline
+checks cover grouping, disc/track order and multiple saved playlist memberships.
+Production Chromium review verifies immediate lyrics, approval/rejection refresh
+on both players, album/playlist browsing, group queue order, search, offline browsing
+and a narrow phone viewport. Physical iOS/Android and PostgreSQL persistence checks
+still require their respective devices/test database.

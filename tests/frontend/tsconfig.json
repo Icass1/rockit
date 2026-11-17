@@ -25,7 +25,11 @@
             "@/platform/socket": ["apps/mobile/platform/socket.web.ts"],
             "@/models/types/playerArtwork": [
                 "apps/mobile/models/types/playerArtwork.ts"
-            ]
+            ],
+            "@/models/interfaces/offlineStorage": [
+                "apps/mobile/models/interfaces/offlineStorage.ts"
+            ],
+            "@rockit/platform-browser/*": ["packages/platform-browser/src/*"]
         },
         "types": ["node", "vitest/globals"],
         "allowImportingTsExtensions": true

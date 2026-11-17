@@ -6,6 +6,7 @@ import { Disc3, DiscAlbum, Pause, Play, Video, VideoOff } from "lucide-react";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
+import CurrentBookmark from "@/components/PlayerUI/CurrentBookmark";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
 import VinylTransition from "@/components/PlayerUI/VinylTransition";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
@@ -226,6 +227,9 @@ export default function PlayerUIMain({
                             className="text-md w-fit flex-nowrap truncate text-left font-semibold"
                             artists={currentMedia.artists}
                         />
+                        <CurrentBookmark
+                            mediaPublicId={currentMedia.publicId}
+                        />
                     </div>
                 </div>
             </div>
@@ -312,6 +316,9 @@ export default function PlayerUIMain({
                             <Artists
                                 className="text-md w-fit flex-nowrap truncate text-left font-semibold"
                                 artists={currentMedia.artists}
+                            />
+                            <CurrentBookmark
+                                mediaPublicId={currentMedia.publicId}
                             />
                         </div>
                     )}

@@ -68,6 +68,16 @@ export function useLyricsSnapshot(
             cancelled = true;
         };
     }, [publicId, enabled, reload]);
+    useEffect(() => {
+        if (
+            !enabled ||
+            state?.id !== publicId ||
+            state?.data?.syncStatus !== "pending"
+        )
+            return;
+        const timer = setInterval(() => setReload((value) => value + 1), 30000);
+        return () => clearInterval(timer);
+    }, [enabled, publicId, state?.id, state?.data?.syncStatus]);
     const current = enabled && state?.id === publicId ? state : undefined;
     return {
         data: current?.data,

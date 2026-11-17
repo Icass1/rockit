@@ -38,6 +38,8 @@ export function LyricsCorrectionEditor({
                     : vocabulary.LYRICS_LOADING}
             </p>
         );
+    if (snapshot.syncStatus === "pending")
+        return <p>{vocabulary.LYRICS_SOURCE_PENDING}</p>;
     if (!snapshot.revision) return <p>{vocabulary.LYRICS_LOCAL_REQUIRED}</p>;
     return (
         <CorrectionForm

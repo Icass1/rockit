@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import type { LyricsCorrectionContextResponse } from "@/dto";
+import {
+    LyricsSourceSchema,
+    StoredLyricsSourceSchema,
+    type LyricsCorrectionContextResponse,
+} from "@/dto";
 import { lyricsCorrectionSchema } from "@/models/schemas/lyricsCorrection";
 import { Http } from "@/lib/http";
 import { LyricsPreview } from "@/components/Lyrics/LyricsPreview";
@@ -20,6 +24,13 @@ function LoadedProposalPreview({
     const [failed, setFailed] = useState(false);
     useEffect(() => {
         let cancelled = false;
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(payload);
+        } catch {
+            parsed = null;
+        }
+        if (StoredLyricsSourceSchema.safeParse(parsed).success) return;
         void Http.getLyricsCorrectionContextAsync(mediaPublicId)
             .then((result) => {
                 if (cancelled) return;
@@ -32,13 +43,54 @@ function LoadedProposalPreview({
         return (): void => {
             cancelled = true;
         };
-    }, [mediaPublicId]);
+    }, [mediaPublicId, payload]);
     let json: unknown;
     try {
         json = JSON.parse(payload);
     } catch {
         json = null;
     }
+    const source = StoredLyricsSourceSchema.safeParse(json);
+    if (source.success)
+        return (
+            <div className="space-y-3">
+                <p className="text-muted-foreground text-xs">
+                    {vocabulary.LYRICS_SOURCE_RECORDING}
+                </p>
+                <p className="font-semibold">{source.data.trackName}</p>
+                <p className="text-muted-foreground text-sm">
+                    {source.data.artistName} · {source.data.albumName}
+                </p>
+                <a
+                    className="text-primary inline-flex min-h-11 items-center text-sm underline"
+                    href={`https://lrclib.net/api/get/${source.data.sourceId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {vocabulary.LYRICS_SOURCE_OPEN} · {source.data.sourceId}
+                </a>
+                <LyricsPreview
+                    mediaPublicId={mediaPublicId}
+                    lines={source.data.lines}
+                    offset={source.data.offset}
+                />
+                <p className="text-muted-foreground text-xs">
+                    {vocabulary.LYRICS_SOURCE_REVIEW}
+                </p>
+            </div>
+        );
+    const removedSource = LyricsSourceSchema.safeParse(json);
+    if (removedSource.success)
+        return (
+            <a
+                className="text-primary inline-flex min-h-11 items-center text-sm underline"
+                href={`https://lrclib.net/api/get/${removedSource.data.sourceId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                {vocabulary.LYRICS_SOURCE_OPEN} · {removedSource.data.sourceId}
+            </a>
+        );
     const proposal = lyricsCorrectionSchema.safeParse(json);
     if (!proposal.success) return <p>{vocabulary.LYRICS_LEGACY_PROPOSAL}</p>;
     if (!current)

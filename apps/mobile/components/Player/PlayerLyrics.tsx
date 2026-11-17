@@ -13,6 +13,7 @@ import { Http } from "@/lib/http";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import LyricLine from "@/components/Player/LyricLine";
+import LyricsMissing from "@/components/Player/LyricsMissing";
 
 export default function PlayerLyrics() {
     const styles = useThemedStyles(createStyles);
@@ -23,6 +24,7 @@ export default function PlayerLyrics() {
 
     const [fetchedLyrics, setLyrics] =
         useState<LyricsCorrectionContextResponse>();
+    const [reload, setReload] = useState(0);
     const [loadedPublicId, setLoadedPublicId] = useState<string>();
     const publicId = currentMedia?.publicId;
     const loading = !!publicId && loadedPublicId !== publicId;
@@ -63,7 +65,13 @@ export default function PlayerLyrics() {
         return () => {
             cancelled = true;
         };
-    }, [publicId]);
+    }, [publicId, reload]);
+
+    useEffect(() => {
+        if (lyrics?.syncStatus !== "pending") return;
+        const timer = setInterval(() => setReload((value) => value + 1), 30000);
+        return () => clearInterval(timer);
+    }, [lyrics?.syncStatus]);
 
     const currentIndex = useMemo(() => {
         if (
@@ -133,6 +141,11 @@ export default function PlayerLyrics() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>{vocabulary.LYRICS}</Text>
+                {lyrics?.syncStatus === "pending" && (
+                    <Text style={styles.headerSubtitle}>
+                        {vocabulary.LYRICS_SOURCE_PENDING}
+                    </Text>
+                )}
                 {currentMedia && (
                     <Text style={styles.headerSubtitle} numberOfLines={1}>
                         {currentMedia.name}
@@ -152,13 +165,21 @@ export default function PlayerLyrics() {
                 </View>
             )}
 
-            {!loading && (!lyrics || lyrics.lines.length === 0) && (
-                <View style={styles.centerContent}>
-                    <Text style={styles.stateText}>
-                        {vocabulary.LYRICS_UNAVAILABLE}
-                    </Text>
-                </View>
-            )}
+            {!loading &&
+                (!lyrics || lyrics.lines.length === 0) &&
+                (currentMedia?.type === "song" ? (
+                    <LyricsMissing
+                        key={currentMedia.publicId}
+                        mediaPublicId={currentMedia.publicId}
+                        onSubmitted={() => setReload((value) => value + 1)}
+                    />
+                ) : (
+                    <View style={styles.centerContent}>
+                        <Text style={styles.stateText}>
+                            {vocabulary.LYRICS_UNAVAILABLE}
+                        </Text>
+                    </View>
+                ))}
 
             {!loading && lyrics && lyrics.lines.length > 0 && (
                 <ScrollView

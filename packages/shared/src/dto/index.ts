@@ -437,6 +437,7 @@ export {
 } from "./lyricsCorrectionLine";
 export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";
 export { LyricsResponseSchema, type LyricsResponse } from "./lyricsResponse";
+export { LyricsSourceSchema, type LyricsSource } from "./lyricsSource";
 export {
     MediaAddedToPlaylistMessageSchema,
     type MediaAddedToPlaylistMessage,
@@ -779,6 +780,10 @@ export {
     StoredLyricsCorrectionSchema,
     type StoredLyricsCorrection,
 } from "./storedLyricsCorrection";
+export {
+    StoredLyricsSourceSchema,
+    type StoredLyricsSource,
+} from "./storedLyricsSource";
 export {
     StreakBattleChallengeRequestSchema,
     type StreakBattleChallengeRequest,

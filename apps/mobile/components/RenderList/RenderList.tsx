@@ -3,6 +3,7 @@ import { PLACEHOLDER } from "@/constants/assets";
 import type {
     BaseArtistResponse,
     CollectionPager,
+    CollectionPageState,
     TMedia,
 } from "@rockit/shared";
 import {
@@ -11,18 +12,19 @@ import {
     useThemedStyles,
     type DesignTheme,
 } from "@rockit/ui";
-import { MoreHorizontal, Play } from "@rockit/ui/icons";
+import { MoreHorizontal } from "@rockit/ui/icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayerServices } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
+import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 import CollectionArtworkPlay from "@/components/RenderList/CollectionArtworkPlay";
 import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 interface RenderListProps {
     title: string;
+    collection: NonNullable<CollectionPageState["collection"]>;
     featuredKind?: string;
     subtitle?: string;
     imageUrl: string;
@@ -42,6 +44,7 @@ interface RenderListProps {
 
 export default memo(function RenderList({
     title,
+    collection,
     featuredKind,
     subtitle,
     imageUrl,
@@ -50,7 +53,6 @@ export default memo(function RenderList({
     showMediaIndex = false,
     showMediaImage = true,
     substractArtists = [],
-    listPublicId,
     pager,
     total,
     footer,
@@ -59,25 +61,6 @@ export default memo(function RenderList({
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
-    const menu = useContextMenu();
-    const showMenu = () =>
-        menu.show({
-            title,
-            imageUrl,
-            collectionId: pager.publicId,
-            options: [
-                {
-                    label: vocabulary.PLAY,
-                    icon: Play,
-                    onPress: () => {
-                        menu.hide();
-                        void services.queueManager.playCollection(
-                            pager.publicId
-                        );
-                    },
-                },
-            ],
-        });
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
@@ -89,78 +72,97 @@ export default memo(function RenderList({
                 substractArtists={substractArtists}
                 footer={footer}
                 header={
-                    <>
-                        <View style={styles.header}>
-                            <LinearGradient
-                                colors={[theme.legacy.bgCard, "transparent"]}
-                                style={styles.gradient}
-                            />
-                            <CollectionArtworkPlay
-                                key={pager.publicId}
-                                onLongPress={showMenu}
-                                onPlay={() =>
-                                    void services.queueManager.playCollection(
-                                        pager.publicId
-                                    )
-                                }
-                            >
-                                {featuredKind ? (
-                                    <FeaturedArtwork
-                                        kind={featuredKind}
-                                        label={title}
-                                        size={theme.layout.collectionArtwork}
+                    <MediaPressableWrapper
+                        media={collection}
+                        allMedia={media}
+                        renderTrigger={(showMenu) => (
+                            <>
+                                <View style={styles.header}>
+                                    <LinearGradient
+                                        colors={[
+                                            theme.legacy.bgCard,
+                                            "transparent",
+                                        ]}
+                                        style={styles.gradient}
                                     />
-                                ) : (
-                                    <Image
-                                        source={{
-                                            uri:
-                                                imageUrl ||
-                                                PLACEHOLDER.playlist,
-                                        }}
-                                        style={styles.coverImage}
-                                        contentFit="cover"
-                                    />
-                                )}
-                            </CollectionArtworkPlay>
-                            <Pressable
-                                accessibilityRole="button"
-                                accessibilityLabel={vocabulary.MORE_OPTIONS}
-                                onPress={showMenu}
-                                style={{ padding: theme.spacing.md }}
-                            >
-                                <MoreHorizontal
-                                    color={theme.colors.foreground}
-                                />
-                            </Pressable>
-                            <View style={styles.titleContainer}>
-                                <Text style={styles.title} numberOfLines={5}>
-                                    {title}
-                                </Text>
-                                {artistNames && (
-                                    <Text
-                                        style={styles.artistText}
-                                        numberOfLines={5}
+                                    <CollectionArtworkPlay
+                                        key={pager.publicId}
+                                        onLongPress={showMenu}
+                                        onPlay={() =>
+                                            void services.queueManager.playCollection(
+                                                pager.publicId
+                                            )
+                                        }
                                     >
-                                        {artistNames}
-                                    </Text>
-                                )}
-                                {subtitle && (
-                                    <Text
-                                        style={styles.extraSubtitle}
-                                        numberOfLines={1}
+                                        {featuredKind ? (
+                                            <FeaturedArtwork
+                                                kind={featuredKind}
+                                                label={title}
+                                                size={
+                                                    theme.layout
+                                                        .collectionArtwork
+                                                }
+                                            />
+                                        ) : (
+                                            <Image
+                                                source={{
+                                                    uri:
+                                                        imageUrl ||
+                                                        PLACEHOLDER.playlist,
+                                                }}
+                                                style={styles.coverImage}
+                                                contentFit="cover"
+                                            />
+                                        )}
+                                    </CollectionArtworkPlay>
+                                    <Pressable
+                                        accessibilityRole="button"
+                                        accessibilityLabel={
+                                            vocabulary.MORE_OPTIONS
+                                        }
+                                        onPress={showMenu}
+                                        style={{ padding: theme.spacing.md }}
                                     >
-                                        {subtitle}
-                                    </Text>
-                                )}
-                                <Text style={styles.mediaCount}>
-                                    {Math.max(total ?? 0, media.length)}{" "}
-                                    {media.length === 1
-                                        ? vocabulary.SONG
-                                        : vocabulary.SONGS}
-                                </Text>
-                            </View>
-                        </View>
-                    </>
+                                        <MoreHorizontal
+                                            color={theme.colors.foreground}
+                                        />
+                                    </Pressable>
+                                    <View style={styles.titleContainer}>
+                                        <Text
+                                            style={styles.title}
+                                            numberOfLines={5}
+                                        >
+                                            {title}
+                                        </Text>
+                                        {artistNames && (
+                                            <Text
+                                                style={styles.artistText}
+                                                numberOfLines={5}
+                                            >
+                                                {artistNames}
+                                            </Text>
+                                        )}
+                                        {subtitle && (
+                                            <Text
+                                                style={styles.extraSubtitle}
+                                                numberOfLines={1}
+                                            >
+                                                {subtitle}
+                                            </Text>
+                                        )}
+                                        <Text style={styles.mediaCount}>
+                                            {Math.max(total ?? 0, media.length)}{" "}
+                                            {media.length === 1
+                                                ? vocabulary.SONG
+                                                : vocabulary.SONGS}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </>
+                        )}
+                    >
+                        {null}
+                    </MediaPressableWrapper>
                 }
             />
         </View>

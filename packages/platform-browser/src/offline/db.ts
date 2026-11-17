@@ -3,10 +3,12 @@ import type {
     BaseSongWithoutAlbumResponse,
     HomeStatsResponse,
     LibraryMediasResponse,
+    OfflineCollectionReference,
     SessionResponse,
     VocabularyResponse,
 } from "@rockit/shared";
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import { atom } from "nanostores";
 
 export interface OfflineSongRecord {
     publicId: string;
@@ -28,6 +30,7 @@ export interface OfflineSongRecord {
      * the song is added to / removed from playlists. Not exhaustive.
      */
     parentPlaylistIds?: string[];
+    savedCollections?: OfflineCollectionReference[];
 }
 
 interface RockItOfflineDB extends DBSchema {
@@ -104,16 +107,8 @@ export async function saveSongOffline(
         throw new Error(`Offline audio download failed for ${publicId}`);
     const audioBlob = await audioRes.blob();
 
-    let coverBlob: Blob | null = null;
-    if (coverUrl) {
-        try {
-            const coverRes = await fetch(resolveArtworkUrl(coverUrl));
-            if (coverRes.ok) coverBlob = await coverRes.blob();
-        } catch {
-            // Missing optional artwork must not abort a valid audio download.
-        }
-    }
-
+    const coverBlob: Blob | null = null;
+    const savedAt = Date.now();
     const db = await getDB();
     try {
         // Merge with the existing record (if any) so that parent references
@@ -136,15 +131,45 @@ export async function saveSongOffline(
             publicId,
             name: name ?? existing?.name,
             media: existing?.media,
+            savedCollections: existing?.savedCollections ?? [],
             audioBlob,
             coverBlob: coverBlob ?? existing?.coverBlob ?? null,
-            downloadedAt: Date.now(),
+            downloadedAt: savedAt,
             sizeBytes:
                 audioBlob.size +
                 ((coverBlob ?? existing?.coverBlob)?.size ?? 0),
             parentAlbumIds: mergedAlbumIds,
             parentPlaylistIds: mergedPlaylistIds,
         });
+        notifyOfflineLibraryChange();
+        if (coverUrl) {
+            // Artwork must never hold an already-downloaded audio file hostage.
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 10000);
+            void (async () => {
+                try {
+                    const response = await fetch(resolveArtworkUrl(coverUrl), {
+                        signal: controller.signal,
+                    });
+                    if (!response.ok) return;
+                    const image = await response.blob();
+                    const tx = db.transaction("songs", "readwrite");
+                    const current = await tx.store.get(publicId);
+                    if (current?.downloadedAt === savedAt)
+                        await tx.store.put({
+                            ...current,
+                            coverBlob: image,
+                            sizeBytes: current.audioBlob.size + image.size,
+                        });
+                    await tx.done;
+                    notifyOfflineLibraryChange();
+                } catch {
+                    /* Optional artwork may be unavailable or the account database closed. */
+                } finally {
+                    clearTimeout(timer);
+                }
+            })();
+        }
     } catch (err) {
         if (err instanceof DOMException && err.name === "QuotaExceededError") {
             throw new Error("STORAGE_FULL");
@@ -181,13 +206,43 @@ export async function saveOfflineSongCover(
 }
 
 export async function saveOfflineSongMetadata(
-    media: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse
+    media: BaseSongWithAlbumResponse | BaseSongWithoutAlbumResponse,
+    collections: OfflineCollectionReference[] = []
 ): Promise<void> {
     const db = await getDB();
     const tx = db.transaction("songs", "readwrite");
     const record = await tx.store.get(media.publicId);
-    if (record) await tx.store.put({ ...record, media });
+    if (record) {
+        const memberships = new Map(
+            (record.savedCollections ?? []).map((item) => [item.publicId, item])
+        );
+        for (const collection of collections)
+            memberships.set(collection.publicId, collection);
+        await tx.store.put({
+            ...record,
+            media,
+            savedCollections: [...memberships.values()],
+            parentAlbumIds: [
+                ...new Set([
+                    ...(record.parentAlbumIds ?? []),
+                    ...("album" in media ? [media.album.publicId] : []),
+                    ...collections
+                        .filter((item) => item.type === "album")
+                        .map((item) => item.publicId),
+                ]),
+            ],
+            parentPlaylistIds: [
+                ...new Set([
+                    ...(record.parentPlaylistIds ?? []),
+                    ...collections
+                        .filter((item) => item.type === "playlist")
+                        .map((item) => item.publicId),
+                ]),
+            ],
+        });
+    }
     await tx.done;
+    notifyOfflineLibraryChange();
 }
 
 export async function listOfflineSongRecords(): Promise<OfflineSongRecord[]> {
@@ -217,7 +272,17 @@ export async function updateOfflineSongPlaylist(
             : [...current, playlistPublicId]
         : current.filter((id) => id !== playlistPublicId);
 
-    await db.put("songs", { ...record, parentPlaylistIds: next });
+    await db.put("songs", {
+        ...record,
+        parentPlaylistIds: next,
+        savedCollections: record.savedCollections?.filter(
+            (item) =>
+                add ||
+                item.type !== "playlist" ||
+                item.publicId !== playlistPublicId
+        ),
+    });
+    notifyOfflineLibraryChange();
 }
 
 /**
@@ -247,7 +312,13 @@ export async function pruneOfflineSongParents(
         ...record,
         parentAlbumIds: albumIds,
         parentPlaylistIds: playlistIds,
+        savedCollections: record.savedCollections?.filter((item) =>
+            item.type === "album"
+                ? !removeAlbumIds.includes(item.publicId)
+                : !removePlaylistIds.includes(item.publicId)
+        ),
     });
+    notifyOfflineLibraryChange();
 
     return albumIds.length === 0 && playlistIds.length === 0;
 }
@@ -255,6 +326,7 @@ export async function pruneOfflineSongParents(
 export async function deleteOfflineSong(publicId: string): Promise<void> {
     const db = await getDB();
     await db.delete("songs", publicId);
+    notifyOfflineLibraryChange();
 }
 
 export async function listOfflineSongIds(): Promise<string[]> {
@@ -365,4 +437,9 @@ export async function loadHomeOffline(
     if (!username) return null;
     const db = await getDB();
     return (await db.get("home", `user:${username}`))?.data ?? null;
+}
+
+export const offlineLibraryRevision = atom(0);
+function notifyOfflineLibraryChange(): void {
+    offlineLibraryRevision.set(offlineLibraryRevision.get() + 1);
 }

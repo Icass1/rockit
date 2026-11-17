@@ -22,6 +22,7 @@ export const BaseSearchResultsItemSchema = z.object({
     downloaded: z.boolean().nullable(),
     url: z.string().nullable(),
     publicId: z.string().nullable(),
+    lyricsScore: z.number().default(0),
 });
 
 export type BaseSearchResultsItem = z.infer<typeof BaseSearchResultsItemSchema>;

@@ -13,6 +13,7 @@ import { useContextMenu } from "@/lib/ContextMenuContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
+import CollectionMenuTrigger from "@/components/Media/CollectionMenuTrigger";
 
 const keys: FeaturedCollectionKey[] = [
     "liked",
@@ -67,83 +68,104 @@ export default function FeaturedCollections() {
                         ? getRockitListName(key, vocabulary)
                         : pin!.name;
                     return (
-                        <Pressable
-                            accessibilityRole="button"
-                            accessibilityLabel={name}
-                            style={{
-                                width: theme.layout.artistArtwork,
-                                gap: theme.spacing.sm,
-                            }}
-                            onPress={() =>
-                                router.push(key ? `/playlist/${key}` : pin!.url)
-                            }
-                            onLongPress={() =>
-                                menu.show({
-                                    title: name,
-                                    collectionId: key
-                                        ? `featured:${key}`
-                                        : pin?.type !== "artist"
-                                          ? pin?.publicId
-                                          : undefined,
-                                    options: [
-                                        {
-                                            label: pin
-                                                ? vocabulary.NAV_UNPIN
-                                                : vocabulary.NAV_PIN,
-                                            icon: pin ? PinOff : Pin,
-                                            onPress: () => {
-                                                menu.hide();
-                                                void rockIt.navigationPinsManager.setPinnedAsync(
-                                                    pin?.publicId ?? entry.id,
-                                                    !pin
-                                                );
-                                            },
-                                        },
-                                    ],
-                                })
-                            }
-                        >
-                            <View>
-                                {key ? (
-                                    <FeaturedArtwork kind={key} label={name} />
-                                ) : (
-                                    <MediaArtwork
-                                        uri={pin!.imageUrl}
-                                        label={name}
-                                        size={theme.layout.artistArtwork}
-                                        round={pin!.type === "artist"}
-                                    />
-                                )}
-                                {!!pin && (
-                                    <View
-                                        pointerEvents="none"
+                        <CollectionMenuTrigger publicId={key ?? pin!.publicId}>
+                            {(openCollectionMenu) => (
+                                <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={name}
+                                    style={{
+                                        width: theme.layout.artistArtwork,
+                                        gap: theme.spacing.sm,
+                                    }}
+                                    onPress={() =>
+                                        router.push(
+                                            key ? `/playlist/${key}` : pin!.url
+                                        )
+                                    }
+                                    onLongPress={() =>
+                                        key || pin?.type !== "artist"
+                                            ? openCollectionMenu()
+                                            : menu.show({
+                                                  title: name,
+                                                  collectionId: key
+                                                      ? `featured:${key}`
+                                                      : pin?.type !== "artist"
+                                                        ? pin?.publicId
+                                                        : undefined,
+                                                  options: [
+                                                      {
+                                                          label: pin
+                                                              ? vocabulary.NAV_UNPIN
+                                                              : vocabulary.NAV_PIN,
+                                                          icon: pin
+                                                              ? PinOff
+                                                              : Pin,
+                                                          onPress: () => {
+                                                              menu.hide();
+                                                              void rockIt.navigationPinsManager.setPinnedAsync(
+                                                                  pin?.publicId ??
+                                                                      entry.id,
+                                                                  !pin
+                                                              );
+                                                          },
+                                                      },
+                                                  ],
+                                              })
+                                    }
+                                >
+                                    <View>
+                                        {key ? (
+                                            <FeaturedArtwork
+                                                kind={key}
+                                                label={name}
+                                            />
+                                        ) : (
+                                            <MediaArtwork
+                                                uri={pin!.imageUrl}
+                                                label={name}
+                                                size={
+                                                    theme.layout.artistArtwork
+                                                }
+                                                round={pin!.type === "artist"}
+                                            />
+                                        )}
+                                        {!!pin && (
+                                            <View
+                                                pointerEvents="none"
+                                                style={{
+                                                    position: "absolute",
+                                                    right: theme.spacing.xs,
+                                                    bottom: theme.spacing.xs,
+                                                    padding: theme.spacing.xs,
+                                                    borderRadius:
+                                                        theme.radius.full,
+                                                    backgroundColor:
+                                                        theme.colors.background,
+                                                }}
+                                            >
+                                                <Pin
+                                                    size={
+                                                        theme.typography.caption
+                                                    }
+                                                    color={
+                                                        theme.colors.foreground
+                                                    }
+                                                />
+                                            </View>
+                                        )}
+                                    </View>
+                                    <Text
+                                        numberOfLines={1}
                                         style={{
-                                            position: "absolute",
-                                            right: theme.spacing.xs,
-                                            bottom: theme.spacing.xs,
-                                            padding: theme.spacing.xs,
-                                            borderRadius: theme.radius.full,
-                                            backgroundColor:
-                                                theme.colors.background,
+                                            color: theme.colors.foreground,
+                                            fontSize: theme.typography.caption,
                                         }}
                                     >
-                                        <Pin
-                                            size={theme.typography.caption}
-                                            color={theme.colors.foreground}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                            <Text
-                                numberOfLines={1}
-                                style={{
-                                    color: theme.colors.foreground,
-                                    fontSize: theme.typography.caption,
-                                }}
-                            >
-                                {name}
-                            </Text>
-                        </Pressable>
+                                        {name}
+                                    </Text>
+                                </Pressable>
+                            )}
+                        </CollectionMenuTrigger>
                     );
                 }}
             />

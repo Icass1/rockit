@@ -30,10 +30,7 @@ export default function FeaturedScreen({
                 publicId={resource.data.publicId}
                 initial={featuredCollectionSeed({
                     ...resource.data,
-                    name:
-                        kind === "latest-downloads"
-                            ? getRockitListName(kind, vocabulary)
-                            : resource.data.name,
+                    name: getRockitListName(kind, vocabulary),
                 })}
             />
         );

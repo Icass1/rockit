@@ -26,6 +26,27 @@ export const BOOKMARK_MODE_MUTED_COLORS: Record<EBookmarkMode, string> = {
     PREVIOUS_BOOKMARK: "var(--theme-bookmark-previous-muted)",
 };
 
+/** A bookmark labels the section from its timestamp up to the next bookmark. */
+export function getCurrentBookmark(
+    bookmarks: readonly BookmarkResponse[],
+    mediaPublicId: string,
+    currentTime: number | null
+): BookmarkResponse | null {
+    if (currentTime === null) return null;
+
+    let current: BookmarkResponse | null = null;
+    for (const bookmark of bookmarks) {
+        if (
+            bookmark.mediaPublicId === mediaPublicId &&
+            bookmark.timestamp <= currentTime &&
+            (!current || bookmark.timestamp > current.timestamp)
+        ) {
+            current = bookmark;
+        }
+    }
+    return current;
+}
+
 export class BookmarkManager {
     private _currentMediaBookmarksAtom = createArrayAtom<BookmarkResponse>([]);
     private _showPopupAtom = createAtom<boolean>(false);

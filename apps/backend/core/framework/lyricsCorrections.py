@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.userRequest import UserRequestRow
 from core.access.mediaAccess import MediaAccess
 from core.access.requestAccess import RequestAccess
 from core.enums.mediaTypeEnum import MediaTypeEnum
@@ -18,6 +19,7 @@ from core.models.lyricsCorrection import (
     LyricsCorrectionLine,
     StoredLyricsCorrection,
 )
+from core.models.lyricsSource import StoredLyricsSource
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -40,6 +42,7 @@ class LyricsContext:
     audio_identity: str | None
     revision: str | None
     approved: bool = False
+    pending: bool = False
 
 
 def apply_overlay(context: LyricsContext, proposals: list[tuple[str, str]]) -> LyricsContext:
@@ -72,6 +75,7 @@ class LyricsCorrections:
         session: AsyncSession,
         public_id: str,
         provider_name: str | None = None,
+        viewer_id: int | None = None,
     ) -> Result[LyricsContext]:
         found = await MediaAccess.get_media_from_public_id_async(
             session=session,
@@ -85,25 +89,52 @@ class LyricsCorrections:
             session=session,
             media=found.result(),
             provider_name=provider_name,
+            viewer_id=viewer_id,
         )
 
     @staticmethod
     async def context_async(
-        session: AsyncSession, media: CoreMediaRow, provider_name: str | None = None
+        session: AsyncSession,
+        media: CoreMediaRow,
+        provider_name: str | None = None,
+        viewer_id: int | None = None,
     ) -> Result[LyricsContext]:
-        """Get originals and apply only reviewed corrections matching their current revision."""
+        """Resolve approved text, or the viewer's provisional source, then compatible overlays."""
         candidates = providers.get_lyrics_providers()
         if provider_name is not None:
             candidates = [p for p in candidates if p.get_name() == provider_name]
         if not candidates:
             logger.warning("Lyrics provider unavailable")
             return Result(code=ResultCode.NOT_FOUND, message="Lyrics provider unavailable")
+        accepted = await RequestAccess.get_accepted_lyrics_async(session=session, media_id=media.id)
+        if accepted.is_not_ok():
+            logger.error("Cannot load reviewed lyrics: %s", accepted.info())
+            return Result(code=accepted.code(), message=accepted.message())
+        pending_rows: list[UserRequestRow] = []
+        if viewer_id is not None:
+            pending_result = await RequestAccess.get_pending_lyrics_async(
+                session=session, media_id=media.id, user_id=viewer_id
+            )
+            if pending_result.is_not_ok():
+                logger.warning("Cannot load provisional lyrics: %s", pending_result.info())
+                return Result(code=pending_result.code(), message=pending_result.message())
+            pending_rows = pending_result.result()
+        pending_ids = {row.public_id for row in pending_rows}
+        reviewed_source: tuple[str, StoredLyricsSource] | None = None
+        for row in [*pending_rows, *accepted.result()]:
+            try:
+                candidate_source = StoredLyricsSource.model_validate_json(row.proposed_value)
+            except ValidationError:
+                continue
+            if provider_name is None or candidate_source.provider == provider_name:
+                reviewed_source = (row.public_id, candidate_source)
+                break
         selected = candidates[0]
         lines: list[LyricsCorrectionLine] = []
         offset = 0.0
         public_id = media.public_id
         raw_source: object = None
-        for provider in candidates:
+        for provider in [] if reviewed_source else candidates:
             bundle = await provider.get_lyrics_bundle_async(session=session, media_ids=[media.id])
             if bundle.is_not_ok():
                 logger.warning("Lyrics provider failed: %s", bundle.info())
@@ -142,6 +173,15 @@ class LyricsCorrections:
                 continue
             selected = provider
             break
+        if reviewed_source:
+            request_id, approved_source = reviewed_source
+            selected = next(
+                (p for p in candidates if p.get_name() == approved_source.provider), selected
+            )
+            public_id = str(approved_source.sourceId)
+            lines = approved_source.lines
+            offset = approved_source.offset
+            raw_source = [request_id, approved_source.model_dump()]
         source_hash = digest(
             value=[
                 media.public_id,
@@ -160,10 +200,6 @@ class LyricsCorrections:
             )
             if audio.is_ok():
                 identity = audio.result()
-        accepted = await RequestAccess.get_accepted_lyrics_async(session=session, media_id=media.id)
-        if accepted.is_not_ok():
-            logger.error("Cannot load reviewed lyrics: %s", accepted.info())
-            return Result(code=accepted.code(), message=accepted.message())
         context = LyricsContext(
             provider=selected.get_name(),
             public_id=public_id,
@@ -172,6 +208,8 @@ class LyricsCorrections:
             source_hash=source_hash,
             audio_identity=identity,
             revision=None,
+            approved=reviewed_source is not None and reviewed_source[0] not in pending_ids,
+            pending=reviewed_source is not None and reviewed_source[0] in pending_ids,
         )
         context = apply_overlay(
             context=context,

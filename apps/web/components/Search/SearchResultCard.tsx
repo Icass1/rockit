@@ -13,9 +13,11 @@ import ProviderTag from "@/components/ProviderTag/ProviderTag";
 export default function SearchResultCard({
     media,
     children,
+    featured = false,
 }: {
     media: BaseSearchResultsItem;
     children: ReactNode;
+    featured?: boolean;
 }): JSX.Element {
     useStore(rockIt.searchManager.resultsAtom);
     const sources = rockIt.searchManager.getSources(media);
@@ -43,14 +45,16 @@ export default function SearchResultCard({
             media={media}
             sources={sources}
             location={EMediaContextLocation.SEARCH}
-            openOnLeftClick={!canPlay}
+            openOnLeftClick={!canPlay && media.type !== "radio"}
         >
             <div
                 onClick={canPlay ? play : undefined}
                 className={
-                    media.type === "video"
-                        ? "w-64 shrink-0 md:w-80"
-                        : "w-36 shrink-0 md:w-48"
+                    featured
+                        ? "bg-muted/50 hover:bg-muted w-full max-w-xl rounded-2xl p-5 transition-colors md:p-6"
+                        : media.type === "video"
+                          ? "w-64 shrink-0 md:w-80"
+                          : "w-36 shrink-0 md:w-48"
                 }
             >
                 {children}

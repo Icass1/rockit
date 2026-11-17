@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from core.models.lyrics import DynamicLyrics, DynamicLyricsData, Lyrics
 from core.utils.createId import create_id
+from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
 from lrclib.access.db.ormModels.dynamicLyricsLineRow import (
     DynamicLyricsLineRow,
@@ -19,6 +20,41 @@ logger: Logger = getLogger(__name__)
 
 
 class LyricsAccess:
+    @staticmethod
+    @safe_async
+    async def search_async(
+        session: AsyncSession, query: str, limit: int, media_type: str | None = None
+    ) -> Result[dict[int, float]]:
+        """Use the GIN index before ranking; prefer phrases and nearby matching words."""
+        if media_type is not None and media_type not in ("song", "video"):
+            return Result(code=ResultCode.OK, message="OK", result={})
+        rows = await session.execute(
+            text("""
+                WITH query AS (
+                    SELECT plainto_tsquery('simple', :query) AS words,
+                           phraseto_tsquery('simple', :query) AS phrase
+                )
+                SELECT l.media_id,
+                       (CASE WHEN l.search_document @@ q.phrase THEN 0.5 ELSE 0 END
+                        + 0.5 * ts_rank_cd(l.search_document, q.words, 32)) AS score
+                FROM lrclib.lyrics l
+                JOIN core.media m ON m.id = l.media_id
+                CROSS JOIN query q
+                WHERE l.search_document @@ q.words
+                  AND m.media_type_key IN (4, 5)
+                  AND (:media_type = '' OR
+                       m.media_type_key = CASE WHEN :media_type = 'song' THEN 4 ELSE 5 END)
+                ORDER BY score DESC, m.public_id
+                LIMIT :limit
+            """),
+            {"query": query, "limit": limit, "media_type": media_type or ""},
+        )
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result={int(row[0]): float(row[1]) for row in rows},
+        )
+
     @staticmethod
     async def get_lyrics_by_media_ids_async(
         session: AsyncSession, media_ids: list[int]

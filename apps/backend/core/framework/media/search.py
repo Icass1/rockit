@@ -7,6 +7,7 @@ from time import monotonic
 from core.access.db import db_context
 from core.framework import providers
 from core.framework.media.localSearch import resolve_local_results
+from core.framework.media.lyricsSearch import lyrics_search
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.responses.searchProviderResponse import (
     SearchProviderInfo,
@@ -37,9 +38,14 @@ class ProviderSearch:
         self._slots = asyncio.Semaphore(4)
         self._cooldowns: dict[str, tuple[float, Result[SearchProviderResponse]]] = {}
 
+    @staticmethod
+    def _search_providers() -> list[BaseMediaProvider]:
+        local = [lyrics_search] if providers.get_lyrics_providers() else []
+        return [*local, *providers.get_media_providers()]
+
     def catalog(self) -> SearchProvidersResponse:
         entries: list[SearchProviderInfo] = []
-        for provider in providers.get_media_providers():
+        for provider in self._search_providers():
             if type(provider).search_media_async is BaseMediaProvider.search_media_async:
                 continue
             entries.append(
@@ -65,7 +71,7 @@ class ProviderSearch:
         provider = next(
             (
                 candidate
-                for candidate in providers.get_media_providers()
+                for candidate in self._search_providers()
                 if candidate.get_name() == provider_id
             ),
             None,

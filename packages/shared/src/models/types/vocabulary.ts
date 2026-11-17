@@ -2388,4 +2388,6 @@ export interface Vocabulary {
     OFFLINE_STORAGE_OTHER: string;
     OFFLINE_STORAGE_UNGROUPED: string;
     OFFLINE_STORAGE_GROUP_EMPTY: string;
+    SEARCH_TOP_RESULT: string;
+    SEARCH_LYRICS_MATCH: string;
 }

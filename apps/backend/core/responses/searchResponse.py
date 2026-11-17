@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ArtistSearchResultsItem(BaseModel):
@@ -22,6 +22,7 @@ class BaseSearchResultsItem(BaseModel):
     # in this Rockit instance (matched by name/artist in the DB), so the
     # frontend can play it directly instead of offering a re-download.
     publicId: str | None = None
+    lyricsScore: float = Field(default=0, ge=0, le=1)
 
 
 class SearchResultsResponse(BaseModel):

@@ -9,6 +9,7 @@ from core.models.lyrics import DynamicLyricsData, LyricsData
 from core.models.lyricsCorrection import LyricsCorrectionLine
 from core.models.lyricsSource import StoredLyricsSource
 from logger import getLogger
+from lrclib.access.lyricsAccess import LyricsAccess
 from lrclib.framework.lrclib import Lrclib
 from lrclib.models.api import LyricsResponse
 from result import Result, ResultCode
@@ -76,6 +77,14 @@ class LrclibProvider(BaseLyricsProvider):
         except (TimeoutError, httpx.HTTPError, ValueError) as exc:
             logger.warning("LRCLIB source lookup failed: %s", exc)
             return Result(code=ResultCode.GENERAL_ERROR, message="LRCLIB temporarily unavailable")
+
+    async def search_lyrics_async(
+        self, session: AsyncSession, query: str, limit: int, media_type: str | None = None
+    ) -> Result[dict[int, float]]:
+        """Search cached lyrics without requesting remote lyrics or media."""
+        return await LyricsAccess.search_async(
+            session=session, query=query, limit=limit, media_type=media_type
+        )
 
     async def get_lyrics_bundle_async(
         self, session: AsyncSession, media_ids: list[int]

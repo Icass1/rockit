@@ -439,3 +439,69 @@ test("stale downloaded search results report errors without replacing the queue"
         assert.equal(playback[0][0], "error");
     }
 });
+
+test("the top result is the closest match across every media type", async () => {
+    for (const kind of [
+        "song",
+        "album",
+        "artist",
+        "playlist",
+        "video",
+        "radio",
+    ]) {
+        const { manager, calls } = setup();
+        const pending = manager.search("Beyoncé");
+        await flush();
+        respond(calls[0], [
+            item("Beyonce live", { type: "song" }),
+            item("Beyonce", { type: kind, providerUrl: "/best" }),
+            item("Unrelated", { type: "album" }),
+        ]);
+        await pending;
+        assert.equal(manager.resultsAtom.get().results[0].providerUrl, "/best");
+    }
+});
+
+test("lyrics rank irrelevant titles and preserve relevance after deduplication", async () => {
+    const { manager, calls } = setup(2);
+    const pending = manager.search("hello from the other side");
+    await flush();
+    respond(calls[0], [
+        item("Hello live", { providerUrl: "/partial" }),
+        item("Different title", { providerUrl: "/shared", lyricsScore: 0 }),
+    ]);
+    await flush();
+    respond(calls[1], [
+        item("Different title", { providerUrl: "/shared", lyricsScore: 0.9 }),
+        item("Weaker match", { providerUrl: "/weak", lyricsScore: 0.2 }),
+    ]);
+    await pending;
+    const results = manager.resultsAtom.get().results;
+    assert.equal(results.length, 3);
+    assert.equal(results[0].providerUrl, "/shared");
+    assert.equal(results[0].lyricsScore, 0.9);
+    assert.equal(results[1].providerUrl, "/weak");
+});
+
+test("an exact metadata match outranks lyrics and retains downloaded source", async () => {
+    const { manager, calls } = setup(2);
+    const pending = manager.search("Hello");
+    await flush();
+    respond(calls[0], [
+        item("Other title", { lyricsScore: 0.99 }),
+        item("Hello", { providerUrl: "/remote" }),
+    ]);
+    respond(calls[1], [
+        item("Hello", {
+            provider: "two",
+            providerUrl: "/downloaded",
+            downloaded: true,
+            publicId: "local",
+        }),
+    ]);
+    await pending;
+    const results = manager.resultsAtom.get().results;
+    assert.equal(results[0].name, "Hello");
+    assert.equal(results[0].providerUrl, "/downloaded");
+    assert.equal(manager.getSources(results[0]).length, 2);
+});

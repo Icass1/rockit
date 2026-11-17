@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DOUBLE_PRECISION, ForeignKey, Integer
+from sqlalchemy import DOUBLE_PRECISION, ForeignKey, Index, Integer
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.access.db.ormModels.declarativeMixin import (
@@ -20,7 +21,12 @@ if TYPE_CHECKING:
 
 class LyricsRow(LrclibBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
     __tablename__ = "lyrics"
-    __table_args__ = ({"schema": "lrclib", "extend_existing": True},)
+    __table_args__ = (
+        Index("ix_lyrics_search_document", "search_document", postgresql_using="gin"),
+        {"schema": "lrclib", "extend_existing": True},
+    )
+
+    search_document: Mapped[str] = mapped_column(TSVECTOR, nullable=False, server_default="")
 
     media_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), nullable=False, unique=True
@@ -42,6 +48,7 @@ class LyricsRow(LrclibBase, TableAutoincrementId, TablePublicId, TableDateUpdate
         self,
         media_id: int,
         public_id: str | None = None,
+        search_document: str = "",
         offset: float = 0.0,
         id: int | None = None,
     ) -> None:
@@ -49,6 +56,7 @@ class LyricsRow(LrclibBase, TableAutoincrementId, TablePublicId, TableDateUpdate
         kwargs["media_id"] = media_id
         if public_id is not None:
             kwargs["public_id"] = public_id
+        kwargs["search_document"] = search_document
         kwargs["offset"] = offset
         if id is not None:
             kwargs["id"] = id

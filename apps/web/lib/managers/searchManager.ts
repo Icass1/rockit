@@ -311,9 +311,61 @@ export class SearchManager {
         );
     }
 
+    private relevance(item: BaseSearchResultsItem): number {
+        const normalize = (text: string): string =>
+            text
+                .normalize("NFKD")
+                .replace(/\p{M}/gu, "")
+                .toLocaleLowerCase()
+                .replace(/[^\p{L}\p{N}]+/gu, " ")
+                .trim();
+        const query = normalize(this._queryAtom.get());
+        if (!query) return 0;
+        const title = normalize(item.name);
+        const artists = item.artists.map((artist) => normalize(artist.name));
+        const context = `${title} ${artists.join(" ")}`;
+        const tokens = query.split(" ");
+        let score = 0;
+        if (title === query) score = 100;
+        else if (
+            `${title} ${artists.join(" ")}` === query ||
+            `${artists.join(" ")} ${title}` === query
+        )
+            score = 95;
+        else if (title.startsWith(query)) score = 85;
+        else if (` ${title} `.includes(` ${query} `)) score = 80;
+        else if (
+            tokens.every((token) =>
+                context.split(" ").some((word) => word.startsWith(token))
+            )
+        )
+            score = 70;
+        else
+            score =
+                (40 *
+                    tokens.filter((token) => context.includes(token)).length) /
+                tokens.length;
+        return Math.max(
+            score,
+            item.lyricsScore ? 65 + 25 * item.lyricsScore : 0
+        );
+    }
+
     private publish(): void {
         const groups = new Map<string, BaseSearchResultsItem[][]>();
         const seenUrls = new Set<string>();
+        const lyricsScores = new Map<string, number>();
+        for (const provider of this._providersAtom.get()) {
+            for (const item of provider.results) {
+                lyricsScores.set(
+                    item.providerUrl,
+                    Math.max(
+                        lyricsScores.get(item.providerUrl) ?? 0,
+                        item.lyricsScore ?? 0
+                    )
+                );
+            }
+        }
         for (const provider of this._providersAtom.get()) {
             for (const item of provider.results) {
                 if (seenUrls.has(item.providerUrl)) continue;
@@ -344,15 +396,26 @@ export class SearchManager {
                         `${key}:${index}`
                     );
                 }
-                results.push(
+                const selected =
                     sources.find(
                         (source) => source.downloaded && source.publicId
                     ) ??
-                        sources.find((source) => source.downloaded) ??
-                        sources[0]
-                );
+                    sources.find((source) => source.downloaded) ??
+                    sources[0];
+                results.push({
+                    ...selected,
+                    lyricsScore: Math.max(
+                        ...sources.map(
+                            (source) =>
+                                lyricsScores.get(source.providerUrl) ?? 0
+                        )
+                    ),
+                });
             }
         }
+        results.sort(
+            (left, right) => this.relevance(right) - this.relevance(left)
+        );
         this._resultsAtom.set({ results });
         this._errorAtom.set(
             this._providersAtom.get().some((provider) => provider.failed)

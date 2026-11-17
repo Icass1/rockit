@@ -16,6 +16,12 @@ class BaseLyricsProvider(BaseProvider):
         logger.warning("Explicit source lookup is unavailable for this lyrics provider")
         return Result(code=ResultCode.NOT_IMPLEMENTED, message="Source lookup unavailable")
 
+    async def search_lyrics_async(
+        self, session: AsyncSession, query: str, limit: int, media_type: str | None = None
+    ) -> Result[dict[int, float]]:
+        """Return internal media IDs and normalized relevance from locally stored lyrics."""
+        return Result(code=ResultCode.OK, message="OK", result={})
+
     async def get_lyrics_bundle_async(
         self, session: AsyncSession, media_ids: list[int]
     ) -> Result[dict[int, tuple[LyricsData | None, DynamicLyricsData | None]]]:

@@ -1,23 +1,15 @@
 """Versioned database migrations."""
 
-from dataclasses import dataclass
+from importlib import import_module
+from pathlib import Path
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from core.models.databaseMigration import Migration
 from logger import logger
 
-
-@dataclass(frozen=True)
-class Migration:
-    """Describe one forward-only database migration."""
-
-    version: int
-    name: str
-    statements: tuple[str, ...]
-
-
-MIGRATIONS: tuple[Migration, ...] = (
+_CORE_MIGRATIONS: tuple[Migration, ...] = (
     Migration(
         version=1,
         name="remove_notification_source_key",
@@ -85,6 +77,24 @@ MIGRATIONS: tuple[Migration, ...] = (
             "END IF; END $$",
         ),
     ),
+)
+
+
+def _provider_migrations() -> tuple[Migration, ...]:
+    """Discover installed providers' migrations without importing concrete providers in core."""
+    backend_root = Path(__file__).resolve().parents[3]
+    migrations: list[Migration] = []
+    for path in sorted(backend_root.glob("*/access/db/migrations.py")):
+        if path == Path(__file__).resolve():
+            continue
+        module_name = ".".join(path.relative_to(backend_root).with_suffix("").parts)
+        module = import_module(module_name)
+        migrations.extend(module.MIGRATIONS)
+    return tuple(migrations)
+
+
+MIGRATIONS: tuple[Migration, ...] = tuple(
+    sorted((*_CORE_MIGRATIONS, *_provider_migrations()), key=lambda item: item.version)
 )
 
 

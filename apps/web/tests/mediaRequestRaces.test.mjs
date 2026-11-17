@@ -7,7 +7,7 @@ import { build } from "esbuild";
 const { outputFiles } = await build({
     stdin: {
         contents: `export {Http} from './lib/http';
-export {BookmarkManager} from './lib/managers/bookmarkManager';
+export {BookmarkManager, getCurrentBookmark} from './lib/managers/bookmarkManager';
 export {WebSocketManager} from './lib/managers/webSocketManger';
 export {createAtom} from '../../packages/shared/src/lib/store';`,
         resolveDir: new URL("../", import.meta.url).pathname,
@@ -85,6 +85,41 @@ const bookmark = (id) => ({
     mode: "AUTOSKIP",
     dateAdded: "2026-01-01T00:00:00Z",
     dateUpdated: "2026-01-01T00:00:00Z",
+});
+
+test("current bookmark follows section boundaries and seeks in either direction", () => {
+    const { getCurrentBookmark } = setup();
+    const intro = { ...bookmark("a"), description: "Intro" };
+    const chorus = {
+        ...bookmark("a"),
+        publicId: "chorus",
+        timestamp: 30,
+        description: "Chorus",
+    };
+    const bookmarks = [chorus, bookmark("other-media"), intro];
+    assert.equal(getCurrentBookmark(bookmarks, "a", null), null);
+    assert.equal(getCurrentBookmark(bookmarks, "a", 0), null);
+    assert.equal(getCurrentBookmark(bookmarks, "a", 4.99), null);
+    assert.equal(getCurrentBookmark(bookmarks, "a", 5), intro);
+    assert.equal(getCurrentBookmark(bookmarks, "a", 29.99), intro);
+    assert.equal(getCurrentBookmark(bookmarks, "a", 30), chorus);
+    assert.equal(getCurrentBookmark(bookmarks, "a", 120), chorus);
+    assert.equal(getCurrentBookmark(bookmarks, "a", 12), intro);
+    assert.equal(getCurrentBookmark(bookmarks, "next-media", 120), null);
+    assert.equal(getCurrentBookmark([], "a", 120), null);
+    assert.deepEqual(bookmarks, [chorus, bookmark("other-media"), intro]);
+});
+
+test("unnamed bookmarks end the previous named section and edits take effect immediately", () => {
+    const { getCurrentBookmark } = setup();
+    const named = { ...bookmark("a"), description: "Intro" };
+    const unnamed = { ...bookmark("a"), publicId: "unnamed", timestamp: 10 };
+    assert.equal(getCurrentBookmark([named, unnamed], "a", 10), unnamed);
+    const renamed = { ...unnamed, description: "Verse" };
+    assert.equal(getCurrentBookmark([named, renamed], "a", 10), renamed);
+    const moved = { ...renamed, timestamp: 20 };
+    assert.equal(getCurrentBookmark([named, moved], "a", 10), named);
+    assert.equal(getCurrentBookmark([named], "a", 25), named);
 });
 
 test("lyrics views share in-flight requests and refresh after settlement", async () => {

@@ -55,32 +55,33 @@ class Lrclib:
         else:
             missing_media_ids = list(media_ids)
 
-        # Retry plain-only cached entries at most once per minute/process. Only add
-        # missing synchronized data; never replace existing text or user offsets.
-        plain_only = [
+        # Retry cached lyrics without word timing at most once per minute/process.
+        upgrade_ids = [
             mid
             for mid, (_, plain, dynamic) in result_map.items()
-            if plain is not None and dynamic is None and mid not in _sync_retry_cache
+            if (plain is not None or dynamic is not None)
+            and not (dynamic and any(line.words for line in dynamic.lines))
+            and mid not in _sync_retry_cache
         ]
-        if plain_only:
-            for mid in plain_only:
+        if upgrade_ids:
+            for mid in upgrade_ids:
                 _sync_retry_cache[mid] = True
             upgraded = await Lrclib._fetch_and_save_lyrics_batch_async(
                 session=session,
-                media_ids=plain_only,
+                media_ids=upgrade_ids,
                 preserve_plain=True,
             )
             if upgraded.is_ok() and upgraded.result():
                 refreshed = await LyricsAccess.get_lyrics_by_media_ids_async(
                     session=session,
-                    media_ids=plain_only,
+                    media_ids=upgrade_ids,
                 )
                 if refreshed.is_ok():
                     result_map.update(refreshed.result())
                 else:
                     logger.warning("Could not read upgraded lyrics: %s", refreshed.info())
             elif upgraded.is_not_ok():
-                logger.warning("Could not upgrade plain-only lyrics: %s", upgraded.info())
+                logger.warning("Could not upgrade cached lyrics: %s", upgraded.info())
 
         if missing_media_ids:
             a_result_fetched = await Lrclib._fetch_and_save_lyrics_batch_async(
@@ -166,6 +167,16 @@ class Lrclib:
 
         fetched_map: dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]] = {}
 
+        cached_map: dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]] = {}
+        if preserve_plain:
+            cached = await LyricsAccess.get_lyrics_by_media_ids_async(
+                session=session, media_ids=media_ids
+            )
+            if cached.is_not_ok():
+                logger.warning("Cannot check cached lyrics upgrade: %s", cached.info())
+                return Result(code=cached.code(), message=cached.message())
+            cached_map = cached.result()
+
         for media_id, a_result in results:
             if a_result.code() == ResultCode.NOT_FOUND:
                 logger.warning(f"Lyrics for media {media_id}. {a_result.info()} not found.")
@@ -177,8 +188,13 @@ class Lrclib:
 
             lyrics, dynamic_data = a_result.result()
 
-            if preserve_plain and dynamic_data is None:
-                continue
+            if preserve_plain:
+                if dynamic_data is None:
+                    continue
+                previous = cached_map.get(media_id)
+                if previous and previous[2] is not None:
+                    if not any(line.words for line in dynamic_data.lines):
+                        continue
             save_result = await LyricsAccess.save_lyrics_async(
                 session=session,
                 media_id=media_id,
@@ -235,6 +251,8 @@ class Lrclib:
         parsed: LyricsResponse,
     ) -> Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]]:
         """Parse automatic matches and explicit IDs through the same timestamp rules."""
+        if parsed.instrumental:
+            return Result(code=ResultCode.OK, message="Instrumental", result=(None, None))
         track_name = parsed.trackName
         lyrics: list[Lyrics] | None = None
         dynamicLyrics: list[DynamicLyrics] | None = None
@@ -277,10 +295,15 @@ class Lrclib:
         else:
             logger.warning(f"No synced lyrics found for {track_name}")
 
+        file_plain, file_lines = parsed.file_lyrics
+        if file_plain:
+            lyrics = file_plain
+        if file_lines:
+            dynamicLyrics = file_lines
         if dynamicLyrics:
             dynamicLyrics.sort(key=lambda line: line.timestamp_s)
         source_offset = 0.0
-        if parsed.syncedLyrics:
+        if parsed.syncedLyrics and not file_lines:
             offset_tag = re.search(
                 r"^\[offset:([+-]?\d+)\]", parsed.syncedLyrics, re.MULTILINE | re.IGNORECASE
             )

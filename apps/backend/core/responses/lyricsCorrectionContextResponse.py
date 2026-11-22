@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from core.models.lyricsCorrection import LyricsCorrectionLine
+from core.models.playbackLyricsLine import PlaybackLyricsLine
 
 
 class LyricsCorrectionContextResponse(BaseModel):
@@ -10,5 +10,5 @@ class LyricsCorrectionContextResponse(BaseModel):
     publicId: str
     revision: str | None
     offset: float
-    lines: list[LyricsCorrectionLine]
+    lines: list[PlaybackLyricsLine]
     syncStatus: Literal["provider", "approved", "pending"]

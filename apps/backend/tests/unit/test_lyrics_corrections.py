@@ -15,9 +15,9 @@ from core.framework.admin import userRequest
 from core.framework.lyricsCorrections import LyricsContext, LyricsCorrections, apply_overlay
 from core.models.lyricsCorrection import (
     LyricsCorrection,
-    LyricsCorrectionLine,
     StoredLyricsCorrection,
 )
+from core.models.playbackLyricsLine import PlaybackLyricsLine
 from core.responses.userRequestResponse import UserRequestResponse
 from result import Result, ResultCode
 
@@ -30,7 +30,7 @@ def context() -> LyricsContext:
         source_hash="source-a",
         audio_identity="audio-a",
         revision=None,
-        lines=[LyricsCorrectionLine(text="Original", timestamp_s=10)],
+        lines=[PlaybackLyricsLine(text="Original", timestamp_s=10)],
     )
 
 

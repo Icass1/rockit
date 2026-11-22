@@ -5,7 +5,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from core.models.lyrics import DynamicLyrics, DynamicLyricsData, Lyrics
+from core.models.lyrics import DynamicLyrics, DynamicLyricsData, Lyrics, LyricsWord
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
@@ -65,6 +65,7 @@ class LyricsAccess:
             stmt = (
                 select(LyricsRow)
                 .where(LyricsRow.media_id.in_(media_ids))
+                .execution_options(populate_existing=True)
                 .options(
                     selectinload(LyricsRow.lines),
                     selectinload(LyricsRow.dynamic_lines),
@@ -88,6 +89,8 @@ class LyricsAccess:
                         DynamicLyrics(
                             text=item_value.text,
                             timestamp_s=item_value.timestamp_s,
+                            words=[LyricsWord.model_validate(word) for word in item_value.words],
+                            end_timestamp_s=item_value.end_timestamp_s,
                         )
                         for item_value in sorted(row.dynamic_lines, key=lambda x: x.line_number)
                     ]
@@ -170,7 +173,9 @@ class LyricsAccess:
                         lyrics_id=lyrics_row.id,
                         line_number=i,
                         text=line.text,
-                        timestamp_s=round(line.timestamp_s, 2),
+                        timestamp_s=line.timestamp_s,
+                        words=[word.model_dump() for word in line.words],
+                        end_timestamp_s=line.end_timestamp_s,
                     )
                     session.add(new_line)
 

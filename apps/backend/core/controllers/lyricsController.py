@@ -64,7 +64,12 @@ async def get_dynamic_lyrics_async(
         publicId=context.public_id,
         offset=context.offset,
         lines=[
-            BaseDynamicLyricsItem(text=line.text, timestamp_s=line.timestamp_s)
+            BaseDynamicLyricsItem(
+                text=line.text,
+                timestamp_s=line.timestamp_s,
+                words=line.words,
+                end_timestamp_s=line.end_timestamp_s,
+            )
             for line in context.lines
             if line.timestamp_s is not None
         ],

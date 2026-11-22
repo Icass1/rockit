@@ -2,14 +2,14 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { LyricsCorrectionLineSchema } from "./lyricsCorrectionLine";
+import { PlaybackLyricsLineSchema } from "./playbackLyricsLine";
 
 export const LyricsCorrectionContextResponseSchema = z.object({
     provider: z.string(),
     publicId: z.string(),
     revision: z.string().nullable(),
     offset: z.number(),
-    lines: z.array(z.lazy(() => LyricsCorrectionLineSchema)),
+    lines: z.array(z.lazy(() => PlaybackLyricsLineSchema)),
     syncStatus: z.union([
         z.literal("provider"),
         z.literal("approved"),

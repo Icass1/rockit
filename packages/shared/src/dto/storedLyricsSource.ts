@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { LyricsCorrectionLineSchema } from "./lyricsCorrectionLine";
+import { PlaybackLyricsLineSchema } from "./playbackLyricsLine";
 
 export const StoredLyricsSourceSchema = z.object({
     kind: z.union([z.literal("lyrics_source")]),
@@ -13,7 +13,7 @@ export const StoredLyricsSourceSchema = z.object({
     albumName: z.string().default(""),
     duration: z.number(),
     offset: z.number().default(0),
-    lines: z.array(z.lazy(() => LyricsCorrectionLineSchema)),
+    lines: z.array(z.lazy(() => PlaybackLyricsLineSchema)),
 });
 
 export type StoredLyricsSource = z.infer<typeof StoredLyricsSourceSchema>;

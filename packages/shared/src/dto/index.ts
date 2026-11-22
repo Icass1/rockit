@@ -438,6 +438,7 @@ export {
 export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";
 export { LyricsResponseSchema, type LyricsResponse } from "./lyricsResponse";
 export { LyricsSourceSchema, type LyricsSource } from "./lyricsSource";
+export { LyricsWordSchema, type LyricsWord } from "./lyricsWord";
 export {
     MediaAddedToPlaylistMessageSchema,
     type MediaAddedToPlaylistMessage,
@@ -520,6 +521,10 @@ export {
     PinNavigationRequestSchema,
     type PinNavigationRequest,
 } from "./pinNavigationRequest";
+export {
+    PlaybackLyricsLineSchema,
+    type PlaybackLyricsLine,
+} from "./playbackLyricsLine";
 export {
     PlaylistContributorSchema,
     type PlaylistContributor,

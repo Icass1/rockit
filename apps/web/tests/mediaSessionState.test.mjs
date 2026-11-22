@@ -440,17 +440,18 @@ test("session refresh retains subscriptions and only the first gesture activates
     assert.equal(e.activation.closed, 1);
 });
 
-test("logout immediately removes native controls and gestures and pauses playback", () => {
+test("logout pauses account playback and keeps controls available for a guest queue", () => {
     const e = setup({ initialize: false });
     e.lifecycle.start();
     e.sessionAtom.set(null);
     assert.equal(e.transport.pause, 1);
+    // The connection lifecycle discards the previous account's queue.
+    e.currentMedia.set(undefined);
     assert.equal(e.session.metadata, null);
     assert.equal(e.session.playbackState, "none");
-    assert.equal(e.currentMedia.listenerCount, 0);
-    assert.equal(e.handlers.get("play"), null);
-    for (const listeners of e.documentListeners.values())
-        assert.equal(listeners.size, 0);
+    assert.equal(e.currentMedia.listenerCount, 1);
+    assert.equal(typeof e.handlers.get("play"), "function");
+    assert.equal(e.documentListeners.get("pointerup").size, 1);
     e.lifecycle.stop();
     assert.equal(e.sessionAtom.listenerCount, 0);
 });
@@ -493,8 +494,9 @@ test("playback synchronization retains metadata updates and replaces ownership o
     assert.equal(e.transport.pause, 1);
     e.sessionAtom.set(null);
     assert.equal(e.activation.syncStops, 2);
+    assert.equal(e.activation.syncStarts, 3);
     e.lifecycle.stop();
-    assert.equal(e.activation.syncStops, 2);
+    assert.equal(e.activation.syncStops, 3);
 });
 
 for (const device of [

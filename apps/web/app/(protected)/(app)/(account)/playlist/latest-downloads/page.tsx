@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { EMediaType } from "@rockit/shared";
 import { Download } from "lucide-react";
+import { getUserInServer } from "@/lib/getUserInServer";
 import { getFeaturedListAsync } from "@/lib/server/resources";
 import { getRequestVocabulary } from "@/lib/server/vocabulary";
 import RenderListClient from "@/components/RenderList/RenderListClient";
@@ -11,6 +12,7 @@ export async function generateMetadata(): Promise<{ title: string }> {
 }
 
 export default async function LatestDownloadsPage(): Promise<JSX.Element> {
+    if (!(await getUserInServer())) return <></>;
     const [playlist, { vocabulary }] = await Promise.all([
         getFeaturedListAsync("latest-downloads"),
         getRequestVocabulary(),

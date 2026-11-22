@@ -146,7 +146,7 @@ export class UserManager extends BaseUserManager {
         void this.cacheTask(() => this.services.sessionCache.save(session));
     }
 
-    private _showListeningHeatmap = createAtom(true);
+    private _showListeningHeatmap = createAtom(false);
     private _sessionReady = createAtom(false);
     get sessionReadyAtom(): ReadonlyAtom<boolean> {
         return this._sessionReady.getReadonlyAtom();
@@ -211,7 +211,7 @@ export class UserManager extends BaseUserManager {
         this._admin.set(false);
         this._username.set("");
         this._currentTimeMs.set(null);
-        this._showListeningHeatmap.set(true);
+        this._showListeningHeatmap.set(false);
         this._loggedIn.set(false);
         this._session.set(null);
         this._sessionReady.set(true);

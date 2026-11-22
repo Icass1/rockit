@@ -14,12 +14,11 @@ from logger import getLogger
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
     prefix="/stats",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
     tags=["Core", "Stats"],
 )
 
 
-@router.post("/user")
+@router.post("/user", dependencies=[Depends(AuthMiddleware.auth_dependency)])
 async def get_user_stats(
     request: Request,
     body: UserStatsRequest,
@@ -45,20 +44,17 @@ async def get_user_stats(
     return a_result.result()
 
 
-@router.get("/home")
+@router.get("/home", dependencies=[Depends(AuthMiddleware.optional_auth_dependency)])
 async def get_home_stats(
     request: Request,
 ) -> HomeStatsResponse:
     """Get home screen stats with recommended songs and playlists."""
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user = AuthMiddleware.get_current_user(request=request)
-
-    if a_result_user.is_not_ok():
-        raise HTTPException(status_code=401, detail="User not authenticated")
+    viewer_id = AuthMiddleware.viewer_id(request=request)
 
     a_result = await Stats.get_home_stats_async(
         session=session,
-        user_id=a_result_user.result().id,
+        user_id=viewer_id,
     )
 
     if a_result.is_not_ok():
@@ -67,7 +63,7 @@ async def get_home_stats(
     return a_result.result()
 
 
-@router.get("/streak")
+@router.get("/streak", dependencies=[Depends(AuthMiddleware.auth_dependency)])
 async def get_streak(
     request: Request,
 ) -> StreakResponse:

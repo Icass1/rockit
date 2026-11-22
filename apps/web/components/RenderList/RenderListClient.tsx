@@ -14,6 +14,7 @@ import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAdde
 import { IMediaRemovedFromPlaylistEvent } from "@/models/interfaces/events/mediaRemovedFromPlaylist";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";
+import { useSession } from "@/components/providers/SessionProvider";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function RenderListClient({
@@ -41,6 +42,7 @@ export default function RenderListClient({
     expandedByMediaId?: Record<string, boolean>;
     coverOverlay?: ReactNode;
 }): JSX.Element {
+    const session = useSession();
     const pager = useMemo(
         () =>
             new CollectionPager(publicId, {
@@ -91,7 +93,7 @@ export default function RenderListClient({
     return (
         <>
             <DropOverlay
-                enabled={type === EMediaType.Playlist}
+                enabled={!!session && type === EMediaType.Playlist}
                 onDropLink={handleLinkDrop}
             />
             <RenderList

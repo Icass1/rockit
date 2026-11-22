@@ -9,6 +9,7 @@ export class PlaybackLifecycle {
     private unsubscribeSession?: () => void;
     private active = false;
     private username?: string;
+    private sessionResolved = false;
 
     constructor(private readonly services: PlaybackServices) {
         this.mediaSession = new MediaSessionManager(services);
@@ -20,18 +21,15 @@ export class PlaybackLifecycle {
         this.volume.start();
         this.unsubscribeSession =
             this.services.userManager.sessionAtom.subscribe((session) => {
-                if (session) {
-                    if (this.username && this.username !== session.username) {
-                        this.deactivate();
-                        this.services.mediaPlayerManager.pause();
-                    }
-                    this.username = session.username;
-                    this.activate();
-                } else if (session === null) {
-                    this.username = undefined;
+                if (session === undefined) return;
+                const username = session?.username;
+                if (this.sessionResolved && this.username !== username) {
                     this.deactivate();
                     this.services.mediaPlayerManager.pause();
                 }
+                this.sessionResolved = true;
+                this.username = username;
+                this.activate();
             });
     }
 
@@ -40,6 +38,7 @@ export class PlaybackLifecycle {
         this.unsubscribeSession?.();
         this.unsubscribeSession = undefined;
         this.username = undefined;
+        this.sessionResolved = false;
         this.deactivate();
     }
 

@@ -768,3 +768,44 @@ Production Chromium review verifies immediate lyrics, approval/rejection refresh
 on both players, album/playlist browsing, group queue order, search, offline browsing
 and a narrow phone viewport. Physical iOS/Android and PostgreSQL persistence checks
 still require their respective devices/test database.
+
+### Public sharing and anonymous playback
+
+Allow anonymous visitors to browse the application shell, home catalog, search,
+albums, public playlists, artists, radio and lyrics. Keep account pages in a nested
+layout that renders a translated sign-in prompt without redirecting. Preserve
+private-playlist visibility and authenticated mutations, downloads, personal
+history, server queues and WebSocket access. Optional authentication retains valid
+owner/contributor visibility and treats missing or expired sessions as catalog
+viewers; database errors still propagate. Public home data uses only community
+recommendations.
+
+Add Copy link to media menus. Songs and videos use `/?media=<public UUID>` to
+replace the playback queue and open the player after session/queue initialization.
+Album and playlist links retain their collection routes. Anonymous queues use local
+queue operations and public collection resolution, including complete collections,
+shuffle, repeat, reordering and track transitions. Keep browser playback active for
+guests and reset queue ownership on account changes. Wait for startup before an
+early collection Play click. Render the expanded player on narrow and short screens.
+Skip account-only playlist suggestions for guests and translate sharing feedback in
+all three workbook languages.
+
+Validation: production Next.js build, web lint, mobile/web types, frontend fixture
+types, vocabulary/import-boundary checks, Ruff and Pyright. Web suite: 319 passed;
+focused queue/sharing suite after the startup fix: 40 passed. Backend suite: 790
+passed, 14 optional persistence tests skipped. Production SSR smoke checks include
+anonymous account routes without redirects and authenticated first-render data.
+Seven Chromium checks cover shared songs/videos at 1440×900, 390×844 and 900×400,
+collection views and local playback, next-track progression, copied links, anonymous
+account prompts, an early Play click during session loading and signed-in shared
+queue replacement. Physical devices and a dedicated PostgreSQL server were not
+available for verification.
+
+The footer's leading More Options button now opens the current song, video or
+station's media menu. Reuse the Copy link action for public playback links and
+reset open menu state when the current media changes. The button is always visible,
+uses a translated accessible name and supports keyboard activation. Validation:
+production build, web typecheck/lint, frontend fixture types, 20 focused SSR/sharing/
+menu tests and all seven public-sharing Chromium flows. The desktop, phone and
+short-landscape flows activate the footer menu with Enter and verify copied song
+and video URLs contain the current media's `?media=` identifier.

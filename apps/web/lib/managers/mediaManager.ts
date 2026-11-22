@@ -11,8 +11,14 @@ export class MediaManager {
     }
 
     async fetchLikedMedia(): Promise<void> {
+        if (!rockIt.userManager.loggedInAtom.get()) {
+            this._likedMediaAtom.set([]);
+            return;
+        }
+        const session = rockIt.userManager.sessionAtom.get();
         const res = await Http.getLikedMedia();
 
+        if (session !== rockIt.userManager.sessionAtom.get()) return;
         if (res.isOk()) {
             this._likedMediaAtom.set(res.result.media);
         } else {
@@ -28,6 +34,8 @@ export class MediaManager {
     }
 
     async toggleLikeMedia(publicId: string): Promise<void> {
+        const session = rockIt.userManager.sessionAtom.get();
+        if (!session) return;
         const current = this._likedMediaAtom.get();
         const isLiked = current.includes(publicId);
 
@@ -35,6 +43,7 @@ export class MediaManager {
             ? await Http.unlikeMedia(publicId)
             : await Http.likeMediaAsync({ publicIds: [publicId] });
 
+        if (session !== rockIt.userManager.sessionAtom.get()) return;
         if (res.isOk()) {
             this._likedMediaAtom.set(
                 isLiked

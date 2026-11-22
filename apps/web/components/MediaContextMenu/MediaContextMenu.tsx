@@ -20,6 +20,7 @@ import AddToPlaylistAction, {
     AddToPlaylistAndDownloadAction,
 } from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import CollectionLikeAction from "@/components/MediaContextMenu/actions/CollectionLikeAction";
+import CopyLinkAction from "@/components/MediaContextMenu/actions/CopyLinkAction";
 import DeleteMediaFileAction from "@/components/MediaContextMenu/actions/DeleteAction";
 import {
     DownloadAction,
@@ -62,6 +63,7 @@ import {
 } from "@/components/MediaContextMenu/mediaContextMenuActions";
 import PlaylistImageDialog from "@/components/Playlist/PlaylistImageDialog";
 import RenamePlaylistDialog from "@/components/Playlist/RenamePlaylistDialog";
+import { useSession } from "@/components/providers/SessionProvider";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import SearchSourcePicker from "@/components/Search/SearchSourcePicker";
 import ContextMenuContent from "@/components/ui/ContextMenu/Content";
@@ -133,6 +135,7 @@ export default function MediaContextMenu({
     onPlay?: () => void | Promise<void>;
 }): JSX.Element {
     const $vocabulary = useVocabulary();
+    const session = useSession();
     const [loading, setLoading] = useState(false);
     const [showEditMetadata, setShowEditMetadata] = useState(false);
     const [showRenamePlaylist, setShowRenamePlaylist] = useState(false);
@@ -145,7 +148,7 @@ export default function MediaContextMenu({
     const activeMedia =
         sources?.find((source) => source.providerUrl === selectedSource) ??
         media;
-    const visibleActions = getActionsForMedia(activeMedia, location);
+    const visibleActions = getActionsForMedia(activeMedia, location, !!session);
     const ownedPlaylist =
         !isSearchResult(activeMedia) && activeMedia.type === "playlist"
             ? $playlists.find(
@@ -198,9 +201,11 @@ export default function MediaContextMenu({
                     title={activeMedia.name}
                     description={getMediaSubtitle(activeMedia)}
                 >
-                    {!isSearchResult(activeMedia) && isList(activeMedia) && (
-                        <CollectionLikeAction {...actionProps} />
-                    )}
+                    {session &&
+                        !isSearchResult(activeMedia) &&
+                        isList(activeMedia) && (
+                            <CollectionLikeAction {...actionProps} />
+                        )}
                     {sources && isSearchResult(activeMedia) && (
                         <SearchSourcePicker
                             sources={sources}
@@ -227,7 +232,12 @@ export default function MediaContextMenu({
                             {$vocabulary.PLAYLIST_RENAME}
                         </ContextMenuOption>
                     )}
-                    {!isSearchResult(media) && <ShareAction {...actionProps} />}
+                    {!isSearchResult(activeMedia) && (
+                        <CopyLinkAction {...actionProps} />
+                    )}
+                    {session && !isSearchResult(activeMedia) && (
+                        <ShareAction {...actionProps} />
+                    )}
                     {ownedPlaylist && (
                         <ContextMenuOption
                             onClick={(): void => setShowPlaylistImage(true)}

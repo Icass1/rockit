@@ -53,7 +53,7 @@ async def get_audio_bounds(
     request: Request,
     public_id: str,
     response: Response,
-    _: None = Depends(dependency=AuthMiddleware.auth_dependency),
+    _: None = Depends(dependency=AuthMiddleware.optional_auth_dependency),
 ) -> AudioBoundsResponse:
     """Cached metadata only; never wait for a decoder or accept file paths."""
     response.headers["Cache-Control"] = "no-store"
@@ -86,22 +86,15 @@ async def get_related_songs(
     public_id: str,
     limit: int = 20,
     external: bool = True,
-    _: None = Depends(dependency=AuthMiddleware.auth_dependency),
+    _: None = Depends(dependency=AuthMiddleware.optional_auth_dependency),
 ) -> SongListResponse:
     """Songs similar to this one (local engine), plus optional external
     suggestions for songs not downloaded here yet."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
-    if a_result_user.is_not_ok():
-        logger.error(f"Error getting current user. {a_result_user.info()}")
-        raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
-        )
-
     a_result: Result[RecommendationResult] = await Recommendation.get_related_songs_async(
         session=session,
-        user_id=a_result_user.result().id,
+        user_id=AuthMiddleware.viewer_id(request=request),
         public_id=public_id,
         limit=limit,
         include_external=external,
@@ -120,17 +113,13 @@ async def get_album(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=200),
     query: str = Query(default="", max_length=200),
-    _: None = Depends(AuthMiddleware.auth_dependency),
+    _: None = Depends(AuthMiddleware.optional_auth_dependency),
 ) -> BaseAlbumWithSongsResponse:
     """Get album metadata and one bounded page of songs."""
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.error(f"Album authentication failed: {user.info()}")
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
     result = await Collection.page_async(
         session=DBSessionMiddleware.get_session(request=request),
         public_id=public_id,
-        user_id=user.result().id,
+        user_id=AuthMiddleware.viewer_id(request=request),
         offset=offset,
         limit=limit,
         query=query,
@@ -174,17 +163,13 @@ async def get_playlist(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=200),
     query: str = Query(default="", max_length=200),
-    _: None = Depends(AuthMiddleware.auth_dependency),
+    _: None = Depends(AuthMiddleware.optional_auth_dependency),
 ) -> BasePlaylistWithMediasResponse:
     """Get playlist metadata and one page; nested collections have no contents."""
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.error(f"Playlist authentication failed: {user.info()}")
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
     result = await Collection.page_async(
         session=DBSessionMiddleware.get_session(request=request),
         public_id=public_id,
-        user_id=user.result().id,
+        user_id=AuthMiddleware.viewer_id(request=request),
         offset=offset,
         limit=limit,
         query=query,
@@ -258,7 +243,7 @@ async def get_station_async(request: Request, public_id: str) -> BaseStationResp
 
 @router.get("/search/providers")
 async def search_providers_async(
-    _: None = Depends(dependency=AuthMiddleware.auth_dependency),
+    _: None = Depends(dependency=AuthMiddleware.optional_auth_dependency),
 ) -> SearchProvidersResponse:
     return provider_search.catalog()
 
@@ -266,7 +251,7 @@ async def search_providers_async(
 @router.post("/search/provider")
 async def search_provider_async(
     payload: SearchProviderRequest,
-    _: None = Depends(dependency=AuthMiddleware.auth_dependency),
+    _: None = Depends(dependency=AuthMiddleware.optional_auth_dependency),
 ) -> SearchProviderResponse:
     result = await provider_search.search_async(
         provider_id=payload.providerId,
@@ -300,7 +285,7 @@ async def search_async(
 async def get_media_async(
     request: Request,
     public_id: str,
-    _: None = Depends(dependency=AuthMiddleware.auth_dependency),
+    _: None = Depends(dependency=AuthMiddleware.optional_auth_dependency),
 ) -> MediaResponse:
     """Get a media item by its public_id without specifying the type."""
 
@@ -308,13 +293,7 @@ async def get_media_async(
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
-    if a_result_user.is_not_ok():
-        raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
-        )
-
-    user_id: int = a_result_user.result().id
+    user_id: int = AuthMiddleware.viewer_id(request=request)
 
     a_result: Result[MediaResponse] = await Media.get_media_async(
         session=session, public_id=public_id, user_id=user_id
@@ -410,16 +389,12 @@ async def get_artist_catalog_page(
     public_id: str,
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=200),
-    _: None = Depends(AuthMiddleware.auth_dependency),
+    _: None = Depends(AuthMiddleware.optional_auth_dependency),
 ) -> ArtistPageResponse:
     """Read the local artist catalog across registered providers."""
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.error(f"Artist authentication failed: {user.info()}")
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
     result = await Artist.page_async(
         session=DBSessionMiddleware.get_session(request=request),
-        user_id=user.result().id,
+        user_id=AuthMiddleware.viewer_id(request=request),
         public_id=public_id,
         offset=offset,
         limit=limit,
@@ -436,16 +411,12 @@ async def get_artist_page_by_name(
     name: str = Query(min_length=1, max_length=200),
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=200),
-    _: None = Depends(AuthMiddleware.auth_dependency),
+    _: None = Depends(AuthMiddleware.optional_auth_dependency),
 ) -> ArtistPageResponse:
     """Resolve an uploaded artist without inventing a Core media identifier."""
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.error(f"Artist authentication failed: {user.info()}")
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
     result = await Artist.page_async(
         session=DBSessionMiddleware.get_session(request=request),
-        user_id=user.result().id,
+        user_id=AuthMiddleware.viewer_id(request=request),
         name=name,
         offset=offset,
         limit=limit,

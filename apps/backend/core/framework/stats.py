@@ -94,6 +94,30 @@ class Stats:
         for users with none.
         """
 
+        if user_id == 0:
+            popular = await RecommendationAccess.get_community_top_song_ids_async(
+                session=session, exclude_media_ids=[], limit=30
+            )
+            if popular.is_not_ok():
+                logger.error(f"Public home lookup failed: {popular.info()}")
+                return Result(code=popular.code(), message=popular.message())
+            songs = await Media.resolve_songs_from_public_ids_async(
+                session=session, public_ids=popular.result()
+            )
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=HomeStatsResponse(
+                    songsByTimePlayed=[],
+                    randomSongsLastMonth=[],
+                    nostalgicMix=[],
+                    hiddenGems=[],
+                    communityTop=songs,
+                    monthlyTop=[],
+                    moodSongs=[],
+                ),
+            )
+
         now: datetime = datetime.now(UTC)
         month_ago: datetime = now - timedelta(days=30)
 

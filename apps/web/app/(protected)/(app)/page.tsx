@@ -1,5 +1,4 @@
 import { Suspense, type JSX } from "react";
-import { redirect } from "next/navigation";
 import { ServerHttp } from "@/lib/api/server";
 import { getUserInServer } from "@/lib/getUserInServer";
 import { requireResult } from "@/lib/server/resources";
@@ -11,19 +10,24 @@ export default async function HomePage(): Promise<JSX.Element> {
     const [session, statsResponse, recommendations] = await Promise.all([
         getUserInServer(),
         ServerHttp.getHomeStats(),
-        ServerHttp.getRecommendationsForYou(20, false),
+        getUserInServer().then((session) =>
+            session && session !== "offline"
+                ? ServerHttp.getRecommendationsForYou(20, false)
+                : undefined
+        ),
     ]);
-    if (!session) redirect("/login");
     const stats = requireResult(statsResponse);
     const data = buildHomeData(
         stats,
-        recommendations.isOk() ? recommendations.result : undefined
+        recommendations?.isOk() ? recommendations.result : undefined
     );
     return (
         <>
             <HomeClient
                 data={data}
-                username={session === "offline" ? "" : session.username}
+                username={
+                    !session || session === "offline" ? "" : session.username
+                }
                 initialHour={new Date().getUTCHours()}
                 discovery={
                     <Suspense fallback={null}>

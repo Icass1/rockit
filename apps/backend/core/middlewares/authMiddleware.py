@@ -68,6 +68,23 @@ class AuthMiddleware:
         request.state.session_id = session_id
 
     @staticmethod
+    async def optional_auth_dependency(request: Request) -> None:
+        """Resolve a valid session, allowing missing or expired sessions to browse."""
+        if not request.cookies.get(SESSION_COOKIE):
+            return
+        try:
+            await AuthMiddleware.auth_dependency(request=request)
+        except HTTPException as error:
+            if error.status_code != 401:
+                raise
+
+    @staticmethod
+    def viewer_id(request: Request) -> int:
+        """Zero is a non-persistent catalog viewer, never a database user."""
+        user = getattr(request.state, "user", None)
+        return user.id if user is not None else 0
+
+    @staticmethod
     async def admin_dependency(request: Request) -> None:
         await AuthMiddleware.auth_dependency(request)
         user: UserRow = request.state.user

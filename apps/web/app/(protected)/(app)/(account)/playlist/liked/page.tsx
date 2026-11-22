@@ -5,14 +5,16 @@ import {
     EMediaType,
     TMedia,
 } from "@rockit/shared";
-import { History } from "lucide-react";
+import { Heart } from "lucide-react";
+import { getUserInServer } from "@/lib/getUserInServer";
 import { getFeaturedListAsync } from "@/lib/server/resources";
 import { getRequestVocabulary } from "@/lib/server/vocabulary";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
     async (): Promise<BasePlaylistWithMediasResponse | undefined> => {
-        return getFeaturedListAsync("recent-mix");
+        if (!(await getUserInServer())) return undefined;
+        return getFeaturedListAsync("liked");
     }
 );
 
@@ -22,11 +24,12 @@ export async function generateMetadata(): Promise<{ title: string }> {
         getRequestVocabulary(),
     ]);
     return {
-        title: playlist?.name ?? vocabulary.RECENT_MIX,
+        title: playlist?.name ?? vocabulary.LIKED_SONGS,
     };
 }
 
-export default async function RecentMixPage(): Promise<JSX.Element> {
+export default async function LikedPage(): Promise<JSX.Element> {
+    if (!(await getUserInServer())) return <></>;
     const playlistResponse = await getFeatured();
 
     if (!playlistResponse) {
@@ -41,7 +44,7 @@ export default async function RecentMixPage(): Promise<JSX.Element> {
 
     return (
         <RenderListClient
-            publicId="recent-mix"
+            publicId="liked"
             type={EMediaType.Playlist}
             title={playlistResponse.name}
             artists={[playlistResponse.owner]}
@@ -51,7 +54,7 @@ export default async function RecentMixPage(): Promise<JSX.Element> {
             showMediaImage
             showMediaIndex={false}
             expandedByMediaId={expandedByMediaId}
-            coverOverlay={<History className="h-1/2 w-1/2" />}
+            coverOverlay={<Heart className="h-1/2 w-1/2" fill="white" />}
         />
     );
 }

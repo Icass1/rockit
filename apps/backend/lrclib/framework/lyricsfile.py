@@ -69,6 +69,7 @@ def parse_lyricsfile(raw: str | None) -> tuple[list[Lyrics] | None, list[Dynamic
         try:
             line = FileLine.model_validate(value)
         except ValidationError:
+            logger.debug(value)
             logger.warning("Ignoring invalid Lyricsfile line")
             continue
         words: list[LyricsWord] = []

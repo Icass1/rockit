@@ -3,7 +3,6 @@ import re
 from logging import Logger
 from typing import TYPE_CHECKING
 
-from cachetools import TTLCache
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
@@ -21,7 +20,6 @@ if TYPE_CHECKING:
     from lrclib.framework.provider.lrclibProvider import LrclibProvider
 
 logger: Logger = getLogger(__name__)
-_sync_retry_cache: TTLCache[int, bool] = TTLCache[int, bool](maxsize=1024, ttl=60)
 
 
 class Lrclib:
@@ -32,7 +30,7 @@ class Lrclib:
     async def get_lyrics_by_media_ids_async(
         session: AsyncSession, media_ids: list[int]
     ) -> Result[dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]]]:
-        """Get lyrics for multiple media IDs. Checks DB first, then fetches missing from API.
+        """Read cached lyrics and retry LRCLIB whenever word timing is missing.
         Returns dict mapping media_id -> (lyrics_public_id, plain_lyrics, dynamic_lyrics_data).
         """
 
@@ -55,17 +53,14 @@ class Lrclib:
         else:
             missing_media_ids = list(media_ids)
 
-        # Retry cached lyrics without word timing at most once per minute/process.
+        # Plain and line-synced lyrics keep searching until word timing is available.
         upgrade_ids = [
             mid
             for mid, (_, plain, dynamic) in result_map.items()
             if (plain is not None or dynamic is not None)
             and not (dynamic and any(line.words for line in dynamic.lines))
-            and mid not in _sync_retry_cache
         ]
         if upgrade_ids:
-            for mid in upgrade_ids:
-                _sync_retry_cache[mid] = True
             upgraded = await Lrclib._fetch_and_save_lyrics_batch_async(
                 session=session,
                 media_ids=upgrade_ids,

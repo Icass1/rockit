@@ -173,7 +173,6 @@ async def test_cached_line_lyrics_upgrade_once_without_losing_offset(
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    monkeypatch.setattr("lrclib.framework.lrclib._sync_retry_cache", {})
     cached = (
         "lyrics-id",
         [Lyrics(text="Original")],
@@ -208,6 +207,41 @@ async def test_cached_line_lyrics_upgrade_once_without_losing_offset(
     second = await Lrclib.get_lyrics_by_media_ids_async(session=session, media_ids=[1])
     assert first.is_ok() and second.is_ok() and first.result()[1][2] == upgraded[2]
     fetch.assert_awaited_once_with(session=session, media_ids=[1], preserve_plain=True)
+
+
+@pytest.mark.parametrize("line_sync", [False, True])
+@pytest.mark.parametrize(
+    "fetch_code", [ResultCode.OK, ResultCode.NOT_FOUND, ResultCode.GENERAL_ERROR]
+)
+async def test_cached_lyrics_without_words_retry_every_request(
+    monkeypatch: pytest.MonkeyPatch, line_sync: bool, fetch_code: int
+) -> None:
+    from typing import cast
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    cached = {
+        1: (
+            "lyrics-id",
+            [Lyrics(text="Original")],
+            DynamicLyricsData(lines=[DynamicLyrics(text="Original", timestamp_s=1)], offset=2)
+            if line_sync
+            else None,
+        )
+    }
+    read = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=cached))
+    fetch = AsyncMock(return_value=Result(code=fetch_code, message="No word upgrade", result={}))
+    monkeypatch.setattr(LyricsAccess, "get_lyrics_by_media_ids_async", read)
+    monkeypatch.setattr(Lrclib, "_fetch_and_save_lyrics_batch_async", fetch)
+    session = cast(AsyncSession, object())
+
+    for _ in range(2):
+        result = await Lrclib.get_lyrics_by_media_ids_async(session=session, media_ids=[1])
+        assert result.is_ok() and result.result() == cached
+
+    assert fetch.await_count == 2
+    for attempt in fetch.await_args_list:
+        assert attempt.kwargs == dict(session=session, media_ids=[1], preserve_plain=True)
 
 
 def test_offset_overlay_preserves_word_sync_but_text_edits_remove_it() -> None:

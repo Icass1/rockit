@@ -56,8 +56,8 @@ timing, not verified by duration. No time scaling or invented offset is applied.
 
 ## Existing cache and LRC input
 
-Entries without word timing are retried at most once per minute per process
-(bounded 1024-entry cache). Plain entries can gain line or word sync; line entries
+Entries without word timing are retried through LRCLIB on every lyrics request.
+Plain entries can gain line or word sync; line entries
 can gain word sync. Upgrades preserve cached plain text and the stored offset and
 never downgrade an existing sync tier. Word-synced entries need no upgrade lookup.
 

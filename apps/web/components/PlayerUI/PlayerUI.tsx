@@ -12,18 +12,16 @@ export default function PlayerUI(): JSX.Element | null {
     const vocabulary = useVocabulary();
 
     return (
-        <div
-            role="region"
-            aria-label={vocabulary.NOW_PLAYING}
-            aria-hidden={!$isPlayerUIVisible}
-            inert={!$isPlayerUIVisible}
-            className="bg-backdrop/80 absolute inset-0 flex items-center justify-center overflow-hidden pb-24 pl-12 transition-all duration-300"
-            style={{
-                top: $isPlayerUIVisible ? "0%" : "100%",
-                height: "calc(100%)",
-            }}
-        >
-            <PlayerUIContent />
+        <div className="pointer-events-none relative h-full overflow-hidden">
+            <div
+                role="region"
+                aria-label={vocabulary.NOW_PLAYING}
+                aria-hidden={!$isPlayerUIVisible}
+                inert={!$isPlayerUIVisible}
+                className={`bg-backdrop/80 relative flex h-full items-center justify-center overflow-hidden pb-24 pl-12 transition-[translate,visibility] duration-300 motion-reduce:transition-none ${$isPlayerUIVisible ? "pointer-events-auto visible translate-y-0" : "invisible translate-y-full"}`}
+            >
+                <PlayerUIContent />
+            </div>
         </div>
     );
 }

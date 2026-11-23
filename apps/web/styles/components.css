@@ -107,8 +107,6 @@ img {
    para dar sensación de "barra limpia" tipo Spotify.
    ─────────────────────────────────────────── */
 #default-slider {
-    position: absolute;
-    inset: 0;
     height: 100%;
     width: 100%;
     appearance: none;

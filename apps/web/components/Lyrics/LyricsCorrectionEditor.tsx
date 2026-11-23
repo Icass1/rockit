@@ -61,7 +61,10 @@ function CorrectionForm({
     const id = useId();
     const [offset, setOffset] = useState(snapshot.offset);
     const [lines, setLines] = useState(
-        snapshot.lines.map((line) => ({ ...line }))
+        snapshot.lines.map((line) => ({
+            text: line.text,
+            timestamp_s: line.timestamp_s,
+        }))
     );
     const [pending, setPending] = useState(false);
     const [sent, setSent] = useState(false);
@@ -75,7 +78,13 @@ function CorrectionForm({
     });
     const changed =
         offset !== snapshot.offset ||
-        JSON.stringify(lines) !== JSON.stringify(snapshot.lines);
+        JSON.stringify(lines) !==
+            JSON.stringify(
+                snapshot.lines.map((line) => ({
+                    text: line.text,
+                    timestamp_s: line.timestamp_s,
+                }))
+            );
     const submit = async (): Promise<void> => {
         if (!proposal.success || pending || !changed) return;
         setPending(true);

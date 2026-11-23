@@ -11,9 +11,10 @@ No live audio alignment, listening evaluation, or production migration was run.
 
 LRCLIB previously used only `/api/get` with album and duration, stopped on 404,
 required the nonstandard `lyricsfile` field, and ignored integer LRC timestamps.
-Lookup now keeps the exact fast path and searches by title/artist without album
-or duration constraints on a miss. If exact lookup has only plain text, search
-can still find compatible timed lyrics; a search failure preserves that plain text.
+Lookup searches by title/artist without album or duration constraints. An exact
+word-synced result can return immediately; line-synced and plain results remain
+fallbacks while the bounded searches look for word sync. A search failure preserves
+the best canonical result already found.
 At most five HTTP requests (one exact lookup and four deduplicated searches),
 a 10-second per-request timeout and a 20-second overall network budget, one closed
 client, and at most 100 examined entries per search. The unified provider bundle fetches both lyric forms once.
@@ -45,7 +46,8 @@ the studio request. Explicit live/session albums also qualify the recording.
 No artist/song-specific exception or popularity fallback is used. Conservative
 matching can still miss inconsistent artist credits or ambiguous release labels.
 
-Album and duration rank identity-compatible candidates. They never establish
+Identity-compatible candidates prefer usable word sync, then line sync, then
+plain text, then no lyrics. Album and duration break ties within a sync tier. They never establish
 alignment: an extra second at the end does not imply an offset; an extra second
 at the start might. Even equal-length edits can have different vocal timing.
 The earlier +/-3-second rule for hiding timed lyrics has been removed. Original
@@ -54,10 +56,19 @@ timing, not verified by duration. No time scaling or invented offset is applied.
 
 ## Existing cache and LRC input
 
-Existing text, timed lines and offsets are not bulk rewritten. A cached plain-only
-entry is retried at most once per minute per process (bounded 1024-entry cache),
-adding ONLY missing synchronized lines. It preserves cached text and the stored
-offset, and rereads them after an upgrade. Existing timed entries stay unchanged.
+Entries without word timing are retried through LRCLIB on every lyrics request.
+Plain entries can gain line or word sync; line entries
+can gain word sync. Upgrades preserve cached plain text and the stored offset and
+never downgrade an existing sync tier. Word-synced entries need no upgrade lookup.
+
+Lyricsfile 1.0 YAML supplies line and word starts and optional ends in milliseconds.
+Safe, bounded parsing rejects unsupported versions, aliases and duplicate keys.
+Word text must reconstruct its complete line, including spaces; invalid word data
+falls back to the line text. Invalid files fall back to legacy LRC and plain lyrics.
+The cache stores word segments and optional line ends in migration 8. API DTOs carry
+these fields through reviewed source snapshots, web, PiP and native playback. Display
+may infer a missing word end from the next word or line end; inferred ends are never
+stored. Dump import supports both legacy and Lyricsfile-enabled SQLite schemas.
 Fresh source imports recognize integer/decimal timestamps, repeated timestamp tags
 and LRC offset metadata in milliseconds; parsed events are sorted by source time.
 No published correction is sent to the external LRCLIB service.
@@ -68,7 +79,9 @@ Use existing core.user_request rows with requestType LYRICS as an append-only
 review history and effective overlay. Original LRCLIB rows and timestamps are not
 edited by proposals or approval. The existing lrclib.lyrics.offset is the legacy
 baseline; the latest compatible approved overlay supplies the effective offset and
-optional edited text/times. There is no schema migration or S3 configuration change.
+optional edited text/times. Offset-only overlays retain source word timing; edited
+line text or timestamps use line sync. Word data participates in revision hashes,
+while legacy line-only source hashes remain compatible.
 
 - A proposal contains an absolute effective offset (-120 to +120 seconds), optional
   full lines and the revision the user previewed. Times must be finite, ordered,
@@ -131,11 +144,13 @@ the actual audio; it is not implemented or implied by metadata matching.
 
 ## Verification and release review
 
-No local test suites are run by user preference. CI regressions cover identity and
-album-only versions, malformed input, exact/plain fallbacks, LRC offsets/repeated
-tags, preserving existing text/offset on cache upgrade, overlay invalidation for
-source/audio changes, latest revision selection and moderation before acceptance.
-Formatting, static types, generation and diff checks can run locally.
+Regression tests cover identity and album-only versions, malformed input,
+word/line/plain preference, Lyricsfile precision and fallback, legacy and new dump
+schemas, LRC offsets/repeated tags, cache upgrades, correction compatibility,
+word highlighting, seeking, and subscription cleanup. Backend and web suites,
+focused frontend tests, DTO generation, formatting, lint and workspace type checks
+run locally. PostgreSQL persistence tests need a dedicated test database; native
+playback needs device or simulator verification.
 
 For functional measurement, use a fixed set with examples from all three baseline
 groups, including originals/live/remixes, equal-duration displaced audio, added tail

@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.framework.provider.baseLyricsProvider import BaseLyricsProvider
 from core.models.lyrics import DynamicLyricsData, LyricsData
-from core.models.lyricsCorrection import LyricsCorrectionLine
 from core.models.lyricsSource import StoredLyricsSource
+from core.models.playbackLyricsLine import PlaybackLyricsLine
 from logger import getLogger
 from lrclib.access.lyricsAccess import LyricsAccess
 from lrclib.framework.lrclib import Lrclib
@@ -53,11 +53,16 @@ class LrclibProvider(BaseLyricsProvider):
             plain, dynamic = parsed.result()
             lines = (
                 [
-                    LyricsCorrectionLine(text=line.text, timestamp_s=line.timestamp_s)
+                    PlaybackLyricsLine(
+                        text=line.text,
+                        timestamp_s=line.timestamp_s,
+                        words=line.words,
+                        end_timestamp_s=line.end_timestamp_s,
+                    )
                     for line in dynamic.lines
                 ]
                 if dynamic
-                else [LyricsCorrectionLine(text=line.text) for line in (plain or [])]
+                else [PlaybackLyricsLine(text=line.text) for line in (plain or [])]
             )
             snapshot = StoredLyricsSource(
                 kind="lyrics_source",

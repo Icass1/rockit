@@ -61,4 +61,14 @@ LYRICS_SEARCH_STATEMENTS: tuple[str, ...] = (
 
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(version=7, name="index_lyrics_search", statements=LYRICS_SEARCH_STATEMENTS),
+    Migration(
+        version=8,
+        name="lyrics_word_timing",
+        statements=(
+            "ALTER TABLE lrclib.dynamic_lyrics_line ADD COLUMN IF NOT EXISTS "
+            "words jsonb NOT NULL DEFAULT '[]'::jsonb",
+            "ALTER TABLE lrclib.dynamic_lyrics_line ADD COLUMN IF NOT EXISTS "
+            "end_timestamp_s double precision",
+        ),
+    ),
 )

@@ -210,10 +210,12 @@ def add_init_to_orm() -> None:
                 for k_type in k_types:
                     types_set.add(k_type.replace(",", ", "))
 
-                parameter_type = f"{k.type} | None" if k.default_value == "dict" else k.type
+                parameter_type = (
+                    f"{k.type} | None" if k.default_value in ("dict", "list") else k.type
+                )
                 init_stmt += f"{k.name}: {parameter_type}"
 
-                if k.default_value == "dict":
+                if k.default_value in ("dict", "list"):
                     init_stmt += "=None"
                 elif k.default_value:
                     init_stmt += f"={k.default_value}"
@@ -230,7 +232,7 @@ def add_init_to_orm() -> None:
                 if k.name in ("id", "public_id") and k.nullable:
                     init_stmt += f"        if {k.name} is not None:\n"
                     init_stmt += f"            kwargs['{k.name}']={k.name}\n"
-                elif k.default_value == "dict":
+                elif k.default_value in ("dict", "list"):
                     init_stmt += f"        if {k.name} is not None:\n"
                     init_stmt += f"            kwargs['{k.name}']={k.name}\n"
                 else:

@@ -10,6 +10,7 @@ import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricSeekTime } from "@/lib/utils/lyricsTiming";
 import { LyricsMissing } from "@/components/Lyrics/LyricsMissing";
+import { WordSyncedLine } from "@/components/Lyrics/WordSyncedLine";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
@@ -176,7 +177,12 @@ function DynamicLyrics(): JSX.Element {
                     }}
                     id={`dynamic-lyric-line-${index}`}
                 >
-                    {line.text}
+                    <WordSyncedLine
+                        clock={rockIt.mediaPlayerManager.currentTimeAtom}
+                        line={line}
+                        active={currentIndex === index}
+                        offset={lyrics.offset}
+                    />
                 </p>
             ))}
             <div className="mt-24 flex flex-col items-center gap-4">

@@ -752,8 +752,18 @@ export async function createFixtureBackend(port = 0) {
                         revision: "fixture-1",
                         offset: 0,
                         lines: [
-                            { timestamp_s: 0, text: "Fixture first line" },
-                            { timestamp_s: 15, text: "Fixture second line" },
+                            {
+                                timestamp_s: 0,
+                                text: "Fixture first line",
+                                words: [],
+                                end_timestamp_s: null,
+                            },
+                            {
+                                timestamp_s: 15,
+                                text: "Fixture second line",
+                                words: [],
+                                end_timestamp_s: null,
+                            },
                         ],
                         syncStatus: "provider",
                     },
@@ -972,7 +982,14 @@ export async function createFixtureBackend(port = 0) {
                         provider: "Fixture",
                         publicId: "lyrics-1",
                         offset: 0,
-                        lines: [{ timestamp_s: 0, text: "Fixture line" }],
+                        lines: [
+                            {
+                                timestamp_s: 0,
+                                text: "Fixture line",
+                                words: [],
+                                end_timestamp_s: null,
+                            },
+                        ],
                     },
                     dto.BaseDynamicLyricsResponseSchema
                 );

@@ -51,6 +51,8 @@ export function useLyricsSnapshot(
                                       )
                                       .map((line) => ({
                                           text: line.text,
+                                          words: line.words,
+                                          end_timestamp_s: line.end_timestamp_s,
                                           timestamp_s:
                                               line.timestamp_s as number,
                                       })),

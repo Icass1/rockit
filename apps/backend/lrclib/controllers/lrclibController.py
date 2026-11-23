@@ -69,7 +69,12 @@ async def get_lrclib_lyrics_async(
         lyrics=[LyricsItem(text=item_value.text) for item_value in lyrics] if lyrics else None,
         dynamicLyrics=(
             [
-                DynamicLyricsItem(text=item_value.text, timestamp_s=item_value.timestamp_s)
+                DynamicLyricsItem(
+                    text=item_value.text,
+                    timestamp_s=item_value.timestamp_s,
+                    words=item_value.words,
+                    end_timestamp_s=item_value.end_timestamp_s,
+                )
                 for item_value in dynamic_data.lines
             ]
             if dynamic_data
@@ -127,7 +132,12 @@ async def get_lrclib_lyrics_batch_async(
                 else None,
                 dynamicLyrics=(
                     [
-                        DynamicLyricsItem(text=item_value.text, timestamp_s=item_value.timestamp_s)
+                        DynamicLyricsItem(
+                            text=item_value.text,
+                            timestamp_s=item_value.timestamp_s,
+                            words=item_value.words,
+                            end_timestamp_s=item_value.end_timestamp_s,
+                        )
                         for item_value in dynamic_data.lines
                     ]
                     if dynamic_data

@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DOUBLE_PRECISION, ForeignKey, Index, Integer, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.access.db.ormModels.declarativeMixin import (
@@ -10,6 +11,9 @@ from lrclib.access.db.base import LrclibBase
 
 if TYPE_CHECKING:
     from lrclib.access.db.ormModels.lyricsRow import LyricsRow
+
+
+WordTimings = list[dict[str, str | float | None]]
 
 
 class DynamicLyricsLineRow(LrclibBase, TableAutoincrementId):
@@ -24,16 +28,31 @@ class DynamicLyricsLineRow(LrclibBase, TableAutoincrementId):
     text: Mapped[str] = mapped_column(Text, nullable=False)
     timestamp_s: Mapped[float] = mapped_column(DOUBLE_PRECISION, nullable=False)
 
+    words: Mapped[WordTimings] = mapped_column(
+        JSONB, nullable=False, default=list, server_default="[]"
+    )
+    end_timestamp_s: Mapped[float | None] = mapped_column(DOUBLE_PRECISION, nullable=True)
+
     lyrics: Mapped["LyricsRow"] = relationship("LyricsRow", back_populates="dynamic_lines")
 
     def __init__(
-        self, lyrics_id: int, line_number: int, text: str, timestamp_s: float, id: int | None = None
+        self,
+        lyrics_id: int,
+        line_number: int,
+        text: str,
+        timestamp_s: float,
+        words: WordTimings | None = None,
+        end_timestamp_s: float | None = None,
+        id: int | None = None,
     ) -> None:
-        kwargs: dict[str, None | float | int | str] = {}
+        kwargs: dict[str, None | WordTimings | float | int | str] = {}
         kwargs["lyrics_id"] = lyrics_id
         kwargs["line_number"] = line_number
         kwargs["text"] = text
         kwargs["timestamp_s"] = timestamp_s
+        if words is not None:
+            kwargs["words"] = words
+        kwargs["end_timestamp_s"] = end_timestamp_s
         if id is not None:
             kwargs["id"] = id
         for k, v in kwargs.items():

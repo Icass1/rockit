@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from core.models.lyricsCorrection import LyricsCorrection, LyricsCorrectionLine
+from core.models.playbackLyricsLine import PlaybackLyricsLine
 
 
 class LyricsSource(BaseModel):
@@ -20,11 +21,17 @@ class StoredLyricsSource(LyricsSource):
     albumName: str = Field(default="", max_length=2000)
     duration: float = Field(ge=0, allow_inf_nan=False)
     offset: float = Field(default=0, ge=-120, le=120, allow_inf_nan=False)
-    lines: list[LyricsCorrectionLine] = Field(min_length=1, max_length=1000)
+    lines: list[PlaybackLyricsLine] = Field(min_length=1, max_length=1000)
 
     @model_validator(mode="after")
     def validate_lines(self) -> "StoredLyricsSource":
         LyricsCorrection(
-            provider=self.provider, revision="0" * 64, offset=self.offset, lines=self.lines
+            provider=self.provider,
+            revision="0" * 64,
+            offset=self.offset,
+            lines=[
+                LyricsCorrectionLine(text=line.text, timestamp_s=line.timestamp_s)
+                for line in self.lines
+            ],
         )
         return self

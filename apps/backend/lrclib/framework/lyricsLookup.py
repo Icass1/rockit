@@ -120,7 +120,7 @@ def matches(
         )
         == recording_identity(title=title, album=album, artist=artist, relaxed=relaxed)
         and not record.instrumental
-        and bool((record.plainLyrics or "").strip() or (record.syncedLyrics or "").strip())
+        and record.quality > 0
     )
 
 
@@ -162,12 +162,12 @@ def choose_candidate(
         return None
     duration_known = math.isfinite(duration) and duration > 0
 
-    def rank(record: LyricsResponse) -> tuple[bool, bool, bool, float, int]:
+    def rank(record: LyricsResponse) -> tuple[int, bool, bool, float, int]:
         difference = abs(record.duration - duration) if duration_known else 0.0
         return (
+            record.quality,
             duration_known and difference <= 3,
             bool(album) and normalize(value=record.albumName) == normalize(value=album),
-            bool((record.syncedLyrics or "").strip()),
             -difference,
             -record.id,
         )
@@ -184,7 +184,6 @@ async def lookup_lyrics_async(
         logger.warning("Cannot look up lyrics without track and artist")
         return Result(code=ResultCode.NOT_FOUND, message="Missing lyrics identity")
     duration_known = math.isfinite(duration) and duration > 0
-    exact_plain: LyricsResponse | None = None
     records: list[LyricsResponse] = []
     queries = [
         {"artist_name": artist_name, "track_name": track_name},
@@ -234,12 +233,11 @@ async def lookup_lyrics_async(
                     if matches(
                         record=record, artist=artist_name, title=track_name, album=album_name
                     ):
-                        if (record.syncedLyrics or "").strip():
+                        if record.quality == 3:
                             logger.info(
                                 "LRCLIB canonical exact match %s for %s", record.id, track_name
                             )
                             return Result(code=ResultCode.OK, message="OK", result=record)
-                        exact_plain = record
             for query in unique_queries:
                 response = await client.get(url="https://lrclib.net/api/search", params=query)
                 response.raise_for_status()
@@ -263,15 +261,21 @@ async def lookup_lyrics_async(
                     duration=duration,
                     allow_relaxed=False,
                 )
-                if canonical:
+                if canonical and canonical.quality == 3:
                     logger.info("LRCLIB canonical search match %s for %s", canonical.id, track_name)
                     return Result(code=ResultCode.OK, message="OK", result=canonical)
     except (TimeoutError, httpx.HTTPError, ValueError) as exc:
         logger.warning("LRCLIB lookup failed for %s: %s", track_name, exc)
-        if exact_plain is not None:
-            return Result(
-                code=ResultCode.OK, message="Exact plain lyrics available", result=exact_plain
-            )
+        fallback = choose_candidate(
+            records=records,
+            artist=artist_name,
+            title=track_name,
+            album=album_name,
+            duration=duration,
+            allow_relaxed=False,
+        )
+        if fallback is not None:
+            return Result(code=ResultCode.OK, message="Matching lyrics available", result=fallback)
         # Do not accept relaxed identity from an incomplete collision check.
         return Result(code=ResultCode.GENERAL_ERROR, message="LRCLIB temporarily unavailable")
     selected = choose_candidate(

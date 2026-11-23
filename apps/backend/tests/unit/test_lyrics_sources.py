@@ -17,8 +17,8 @@ from core.enums.requestTypeEnum import RequestTypeEnum
 from core.framework import providers
 from core.framework.lyricsCorrections import LyricsCorrections
 from core.framework.lyricsSources import LyricsSources
-from core.models.lyricsCorrection import LyricsCorrectionLine
 from core.models.lyricsSource import LyricsSource, StoredLyricsSource
+from core.models.playbackLyricsLine import PlaybackLyricsLine
 from core.responses.userRequestResponse import UserRequestResponse
 from lrclib.framework.provider.lrclibProvider import LrclibProvider
 from result import Result, ResultCode
@@ -32,7 +32,7 @@ def snapshot() -> StoredLyricsSource:
         trackName="Song",
         artistName="Artist",
         duration=120,
-        lines=[LyricsCorrectionLine(text="Reviewed words", timestamp_s=2)],
+        lines=[PlaybackLyricsLine(text="Reviewed words", timestamp_s=2)],
     )
 
 
@@ -231,9 +231,7 @@ async def test_provisional_source_is_private_then_removed_on_rejection(
         return None
 
     monkeypatch.setattr(providers, "find_local_media_provider", no_local_provider)
-    approved = snapshot().model_copy(
-        update={"lines": [LyricsCorrectionLine(text="Previous lyrics")]}
-    )
+    approved = snapshot().model_copy(update={"lines": [PlaybackLyricsLine(text="Previous lyrics")]})
     original = UserRequestRow(
         user_id=2,
         media_id=7,

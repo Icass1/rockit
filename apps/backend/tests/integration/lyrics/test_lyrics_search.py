@@ -33,15 +33,19 @@ async def lyrics_database() -> AsyncIterator[AsyncEngine]:
                 "CREATE SCHEMA lrclib",
                 "CREATE TABLE core.media (id integer PRIMARY KEY, public_id text, "
                 "media_type_key integer)",
-                "CREATE TABLE lrclib.lyrics (id integer PRIMARY KEY, media_id integer UNIQUE "
+                "CREATE TABLE lrclib.lyrics (id serial PRIMARY KEY, "
+                "public_id text DEFAULT 'existing', "
+                "offset double precision DEFAULT 0, date_added timestamptz DEFAULT now(), "
+                "date_updated timestamptz DEFAULT now(), media_id integer UNIQUE "
                 "REFERENCES core.media(id))",
                 "CREATE TABLE lrclib.lyrics_line (id serial PRIMARY KEY, lyrics_id integer "
                 "REFERENCES lrclib.lyrics(id), line_number integer, text text)",
                 "CREATE TABLE lrclib.dynamic_lyrics_line (id serial PRIMARY KEY, "
-                "lyrics_id integer REFERENCES lrclib.lyrics(id), line_number integer, text text)",
+                "lyrics_id integer REFERENCES lrclib.lyrics(id), line_number integer, text text, "
+                "timestamp_s double precision DEFAULT 0)",
                 "INSERT INTO core.media SELECT i, i::text, CASE WHEN i = 6 THEN 5 ELSE 4 END "
                 "FROM generate_series(1, 6) i",
-                "INSERT INTO lrclib.lyrics SELECT i, i FROM generate_series(1, 6) i",
+                "INSERT INTO lrclib.lyrics (id, media_id) SELECT i, i FROM generate_series(1, 6) i",
                 # Existing plain lyrics must be indexed by the upgrade without being re-saved.
                 "INSERT INTO lrclib.lyrics_line (lyrics_id, line_number, text) VALUES "
                 "(1, 0, 'Hello from'), (1, 1, 'the other side'), "
@@ -150,3 +154,38 @@ async def test_search_predicate_can_use_the_gin_index(lyrics_database: AsyncEngi
             )
         )
         assert "ix_lyrics_search_document" in "\n".join(row[0] for row in plan)
+
+
+async def test_word_timing_cache_round_trip_and_upgrade(lyrics_database: AsyncEngine) -> None:
+    from core.models.lyrics import DynamicLyrics, LyricsWord
+
+    async with AsyncSession(lyrics_database) as session:
+        original = await LyricsAccess.get_lyrics_by_media_ids_async(session=session, media_ids=[4])
+        assert original.is_ok()
+        assert original.result()[4][2] is not None
+        words = [
+            LyricsWord(text="Hello ", timestamp_s=1.234, end_timestamp_s=1.9),
+            LyricsWord(text="world", timestamp_s=2.1),
+        ]
+        saved = await LyricsAccess.save_lyrics_async(
+            session=session,
+            media_id=4,
+            lyrics=None,
+            dynamic_lyrics=[
+                DynamicLyrics(
+                    text="Hello world", timestamp_s=1.234, end_timestamp_s=3.4, words=words
+                )
+            ],
+            offset=None,
+        )
+        assert saved.is_ok(), saved.info()
+        refreshed = await LyricsAccess.get_lyrics_by_media_ids_async(session=session, media_ids=[4])
+        assert refreshed.is_ok()
+        data = refreshed.result()[4][2]
+        assert data and data.lines[0].words == words
+        assert data.lines[0].timestamp_s == 1.234 and data.lines[0].end_timestamp_s == 3.4
+        assert data.offset == 0
+        await session.commit()
+    async with AsyncSession(lyrics_database) as session:
+        loaded = await LyricsAccess.get_lyrics_by_media_ids_async(session=session, media_ids=[4])
+        assert loaded.is_ok() and loaded.result()[4][2] == data

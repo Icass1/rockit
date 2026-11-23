@@ -20,6 +20,7 @@ from core.models.lyricsCorrection import (
     StoredLyricsCorrection,
 )
 from core.models.lyricsSource import StoredLyricsSource
+from core.models.playbackLyricsLine import PlaybackLyricsLine
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -32,11 +33,21 @@ def digest(value: object) -> str:
     ).hexdigest()
 
 
+def source_line_payload(line: PlaybackLyricsLine) -> dict[str, object]:
+    """Keep revisions of legacy line-only sources stable as playback fields grow."""
+    value: dict[str, object] = line.model_dump(exclude={"words", "end_timestamp_s"})
+    if line.words:
+        value["words"] = [word.model_dump() for word in line.words]
+    if line.end_timestamp_s is not None:
+        value["end_timestamp_s"] = line.end_timestamp_s
+    return value
+
+
 @dataclass
 class LyricsContext:
     provider: str
     public_id: str
-    lines: list[LyricsCorrectionLine]
+    lines: list[PlaybackLyricsLine]
     offset: float
     source_hash: str
     audio_identity: str | None
@@ -60,7 +71,15 @@ def apply_overlay(context: LyricsContext, proposals: list[tuple[str, str]]) -> L
                 or proposal.audioIdentity != context.audio_identity
             ):
                 continue
-            context.lines = proposal.lines if proposal.lines is not None else context.lines
+            if proposal.lines is not None:
+                context.lines = [
+                    context.lines[index]
+                    if index < len(context.lines)
+                    and line.text == context.lines[index].text
+                    and line.timestamp_s == context.lines[index].timestamp_s
+                    else PlaybackLyricsLine(text=line.text, timestamp_s=line.timestamp_s)
+                    for index, line in enumerate(proposal.lines)
+                ]
             context.offset = proposal.offset
             context.approved = True
             latest = public_id
@@ -130,7 +149,7 @@ class LyricsCorrections:
                 reviewed_source = (row.public_id, candidate_source)
                 break
         selected = candidates[0]
-        lines: list[LyricsCorrectionLine] = []
+        lines: list[PlaybackLyricsLine] = []
         offset = 0.0
         public_id = media.public_id
         raw_source: object = None
@@ -159,15 +178,18 @@ class LyricsCorrections:
                         "Invalid provider timing; retaining plain lyrics for %s", media.public_id
                     )
                 lines = [
-                    LyricsCorrectionLine(
-                        text=line.text, timestamp_s=line.timestamp_s if valid else None
+                    PlaybackLyricsLine(
+                        text=line.text,
+                        timestamp_s=line.timestamp_s if valid else None,
+                        words=line.words if valid else [],
+                        end_timestamp_s=line.end_timestamp_s if valid else None,
                     )
                     for line in source.lines
                 ]
                 offset = source.offset if valid else 0.0
                 public_id = source.public_id
             elif plain is not None:
-                lines = [LyricsCorrectionLine(text=line.text) for line in plain.lines]
+                lines = [PlaybackLyricsLine(text=line.text) for line in plain.lines]
                 public_id = plain.public_id
             else:
                 continue
@@ -181,14 +203,16 @@ class LyricsCorrections:
             public_id = str(approved_source.sourceId)
             lines = approved_source.lines
             offset = approved_source.offset
-            raw_source = [request_id, approved_source.model_dump()]
+            source_payload = approved_source.model_dump()
+            source_payload["lines"] = [source_line_payload(line=line) for line in lines]
+            raw_source = [request_id, source_payload]
         source_hash = digest(
             value=[
                 media.public_id,
                 selected.get_name(),
                 public_id,
                 offset,
-                [line.model_dump() for line in lines],
+                [source_line_payload(line=line) for line in lines],
                 raw_source,
             ]
         )
@@ -245,7 +269,14 @@ class LyricsCorrections:
                 code=ResultCode.BAD_REQUEST,
                 message="Lyrics or audio changed; reload and propose again",
             )
-        lines = proposal.lines if proposal.lines is not None else context.lines
+        lines: list[LyricsCorrectionLine] = (
+            proposal.lines
+            if proposal.lines is not None
+            else [
+                LyricsCorrectionLine(text=line.text, timestamp_s=line.timestamp_s)
+                for line in context.lines
+            ]
+        )
         if not lines:
             logger.warning("An offset requires existing lyrics")
             return Result(code=ResultCode.BAD_REQUEST, message="No lyrics to adjust")

@@ -7,7 +7,13 @@ import Link from "next/link";
 import { EMediaContextLocation, isStation } from "@rockit/shared";
 import type { BaseStationResponse } from "@rockit/shared";
 import { ExplicitBadge } from "@rockit/ui";
-import { Ellipsis, Pause, PauseIcon, Play, PlayIcon } from "lucide-react";
+import {
+    EllipsisVertical,
+    Pause,
+    PauseIcon,
+    Play,
+    PlayIcon,
+} from "lucide-react";
 import {
     getMediaAlbum,
     getMediaArtists,
@@ -33,14 +39,16 @@ function CurrentMediaOptions({
             media={media}
             location={EMediaContextLocation.QUEUE}
             openOnLeftClick
+            triggerClassName="shrink-0"
+            showTimestampCopyLink
         >
             <button
                 type="button"
                 aria-label={vocabulary.MORE_OPTIONS}
                 title={vocabulary.MORE_OPTIONS}
-                className="text-muted-foreground hover:bg-hover hover:text-foreground-strong focus-visible:outline-primary flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:outline-2"
+                className="text-muted-foreground hover:text-foreground-strong focus-visible:outline-primary flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:outline-2"
             >
-                <Ellipsis className="h-5 w-5" aria-hidden />
+                <EllipsisVertical className="h-5 w-5" aria-hidden />
             </button>
         </MediaContextMenu>
     );
@@ -81,8 +89,7 @@ function FooterLeftForMedia({
     const album = getMediaAlbum(currentMedia);
 
     return (
-        <div className="grid w-1/3 max-w-full min-w-0 grid-cols-[min-content_min-content_minmax(0,1fr)] items-center gap-x-2 pr-2 md:gap-x-4">
-            <CurrentMediaOptions media={currentMedia} />
+        <div className="grid w-1/3 max-w-full min-w-0 grid-cols-[min-content_minmax(0,1fr)] items-center gap-x-2 pr-2 md:gap-x-4">
             {/* Album cover */}
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
@@ -153,7 +160,10 @@ function FooterLeftForMedia({
                             )}
                         </div>
                     </div>
-                    <LikeButton mediaPublicId={currentMedia.publicId} />
+                    <div className="flex shrink-0 items-center">
+                        <LikeButton mediaPublicId={currentMedia.publicId} />
+                        <CurrentMediaOptions media={currentMedia} />
+                    </div>
                 </div>
             </div>
         </div>
@@ -172,7 +182,6 @@ function FooterLeftForStation({
 
     return (
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-2 md:w-1/3 md:gap-x-4">
-            <CurrentMediaOptions media={currentStation} />
             <button
                 aria-label={$playing ? vocabulary.PAUSE : vocabulary.PLAY}
                 onClick={(): void => mediaPlayerManager.togglePlayPause()}
@@ -211,6 +220,7 @@ function FooterLeftForStation({
                     {currentStation.country}
                 </span>
             </div>
+            <CurrentMediaOptions media={currentStation} />
         </div>
     );
 }

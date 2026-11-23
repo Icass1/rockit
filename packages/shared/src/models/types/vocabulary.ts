@@ -2394,4 +2394,5 @@ export interface Vocabulary {
     SHARING_LINK_COPIED: string;
     SHARING_LINK_ERROR: string;
     SHARING_ACCOUNT_REQUIRED: string;
+    SHARING_COPY_LINK_AT_CURRENT_TIME: string;
 }

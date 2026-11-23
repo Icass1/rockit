@@ -1,22 +1,32 @@
 import type { JSX } from "react";
 import { isSearchResult } from "@rockit/shared";
 import { Link } from "lucide-react";
-import { copyPublicMediaLink } from "@/lib/services/publicSharing";
+import {
+    copyPublicMediaLink,
+    copyPublicMediaLinkAtCurrentTime,
+} from "@/lib/services/publicSharing";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 import ContextMenuOption from "@/components/ui/ContextMenu/Option";
 
 export default function CopyLinkAction({
     media,
     vocabulary,
-}: ActionComponentProps): JSX.Element {
+    withTimestamp = false,
+}: ActionComponentProps & { withTimestamp?: boolean }): JSX.Element {
     return (
         <ContextMenuOption
             onClick={() => {
-                if (!isSearchResult(media)) void copyPublicMediaLink(media);
+                if (!isSearchResult(media)) {
+                    void (withTimestamp
+                        ? copyPublicMediaLinkAtCurrentTime(media)
+                        : copyPublicMediaLink(media));
+                }
             }}
         >
             <Link size={16} />
-            {vocabulary.SHARING_COPY_LINK}
+            {withTimestamp
+                ? vocabulary.SHARING_COPY_LINK_AT_CURRENT_TIME
+                : vocabulary.SHARING_COPY_LINK}
         </ContextMenuOption>
     );
 }

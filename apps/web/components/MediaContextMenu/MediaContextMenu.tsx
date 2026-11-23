@@ -123,6 +123,7 @@ export default function MediaContextMenu({
     triggerClassName,
     onOpenChange,
     onPlay,
+    showTimestampCopyLink = false,
 }: {
     children: ReactNode;
     media: TMediaWithSearch;
@@ -133,6 +134,7 @@ export default function MediaContextMenu({
     triggerClassName?: string;
     onOpenChange?: (open: boolean) => void;
     onPlay?: () => void | Promise<void>;
+    showTimestampCopyLink?: boolean;
 }): JSX.Element {
     const $vocabulary = useVocabulary();
     const session = useSession();
@@ -235,6 +237,12 @@ export default function MediaContextMenu({
                     {!isSearchResult(activeMedia) && (
                         <CopyLinkAction {...actionProps} />
                     )}
+                    {showTimestampCopyLink &&
+                        !isSearchResult(activeMedia) &&
+                        (activeMedia.type === "song" ||
+                            activeMedia.type === "video") && (
+                            <CopyLinkAction {...actionProps} withTimestamp />
+                        )}
                     {session && !isSearchResult(activeMedia) && (
                         <ShareAction {...actionProps} />
                     )}

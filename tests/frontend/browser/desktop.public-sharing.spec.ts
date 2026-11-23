@@ -4,8 +4,140 @@ const backend =
     process.env.PUBLIC_SHARING_BACKEND_URL ?? "http://127.0.0.1:18899";
 const web = "http://127.0.0.1:13000";
 
+// Let Playwright intercept media fixtures before the PWA cache handles them.
+test.use({ serviceWorkers: "block" });
+
 test.beforeEach(async ({ request }) => {
     await request.post(`${backend}/__fixture/reset`);
+});
+
+for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 },
+    { width: 900, height: 400 },
+]) {
+    test(`timestamped shared songs and videos seek at ${viewport.width}x${viewport.height}`, async ({
+        page,
+    }) => {
+        await page.setViewportSize(viewport);
+        await page.route(`${backend}/media/video-1`, async (route) => {
+            const response = await route.fetch();
+            const body = await response.json();
+            // Exercise the video transport with the fixture's real media file.
+            await route.fulfill({
+                json: {
+                    ...body,
+                    media: {
+                        ...body.media,
+                        videoUrl: `${backend}/assets/silence.wav`,
+                    },
+                },
+            });
+        });
+        for (const id of ["song-1", "video-1"]) {
+            await page.goto(`${web}/?media=${id}&t=12`);
+            const progress = page.locator(
+                '#app-footer #default-slider[max="30"]'
+            );
+            await expect(progress).toHaveValue("12");
+            await expect(
+                page.getByRole("region", { name: "Now Playing", exact: true })
+            ).toBeVisible();
+            // Updating only the timestamp must seek again without a page reload.
+            await page.evaluate(() =>
+                window.history.pushState(
+                    null,
+                    "",
+                    "?" +
+                        new URLSearchParams({
+                            media: new URLSearchParams(
+                                window.location.search
+                            ).get("media")!,
+                            t: "20",
+                        })
+                )
+            );
+            await expect(progress).toHaveValue("20");
+            if (id === "video-1") {
+                const video = page
+                    .getByTestId("player-video-surface")
+                    .locator("video");
+                await expect(video).toHaveJSProperty("currentTime", 20);
+                await expect
+                    .poll(() =>
+                        video.evaluate(
+                            (element: HTMLVideoElement) => element.readyState
+                        )
+                    )
+                    .toBeGreaterThanOrEqual(2);
+            }
+            await page.locator('#app-footer button[aria-label="Play"]').click();
+            await expect
+                .poll(async () => Number(await progress.inputValue()))
+                .toBeGreaterThan(20);
+            await page
+                .locator('#app-footer button[aria-label="Pause"]')
+                .click();
+        }
+    });
+}
+
+test("timestamp copying is an extra footer-only option and regular links stay unchanged", async ({
+    page,
+    context,
+}) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto(`${web}/album/album-1`);
+    await page
+        .getByRole("button", { name: "More Options", exact: true })
+        .first()
+        .click();
+    await expect(
+        page.getByRole("button", { name: "Copy link", exact: true })
+    ).toBeVisible();
+    await expect(
+        page.getByRole("button", {
+            name: "Copy link at current time",
+            exact: true,
+        })
+    ).toHaveCount(0);
+
+    await page.goto(`${web}/?media=song-1&t=12`);
+    await expect(
+        page.locator('#app-footer #default-slider[max="30"]')
+    ).toHaveValue("12");
+    const options = page.locator(
+        '#app-footer button[aria-label="More Options"]'
+    );
+    await options.click();
+    await page
+        .getByRole("button", { name: "Copy link at current time", exact: true })
+        .click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+        `${web}/?media=song-1&t=12`
+    );
+    await options.click();
+    await page.getByRole("button", { name: "Copy link", exact: true }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+        `${web}/?media=song-1`
+    );
+});
+
+test("signed-in timestamped links seek after replacing the queue", async ({
+    page,
+    context,
+}) => {
+    await context.addCookies([
+        { name: "session_id", value: "fixture", url: backend, httpOnly: true },
+    ]);
+    await page.goto(`${web}/?media=song-2&t=12`);
+    await expect(page.locator("#app-footer")).toContainText(
+        "Playlist exclusive"
+    );
+    await expect(
+        page.locator('#app-footer #default-slider[max="30"]')
+    ).toHaveValue("12");
+    await expect(page.locator("[data-queue-media-id]")).toHaveCount(1);
 });
 
 for (const viewport of [

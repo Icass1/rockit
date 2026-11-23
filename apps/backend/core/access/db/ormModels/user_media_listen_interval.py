@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Integer
+from sqlalchemy import ForeignKey, Index, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.access.db.base import CoreBase
@@ -16,7 +16,15 @@ if TYPE_CHECKING:
 
 class UserMediaListenIntervalRow(CoreBase, TableAutoincrementId, TableDateAdded, TableDateUpdated):
     __tablename__ = "user_media_listen_interval"
-    __table_args__ = ({"schema": "core", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_user_media_listen_interval_user_date",
+            "user_id",
+            "date_added",
+            postgresql_include=["media_id", "time_ms_start", "time_ms_end"],
+        ),
+        {"schema": "core", "extend_existing": True},
+    )
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.user.id"), nullable=False)
     media_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.media.id"), nullable=False)

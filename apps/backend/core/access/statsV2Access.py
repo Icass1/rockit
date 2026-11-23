@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -23,9 +24,10 @@ HEATMAP_HOURS_END = 24
 LISTENING_SESSION_GAP_MINUTES = 30
 
 
-def _build_cte(name: str, fragments: list[str]) -> str:
+def _build_cte(name: str, fragments: list[str], *, inline: bool = False) -> str:
     """Wrap UNION ALL'd SELECT fragments in a named CTE."""
-    return f"{name} AS (\n" + "\n\nUNION ALL\n\n".join(fragments) + "\n)"
+    materialization = "NOT MATERIALIZED " if inline else ""
+    return f"{name} AS {materialization}(\n" + "\n\nUNION ALL\n\n".join(fragments) + "\n)"
 
 
 def _empty_cte(name: str, columns: list[tuple[str, str]]) -> str:
@@ -88,7 +90,19 @@ def _get_album_info_cte() -> str:
                 ("album_artists", "text"),
             ],
         )
-    return _build_cte("album_info", frags)
+    return _build_cte("album_info", frags, inline=True)
+
+
+def _get_listen_durations_cte() -> str:
+    """Aggregate the user's range before joining provider catalogs."""
+    return """listen_durations AS MATERIALIZED (
+        SELECT media_id, SUM(time_ms_end - time_ms_start) AS total_ms
+        FROM core.user_media_listen_interval
+        WHERE user_id = :user_id
+          AND date_added >= :start_date
+          AND date_added < :end_date
+        GROUP BY media_id
+    )"""
 
 
 def _naive_utc(dt: datetime) -> datetime:
@@ -714,6 +728,7 @@ class StatsV2Access:
         )
 
     @staticmethod
+    @safe_async
     async def get_top_albums_async(
         session: AsyncSession,
         user_id: int,
@@ -723,18 +738,50 @@ class StatsV2Access:
     ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_album_info_cte()},
-        album_durations AS (
+        {_get_listen_durations_cte()},
+        album_totals AS MATERIALIZED (
             SELECT ai.album_public_id,
                    ai.album_name,
                    ai.album_image_id,
-                   ai.album_artists,
-                   SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
-            FROM     core.user_media_listen_interval umli
-            JOIN     album_info ai ON ai.media_id = umli.media_id
-            WHERE    umli.user_id    = :user_id
-              AND    umli.date_added >= :start_date
-              AND    umli.date_added <  :end_date
-            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_id, ai.album_artists
+                   MIN(ld.media_id) AS media_id,
+                   SUM(ld.total_ms) AS total_ms
+            FROM listen_durations ld
+            JOIN album_info ai ON ai.media_id = ld.media_id
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_id
+        )
+        SELECT * FROM album_totals
+        """)
+        totals = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                },
+            )
+        ).fetchall()
+        if not totals:
+            return Result(code=ResultCode.OK, message="OK", result=[])
+
+        # Plan metadata enrichment against the actual album totals, rather than the
+        # interval join's inflated cardinality, which can trigger expensive JIT.
+        sql = text(f"""
+        WITH {_get_album_info_cte()},
+        album_totals AS (
+            SELECT * FROM jsonb_to_recordset(CAST(:album_totals AS jsonb)) AS totals(
+                album_public_id text, album_name text, album_image_id int,
+                media_id int, total_ms bigint
+            )
+        ),
+        album_durations AS MATERIALIZED (
+            SELECT at.album_public_id, at.album_name, at.album_image_id, at.total_ms,
+                   (SELECT ai.album_artists
+                    FROM album_info ai
+                    WHERE ai.media_id = at.media_id
+                      AND ai.album_public_id = at.album_public_id
+                    LIMIT 1) AS album_artists
+            FROM album_totals at
         )
         SELECT (ARRAY_AGG(ad.album_public_id ORDER BY ad.total_ms DESC))[1] AS public_id,
                ad.album_name        AS name,
@@ -750,9 +797,18 @@ class StatsV2Access:
             await session.execute(
                 sql,
                 {
-                    "user_id": user_id,
-                    "start_date": start_date.astimezone(UTC),
-                    "end_date": end_date.astimezone(UTC),
+                    "album_totals": json.dumps(
+                        [
+                            {
+                                "album_public_id": row.album_public_id,
+                                "album_name": row.album_name,
+                                "album_image_id": row.album_image_id,
+                                "media_id": row.media_id,
+                                "total_ms": int(row.total_ms),
+                            }
+                            for row in totals
+                        ]
+                    ),
                     "limit": limit,
                 },
             )

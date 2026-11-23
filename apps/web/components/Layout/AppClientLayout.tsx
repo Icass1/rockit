@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type JSX } from "react";
+import { Suspense, useEffect, type JSX } from "react";
 import type { QueueResponse, SessionResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
@@ -13,6 +13,7 @@ import { PlaybackProvider } from "@/components/providers/PlaybackProvider";
 import { QueueProvider } from "@/components/providers/QueueProvider";
 import { RuntimeProvider } from "@/components/providers/RuntimeProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import SharedMediaLink from "@/components/Sharing/SharedMediaLink";
 
 export default function AppClientLayout({
     session,
@@ -33,6 +34,9 @@ export default function AppClientLayout({
                 <SessionProvider initial={session}>
                     <QueueProvider initial={{ session, queue }}>
                         <KeyboardHandler />
+                        <Suspense fallback={null}>
+                            <SharedMediaLink />
+                        </Suspense>
 
                         {/* Persistent video surface owned by the browser transport */}
                         <div

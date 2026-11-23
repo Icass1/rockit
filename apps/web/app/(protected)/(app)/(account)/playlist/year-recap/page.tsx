@@ -5,16 +5,20 @@ import {
     EMediaType,
     TMedia,
 } from "@rockit/shared";
-import { Heart } from "lucide-react";
+import { getUserInServer } from "@/lib/getUserInServer";
 import { getFeaturedListAsync } from "@/lib/server/resources";
 import { getRequestVocabulary } from "@/lib/server/vocabulary";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
     async (): Promise<BasePlaylistWithMediasResponse | undefined> => {
-        return getFeaturedListAsync("liked");
+        if (!(await getUserInServer())) return undefined;
+        return getFeaturedListAsync("year-recap");
     }
 );
+
+const lastYear = new Date().getFullYear() - 1;
+const yearDigits = String(lastYear).split("");
 
 export async function generateMetadata(): Promise<{ title: string }> {
     const [playlist, { vocabulary }] = await Promise.all([
@@ -22,11 +26,14 @@ export async function generateMetadata(): Promise<{ title: string }> {
         getRequestVocabulary(),
     ]);
     return {
-        title: playlist?.name ?? vocabulary.LIKED_SONGS,
+        title:
+            playlist?.name ??
+            vocabulary.RECAP_OPEN.replace("{year}", String(lastYear)),
     };
 }
 
-export default async function LikedPage(): Promise<JSX.Element> {
+export default async function YearRecapPage(): Promise<JSX.Element> {
+    if (!(await getUserInServer())) return <></>;
     const playlistResponse = await getFeatured();
 
     if (!playlistResponse) {
@@ -41,7 +48,7 @@ export default async function LikedPage(): Promise<JSX.Element> {
 
     return (
         <RenderListClient
-            publicId="liked"
+            publicId="year-recap"
             type={EMediaType.Playlist}
             title={playlistResponse.name}
             artists={[playlistResponse.owner]}
@@ -51,7 +58,22 @@ export default async function LikedPage(): Promise<JSX.Element> {
             showMediaImage
             showMediaIndex={false}
             expandedByMediaId={expandedByMediaId}
-            coverOverlay={<Heart className="h-1/2 w-1/2" fill="white" />}
+            coverOverlay={
+                <div
+                    className="text-foreground-strong flex items-center justify-center gap-1 leading-none"
+                    style={{
+                        fontFamily:
+                            "'Nunito', 'Segoe UI', system-ui, sans-serif",
+                        fontWeight: 900,
+                        fontSize: "clamp(2rem, 8vw, 4rem)",
+                        letterSpacing: "-0.04em",
+                    }}
+                >
+                    {yearDigits.map((digit, i) => (
+                        <span key={i}>{digit}</span>
+                    ))}
+                </div>
+            }
         />
     );
 }

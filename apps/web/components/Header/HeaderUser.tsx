@@ -26,7 +26,6 @@ export default function HeaderUser(): JSX.Element {
     const handleLogOut = async (): Promise<void> => {
         if ($networkStatus === "offline") return;
         await userManager.signOut();
-        if (!userManager.loggedInAtom.get()) router.push("/login");
     };
 
     return (

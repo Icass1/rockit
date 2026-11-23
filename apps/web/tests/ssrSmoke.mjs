@@ -158,6 +158,28 @@ try {
         emptyLibraryHtml,
         /SSR library song|class="[^"]*\bskeleton\b/
     );
+    for (const route of [
+        "/",
+        "/library",
+        "/settings",
+        "/friends",
+        "/downloader",
+        "/stats/v2",
+        "/playlist/liked",
+    ]) {
+        const guest = await fetch(`http://127.0.0.1:${frontend}${route}`, {
+            redirect: "manual",
+            signal: AbortSignal.timeout(15000),
+        });
+        assert.equal(
+            guest.status,
+            200,
+            `Guest route ${route} must render without redirecting`
+        );
+        const markup = await guest.text();
+        assert.doesNotMatch(markup, /SSR current song|SSR library song/);
+        if (route !== "/") assert.match(markup, /Sign in to use your library/);
+    }
     const login = await fetch(`http://127.0.0.1:${frontend}/login`);
     assert.equal(login.status, 200);
     const loginHtml = await login.text();

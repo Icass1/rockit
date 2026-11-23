@@ -12,7 +12,6 @@ logger = getLogger(__name__)
 router = APIRouter(
     prefix="/media/collection",
     tags=["Core", "Collections"],
-    dependencies=[Depends(AuthMiddleware.auth_dependency)],
 )
 
 
@@ -23,16 +22,13 @@ async def get_collection_items(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=200),
     query: str = Query(default="", max_length=200),
+    _: None = Depends(AuthMiddleware.optional_auth_dependency),
 ) -> CollectionPageResponse:
     """Get bounded direct children, or search all accessible descendants."""
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.error(f"Collection authentication failed: {user.info()}")
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
     result = await Collection.page_async(
         session=DBSessionMiddleware.get_session(request=request),
         public_id=public_id,
-        user_id=user.result().id,
+        user_id=AuthMiddleware.viewer_id(request=request),
         offset=offset,
         limit=limit,
         query=query,
@@ -43,7 +39,7 @@ async def get_collection_items(
     return result.result()
 
 
-@router.post("/{public_id}/queue")
+@router.post("/{public_id}/queue", dependencies=[Depends(AuthMiddleware.auth_dependency)])
 async def create_collection_queue(
     request: Request, public_id: str, payload: CollectionQueueRequest
 ) -> QueueResponse:
@@ -85,16 +81,16 @@ async def create_collection_queue(
 
 
 @router.get("/{public_id}/playable")
-async def resolve_collection_queue(request: Request, public_id: str) -> QueueResponse:
+async def resolve_collection_queue(
+    request: Request,
+    public_id: str,
+    _: None = Depends(AuthMiddleware.optional_auth_dependency),
+) -> QueueResponse:
     """Resolve all queueable contents for adding a list to an existing queue."""
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.error(f"Queue authentication failed: {user.info()}")
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
     result = await Collection.queue_async(
         session=DBSessionMiddleware.get_session(request=request),
         public_id=public_id,
-        user_id=user.result().id,
+        user_id=AuthMiddleware.viewer_id(request=request),
         persist=False,
     )
     if result.is_not_ok():

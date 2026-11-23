@@ -120,6 +120,7 @@ function setup({ seed = page(), playing = false, web = false } = {}) {
         queueManager: queue,
         webSocketManager: socket,
         userManager: {
+            loggedInAtom: createAtom(true),
             repeatModeAtom: createAtom("OFF"),
             queueTypeAtom: createAtom("SORTED"),
             queueType: "SORTED",
@@ -932,4 +933,35 @@ test("an old response cannot clear feedback for a newer selection and cleanup cl
     latest.resolve(fail());
     await second;
     assert.equal(e.queue.pendingSelectionAtom.get(), undefined);
+});
+
+test("guest startup and refresh never read an account queue", async () => {
+    const e = setup({ seed: undefined, web: true });
+    e.runtime.userManager.loggedInAtom.set(false);
+    e.queue.reset();
+    await e.queue.init();
+    await e.queue.refreshAsync();
+    assert.equal(e.requests.length, 0);
+    assert.equal(e.queue.readyAtom.get(), true);
+});
+
+test("guests resolve collection contents and edit, reorder and advance their local queue", async () => {
+    const e = setup({ web: true });
+    e.runtime.userManager.loggedInAtom.set(false);
+    await e.queue.init();
+    const playing = e.queue.playCollection("shared-album", "song1");
+    await flush();
+    e.take("resolveCollectionQueue").resolve(ok(page({ ids: [0, 1, 2] })));
+    await playing;
+    assert.equal(e.queue.currentMedia.publicId, "song1");
+    assert.equal(e.queue.queue.length, 3);
+    e.queue.skipForward();
+    assert.equal(e.queue.currentMedia.publicId, "song2");
+    e.queue.addMediaToEnd(song("extra"));
+    e.queue.reorderQueue(3, 0);
+    assert.equal(e.queue.queue[0].media.publicId, "extra");
+    e.queue.removeMediaFromQueue(song("extra"));
+    assert.equal(e.queue.queue.length, 3);
+    assert.equal(e.requests.length, 0);
+    e.queue.stop();
 });

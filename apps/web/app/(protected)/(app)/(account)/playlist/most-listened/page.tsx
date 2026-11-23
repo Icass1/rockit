@@ -6,12 +6,14 @@ import {
     TMedia,
 } from "@rockit/shared";
 import { Disc3 } from "lucide-react";
+import { getUserInServer } from "@/lib/getUserInServer";
 import { getFeaturedListAsync } from "@/lib/server/resources";
 import { getRequestVocabulary } from "@/lib/server/vocabulary";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
     async (): Promise<BasePlaylistWithMediasResponse | undefined> => {
+        if (!(await getUserInServer())) return undefined;
         return getFeaturedListAsync("most-listened");
     }
 );
@@ -27,6 +29,7 @@ export async function generateMetadata(): Promise<{ title: string }> {
 }
 
 export default async function MostListenedPage(): Promise<JSX.Element> {
+    if (!(await getUserInServer())) return <></>;
     const playlistResponse = await getFeatured();
 
     if (!playlistResponse) {

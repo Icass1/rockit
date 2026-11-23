@@ -1,17 +1,9 @@
-import { JSX } from "react";
-import { redirect } from "next/navigation";
-import { getUserInServer } from "@/lib/getUserInServer";
+import type { JSX, ReactNode } from "react";
 
-export default async function ProtectedLayout({
+export default function PublicLayout({
     children,
 }: {
-    children: React.ReactNode;
-}): Promise<JSX.Element> {
-    const user = await getUserInServer();
-
-    if (user === undefined) {
-        redirect("/login");
-    }
-
+    children: ReactNode;
+}): JSX.Element {
     return <>{children}</>;
 }

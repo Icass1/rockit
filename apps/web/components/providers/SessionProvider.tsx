@@ -33,16 +33,14 @@ export function SessionProvider({
             }),
         [applyPreference, userManager]
     );
-    useEffect(
-        () =>
-            userManager.sessionAtom.listen((session) => {
-                if (session === null) {
-                    router.replace("/login");
-                    router.refresh();
-                }
-            }),
-        [router, userManager]
-    );
+    useEffect(() => {
+        let authenticated = !!(userManager.sessionAtom.get() ?? initial);
+        return userManager.sessionAtom.listen((session) => {
+            if (session === undefined) return;
+            if (authenticated && !session) router.refresh();
+            authenticated = !!session;
+        });
+    }, [initial, router, userManager]);
     return <SessionContext value={initial}>{children}</SessionContext>;
 }
 

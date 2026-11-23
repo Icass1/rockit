@@ -465,7 +465,8 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
 
 export function getActionsForMedia(
     media: TMediaWithSearch,
-    location: EMediaContextLocation
+    location: EMediaContextLocation,
+    authenticated = true
 ): (ActionDef | { type: "separator" })[] {
     const blueprint = MEDIA_BLUEPRINTS[media.type as EMediaType] ?? [];
 
@@ -482,6 +483,23 @@ export function getActionsForMedia(
         (item): item is ActionDef | { type: "separator" } => {
             if (!item) return false;
             if (item.type === "separator") return true;
+            if (
+                !authenticated &&
+                ![
+                    EMediaContextAction.Play,
+                    EMediaContextAction.Navigate,
+                    EMediaContextAction.PlayList,
+                    EMediaContextAction.AddToQueueTop,
+                    EMediaContextAction.AddQueueRandom,
+                    EMediaContextAction.AddToQueueBottom,
+                    EMediaContextAction.AddSongToQueueTop,
+                    EMediaContextAction.AddMediaQueueRandom,
+                    EMediaContextAction.AddMediaToQueueBottom,
+                    EMediaContextAction.RemoveFromQueue,
+                ].includes(item.id)
+            )
+                return false;
+
             if (!item.mediaTypes.includes(media.type as EMediaType))
                 return false;
             if (item.locations && !item.locations.includes(location))

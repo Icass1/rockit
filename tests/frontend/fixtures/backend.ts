@@ -348,7 +348,16 @@ export async function createFixtureBackend(port = 0) {
                     },
                     dto.LanguagesResponseSchema
                 );
-            if (!request.headers.cookie?.includes("session_id=fixture"))
+            const publicRead =
+                method === "GET" &&
+                (path.startsWith("/media/") ||
+                    path.startsWith("/lyrics/") ||
+                    path.startsWith("/radio/") ||
+                    path === "/stats/home");
+            if (
+                !request.headers.cookie?.includes("session_id=fixture") &&
+                !publicRead
+            )
                 return send({ detail: "Login required" }, undefined, 401);
             if (path === "/auth/logout") {
                 response.setHeader(
@@ -647,6 +656,25 @@ export async function createFixtureBackend(port = 0) {
                     dto.CollectionPageResponseSchema
                 );
             }
+            if (/^\/media\/collection\/[^/]+\/playable$/.test(path)) {
+                const id = path.split("/")[3];
+                const items =
+                    id === "album-1" ? [song, playlistSong] : [playlistSong];
+                return send(
+                    {
+                        queueType: "SORTED",
+                        currentQueueMediaId: 0,
+                        queue: items.map((media, i) => ({
+                            media,
+                            listPublicId: id,
+                            queueMediaId: i,
+                            sortedIndex: i,
+                            randomIndex: i,
+                        })),
+                    },
+                    dto.QueueResponseSchema
+                );
+            }
             if (path.endsWith("/related"))
                 return send(
                     {
@@ -898,6 +926,26 @@ export async function createFixtureBackend(port = 0) {
                         total: 1,
                     },
                     dto.BasePlaylistWithMediasResponseSchema
+                );
+            if (path === "/media/video-1")
+                return send(
+                    {
+                        media: {
+                            type: "video",
+                            provider: "Fixture",
+                            publicId: "video-1",
+                            providerUrl: "",
+                            name: "Shared fixture video",
+                            artists: [artist],
+                            downloaded: true,
+                            duration_ms: 30000,
+                            imageUrl: song.imageUrl,
+                            dominantColor: "",
+                            audioUrl: song.audioUrl,
+                            videoUrl: null,
+                        },
+                    },
+                    dto.MediaResponseSchema
                 );
             if (path.startsWith("/media/song/"))
                 return send(

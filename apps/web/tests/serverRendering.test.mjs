@@ -86,6 +86,7 @@ const runtime = {
         triggeredBookmarkPublicIdsAtom: atom([]),
     },
     userManager: {
+        loggedInAtom: atom(true),
         showListeningHeatmapAtom: atom(true),
         queueTypeAtom: atom("SORTED"),
         repeatModeAtom: atom("OFF"),
@@ -401,7 +402,7 @@ test("route response classification distinguishes missing content from upstream 
             message: "Failure",
             detail: "Failure",
         });
-    assert.throws(() => requireResult(fail(401)), /redirect:\/login/);
+    assert.throws(() => requireResult(fail(401)), /AppError: 401/);
     assert.throws(() => requireResult(fail(404)), /not-found/);
     assert.throws(() => requireResult(fail(503)), /AppError: 503/);
     assert.throws(() => requireResult(fail(403)), /AppError: 403/);
@@ -584,7 +585,7 @@ test("library loader forwards the account session and rejects failed or invalid 
         }
         assert.ok(calls.every((call) => call.cache === "no-store"));
         for (const [scenario, error] of [
-            ["unauthorized", /redirect:\/login/],
+            ["unauthorized", /AppError: 401/],
             ["invalid", /AppError: 503/],
             ["stats", /AppError: 503/],
         ]) {

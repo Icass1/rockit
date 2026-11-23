@@ -1,9 +1,8 @@
 from logging import Logger
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.responses.baseStationResponse import BaseStationResponse
 from core.responses.searchResponse import SearchResultsResponse
@@ -15,7 +14,6 @@ logger: Logger = getLogger(__name__)
 
 router = APIRouter(
     prefix="/radio",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
     tags=["Radio"],
 )
 

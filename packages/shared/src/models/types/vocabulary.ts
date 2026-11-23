@@ -2390,4 +2390,9 @@ export interface Vocabulary {
     OFFLINE_STORAGE_GROUP_EMPTY: string;
     SEARCH_TOP_RESULT: string;
     SEARCH_LYRICS_MATCH: string;
+    SHARING_COPY_LINK: string;
+    SHARING_LINK_COPIED: string;
+    SHARING_LINK_ERROR: string;
+    SHARING_ACCOUNT_REQUIRED: string;
+    SHARING_COPY_LINK_AT_CURRENT_TIME: string;
 }

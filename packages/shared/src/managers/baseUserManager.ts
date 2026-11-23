@@ -113,7 +113,7 @@ export class BaseUserManager {
 
         // Persist to the backend. The endpoint cycles server-side in the same
         // OFF -> ONE -> ALL order, so it stays consistent with the local atom.
-        void getRockIt().http.cycleRepeatMode();
+        if (this._loggedIn.get()) void getRockIt().http.cycleRepeatMode();
     }
 
     get queueTypeAtom(): ReadonlyAtom<EQueueType> {

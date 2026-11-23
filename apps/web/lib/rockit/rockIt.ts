@@ -92,10 +92,12 @@ export class RockIt {
 
     private async initializeAsync(): Promise<void> {
         await rockIt.userManager.init();
-        await Promise.all([
-            rockIt.downloaderManager.init(),
-            rockIt.playlistManager.init(),
-        ]);
+        if (rockIt.userManager.loggedInAtom.get()) {
+            await Promise.all([
+                rockIt.downloaderManager.init(),
+                rockIt.playlistManager.init(),
+            ]);
+        }
         rockIt.libraryManager.init();
 
         cleanupLegacyIndexedDB();

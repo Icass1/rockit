@@ -4,6 +4,7 @@ import {
     getMediaArtists,
     lyricPlaybackTime,
     lyricSeekTime,
+    lyricWordState,
 } from "@/shared/index";
 import { designTokens, withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
@@ -233,7 +234,42 @@ export default function PlayerLyrics() {
                                 onPress={() => goToLine(index)}
                                 style={styles.lyricLine}
                             >
-                                {line.text}
+                                {currentIndex === index && line.words?.length
+                                    ? line.words.map((word, wordIndex) => {
+                                          const state = lyricWordState(
+                                              word,
+                                              currentTime,
+                                              lyrics.offset,
+                                              line.words[wordIndex + 1]
+                                                  ?.timestamp_s ??
+                                                  line.end_timestamp_s
+                                          );
+                                          return (
+                                              <Text
+                                                  key={wordIndex}
+                                                  style={{
+                                                      color:
+                                                          state === "active"
+                                                              ? theme.colors
+                                                                    .primary
+                                                              : state === "past"
+                                                                ? theme.colors[
+                                                                      "foreground-strong"
+                                                                  ]
+                                                                : withAlpha(
+                                                                      theme
+                                                                          .colors[
+                                                                          "foreground-strong"
+                                                                      ],
+                                                                      0.35
+                                                                  ),
+                                                  }}
+                                              >
+                                                  {word.text}
+                                              </Text>
+                                          );
+                                      })
+                                    : line.text}
                             </LyricLine>
                         ))}
 

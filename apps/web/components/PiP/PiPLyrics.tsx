@@ -8,6 +8,7 @@ import { useLyricAutoScroll } from "@/hooks/useLyricAutoScroll";
 import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { WordSyncedLine } from "@/components/Lyrics/WordSyncedLine";
 
 export function PiPLyrics({
     data: lyrics,
@@ -122,7 +123,14 @@ export function PiPLyrics({
                                 }
                             }}
                         >
-                            {line.text}
+                            <WordSyncedLine
+                                clock={
+                                    rockIt.mediaPlayerManager.currentTimeAtom
+                                }
+                                line={line}
+                                active={i === currentLineIndex}
+                                offset={lyrics?.offset}
+                            />
                         </span>
                     );
                 })}

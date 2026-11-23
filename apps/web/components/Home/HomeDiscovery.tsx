@@ -1,11 +1,14 @@
 import "server-only";
 import type { JSX } from "react";
 import { ServerHttp } from "@/lib/api/server";
+import { getUserInServer } from "@/lib/getUserInServer";
 import { getRequestVocabulary } from "@/lib/server/vocabulary";
 import RecommendationsSection from "@/components/Recommendations/RecommendationsSection";
 
 /** Secondary provider work streams independently of the local Home feed. */
 export default async function HomeDiscovery(): Promise<JSX.Element | null> {
+    const session = await getUserInServer();
+    if (!session || session === "offline") return null;
     const response = await ServerHttp.getRecommendationsForYou(20, true);
     if (!response.isOk() || !response.result.discover.length) return null;
     const { vocabulary } = await getRequestVocabulary();

@@ -11,6 +11,7 @@ export const LyricsResponseSchema = z.object({
     albumName: z.string().default(""),
     duration: z.number().default(0),
     instrumental: z.boolean().default(false),
+    hasWordSync: z.boolean().default(false),
     plainLyrics: z.string().nullable(),
     syncedLyrics: z.string().nullable(),
     lyricsfile: z.string().nullable(),

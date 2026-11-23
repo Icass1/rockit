@@ -77,6 +77,15 @@ _CORE_MIGRATIONS: tuple[Migration, ...] = (
             "END IF; END $$",
         ),
     ),
+    Migration(
+        version=9,
+        name="index_stats_v2_listening_intervals",
+        statements=(
+            "CREATE INDEX IF NOT EXISTS ix_user_media_listen_interval_user_date "
+            "ON core.user_media_listen_interval (user_id, date_added) "
+            "INCLUDE (media_id, time_ms_start, time_ms_end)",
+        ),
+    ),
 )
 
 

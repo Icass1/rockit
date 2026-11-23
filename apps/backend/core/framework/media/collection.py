@@ -245,6 +245,9 @@ class Collection:
         persist: bool = True,
     ) -> Result[QueueResponse]:
         """Resolve the complete ordered graph and persist a queue, independent of UI pages."""
+        if persist and user_id == 0:
+            logger.warning("Anonymous queues cannot be persisted")
+            return Result(code=ResultCode.VALIDATION_ERROR, message="Authentication required")
         root_result = await CollectionAccess.records_async(
             session=session, public_ids=[public_id], user_id=user_id
         )

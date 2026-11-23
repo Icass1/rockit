@@ -19,7 +19,7 @@ logger = getLogger(__name__)
 router = APIRouter(prefix="/content-rating", tags=["Core", "Content rating"])
 
 
-@router.post("/lookup", dependencies=[Depends(AuthMiddleware.auth_dependency)])
+@router.post("/lookup")
 async def lookup_content_ratings(
     request: Request, payload: ContentRatingLookupRequest
 ) -> ContentRatingLookupResponse:

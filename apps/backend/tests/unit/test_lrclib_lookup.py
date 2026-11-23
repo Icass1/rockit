@@ -36,7 +36,7 @@ async def lookup_with_responses(
 
     def handle(request: httpx.Request) -> httpx.Response:
         requests.append(request)
-        status, payload = responses.pop(0)
+        status, payload = responses.pop(0) if responses else (200, list[object]())
         return httpx.Response(status_code=status, json=payload)
 
     client_type = httpx.AsyncClient
@@ -60,7 +60,7 @@ async def test_missing_optional_lyricsfile_does_not_break_exact_response(
     )
     assert result.is_ok()
     assert result.result().id == 1
-    assert len(requests) == 1
+    assert len(requests) == 3
 
 
 @pytest.mark.asyncio
@@ -114,8 +114,8 @@ async def test_presentation_labels_and_artist_prefix_get_cleaned_retry(
         responses=[(404, {}), (200, []), (200, [entry()])],
     )
     assert result.is_ok()
-    assert requests[-1].url.params["track_name"] == "The Contract"
-    assert len(requests) == 3
+    assert requests[2].url.params["track_name"] == "The Contract"
+    assert len(requests) == 4
 
 
 @pytest.mark.asyncio
@@ -152,7 +152,7 @@ async def test_missing_duration_skips_exact_but_can_find_lyrics(
         monkeypatch=monkeypatch, duration=0, responses=[(200, [entry()])]
     )
     assert result.is_ok()
-    assert len(requests) == 1
+    assert len(requests) == 2
     assert requests[0].url.path == "/api/search"
 
 
@@ -277,7 +277,7 @@ async def test_plain_exact_result_does_not_hide_matching_synced_entry(
         responses=[(200, entry(syncedLyrics=None)), (200, [entry(id=2)])],
     )
     assert result.is_ok() and result.result().id == 2
-    assert len(requests) == 2
+    assert len(requests) == 3
 
 
 @pytest.mark.asyncio
@@ -385,6 +385,17 @@ async def test_plain_only_retry_adds_sync_without_overwriting_text_or_offset(
     monkeypatch.setattr(MediaAccess, "get_medias_from_ids_async", medias)
     monkeypatch.setattr(Media, "get_song_async", song)
     monkeypatch.setattr(Lrclib, "fetch_lyrics_async", fetch)
+
+    async def cached(
+        session: AsyncSession, media_ids: list[int]
+    ) -> Result[dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]]]:
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result={1: ("original-id", [Lyrics(text="Original")], None)},
+        )
+
+    monkeypatch.setattr(LyricsAccess, "get_lyrics_by_media_ids_async", cached)
     monkeypatch.setattr(LyricsAccess, "save_lyrics_async", save)
     result = await Lrclib._fetch_and_save_lyrics_batch_async(  # pyright: ignore[reportPrivateUsage]
         session=cast(AsyncSession, object()),

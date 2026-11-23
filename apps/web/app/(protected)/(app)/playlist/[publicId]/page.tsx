@@ -1,6 +1,7 @@
 import { JSX } from "react";
 import { notFound } from "next/navigation";
 import { EMediaType, TMedia } from "@rockit/shared";
+import { getUserInServer } from "@/lib/getUserInServer";
 import { getPlaylist } from "@/lib/server/resources";
 import PlaylistRecommendations from "@/components/Playlist/PlaylistRecommendations";
 import RenderListClient from "@/components/RenderList/RenderListClient";
@@ -30,7 +31,10 @@ export default async function PlaylistPage({
 }): Promise<JSX.Element> {
     const { publicId } = await params;
 
-    const playlistResponse = await getPlaylist(publicId);
+    const [playlistResponse, session] = await Promise.all([
+        getPlaylist(publicId),
+        getUserInServer(),
+    ]);
 
     if (!playlistResponse) {
         console.error(`Playlist response is ${playlistResponse}`);
@@ -57,7 +61,9 @@ export default async function PlaylistPage({
                 showMediaIndex={false}
                 expandedByMediaId={expandedByMediaId}
             />
-            <PlaylistRecommendations publicId={publicId} />
+            {session && session !== "offline" && (
+                <PlaylistRecommendations publicId={publicId} />
+            )}
         </>
     );
 }

@@ -14,21 +14,17 @@ from logger import getLogger
 logger = getLogger(__name__)
 router = APIRouter(
     prefix="/lyrics",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    dependencies=[Depends(dependency=AuthMiddleware.optional_auth_dependency)],
     tags=["Core", "Lyrics"],
 )
 
 
 async def _context(request: Request, public_id: str, provider: str | None) -> LyricsContext:
-    user = AuthMiddleware.get_current_user(request=request)
-    if user.is_not_ok():
-        logger.warning("Lyrics viewer unavailable: %s", user.info())
-        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
     snapshot = await LyricsCorrections.for_public_id_async(
         session=DBSessionMiddleware.get_session(request=request),
         public_id=public_id,
         provider_name=provider,
-        viewer_id=user.result().id,
+        viewer_id=AuthMiddleware.viewer_id(request=request) or None,
     )
     if snapshot.is_not_ok():
         logger.warning("Lyrics unavailable: %s", snapshot.info())
@@ -64,7 +60,12 @@ async def get_dynamic_lyrics_async(
         publicId=context.public_id,
         offset=context.offset,
         lines=[
-            BaseDynamicLyricsItem(text=line.text, timestamp_s=line.timestamp_s)
+            BaseDynamicLyricsItem(
+                text=line.text,
+                timestamp_s=line.timestamp_s,
+                words=line.words,
+                end_timestamp_s=line.end_timestamp_s,
+            )
             for line in context.lines
             if line.timestamp_s is not None
         ],

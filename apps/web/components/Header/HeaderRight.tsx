@@ -28,6 +28,15 @@ export default function HeaderRight(): JSX.Element {
     );
 
     if (session === undefined) return <HeaderRightSkeleton />;
+    if (!session)
+        return (
+            <Link
+                href="/login"
+                className="overlay-action overlay-primary ml-auto"
+            >
+                {vocabulary.LOG_IN}
+            </Link>
+        );
 
     return (
         <div className="relative ml-auto flex items-center gap-3 xl:gap-5">

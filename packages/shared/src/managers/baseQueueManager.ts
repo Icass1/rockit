@@ -462,7 +462,7 @@ export class BaseQueueManager {
             queue === this._queueGeneration;
     }
 
-    private _beginPlaybackSelection(): () => boolean {
+    protected _beginPlaybackSelection(): () => boolean {
         this._pendingSelectionAtom.set(undefined);
         const lifecycle = this._lifecycleGeneration;
         const request = ++this._playRequest;

@@ -19,11 +19,14 @@ async def search_artists(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=25, ge=1, le=100),
     refresh: bool = False,
-    _: None = Depends(AuthMiddleware.auth_dependency),
+    _: None = Depends(AuthMiddleware.optional_auth_dependency),
 ) -> MetadataResponse:
     """Find external identities without assigning them to a local artist."""
+    if refresh and not AuthMiddleware.viewer_id(request=request):
+        logger.warning("Anonymous metadata refresh rejected")
+        raise HTTPException(status_code=401, detail="Authentication required")
     session = DBSessionMiddleware.get_session(request=request)
-    # Authentication has completed. Release its read transaction before a
+    # Release any session lookup transaction before a
     # provider waits on external IO or opens an independent cache transaction.
     # Otherwise concurrent requests can each hold a pool connection while
     # waiting for a second connection, starving the entire backend.
@@ -58,9 +61,12 @@ async def get_metadata(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=100),
     refresh: bool = False,
-    _: None = Depends(AuthMiddleware.auth_dependency),
+    _: None = Depends(AuthMiddleware.optional_auth_dependency),
 ) -> MetadataResponse:
     """Read a durable external metadata snapshot; refresh is explicit and rate limited."""
+    if refresh and not AuthMiddleware.viewer_id(request=request):
+        logger.warning("Anonymous metadata refresh rejected")
+        raise HTTPException(status_code=401, detail="Authentication required")
     session = DBSessionMiddleware.get_session(request=request)
     await session.commit()
     result = await Metadata.get_async(

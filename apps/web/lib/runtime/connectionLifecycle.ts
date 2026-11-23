@@ -7,6 +7,7 @@ export class ConnectionLifecycle {
     private ready = false;
     private username?: string;
     private queueOwner?: string;
+    private hasQueueOwner = false;
     private queueGeneration = 0;
     private startup?: Promise<void>;
 
@@ -18,15 +19,16 @@ export class ConnectionLifecycle {
         this.unsubscribeSession =
             this.services.userManager.sessionAtom.subscribe((session) => {
                 const username = session?.username;
-                if (username === this.username) return;
+                if (this.hasQueueOwner && username === this.username) return;
                 this.services.webSocketManager.stop();
                 this.queueGeneration++;
                 this.services.queueManager.stop();
-                if (this.queueOwner && this.queueOwner !== username)
+                if (this.hasQueueOwner && this.queueOwner !== username)
                     this.services.queueManager.reset();
                 this.queueOwner = username;
+                this.hasQueueOwner = true;
                 this.username = username;
-                if (this.ready && username) void this.connectQueueAsync();
+                if (this.ready) void this.connectQueueAsync();
             });
         const userStartup = this.services.userManager.start();
         this.services.notificationManager.start();
@@ -39,7 +41,7 @@ export class ConnectionLifecycle {
                 this.services.bookmarkManager.start();
                 this.services.navigationPinsManager.start();
                 this.ready = true;
-                if (this.username) await this.connectQueueAsync();
+                await this.connectQueueAsync();
             }
         );
         return this.startup;

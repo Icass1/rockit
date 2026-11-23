@@ -4,15 +4,15 @@ from logging import Logger
 import aiosqlite
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models.lyrics import DynamicLyrics, Lyrics
 from logger import getLogger
 from lrclib.access.lyricsAccess import LyricsAccess
+from lrclib.access.lyricsDumpAccess import LyricsDumpAccess
 from lrclib.framework.lrclib import Lrclib
+from lrclib.framework.lyricsLookup import choose_candidate
 from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
-DURATION_TOLERANCE: float = 2.0
 BATCH_SIZE: int = 500
 
 
@@ -59,11 +59,17 @@ async def import_lrc_lib_from_dump_async(sqlite_path: str, session: AsyncSession
     errors: int = 0
 
     async with aiosqlite.connect(sqlite_path) as db:
+        file_support = await LyricsDumpAccess.has_lyricsfile_async(db=db)
+        if file_support.is_not_ok():
+            logger.error("Cannot import lyrics: %s", file_support.info())
+            return
         for i in range(0, len(tracks_to_process), BATCH_SIZE):
             batch = tracks_to_process[i : i + BATCH_SIZE]
 
             for track in batch:
-                a_result = await _process_track_async(db=db, session=session, track=track)
+                a_result = await _process_track_async(
+                    db=db, session=session, track=track, include_lyricsfile=file_support.result()
+                )
                 if a_result.is_ok():
                     imported += 1
                 elif a_result.code() == ResultCode.NOT_FOUND:
@@ -90,45 +96,45 @@ async def _process_track_async(
     db: aiosqlite.Connection,
     session: AsyncSession,
     track: TrackInfo,
+    include_lyricsfile: bool = False,
 ) -> Result[bool]:
     """Process a single Spotify track: find match in LRCLIB and import lyrics."""
 
     duration_s: float = track.duration_ms / 1000.0
 
-    match: tuple[str | None, str | None] | None = await _find_match_async(
+    candidates = await LyricsDumpAccess.find_candidates_async(
         db=db,
         track_name=track.name,
         artist_name=track.artist_name,
         album_name=track.album_name,
         duration_s=duration_s,
+        include_lyricsfile=include_lyricsfile,
     )
-
+    if candidates.is_not_ok():
+        logger.warning("Cannot match dump lyrics: %s", candidates.info())
+        return Result(code=candidates.code(), message=candidates.message())
+    match = choose_candidate(
+        records=candidates.result(),
+        artist=track.artist_name,
+        title=track.name,
+        album=track.album_name,
+        duration=duration_s,
+        allow_relaxed=False,
+    )
     if match is None:
         return Result(code=ResultCode.NOT_FOUND, message="No match in LRCLIB")
-
-    plain_lyrics_raw, synced_lyrics_raw = match
-
-    lines: list[Lyrics] | None = None
-    if plain_lyrics_raw:
-        lines = [Lyrics(text=line) for line in plain_lyrics_raw.split("\n")]
-
-    dynamic_lines: list[DynamicLyrics] | None = None
-    if synced_lyrics_raw:
-        dynamic_lines = []
-        for sync_line in synced_lyrics_raw.split("\n"):
-            sync_line = sync_line.strip()
-            if not sync_line:
-                continue
-            a_parsed = Lrclib.parse_timestamp(sync_line)
-            if a_parsed.is_ok():
-                timestamp_s, text = a_parsed.result()
-                dynamic_lines.append(DynamicLyrics(text=text, timestamp_s=timestamp_s))
+    parsed = Lrclib.parse_lyrics(parsed=match)
+    if parsed.is_not_ok():
+        logger.warning("Cannot parse dump lyrics: %s", parsed.info())
+        return Result(code=parsed.code(), message=parsed.message())
+    lines, dynamic = parsed.result()
 
     save_result = await LyricsAccess.save_lyrics_async(
         session=session,
         media_id=track.id,
         lyrics=lines,
-        dynamic_lyrics=dynamic_lines if dynamic_lines else None,
+        dynamic_lyrics=dynamic.lines if dynamic else None,
+        offset=dynamic.offset if dynamic else 0,
     )
 
     if save_result.is_not_ok():
@@ -141,49 +147,3 @@ async def _process_track_async(
         )
 
     return Result(code=ResultCode.OK, message="OK", result=True)
-
-
-async def _find_match_async(
-    db: aiosqlite.Connection,
-    track_name: str,
-    artist_name: str,
-    album_name: str,
-    duration_s: float,
-) -> tuple[str | None, str | None] | None:
-    """Find best matching track in LRCLIB SQLite dump.
-
-    Matches by name, artist, album (case-insensitive) and duration (±tolerance).
-    Picks the match with closest duration if multiple are found.
-    Returns (plain_lyrics, synced_lyrics) or None.
-    """
-
-    cursor = await db.execute(
-        """
-        SELECT l.plain_lyrics, l.synced_lyrics, t.duration
-        FROM tracks t
-        JOIN lyrics l ON l.track_id = t.id
-        WHERE t.name_lower = ?
-          AND t.artist_name_lower = ?
-          AND t.album_name_lower = ?
-          AND ABS(t.duration - ?) <= ?
-        ORDER BY ABS(t.duration - ?) ASC
-        LIMIT 1
-        """,
-        (
-            track_name.lower(),
-            artist_name.lower(),
-            album_name.lower(),
-            duration_s,
-            DURATION_TOLERANCE,
-            duration_s,
-        ),
-    )
-    row = await cursor.fetchone()
-    await cursor.close()
-
-    if row is None:
-        return None
-
-    plain_lyrics: str | None = row[0]
-    synced_lyrics: str | None = row[1]
-    return (plain_lyrics, synced_lyrics)

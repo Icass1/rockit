@@ -42,10 +42,15 @@ export default function Slider({
     const inputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className={className + " relative w-16 rounded-full"}>
+        <div
+            className={
+                className +
+                " relative grid w-16 grid-cols-1 grid-rows-1 rounded-full"
+            }
+        >
             <div
                 className={
-                    "absolute top-0 left-0 block h-full max-w-full rounded-full " +
+                    "col-start-1 row-start-1 h-full max-w-full rounded-full " +
                     barClassName
                 }
                 style={{ width: `${widthPercentage}%` }}
@@ -64,7 +69,7 @@ export default function Slider({
                 min={min}
                 max={max}
                 step={step}
-                className="absolute left-0 h-full w-full cursor-pointer"
+                className="col-start-1 row-start-1 h-full min-h-0 w-full min-w-0 cursor-pointer"
             />
         </div>
     );

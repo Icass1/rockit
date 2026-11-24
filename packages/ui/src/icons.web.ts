@@ -2,6 +2,7 @@ import {
     ROCKIT_FIRE_PATH,
     ROCKIT_HAND_SOLID_PATH,
 } from "@rockit/ui/headless/likeArtwork";
+import { STREAK_FLAME_PATHS } from "@rockit/ui/headless/streakArtwork";
 import { createLucideIcon } from "lucide-react";
 import { EXPLICIT_MARK_PATH } from "./explicitMark";
 
@@ -17,3 +18,12 @@ export const RockitFire = createLucideIcon("RockitFire", [
 ]);
 
 export * from "lucide-react";
+
+export const [
+    StreakFlameSeed,
+    StreakFlameGrowing,
+    StreakFlameBright,
+    StreakFlameBlaze,
+] = STREAK_FLAME_PATHS.map((d, index) =>
+    createLucideIcon(`StreakFlame${index}`, [["path", { d, key: "flame" }]])
+);

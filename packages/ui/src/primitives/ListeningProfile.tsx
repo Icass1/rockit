@@ -20,6 +20,7 @@ import { EmblemInspector } from "@rockit/ui/primitives/EmblemInspector";
 import { IconButton } from "@rockit/ui/primitives/IconButton";
 import { ListeningEmblem } from "@rockit/ui/primitives/ListeningEmblem";
 import { ProfileAvatar } from "@rockit/ui/primitives/ProfileAvatar";
+import { StreakFlame } from "@rockit/ui/primitives/StreakFlame";
 import {
     ActivityIndicator,
     Pressable,
@@ -240,10 +241,17 @@ export function ListeningProfile({
                                 gap: theme.spacing.xs,
                             }}
                         >
-                            <StatIcon
-                                size={theme.typography.subtitle}
-                                color={theme.colors.primary}
-                            />
+                            {label === v.SOCIAL_STREAK ? (
+                                <StreakFlame
+                                    days={profile.streak}
+                                    size={theme.typography.subtitle}
+                                />
+                            ) : (
+                                <StatIcon
+                                    size={theme.typography.subtitle}
+                                    color={theme.colors.primary}
+                                />
+                            )}
                             <Text
                                 style={{
                                     color,

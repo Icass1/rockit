@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    Children,
     useEffect,
     useImperativeHandle,
     useRef,
@@ -16,6 +17,7 @@ import type {
 } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useAsyncResource } from "@rockit/ui/headless/useAsyncResource";
+import { useMotionEnvironment } from "@rockit/ui/headless/useMotionEnvironment";
 import {
     useRecapClock,
     useRecapPlayback,
@@ -321,7 +323,9 @@ function RecapPresentation({
                     key={flow.index}
                     count={data.slides.length}
                     index={flow.index}
-                    running={flow.running}
+                    running={
+                        flow.running || (slide.kind === "intro" && !flow.paused)
+                    }
                     next={flow.next}
                 />
             )}
@@ -483,6 +487,7 @@ function RecapPresentation({
                             v={v}
                             locale={locale}
                             reduced={flow.reduced}
+                            running={flow.running}
                             height={bodySize.height}
                             width={bodySize.width}
                         />
@@ -602,6 +607,7 @@ function Story({
     v,
     locale,
     reduced,
+    running,
     height,
     width,
 }: {
@@ -610,6 +616,7 @@ function Story({
     v: Vocabulary;
     locale: string;
     reduced: boolean;
+    running: boolean;
     height: number;
     width: number;
 }) {
@@ -623,16 +630,6 @@ function Story({
         )
     );
     const compact = height < theme.layout.recapCompactHeight;
-    const opacity = useRef(new Animated.Value(reduced ? 1 : 0)).current;
-    useEffect(() => {
-        const animation = Animated.timing(opacity, {
-            toValue: 1,
-            duration: reduced ? 0 : theme.motion.lyricsHighlight,
-            useNativeDriver: nativeAnimations,
-        });
-        animation.start();
-        return () => animation.stop();
-    }, [opacity, reduced, theme.motion.lyricsHighlight]);
     const fg = theme.colors["recap-foreground"],
         muted = theme.colors["recap-muted"];
     const values = { ...slide.values, value: slide.value ?? 0 };
@@ -645,12 +642,10 @@ function Story({
         v[slide.bodyKey]
     );
     return (
-        <Animated.View
-            style={{
-                opacity,
-                gap: compact ? theme.spacing.sm : theme.spacing.md,
-                width: "100%",
-            }}
+        <StoryReveal
+            reduced={reduced || slide.kind === "summary"}
+            running={running}
+            compact={compact}
         >
             <Text
                 accessibilityRole="header"
@@ -857,7 +852,96 @@ function Story({
                     {v.RECAP_METHOD}
                 </Text>
             )}
-        </Animated.View>
+        </StoryReveal>
+    );
+}
+
+/** A single bounded timeline stages the title, rank, artwork and closing copy. */
+function StoryReveal({
+    children,
+    reduced,
+    running,
+    compact,
+}: {
+    children: ReactNode;
+    reduced: boolean;
+    running: boolean;
+    compact: boolean;
+}) {
+    const theme = useDesignTheme();
+    const progress = useRef(new Animated.Value(reduced ? 1 : 0)).current;
+    const elapsed = useRef(reduced ? 1 : 0);
+    const motion = useMotionEnvironment();
+    useEffect(() => {
+        if (reduced) {
+            progress.setValue(1);
+            elapsed.current = 1;
+            return;
+        }
+        if (!running || !motion) return;
+        const animation = Animated.timing(progress, {
+            toValue: 1,
+            duration: 2200 * (1 - elapsed.current),
+            useNativeDriver: nativeAnimations,
+            isInteraction: false,
+        });
+        animation.start();
+        return () => {
+            animation.stop();
+            progress.stopAnimation((value) => {
+                elapsed.current = value;
+            });
+        };
+    }, [progress, reduced, running, motion]);
+    return (
+        <View
+            style={{
+                width: "100%",
+                gap: compact ? theme.spacing.sm : theme.spacing.md,
+            }}
+        >
+            {Children.toArray(children).map((child, index) => {
+                const start = Math.min(index * 0.105, 0.7);
+                const phase = progress.interpolate({
+                    inputRange: [start, Math.min(start + 0.25, 1)],
+                    outputRange: [0, 1],
+                    extrapolate: "clamp",
+                });
+                return (
+                    <Animated.View
+                        key={index}
+                        style={{
+                            opacity: phase,
+                            transform: [
+                                {
+                                    translateX: phase.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [index % 2 ? -24 : 32, 0],
+                                    }),
+                                },
+                                {
+                                    translateY: phase.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [12, 0],
+                                    }),
+                                },
+                                {
+                                    scale: phase.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [
+                                            index === 2 ? 0.86 : 0.98,
+                                            1,
+                                        ],
+                                    }),
+                                },
+                            ],
+                        }}
+                    >
+                        {child}
+                    </Animated.View>
+                );
+            })}
+        </View>
     );
 }
 

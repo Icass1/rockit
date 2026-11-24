@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { StatsSummaryResponse, Vocabulary } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { Clock, Music, TrendingUp, Zap } from "@rockit/ui/icons";
+import { Clock, Music, TrendingUp } from "@rockit/ui/icons";
+import { StreakFlame } from "@rockit/ui/primitives/StreakFlame";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -100,7 +101,7 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
         />,
         <SummaryCard
             key="streak"
-            icon={<Zap size={16} color={theme.legacy.gray600} />}
+            icon={<StreakFlame days={summary.currentStreak} size={24} />}
             label={vocabulary.SOCIAL_STREAK}
             value={vocabulary.TIME_DAYS.replace(
                 "{n}",

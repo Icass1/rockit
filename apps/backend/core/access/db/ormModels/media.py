@@ -22,6 +22,8 @@ class CoreMediaRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdat
     __tablename__ = "media"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
+    reviewed_genre: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+
     is_explicit: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     explicit_source: Mapped[str | None] = mapped_column(String(128), nullable=True)
     explicit_manual: Mapped[bool] = mapped_column(
@@ -53,6 +55,7 @@ class CoreMediaRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdat
         provider_id: int,
         media_type_key: int,
         public_id: str | None = None,
+        reviewed_genre: str | None = None,
         is_explicit: bool | None = None,
         explicit_source: str | None = None,
         explicit_manual: bool = False,
@@ -63,6 +66,7 @@ class CoreMediaRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdat
         kwargs["media_type_key"] = media_type_key
         if public_id is not None:
             kwargs["public_id"] = public_id
+        kwargs["reviewed_genre"] = reviewed_genre
         kwargs["is_explicit"] = is_explicit
         kwargs["explicit_source"] = explicit_source
         kwargs["explicit_manual"] = explicit_manual

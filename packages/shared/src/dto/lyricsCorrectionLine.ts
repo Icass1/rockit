@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const LyricsCorrectionLineSchema = z.object({
     text: z.string(),
-    timestamp_s: z.number().nullable(),
+    timestamp_s: z.number().nullable().default(null),
 });
 
 export type LyricsCorrectionLine = z.infer<typeof LyricsCorrectionLineSchema>;

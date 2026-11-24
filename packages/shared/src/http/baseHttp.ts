@@ -187,6 +187,13 @@ export class BaseHttp {
         return this.apiGetAsync(`/admin/builds`, dto.AllBuildsResponseSchema);
     }
 
+    static async getAndroidBuildHistory() {
+        return this.apiGetAsync(
+            `/admin/builds/android-history`,
+            dto.AndroidBuildHistoryResponseSchema
+        );
+    }
+
     static async uploadApk(payload: dto.UploadApkRequest) {
         return this.apiPostAsync(
             `/admin/builds/upload`,

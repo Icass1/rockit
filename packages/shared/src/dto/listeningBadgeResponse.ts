@@ -89,8 +89,8 @@ export const ListeningBadgeResponseSchema = z.object({
         ])
         .default("gold"),
     secret: z.boolean().default(false),
-    earnedAt: z.iso.datetime().nullable(),
-    holderPercentage: z.number().nullable(),
+    earnedAt: z.iso.datetime().nullable().default(null),
+    holderPercentage: z.number().nullable().default(null),
 });
 
 export type ListeningBadgeResponse = z.infer<

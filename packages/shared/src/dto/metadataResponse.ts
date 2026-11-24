@@ -6,7 +6,7 @@ import { z } from "zod";
 export const MetadataResponseSchema = z.object({
     provider: z.string(),
     entity: z.string(),
-    externalId: z.string().nullable(),
+    externalId: z.string().nullable().default(null),
     data: z.record(z.string(), z.any()),
     cached: z.boolean(),
     fetchedAt: z.string(),

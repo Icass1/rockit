@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const FriendStatsResponseSchema = z.object({
     username: z.string(),
-    imageUrl: z.string().nullable(),
+    imageUrl: z.string().nullable().default(null),
     minutesListened: z.number().default(0),
     songsListened: z.number().default(0),
     currentStreak: z.number().default(0),

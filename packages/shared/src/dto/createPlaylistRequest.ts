@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const CreatePlaylistRequestSchema = z.object({
     name: z.string(),
-    description: z.string().nullable(),
+    description: z.string().nullable().default(null),
     isPublic: z.boolean().default(true),
 });
 

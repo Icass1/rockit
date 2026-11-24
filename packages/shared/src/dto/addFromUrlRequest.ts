@@ -7,7 +7,7 @@ export const AddFromUrlRequestSchema = z.object({
     url: z.string(),
     addToLibrary: z.boolean(),
     addToPlaylist: z.boolean(),
-    playlistPublicId: z.string().nullable(),
+    playlistPublicId: z.string().nullable().default(null),
 });
 
 export type AddFromUrlRequest = z.infer<typeof AddFromUrlRequestSchema>;

@@ -11,7 +11,10 @@ export const StoredLyricsCorrectionSchema = z.object({
     provider: z.string(),
     revision: z.string(),
     offset: z.number(),
-    lines: z.array(z.lazy(() => LyricsCorrectionLineSchema)).nullable(),
+    lines: z
+        .array(z.lazy(() => LyricsCorrectionLineSchema))
+        .nullable()
+        .default(null),
     sourceHash: z.string(),
     audioIdentity: z.string(),
 });

@@ -31,6 +31,7 @@ from result import Result, ResultCode
 from rockit.access.artistCatalogAccess import ArtistCatalogAccess
 from rockit.access.db.ormModels.song import RockitSongRow
 from rockit.access.db.ormModels.video import RockitVideoRow
+from rockit.access.metadataReviewAccess import MetadataReviewAccess
 from rockit.access.rockitAccess import RockitAccess
 from rockit.framework.rockit import Rockit
 
@@ -38,6 +39,13 @@ logger: Logger = getLogger(__name__)
 
 
 class RockItProvider(BaseMediaProvider, BaseUploadProvider):
+    async def apply_metadata_review_async(
+        self, session: AsyncSession, public_id: str, changes: dict[str, str]
+    ) -> Result[bool]:
+        return await MetadataReviewAccess.apply_async(
+            session=session, public_id=public_id, changes=changes
+        )
+
     async def find_local_songs_async(
         self, session: AsyncSession, titles: list[str]
     ) -> Result[list[LocalSong]]:

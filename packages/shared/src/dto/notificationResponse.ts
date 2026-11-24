@@ -12,7 +12,10 @@ export const NotificationResponseSchema = z.object({
     replacements: z.array(z.lazy(() => NotificationReplacementSchema)),
     dateAdded: z.iso.datetime(),
     readAt: z.iso.datetime().nullable(),
-    destination: z.lazy(() => NotificationDestinationSchema).nullable(),
+    destination: z
+        .lazy(() => NotificationDestinationSchema)
+        .nullable()
+        .default(null),
 });
 
 export type NotificationResponse = z.infer<typeof NotificationResponseSchema>;

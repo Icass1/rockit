@@ -8,8 +8,8 @@ export const StatsRankedItemResponseSchema = z.object({
     name: z.string(),
     href: z.string(),
     value: z.number(),
-    imageUrl: z.string().nullable(),
-    subtitle: z.string().nullable(),
+    imageUrl: z.string().nullable().default(null),
+    subtitle: z.string().nullable().default(null),
 });
 
 export type StatsRankedItemResponse = z.infer<

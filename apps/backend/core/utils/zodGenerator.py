@@ -396,7 +396,9 @@ def generate_zod_schema(
         # Handle default values from Pydantic Field(default_factory=list)
         if field_info.default_factory is not None:
             zod_type = f"{zod_type}.default([])"
-        elif field_info.default is not None:
+        elif field_info.default is None:
+            zod_type = f"{zod_type}.default(null)"
+        else:
             default_val = field_info.default
             if isinstance(default_val, list):
                 zod_type = f"{zod_type}.default([])"

@@ -6,7 +6,7 @@ import { z } from "zod";
 export const CreateBookmarkRequestSchema = z.object({
     mediaPublicId: z.string(),
     timestamp: z.number(),
-    description: z.string().nullable(),
+    description: z.string().nullable().default(null),
     mode: z.enum([
         "NOTHING",
         "AUTOSKIP",

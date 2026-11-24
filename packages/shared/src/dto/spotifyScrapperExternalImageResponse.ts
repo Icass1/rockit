@@ -5,8 +5,8 @@ import { z } from "zod";
 
 export const SpotifyScrapperExternalImageResponseSchema = z.object({
     url: z.string(),
-    width: z.number().nullable(),
-    height: z.number().nullable(),
+    width: z.number().nullable().default(null),
+    height: z.number().nullable().default(null),
 });
 
 export type SpotifyScrapperExternalImageResponse = z.infer<

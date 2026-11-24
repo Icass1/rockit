@@ -86,6 +86,13 @@ _CORE_MIGRATIONS: tuple[Migration, ...] = (
             "INCLUDE (media_id, time_ms_start, time_ms_end)",
         ),
     ),
+    Migration(
+        version=10,
+        name="persist_reviewed_media_genre",
+        statements=(
+            "ALTER TABLE core.media ADD COLUMN IF NOT EXISTS reviewed_genre VARCHAR(2000)",
+        ),
+    ),
 )
 
 

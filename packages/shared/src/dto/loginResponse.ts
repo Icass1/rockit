@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const LoginResponseSchema = z.object({
     userId: z.string(),
-    sessionId: z.string().nullable(),
+    sessionId: z.string().nullable().default(null),
 });
 
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;

@@ -446,7 +446,9 @@ async def test_hydration_is_batched_per_provider_and_preserves_page_order(
     found = await LibrarySearch.songs_async(
         session=session, user_id=1, query="song", offset=3, limit=3
     )
-    ratings.assert_awaited_once_with(session=session, public_ids=["song-1", "song-2", "song-3"])
+    ratings.assert_awaited_once_with(
+        session=session, public_ids=["song-1", "album", "song-2", "song-3"]
+    )
     assert found.is_ok(), found.info()
     page = found.result()
     assert [song.publicId for song in page.songs] == ["song-1", "song-2", "song-3"]

@@ -6,7 +6,10 @@ import { UserLevelResponseSchema } from "./userLevelResponse";
 
 export const LeaderboardResponseSchema = z.object({
     entries: z.array(z.lazy(() => UserLevelResponseSchema)),
-    currentUser: z.lazy(() => UserLevelResponseSchema).nullable(),
+    currentUser: z
+        .lazy(() => UserLevelResponseSchema)
+        .nullable()
+        .default(null),
 });
 
 export type LeaderboardResponse = z.infer<typeof LeaderboardResponseSchema>;

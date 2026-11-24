@@ -12,7 +12,7 @@ export const DownloadGroupResponseSchema = z.object({
     success: z.number(),
     fail: z.number(),
     items: z.array(z.lazy(() => DownloadItemResponseSchema)),
-    sourcePublicId: z.string().nullable(),
+    sourcePublicId: z.string().nullable().default(null),
 });
 
 export type DownloadGroupResponse = z.infer<typeof DownloadGroupResponseSchema>;

@@ -8,7 +8,7 @@ export const StartFromSearchRequestSchema = z.object({
     trackName: z.string(),
     addToLibrary: z.boolean().default(true),
     addToPlaylist: z.boolean().default(false),
-    playlistPublicId: z.string().nullable(),
+    playlistPublicId: z.string().nullable().default(null),
 });
 
 export type StartFromSearchRequest = z.infer<

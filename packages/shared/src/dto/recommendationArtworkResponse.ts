@@ -4,7 +4,7 @@
 import { z } from "zod";
 
 export const RecommendationArtworkResponseSchema = z.object({
-    imageUrl: z.string().nullable(),
+    imageUrl: z.string().nullable().default(null),
 });
 
 export type RecommendationArtworkResponse = z.infer<

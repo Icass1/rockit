@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const QueueItemSchema = z.object({
     mediaPublicId: z.string(),
-    listPublicId: z.string().nullable(),
+    listPublicId: z.string().nullable().default(null),
     queueMediaId: z.number(),
     randomIndex: z.number(),
     sortedIndex: z.number(),

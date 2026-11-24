@@ -6,9 +6,9 @@ import { LyricsWordSchema } from "./lyricsWord";
 
 export const PlaybackLyricsLineSchema = z.object({
     text: z.string(),
-    timestamp_s: z.number().nullable(),
+    timestamp_s: z.number().nullable().default(null),
     words: z.array(z.lazy(() => LyricsWordSchema)).default([]),
-    end_timestamp_s: z.number().nullable(),
+    end_timestamp_s: z.number().nullable().default(null),
 });
 
 export type PlaybackLyricsLine = z.infer<typeof PlaybackLyricsLineSchema>;

@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import type { BaseSearchResultsItem } from "@/dto";
-import { isSearchResult, isSong } from "@rockit/shared";
+import { isSearchResult } from "@rockit/shared";
 import { HardDriveDownload, Play, RefreshCw } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";

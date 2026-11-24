@@ -12,6 +12,7 @@ class BaseSongWithoutAlbumResponse(BaseModel):
     type: Literal["song"] = "song"
     explicit: bool | None = None
     explicitSource: str | None = None
+    genre: str | None = None
     provider: str
     publicId: str
     providerUrl: str

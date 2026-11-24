@@ -6,7 +6,7 @@ import { z } from "zod";
 export const UploadResponseSchema = z.object({
     publicId: z.string(),
     message: z.string(),
-    filename: z.string().nullable(),
+    filename: z.string().nullable().default(null),
 });
 
 export type UploadResponse = z.infer<typeof UploadResponseSchema>;

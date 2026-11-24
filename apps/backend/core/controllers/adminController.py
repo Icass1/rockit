@@ -3,6 +3,7 @@ from logging import Logger
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.framework.admin.androidBuilds import AndroidBuilds
 from core.framework.admin.build import AdminBuild
 from core.framework.admin.mediaSearch import AdminMediaSearch
 from core.framework.admin.requestLogStats import RequestLogStats
@@ -21,6 +22,7 @@ from core.requests.userRequestRequest import (
     ReviewUserRequestRequest,
 )
 from core.responses.adminSearchResponse import AdminSearchResponse
+from core.responses.androidBuildResponse import AndroidBuildHistoryResponse
 from core.responses.buildResponse import AllBuildsResponse, BuildResponse
 from core.responses.okResponse import OkResponse
 from core.responses.requestLogStatsResponse import RequestLogStatsResponse
@@ -41,6 +43,15 @@ router = APIRouter(
     tags=["Admin"],
     dependencies=[Depends(dependency=AuthMiddleware.admin_dependency)],
 )
+
+
+@router.get("/builds/android-history")
+async def get_android_build_history() -> AndroidBuildHistoryResponse:
+    result = await AndroidBuilds.history_async()
+    if result.is_not_ok():
+        logger.warning("Cannot load Android build history: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
 
 
 @router.get("/builds")

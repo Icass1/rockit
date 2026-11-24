@@ -10,7 +10,7 @@ export const DownloadProgressMessageSchema = z.object({
     publicId: z.string(),
     mediaPublicId: z.string(),
     name: z.string(),
-    subtitle: z.string().nullable(),
+    subtitle: z.string().nullable().default(null),
     status: z.enum([
         "PENDING",
         "IN_PROGRESS",
@@ -21,7 +21,7 @@ export const DownloadProgressMessageSchema = z.object({
         "RETRYING",
     ]),
     progress: z.number(),
-    imageUrl: z.string().nullable(),
+    imageUrl: z.string().nullable().default(null),
     dateStarted: z.iso.datetime(),
     dateEnded: z.iso.datetime().nullable(),
     retryCount: z.number().default(0),

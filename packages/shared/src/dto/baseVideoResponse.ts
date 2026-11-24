@@ -6,12 +6,13 @@ import { BaseArtistResponseSchema } from "./baseArtistResponse";
 
 export const BaseVideoResponseSchema = z.object({
     type: z.union([z.literal("video")]).default("video"),
+    genre: z.string().nullable().default(null),
     provider: z.string(),
     publicId: z.string(),
     providerUrl: z.string(),
     name: z.string(),
-    videoUrl: z.string().nullable(),
-    audioUrl: z.string().nullable(),
+    videoUrl: z.string().nullable().default(null),
+    audioUrl: z.string().nullable().default(null),
     imageUrl: z.string(),
     dominantColor: z.string(),
     duration_ms: z.number().nullable(),

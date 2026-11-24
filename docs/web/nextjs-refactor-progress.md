@@ -836,3 +836,34 @@ Task checklist (also maintained in the draft PR):
 Initial validation: eight backend export checks, shared filename/ID resolution and
 native streaming/sharing checks. Production build and runtime review are in progress;
 this entry is not a claim of completed browser or physical-device acceptance.
+
+## Mobile interaction and admin follow-ups — PR234 (open draft)
+
+Single-song exports now return audio rather than ZIP, preserving the server's
+attachment name and MIME type in both browser and native adapters. Mobile featured
+menus resolve virtual lists before exporting. Multiple songs retain ZIP export.
+
+Mobile lyric data survives orientation changes while the measured scroll viewport
+is recreated and recentred. Mini-player horizontal dragging moves artwork and
+credits only, commits on release, supports reversal/cancellation and leaves the
+transport controls stationary. Shared streak flames gain daily warmth and four
+silhouettes; decorative animation stops in the background or with reduced motion.
+Shared recap stories stage their title/rank/artwork/copy and respect pause; the
+final summary remains static.
+
+Admin work adds GitHub Android build history, sortable route/user/IP statistics,
+request inbox notifications for current administrators, and application of reviewed
+metadata before acceptance. Rockit, YouTube Music and Spotify implement the local
+metadata capability. Remote artist/album reassignment must resolve uniquely to an
+existing imported provider record; unsupported providers and legacy cover-art
+proposals return errors instead of being marked applied. Genre corrections are
+stored independently of provider refreshes through core migration 10. Metadata
+forms send changed fields only; mobile's nonfunctional free-text lyrics metadata
+field is removed in favour of the existing lyrics correction/source workflows.
+Nullable model defaults generated for older cached responses preserve compatibility.
+
+The draft targets develop and must remain open for the user's additional fixes.
+Validation evidence and configuration details are tracked in the PR and
+[Android build history setup](../admin/android-build-history.md). Browser emulation
+is not physical iOS/Android acceptance; the previously confirmed footer layout is
+unchanged.

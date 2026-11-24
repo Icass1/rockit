@@ -16,7 +16,7 @@ export const CreateUserRequestRequestSchema = z.object({
         "OTHER",
     ]),
     proposedValue: z.string(),
-    comment: z.string().nullable(),
+    comment: z.string().nullable().default(null),
 });
 
 export type CreateUserRequestRequest = z.infer<

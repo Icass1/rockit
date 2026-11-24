@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
+import AdminAndroidBuilds from "@/components/Admin/AdminAndroidBuilds";
 import AdminMediaSearch from "@/components/Admin/AdminMediaSearch";
 import AdminRequests from "@/components/Admin/AdminRequests";
 import AdminStats from "@/components/Admin/AdminStats";
@@ -25,16 +26,16 @@ import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface AdminClientProps {
     builds: BuildResponse[];
+    initialTab?: EAdminClientTab;
 }
 
 export default function AdminClient({
     builds: initialBuilds,
+    initialTab = EAdminClientTab.BUILDS,
 }: AdminClientProps): JSX.Element {
     const $vocabulary = useVocabulary();
     const [builds, setBuilds] = useState<BuildResponse[]>(initialBuilds);
-    const [activeTab, setActiveTab] = useState<EAdminClientTab>(
-        EAdminClientTab.BUILDS
-    );
+    const [activeTab, setActiveTab] = useState<EAdminClientTab>(initialTab);
 
     const [showForm, setShowForm] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -245,6 +246,7 @@ export default function AdminClient({
             <div className="mx-auto max-w-6xl p-6">
                 {activeTab === EAdminClientTab.BUILDS && (
                     <div>
+                        <AdminAndroidBuilds />
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h1 className="text-foreground-strong text-2xl font-bold">

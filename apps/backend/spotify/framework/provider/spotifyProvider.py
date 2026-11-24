@@ -29,6 +29,7 @@ from result import Result, ResultCode
 from spotify.access.artistCatalogAccess import ArtistCatalogAccess
 from spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
 from spotify.access.db.ormModels.track import TrackRow
+from spotify.access.metadataReviewAccess import MetadataReviewAccess
 from spotify.access.spotifyAccess import SpotifyAccess
 from spotify.access.trackAccess import TrackAccess
 from spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
@@ -65,6 +66,13 @@ SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyProvider(BaseMediaProvider):
+    async def apply_metadata_review_async(
+        self, session: AsyncSession, public_id: str, changes: dict[str, str]
+    ) -> Result[bool]:
+        return await MetadataReviewAccess.apply_async(
+            session=session, public_id=public_id, changes=changes
+        )
+
     async def get_content_rating_evidence_async(
         self, session: AsyncSession, public_ids: list[str], allow_remote: bool = False
     ) -> Result[dict[str, bool | None]]:

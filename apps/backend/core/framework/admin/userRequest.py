@@ -3,10 +3,13 @@ from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.userRequest import UserRequestRow
+from core.access.notificationAccess import NotificationAccess
 from core.access.requestAccess import RequestAccess
 from core.enums.requestStatusEnum import RequestStatusEnum
 from core.enums.requestTypeEnum import RequestTypeEnum
+from core.framework.admin.metadataReview import MetadataReview
 from core.framework.contentRating import ContentRatings
+from core.framework.friend.notifications import notify_notifications_after_commit
 from core.framework.lyricsCorrections import LyricsCorrections
 from core.framework.lyricsSources import LyricsSources
 from core.responses.userRequestResponse import (
@@ -112,6 +115,13 @@ class UserRequest:
             logger.error(f"Error creating request. {a_result.info()}")
             return Result(code=a_result.code(), message=a_result.message())
 
+        notifications = await NotificationAccess.deliver_admin_request_async(session=session)
+        if notifications.is_not_ok():
+            logger.error("Cannot notify admins about request: %s", notifications.info())
+            return Result(code=notifications.code(), message=notifications.message())
+        for admin_id in notifications.result():
+            notify_notifications_after_commit(session=session, user_id=admin_id)
+
         return await _map_request_to_response(session=session, row=a_result.result())
 
     @staticmethod
@@ -205,6 +215,38 @@ class UserRequest:
             if checked.is_not_ok():
                 logger.warning("Lyrics review rejected: %s", checked.info())
                 return Result(code=checked.code(), message=checked.message())
+        if (
+            request_row.request_type_key == RequestTypeEnum.COVER_ART.value
+            and status == RequestStatusEnum.ACCEPTED
+        ):
+            logger.warning("Cover art requests require a validated uploaded image")
+            return Result(
+                code=ResultCode.BAD_REQUEST,
+                message="Cover art requests require a validated uploaded image",
+            )
+        metadata_types = {
+            RequestTypeEnum.METADATA,
+            RequestTypeEnum.TITLE,
+            RequestTypeEnum.ARTIST,
+            RequestTypeEnum.ALBUM,
+            RequestTypeEnum.GENRE,
+        }
+        if (
+            RequestTypeEnum(request_row.request_type_key) in metadata_types
+            and status == RequestStatusEnum.ACCEPTED
+        ):
+            changes = MetadataReview.changes(
+                RequestTypeEnum(request_row.request_type_key), request_row.proposed_value
+            )
+            if changes.is_not_ok():
+                return Result(code=changes.code(), message=changes.message())
+            if changes.result():
+                applied = await MetadataReview.apply_async(
+                    session=session, media_id=request_row.media_id, changes=changes.result()
+                )
+                if applied.is_not_ok():
+                    logger.warning("Cannot apply reviewed metadata: %s", applied.info())
+                    return Result(code=applied.code(), message=applied.message())
         if (
             request_row.request_type_key == RequestTypeEnum.METADATA.value
             and status == RequestStatusEnum.ACCEPTED

@@ -84,7 +84,7 @@ export default function AdminRequests(): JSX.Element {
                 setError(
                     typeof requestsResult.detail === "string"
                         ? requestsResult.detail
-                        : "Failed to load requests"
+                        : $vocabulary.EDIT_METADATA_ERROR
                 );
             }
 
@@ -114,6 +114,8 @@ export default function AdminRequests(): JSX.Element {
             });
             if (result.isOk()) {
                 window.dispatchEvent(new Event("lyrics-updated"));
+                const refreshedStats = await Http.getRequestStats();
+                if (refreshedStats.isOk()) setStats(refreshedStats.result);
                 setError(null);
                 setRequests((prev) =>
                     prev.map((r) =>

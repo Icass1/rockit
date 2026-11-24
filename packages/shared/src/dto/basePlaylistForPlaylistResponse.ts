@@ -65,7 +65,7 @@ export const BasePlaylistForPlaylistResponseSchema: z.ZodType<BasePlaylistForPla
             name: z.string(),
             imageUrl: z.string(),
             owner: z.string(),
-            description: z.string().nullable(),
+            description: z.string().nullable().default(null),
             itemCount: z.number().default(0),
             medias: z.array(
                 z.union([

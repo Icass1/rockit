@@ -55,6 +55,7 @@ it("preserves playlist groups across repeated downloads and removes only the sel
     );
     const song = {
         type: "song" as const,
+        genre: null,
         publicId: "membership-song",
         provider: "Fixture",
         providerUrl: "",

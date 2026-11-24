@@ -58,14 +58,8 @@ function getFieldsForMedia(media: TMedia, vocabulary: Vocabulary): FieldDef[] {
                 {
                     key: "genre",
                     label: vocabulary.EDIT_METADATA_FIELD_GENRE,
-                    value: "",
+                    value: "genre" in media ? (media.genre ?? "") : "",
                     multiline: false,
-                },
-                {
-                    key: "lyrics",
-                    label: vocabulary.LYRICS,
-                    value: "",
-                    multiline: true,
                 },
             ];
         case "video":
@@ -85,7 +79,7 @@ function getFieldsForMedia(media: TMedia, vocabulary: Vocabulary): FieldDef[] {
                 {
                     key: "genre",
                     label: vocabulary.EDIT_METADATA_FIELD_GENRE,
-                    value: "",
+                    value: "genre" in media ? (media.genre ?? "") : "",
                     multiline: false,
                 },
             ];
@@ -112,7 +106,7 @@ function getFieldsForMedia(media: TMedia, vocabulary: Vocabulary): FieldDef[] {
                 {
                     key: "genre",
                     label: vocabulary.EDIT_METADATA_FIELD_GENRE,
-                    value: "",
+                    value: "genre" in media ? (media.genre ?? "") : "",
                     multiline: false,
                 },
             ];
@@ -127,7 +121,7 @@ function getFieldsForMedia(media: TMedia, vocabulary: Vocabulary): FieldDef[] {
                 {
                     key: "genre",
                     label: vocabulary.EDIT_METADATA_FIELD_GENRE,
-                    value: "",
+                    value: "genre" in media ? (media.genre ?? "") : "",
                     multiline: false,
                 },
             ];
@@ -166,19 +160,42 @@ export function EditMetadataModalContent({
         );
     };
 
+    const hasChanges =
+        rating !== null ||
+        fields.some(
+            (field) =>
+                field.value.trim() &&
+                field.value.trim() !==
+                    getFieldsForMedia(media, vocabulary)
+                        .find((initial) => initial.key === field.key)
+                        ?.value.trim()
+        );
+
     const handleSubmit = async (): Promise<void> => {
         setSubmitting(true);
         setError(null);
 
         const changes: Record<string, string> = {};
+        const initialFields = getFieldsForMedia(media, vocabulary);
         for (const f of fields) {
-            if (f.value.trim()) {
+            if (
+                f.value.trim() &&
+                f.value.trim() !==
+                    initialFields
+                        .find((initial) => initial.key === f.key)
+                        ?.value.trim()
+            ) {
                 changes[f.key] = f.value.trim();
             }
         }
 
         if (rating !== null && media.type === "song") changes.explicit = rating;
         const mediaPublicId = media.publicId;
+
+        if (Object.keys(changes).length === 0) {
+            setSubmitting(false);
+            return;
+        }
 
         const result = await Http.createRequest({
             mediaPublicId,
@@ -335,7 +352,7 @@ export function EditMetadataModalContent({
                         submitting && styles.buttonDisabled,
                     ]}
                     onPress={handleSubmit}
-                    disabled={submitting}
+                    disabled={submitting || !hasChanges}
                 >
                     {submitting ? (
                         <ActivityIndicator

@@ -10,6 +10,7 @@ class BaseAlbumWithoutSongsResponse(BaseModel):
     """Base response model for a song's album information."""
 
     type: Literal["album"] = "album"
+    genre: str | None = None
     provider: str
     publicId: str
     url: str

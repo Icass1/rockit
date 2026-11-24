@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import type { AndroidBuildHistoryResponse } from "@/dto";
-import { Download, ExternalLink, RefreshCw, Smartphone } from "lucide-react";
+import type { AndroidBuildHistoryResponse, AndroidBuildResponse } from "@/dto";
+import {
+    Check,
+    Download,
+    GitBranch,
+    Loader2,
+    RefreshCw,
+    Smartphone,
+} from "lucide-react";
+import { useAdminBuildDownload } from "@/hooks/useAdminBuildDownload";
 import { Http } from "@/lib/http";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
@@ -11,6 +19,8 @@ export default function AdminAndroidBuilds(): JSX.Element {
     const [history, setHistory] = useState<AndroidBuildHistoryResponse>();
     const [loading, setLoading] = useState(true);
     const [reload, setReload] = useState(0);
+    const [visible, setVisible] = useState(6);
+    const downloads = useAdminBuildDownload();
     useEffect(() => {
         let active = true;
         void Http.getAndroidBuildHistory()
@@ -28,26 +38,58 @@ export default function AdminAndroidBuilds(): JSX.Element {
             active = false;
         };
     }, [reload]);
-    const status = (
-        build: AndroidBuildHistoryResponse["builds"][number]
-    ): string =>
-        build.status !== "completed"
-            ? v.ADMIN_ANDROID_PENDING
-            : build.conclusion === "success"
-              ? v.ADMIN_ANDROID_SUCCESS
-              : build.conclusion === "cancelled" ||
-                  build.conclusion === "skipped"
-                ? v.ADMIN_ANDROID_CANCELLED
-                : v.ADMIN_ANDROID_FAILED;
+    const status = (build: AndroidBuildResponse): string =>
+        build.expired
+            ? v.ADMIN_ANDROID_EXPIRED
+            : build.status !== "completed"
+              ? v.ADMIN_ANDROID_PENDING
+              : build.conclusion === "success"
+                ? v.ADMIN_ANDROID_SUCCESS
+                : build.conclusion === "cancelled" ||
+                    build.conclusion === "skipped"
+                  ? v.ADMIN_ANDROID_CANCELLED
+                  : v.ADMIN_ANDROID_FAILED;
+    const latest = history?.builds.find(
+        (build) => build.artifactUrl && !build.expired
+    );
+    const downloadAction = (
+        build: AndroidBuildResponse,
+        primary = false
+    ): JSX.Element => {
+        const busy = downloads.downloading === build.runId;
+        return (
+            <button
+                type="button"
+                onClick={() => void downloads.download(build)}
+                disabled={
+                    !history?.downloadsEnabled || downloads.downloading !== null
+                }
+                className={
+                    primary
+                        ? "bg-primary text-primary-foreground hover:bg-brand-mid inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition disabled:opacity-50"
+                        : "text-foreground-strong hover:bg-muted border-border-subtle inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+                }
+            >
+                {busy ? (
+                    <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" />
+                ) : (
+                    <Download className="h-4 w-4" />
+                )}
+                {v.ADMIN_ANDROID_DOWNLOAD_APK}
+            </button>
+        );
+    };
     return (
-        <section className="mb-10 space-y-4" aria-busy={loading}>
+        <section className="space-y-6" aria-busy={loading}>
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h2 className="text-foreground-strong flex items-center gap-2 text-2xl font-bold">
-                        <Smartphone className="text-primary h-6 w-6" />
+                    <p className="text-subtle-foreground mb-1 text-xs font-medium tracking-widest uppercase">
+                        GitHub Actions
+                    </p>
+                    <h2 className="text-foreground-strong text-2xl font-semibold tracking-tight">
                         {v.ADMIN_ANDROID_HISTORY}
                     </h2>
-                    <p className="text-subtle-foreground mt-1 text-sm">
+                    <p className="text-muted-foreground mt-2 max-w-xl text-sm leading-relaxed">
                         {v.ADMIN_ANDROID_HISTORY_DESC}
                     </p>
                 </div>
@@ -59,102 +101,142 @@ export default function AdminAndroidBuilds(): JSX.Element {
                         setLoading(true);
                         setReload((value) => value + 1);
                     }}
-                    className="hover:bg-muted rounded-lg p-3 disabled:opacity-50"
+                    className="text-muted-foreground hover:bg-muted rounded-lg p-3 disabled:opacity-50"
                 >
                     <RefreshCw
                         className={`h-5 w-5 ${loading ? "animate-spin motion-reduce:animate-none" : ""}`}
                     />
                 </button>
             </div>
-            {loading ? (
-                <p className="text-subtle-foreground text-sm">
-                    {v.SEARCH_LOADING}
+            {downloads.error && (
+                <p role="alert" className="text-destructive-soft text-sm">
+                    {downloads.error}
                 </p>
+            )}
+            {!loading &&
+                history?.availability === "available" &&
+                !history.downloadsEnabled && (
+                    <p role="status" className="text-warning text-sm">
+                        {v.ADMIN_ANDROID_DOWNLOAD_CONFIG}
+                    </p>
+                )}
+            {loading && !history ? (
+                <div className="skeleton h-44 rounded-xl" />
             ) : !history || history.availability === "unavailable" ? (
-                <p role="status" className="text-subtle-foreground text-sm">
+                <p
+                    role="status"
+                    className="text-muted-foreground border-border-subtle border-y py-8 text-sm leading-relaxed"
+                >
                     {v.ADMIN_ANDROID_HISTORY_UNAVAILABLE}
                 </p>
             ) : history.builds.length === 0 ? (
-                <p className="text-subtle-foreground text-sm">
+                <p className="text-muted-foreground py-8 text-sm">
                     {v.ADMIN_ANDROID_EMPTY}
                 </p>
             ) : (
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {history.builds.map((build) => (
-                        <article
-                            key={build.runId}
-                            className="bg-secondary border-border-subtle flex flex-col gap-3 rounded-xl border p-4"
-                        >
-                            <div className="flex items-center justify-between gap-3">
-                                <a
-                                    href={build.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:text-primary text-foreground-strong font-semibold"
-                                >
-                                    #{build.number}{" "}
-                                    <ExternalLink className="inline h-3 w-3" />
-                                </a>
-                                <span
-                                    className={
-                                        build.conclusion === "success"
-                                            ? "text-success text-xs"
-                                            : "text-subtle-foreground text-xs"
-                                    }
-                                >
-                                    {status(build)}
-                                </span>
+                <>
+                    {latest && (
+                        <article className="border-primary/20 bg-primary/5 flex flex-col justify-between gap-6 rounded-xl border p-6 sm:flex-row sm:items-center">
+                            <div className="flex items-center gap-4">
+                                <div className="text-primary bg-primary/10 hidden h-16 w-16 items-center justify-center rounded-xl sm:flex">
+                                    <Smartphone className="h-8 w-8" />
+                                </div>
+                                <div>
+                                    <p className="text-success mb-1 flex items-center gap-1.5 text-xs font-medium">
+                                        <Check className="h-3.5 w-3.5" />
+                                        {v.ADMIN_ANDROID_LATEST}
+                                    </p>
+                                    <h3 className="text-foreground-strong text-2xl font-semibold">
+                                        Android{" "}
+                                        <span className="text-muted-foreground">
+                                            #{latest.number}
+                                        </span>
+                                    </h3>
+                                    <p className="text-muted-foreground mt-2 flex items-center gap-2 text-xs">
+                                        <GitBranch className="h-3.5 w-3.5" />
+                                        {latest.branch}
+                                        <span aria-hidden="true">·</span>
+                                        <code>{latest.commit}</code>
+                                    </p>
+                                </div>
                             </div>
-                            <div className="text-subtle-foreground truncate text-sm">
-                                {build.branch} · <code>{build.commit}</code>
+                            <div className="flex flex-col gap-2 sm:items-end">
+                                {downloadAction(latest, true)}
+                                {latest.expiresAt && (
+                                    <p className="text-subtle-foreground text-xs">
+                                        {v.ADMIN_ANDROID_EXPIRES.replace(
+                                            "{date}",
+                                            new Date(
+                                                latest.expiresAt
+                                            ).toLocaleDateString()
+                                        )}
+                                    </p>
+                                )}
                             </div>
-                            <time
-                                className="text-subtle-foreground text-xs"
-                                dateTime={build.createdAt}
-                            >
-                                {new Date(build.createdAt).toLocaleString()}
-                            </time>
-                            {build.artifactUrl ? (
-                                <a
-                                    href={build.artifactUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary mt-auto flex items-center gap-2 text-sm font-medium"
-                                >
-                                    <Download className="h-4 w-4" />
-                                    {v.DOWNLOAD}
-                                </a>
-                            ) : (
-                                <p className="text-subtle-foreground mt-auto text-xs">
-                                    {build.expired
-                                        ? v.ADMIN_ANDROID_EXPIRED
-                                        : v.ADMIN_ANDROID_NO_ARTIFACT}
-                                </p>
-                            )}
-                            {build.expiresAt && !build.expired && (
-                                <p className="text-subtle-foreground text-xs">
-                                    {v.ADMIN_ANDROID_EXPIRES.replace(
-                                        "{date}",
-                                        new Date(
-                                            build.expiresAt
-                                        ).toLocaleString()
-                                    )}
-                                </p>
-                            )}
                         </article>
-                    ))}
-                </div>
-            )}
-            {history && (
-                <a
-                    href={history.workflowUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary inline-flex items-center gap-2 text-sm"
-                >
-                    {v.ADMIN_ANDROID_WORKFLOW}
-                    <ExternalLink className="h-4 w-4" />
-                </a>
+                    )}
+                    <div>
+                        <div className="mb-3 flex items-center gap-2">
+                            <h3 className="text-foreground-strong text-sm font-medium">
+                                {v.ADMIN_ANDROID_RECENT}
+                            </h3>
+                            <span className="text-subtle-foreground text-xs">
+                                {history.builds.length}
+                            </span>
+                        </div>
+                        <div className="border-border-subtle divide-border-subtle divide-y border-y">
+                            {history.builds.slice(0, visible).map((build) => (
+                                <article
+                                    key={build.runId}
+                                    className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-2 py-4 sm:grid-cols-[1fr_1fr_auto]"
+                                >
+                                    <div className="min-w-0">
+                                        <p className="text-foreground-strong truncate text-sm font-medium">
+                                            #{build.number}
+                                            <span className="text-muted-foreground ml-3 text-xs font-normal">
+                                                {build.branch}
+                                            </span>
+                                        </p>
+                                        <p className="text-subtle-foreground mt-1.5 text-xs">
+                                            <code>{build.commit}</code>
+                                            <span aria-hidden="true"> · </span>
+                                            <time dateTime={build.createdAt}>
+                                                {new Date(
+                                                    build.createdAt
+                                                ).toLocaleDateString()}
+                                            </time>
+                                        </p>
+                                    </div>
+                                    <span
+                                        className={`col-start-1 row-start-2 text-xs sm:col-start-auto sm:row-start-auto ${build.conclusion === "success" && !build.expired ? "text-success" : build.conclusion === "failure" ? "text-destructive-soft" : "text-subtle-foreground"}`}
+                                    >
+                                        {status(build)}
+                                    </span>
+                                    <div className="col-start-2 row-span-2 row-start-1 sm:col-start-auto sm:row-span-1 sm:row-start-auto">
+                                        {build.artifactUrl && !build.expired ? (
+                                            downloadAction(build)
+                                        ) : (
+                                            <span className="text-subtle-foreground text-xs">
+                                                {build.expired
+                                                    ? v.ADMIN_ANDROID_EXPIRED
+                                                    : v.ADMIN_ANDROID_NO_ARTIFACT}
+                                            </span>
+                                        )}
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                        {history.builds.length > visible && (
+                            <button
+                                type="button"
+                                onClick={() => setVisible((value) => value + 6)}
+                                className="text-muted-foreground hover:text-foreground-strong mt-4 min-h-11 text-sm"
+                            >
+                                {v.ADMIN_ANDROID_SHOW_MORE}
+                            </button>
+                        )}
+                    </div>
+                </>
             )}
         </section>
     );

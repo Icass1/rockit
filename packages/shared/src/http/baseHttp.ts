@@ -194,6 +194,10 @@ export class BaseHttp {
         );
     }
 
+    static downloadAndroidBuildURL(runId: string) {
+        return `/admin/builds/android/${encodeURIComponent(runId)}/download`;
+    }
+
     static async uploadApk(payload: dto.UploadApkRequest) {
         return this.apiPostAsync(
             `/admin/builds/upload`,

@@ -23,13 +23,13 @@ class ProviderMetadataReviewAccess:
         table = tables.media.get(media.media_type_key) if media else None
         if media is None or table is None:
             logger.warning("Unsupported reviewed media type")
-            return Result(code=ResultCode.BAD_REQUEST, message="Unsupported reviewed media type")
+            return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_UNSUPPORTED")
         row = await session.scalar(
             select(table.c.id).where(table.c.id == media.id).with_for_update()
         )
         if row is None:
             logger.warning("Reviewed provider record unavailable")
-            return Result(code=ResultCode.NOT_FOUND, message="Provider record not found")
+            return Result(code=ResultCode.NOT_FOUND, message="ADMIN_METADATA_IDENTITY_REQUIRED")
         allowed = {"title"}
         if media.media_type_key in tables.artist_links:
             allowed.add("artist")
@@ -40,7 +40,7 @@ class ProviderMetadataReviewAccess:
         if set(changes) - allowed:
             logger.warning("Metadata fields do not match provider media")
             return Result(
-                code=ResultCode.BAD_REQUEST, message="Unsupported metadata fields for media"
+                code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_UNSUPPORTED"
             )
         artist_ids: list[int] = []
         if "artist" in changes:
@@ -57,12 +57,12 @@ class ProviderMetadataReviewAccess:
                     logger.warning("Reviewed artist must resolve to one existing provider artist")
                     return Result(
                         code=ResultCode.BAD_REQUEST,
-                        message="Artist is missing or ambiguous; import the correct artist first",
+                        message="ADMIN_METADATA_IDENTITY_REQUIRED",
                     )
                 artist_ids.append(int(ids[0]))
             if not artist_ids:
                 logger.warning("Reviewed artist list is empty")
-                return Result(code=ResultCode.BAD_REQUEST, message="Artist list is empty")
+                return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_INVALID")
         album_id: int | None = None
         if "album" in changes:
             ids = list(
@@ -76,7 +76,7 @@ class ProviderMetadataReviewAccess:
                 logger.warning("Reviewed album must resolve to one existing provider album")
                 return Result(
                     code=ResultCode.BAD_REQUEST,
-                    message="Album is missing or ambiguous; import the correct album first",
+                    message="ADMIN_METADATA_IDENTITY_REQUIRED",
                 )
             album_id = int(ids[0])
         values: dict[str, str | int] = {}

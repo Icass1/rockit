@@ -49,6 +49,7 @@ export {
     AndroidBuildResponseSchema,
     type AndroidBuildResponse,
 } from "./androidBuildResponse";
+export { ArtifactRunSchema, type ArtifactRun } from "./artifactRun";
 export {
     ArtistCatalogResponseSchema,
     type ArtistCatalogResponse,
@@ -339,6 +340,10 @@ export {
     GetLyricsResponseSchema,
     type GetLyricsResponse,
 } from "./getLyricsResponse";
+export { GitHubArtifactSchema, type GitHubArtifact } from "./gitHubArtifact";
+export { GitHubArtifactsSchema, type GitHubArtifacts } from "./gitHubArtifacts";
+export { GitHubRunSchema, type GitHubRun } from "./gitHubRun";
+export { GitHubRunsSchema, type GitHubRuns } from "./gitHubRuns";
 export {
     HomeStatsResponseSchema,
     type HomeStatsResponse,

@@ -209,8 +209,9 @@ export default function EditMetadataModal({
             setSubmitted(true);
         } else {
             setError(
-                typeof result.detail === "string"
-                    ? result.detail
+                typeof result.detail === "string" &&
+                    Object.hasOwn($vocabulary, result.detail)
+                    ? $vocabulary[result.detail as keyof typeof $vocabulary]
                     : $vocabulary.EDIT_METADATA_ERROR
             );
         }

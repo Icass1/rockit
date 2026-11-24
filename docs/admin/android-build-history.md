@@ -1,25 +1,31 @@
 # Android build history
 
-The admin Builds tab reads the latest 30 runs of `build-android-preview.yml` and
-matches the APK artifact uploaded by that workflow. It displays the branch,
-commit, result, creation date and artifact expiry alongside manually uploaded
-Rockit builds. Refresh requests current GitHub data; it does not start a build.
+GitHub is the primary source on the admin Builds tab. The latest available APK is
+highlighted above six recent runs, with more runs available on demand (up to 30).
+Each run shows its branch, commit, result and creation date. Expired or unsuccessful
+runs remain in the history without a download action. Manual uploads are available
+in a collapsed secondary section.
 
 Configure the backend environment:
 
 - `ANDROID_BUILDS_REPOSITORY`: GitHub `owner/repository`, defaults to `Icass1/rockit`.
-- `ANDROID_BUILDS_GITHUB_TOKEN`: optional for public repositories; private
-  repositories need a fine-grained token with **Actions: read** for that repository.
+- `ANDROID_BUILDS_GITHUB_TOKEN`: a fine-grained token with **Actions: read** for that
+  repository. Private repository history and all APK downloads require this token.
+  Public repository history can be read without it, with downloads disabled.
 
-The token is used only by the backend and is never returned to the browser. The
-history API requires the same administrator session as other admin endpoints.
-GitHub failures or rate limits produce an explicit unavailable state and retain
-the link to the workflow. They do not prevent manual build management.
+The token remains on the backend. The history and download endpoints require an
+administrator session. Downloads deliver the APK directly from Rockit, without
+opening GitHub or requiring a GitHub login in the browser. The backend verifies
+that the requested run belongs to the Android preview workflow, fetches the
+matching unexpired artifact, and copies exactly one APK out of the artifact ZIP.
+Compressed and extracted sizes are bounded at 512 MiB; archive paths are never
+used as output paths. Temporary files are cleaned after delivery or failure.
 
-Downloads open GitHub's artifact page and require the user's GitHub access to a
-private repository. The preview workflow retains artifacts for 14 days. Expired
-artifacts remain visible as history while their runs exist, without a download
-link. Manually uploaded builds retain their existing Rockit download counter.
+The preview workflow retains artifacts for 14 days. Refresh requests current
+GitHub data; it does not start a build. GitHub failures or rate limits produce an
+explicit unavailable state while manual build management remains accessible.
+Manually uploaded builds retain their existing Rockit download counter.
 
-Metadata moderation adds core database migration 10, `persist_reviewed_media_genre`.
-Run the normal backend migration/startup workflow before deploying the new clients.
+Metadata moderation also adds core database migration 10,
+`persist_reviewed_media_genre`. Run the normal backend migration/startup workflow
+before deploying the new clients.

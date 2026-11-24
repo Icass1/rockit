@@ -805,6 +805,20 @@ export async function createFixtureBackend(port = 0) {
                     { ...session(), lang, crossfade: 0 },
                     dto.UserSettingsResponseSchema
                 );
+            if (/^\/admin\/builds\/android\/\d+\/download$/.test(path)) {
+                response.writeHead(200, {
+                    "content-type": "application/vnd.android.package-archive",
+                    "content-disposition":
+                        "attachment; filename=RockIt-Android-25.apk",
+                });
+                response.end(
+                    Buffer.from(
+                        "UEsDBBQAAAAAABCfeF0KIFuJFQAAABUAAAATAAAAQW5kcm9pZE1hbmlmZXN0LnhtbFN5bnRoZXRpYyBmaXh0dXJlIEFQS1BLAQIUAxQAAAAAABCfeF0KIFuJFQAAABUAAAATAAAAAAAAAAAAAACAAQAAAABBbmRyb2lkTWFuaWZlc3QueG1sUEsFBgAAAAABAAEAQQAAAEYAAAAAAA==",
+                        "base64"
+                    )
+                );
+                return;
+            }
             if (path === "/downloader/download-zip") {
                 const selection = dto.DownloadZipRequestSchema.parse(body);
                 if (

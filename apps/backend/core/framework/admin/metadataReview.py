@@ -48,7 +48,7 @@ class MetadataReview:
         except (ValueError, TypeError, KeyError):
             logger.warning("Unsupported or invalid metadata proposal")
             return Result(
-                code=ResultCode.BAD_REQUEST, message="Unsupported or invalid metadata proposal"
+                code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_INVALID"
             )
 
     @staticmethod
@@ -84,7 +84,7 @@ class MetadataReview:
         provider = providers.find_local_media_provider(media.result().provider_id)
         if provider is None:
             logger.warning("Metadata provider unavailable")
-            return Result(code=ResultCode.BAD_REQUEST, message="Metadata provider unavailable")
+            return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_UNSUPPORTED")
         return await provider.apply_metadata_review_async(
             session=session, public_id=identity.result(), changes=changes
         )

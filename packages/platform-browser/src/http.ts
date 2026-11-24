@@ -37,11 +37,14 @@ export class Http extends BaseHttp {
 
     static async downloadBinary(
         path: string,
-        payload: DownloadZipRequest,
+        payload?: DownloadZipRequest,
         signal?: AbortSignal
     ): Promise<HttpResult<BinaryDownload>> {
-        const parsed = DownloadZipRequestSchema.safeParse(payload);
-        if (!parsed.success) {
+        const parsed =
+            payload === undefined
+                ? undefined
+                : DownloadZipRequestSchema.safeParse(payload);
+        if (parsed && !parsed.success) {
             return new HttpResult<BinaryDownload>({
                 ok: false,
                 code: 400,
@@ -52,9 +55,9 @@ export class Http extends BaseHttp {
 
         try {
             const response = await this.baseApiFetchAsync(path, {
-                method: "POST",
+                method: parsed ? "POST" : "GET",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(parsed.data),
+                body: parsed?.success ? JSON.stringify(parsed.data) : undefined,
                 signal,
             });
             if (!response.ok) {
@@ -85,7 +88,7 @@ export class Http extends BaseHttp {
                     filename: exportFilename(
                         response.headers.get("content-disposition"),
                         response.headers.get("content-type"),
-                        parsed.data.title
+                        parsed?.success ? parsed.data.title : "RockIt-Android"
                     ),
                     contentType:
                         response.headers

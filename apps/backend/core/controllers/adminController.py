@@ -1,8 +1,12 @@
+import shutil
 from logging import Logger
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.background import BackgroundTask
 
+from core.framework.admin.androidBuildDownload import AndroidBuildDownloads
 from core.framework.admin.androidBuilds import AndroidBuilds
 from core.framework.admin.build import AdminBuild
 from core.framework.admin.mediaSearch import AdminMediaSearch
@@ -43,6 +47,21 @@ router = APIRouter(
     tags=["Admin"],
     dependencies=[Depends(dependency=AuthMiddleware.admin_dependency)],
 )
+
+
+@router.get("/builds/android/{run_id}/download")
+async def download_android_build(run_id: int = Path(ge=1)) -> FileResponse:
+    result = await AndroidBuildDownloads.create_async(run_id=run_id)
+    if result.is_not_ok():
+        logger.warning("Android build download failed: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    artifact = result.result()
+    return FileResponse(
+        path=artifact.path,
+        filename=artifact.filename,
+        media_type="application/vnd.android.package-archive",
+        background=BackgroundTask(shutil.rmtree, artifact.directory, ignore_errors=True),
+    )
 
 
 @router.get("/builds/android-history")

@@ -93,3 +93,32 @@ it.each([
         }
     }
 );
+
+it("downloads an APK with an authenticated GET and keeps its attachment name", async () => {
+    const { Http } =
+        await import("../../../packages/platform-browser/src/http");
+    let options: import("@rockit/shared").IApiFetchOptions | undefined;
+    class BuildHttp extends Http {
+        protected static override async baseApiFetchAsync(
+            _path: string,
+            request?: import("@rockit/shared").IApiFetchOptions
+        ): Promise<Response> {
+            options = request;
+            return new Response("apk", {
+                headers: {
+                    "Content-Type": "application/vnd.android.package-archive",
+                    "Content-Disposition":
+                        "attachment; filename=RockIt-Android-25.apk",
+                },
+            });
+        }
+    }
+    const result = await BuildHttp.downloadBinary(
+        "/admin/builds/android/4/download"
+    );
+    expect(options?.method).toBe("GET");
+    expect(options?.body).toBeUndefined();
+    expect(result.isOk()).toBe(true);
+    if (result.isOk())
+        expect(result.result.filename).toBe("RockIt-Android-25.apk");
+});

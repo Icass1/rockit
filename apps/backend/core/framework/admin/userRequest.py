@@ -222,7 +222,7 @@ class UserRequest:
             logger.warning("Cover art requests require a validated uploaded image")
             return Result(
                 code=ResultCode.BAD_REQUEST,
-                message="Cover art requests require a validated uploaded image",
+                message="ADMIN_METADATA_COVER_UPLOAD_REQUIRED",
             )
         metadata_types = {
             RequestTypeEnum.METADATA,

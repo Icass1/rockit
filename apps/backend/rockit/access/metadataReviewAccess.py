@@ -27,7 +27,7 @@ class MetadataReviewAccess:
         )
         if media is None:
             logger.warning("Reviewed media no longer exists")
-            return Result(code=ResultCode.NOT_FOUND, message="Media not found")
+            return Result(code=ResultCode.NOT_FOUND, message="ADMIN_METADATA_IDENTITY_REQUIRED")
         model = {
             MediaTypeEnum.SONG.value: RockitSongRow,
             MediaTypeEnum.ALBUM.value: RockitAlbumRow,
@@ -35,7 +35,7 @@ class MetadataReviewAccess:
         }.get(media.media_type_key)
         if model is None:
             logger.warning("Unsupported metadata media type")
-            return Result(code=ResultCode.BAD_REQUEST, message="Unsupported metadata media type")
+            return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_UNSUPPORTED")
         row = await session.scalar(
             select(model)
             .where(model.id == media.id)
@@ -44,14 +44,12 @@ class MetadataReviewAccess:
         )
         if row is None:
             logger.warning("Reviewed provider media unavailable")
-            return Result(code=ResultCode.NOT_FOUND, message="Media not found")
+            return Result(code=ResultCode.NOT_FOUND, message="ADMIN_METADATA_IDENTITY_REQUIRED")
         if ("album" in changes and not isinstance(row, RockitSongRow)) or (
             "releaseDate" in changes and not isinstance(row, RockitAlbumRow)
         ):
             logger.warning("Metadata fields do not match the media type")
-            return Result(
-                code=ResultCode.BAD_REQUEST, message="Metadata fields do not match the media type"
-            )
+            return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_INVALID")
         # Resolve relationships first. Never rename a shared artist or album.
         artists: list[RockitArtistRow] = []
         if "artist" in changes:
@@ -82,7 +80,9 @@ class MetadataReviewAccess:
             ]
             if len(candidates) > 1:
                 logger.warning("Reviewed album name is ambiguous")
-                return Result(code=ResultCode.BAD_REQUEST, message="Album is ambiguous")
+                return Result(
+                    code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_IDENTITY_REQUIRED"
+                )
             if candidates:
                 album = candidates[0]
             else:

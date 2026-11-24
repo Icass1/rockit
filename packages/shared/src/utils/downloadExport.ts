@@ -2,6 +2,7 @@ import type { BaseHttp } from "@/http/baseHttp";
 import { isFeaturedCollectionId } from "@/http/collectionHttp";
 
 const extensions: Record<string, string> = {
+    "application/vnd.android.package-archive": ".apk",
     "application/zip": ".zip",
     "audio/mpeg": ".mp3",
     "audio/mp4": ".m4a",

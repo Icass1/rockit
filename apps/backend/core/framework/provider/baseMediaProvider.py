@@ -41,7 +41,7 @@ class BaseMediaProvider(BaseProvider):
     ) -> Result[bool]:
         logger.warning("Provider does not support reviewed metadata changes")
         return Result(
-            code=ResultCode.BAD_REQUEST, message="Provider does not support metadata changes"
+            code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_UNSUPPORTED"
         )
 
     async def get_content_rating_evidence_async(

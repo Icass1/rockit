@@ -21,4 +21,5 @@ class AndroidBuildResponse(BaseModel):
 class AndroidBuildHistoryResponse(BaseModel):
     builds: list[AndroidBuildResponse]
     workflowUrl: str
+    downloadsEnabled: bool = True
     availability: Literal["available", "unavailable"]

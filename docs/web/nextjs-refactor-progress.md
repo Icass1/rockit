@@ -851,7 +851,9 @@ silhouettes; decorative animation stops in the background or with reduced motion
 Shared recap stories stage their title/rank/artwork/copy and respect pause; the
 final summary remains static.
 
-Admin work adds GitHub Android build history, sortable route/user/IP statistics,
+Admin work prioritizes GitHub Android build history and direct authenticated APK
+downloads, with manual uploads collapsed below. Accessible tabs share a consistent
+workspace header. It also adds sortable route/user/IP statistics,
 request inbox notifications for current administrators, and application of reviewed
 metadata before acceptance. Rockit, YouTube Music and Spotify implement the local
 metadata capability. Remote artist/album reassignment must resolve uniquely to an

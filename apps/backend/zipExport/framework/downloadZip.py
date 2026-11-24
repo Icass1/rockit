@@ -1,7 +1,9 @@
 import asyncio
+import mimetypes
 import os
 import tempfile
 from dataclasses import replace
+from functools import partial
 from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,8 +18,13 @@ from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
 from result import Result, ResultCode
 from zipExport.access.downloadZipAccess import DownloadZipAccess
-from zipExport.models.exportFile import ExportFile
-from zipExport.utils.archive import ArchiveTooLarge, build_archive
+from zipExport.models.exportFile import DownloadExport, ExportFile
+from zipExport.utils.archive import (
+    ArchiveTooLarge,
+    build_archive,
+    build_single_file,
+    safe_export_name,
+)
 from zipExport.utils.audioMetadata import read_cover_bytes
 
 logger: Logger = getLogger(name=__name__)
@@ -92,8 +99,8 @@ class DownloadZip:
         user_id: int,
         public_ids: list[str],
         title: str,
-    ) -> Result[str]:
-        """Expand containers, package downloaded files and return a temporary ZIP path."""
+    ) -> Result[DownloadExport]:
+        """Export one song directly; package larger selections in a temporary ZIP."""
 
         a_result_containers: Result[
             list[str]
@@ -140,18 +147,20 @@ class DownloadZip:
         files = await _with_cover_data_async(session=session, files=files)
 
         os.makedirs(TEMP_PATH, exist_ok=True)
-        fd, zip_path = tempfile.mkstemp(prefix="rockit-", suffix=".zip", dir=TEMP_PATH)
+        audio_type = mimetypes.guess_type(files[0].key)[0] if len(files) == 1 else None
+        single_audio = bool(audio_type and audio_type.startswith("audio/"))
+        extension = os.path.splitext(files[0].key)[1] if single_audio else ".zip"
+        filename = f"{safe_export_name(files[0].name if single_audio else title)}{extension}"
+        fd, zip_path = tempfile.mkstemp(prefix="rockit-", suffix=extension, dir=TEMP_PATH)
         os.close(fd)
 
         try:
-            worker = asyncio.create_task(
-                asyncio.to_thread(
-                    build_archive,
-                    zip_path=zip_path,
-                    files=files,
-                    max_bytes=MAX_ZIP_BYTES,
-                )
+            build = (
+                partial(build_single_file, path=zip_path, item=files[0], max_bytes=MAX_ZIP_BYTES)
+                if single_audio
+                else partial(build_archive, zip_path=zip_path, files=files, max_bytes=MAX_ZIP_BYTES)
             )
+            worker = asyncio.create_task(asyncio.to_thread(build))
             try:
                 written: int = await asyncio.shield(worker)
             except asyncio.CancelledError:
@@ -165,12 +174,16 @@ class DownloadZip:
 
                 worker.add_done_callback(discard)
                 raise
+        except FileNotFoundError:
+            logger.warning("Export source is no longer available")
+            _remove_quietly(path=zip_path)
+            return Result(code=ResultCode.NOT_FOUND, message="No downloaded files found")
         except ArchiveTooLarge:
             logger.warning(f"ZIP '{title}' exceeds the limit after embedding metadata")
             _remove_quietly(path=zip_path)
             return Result(
                 code=ResultCode.BAD_REQUEST,
-                message="Selection is too large to download as a ZIP. Select fewer items.",
+                message="Selection is too large to download. Select fewer items.",
             )
         except Exception as exception:
             logger.error(f"Error writing ZIP file. {exception}", exc_info=True)
@@ -195,4 +208,12 @@ class DownloadZip:
             raise
         if notification.is_not_ok():
             logger.error(f"ZIP notification failed: {notification.info()}")
-        return Result(code=ResultCode.OK, message="OK", result=zip_path)
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=DownloadExport(
+                path=zip_path,
+                filename=filename,
+                media_type=audio_type if single_audio and audio_type else "application/zip",
+            ),
+        )

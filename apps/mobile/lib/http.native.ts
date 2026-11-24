@@ -29,8 +29,9 @@ export class Http extends BaseHttp {
         else if (!headers.has("Content-Type"))
             headers.set("Content-Type", "application/json");
         if (cookie) headers.set("Cookie", `session_id=${cookie}`);
-        const transport =
-            headers.get("Accept") === "application/zip" ? expoFetch : fetch;
+        const transport = headers.get("Accept")?.includes("application/zip")
+            ? expoFetch
+            : fetch;
         const response = await transport(`${BACKEND_URL}${path}`, {
             ...options,
             headers,
@@ -48,7 +49,7 @@ export class Http extends BaseHttp {
         const stamp = sessionGeneration();
         const response = await this.baseApiFetchAsync(this.downloadZipURL(), {
             method: "POST",
-            headers: { Accept: "application/zip" },
+            headers: { Accept: "application/zip, audio/*" },
             signal,
             body: JSON.stringify(DownloadZipRequestSchema.parse(payload)),
         });

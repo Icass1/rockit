@@ -809,3 +809,30 @@ production build, web typecheck/lint, frontend fixture types, 20 focused SSR/sha
 menu tests and all seven public-sharing Chromium flows. The desktop, phone and
 short-landscape flows activate the footer menu with Enter and verify copied song
 and video URLs contain the current media's `?media=` identifier.
+
+### Open follow-up batch: downloads, mobile motion and administration
+
+Keep this batch in a draft PR against develop; do not merge or close it while the
+user is adding tasks. Initial export fixes return an actual tagged audio attachment
+when only one audio file is resolved, retaining ZIPs for larger selections. Both
+browser clients and native sharing honor the response filename and MIME type.
+Expose Content-Disposition through CORS, resolve virtual featured list IDs before
+export, and offer the export action in mobile collection menus. Retain cancellation,
+size bounds, session checks, source bytes and temporary-file cleanup. Generalize
+existing ready-notification copy through the EN/ES/FR workbook.
+
+Task checklist (also maintained in the draft PR):
+
+- [ ] Verify direct single-song exports and mobile featured-list ZIPs in production previews.
+- [ ] Preserve visible mobile lyrics across portrait/landscape changes.
+- [ ] Improve the admin page and track Android builds generated through GitHub.
+- [ ] Deliver administrative notifications for new requests.
+- [ ] Complete the supported metadata-request review/application flows.
+- [ ] Make admin statistics table columns sortable, including request counts.
+- [ ] Add reversible mini-player dragging; change tracks only on release.
+- [ ] Animate streak flames with daily shape/color progression and reduced-motion support.
+- [ ] Stage annual-recap reveals while keeping the final summary static.
+
+Initial validation: eight backend export checks, shared filename/ID resolution and
+native streaming/sharing checks. Production build and runtime review are in progress;
+this entry is not a claim of completed browser or physical-device acceptance.

@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import type { BaseSearchResultsItem } from "@/dto";
-import { isSearchResult } from "@rockit/shared";
+import { isSearchResult, isSong } from "@rockit/shared";
 import { HardDriveDownload, Play, RefreshCw } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -135,14 +135,19 @@ export function DownloadZipAction({
     // disabled until it finishes instead of queueing another archive.
     const downloadZip = async (): Promise<void> => {
         setLoading(true);
-        await downloadMediaAsZip([media], media.name);
-        setLoading(false);
+        try {
+            await downloadMediaAsZip([media], media.name);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <ContextMenuOption onClick={downloadZip} disable={loading}>
             <HardDriveDownload className="h-5 w-5" />
-            {vocabulary.DOWNLOAD_ZIP}
+            {media.type === "song"
+                ? vocabulary.DOWNLOAD
+                : vocabulary.DOWNLOAD_ZIP}
         </ContextMenuOption>
     );
 }

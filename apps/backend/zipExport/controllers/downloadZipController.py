@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.post("/download-zip")
 async def download_zip(request: Request, payload: DownloadZipRequest) -> FileResponse:
-    """Create and return a ZIP containing downloaded requested media."""
+    """Return a single audio attachment or a ZIP for a larger selection."""
     session = DBSessionMiddleware.get_session(request=request)
     a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
@@ -41,10 +41,10 @@ async def download_zip(request: Request, payload: DownloadZipRequest) -> FileRes
         logger.error(f"Error creating ZIP. {result.info()}")
         raise HTTPException(status_code=result.get_http_code(), detail=result.message())
 
-    zip_path = result.result()
+    artifact = result.result()
     return FileResponse(
-        path=zip_path,
-        media_type="application/zip",
-        filename=f"{payload.title}.zip",
-        background=BackgroundTask(os.unlink, zip_path),
+        path=artifact.path,
+        media_type=artifact.media_type,
+        filename=artifact.filename,
+        background=BackgroundTask(os.unlink, artifact.path),
     )

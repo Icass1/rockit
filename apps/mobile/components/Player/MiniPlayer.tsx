@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { miniPlayerGestureStyle } from "@/platform/miniPlayerGestureStyle";
 import { useStore } from "@nanostores/react";
 import { getMediaArtistsString } from "@rockit/shared";
 import { designTokens, withAlpha } from "@rockit/theme";
@@ -125,12 +126,14 @@ export default function MiniPlayer() {
                     testID="mini-player-swipe"
                     onLayout={swipe.onLayout}
                     {...swipe.panHandlers}
-                    style={{
-                        flex: 1,
-                        minWidth: 0,
-                        touchAction: "pan-y",
-                        transform: [{ translateX: swipe.x }],
-                    }}
+                    style={[
+                        miniPlayerGestureStyle,
+                        {
+                            flex: 1,
+                            minWidth: 0,
+                            transform: [{ translateX: swipe.x }],
+                        },
+                    ]}
                 >
                     <Pressable
                         style={styles.identity}

@@ -1,8 +1,8 @@
 """ZIP exports preserve MPEG bytes and source files while adding portable tags."""
 
 import asyncio
+import base64
 import io
-import subprocess
 import threading
 import zipfile
 from dataclasses import replace
@@ -32,22 +32,10 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def mp3(tmp_path: Path) -> Path:
-    """Generate real MPEG audio so ffmpeg can also validate the exported payload."""
+    """Decode the synthetic 440 Hz fixture without requiring an encoder on CI."""
     path = tmp_path / "source.mp3"
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-v",
-            "error",
-            "-f",
-            "lavfi",
-            "-i",
-            "sine=frequency=440:duration=0.1",
-            str(path),
-        ],
-        check=True,
-        capture_output=True,
-    )
+    encoded = Path(__file__).parents[1] / "fixtures" / "export-audio.mp3.b64"
+    path.write_bytes(base64.decodebytes(encoded.read_bytes()))
     return path
 
 

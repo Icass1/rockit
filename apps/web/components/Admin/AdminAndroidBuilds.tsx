@@ -84,7 +84,7 @@ export default function AdminAndroidBuilds(): JSX.Element {
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <p className="text-subtle-foreground mb-1 text-xs font-medium tracking-widest uppercase">
-                        GitHub Actions
+                        {v.ADMIN_ANDROID_SOURCE}
                     </p>
                     <h2 className="text-foreground-strong text-2xl font-semibold tracking-tight">
                         {v.ADMIN_ANDROID_HISTORY}
@@ -147,7 +147,7 @@ export default function AdminAndroidBuilds(): JSX.Element {
                                         {v.ADMIN_ANDROID_LATEST}
                                     </p>
                                     <h3 className="text-foreground-strong text-2xl font-semibold">
-                                        Android{" "}
+                                        {v.ADMIN_ANDROID_RELEASE_NAME}{" "}
                                         <span className="text-muted-foreground">
                                             #{latest.number}
                                         </span>

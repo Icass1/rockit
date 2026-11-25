@@ -39,9 +39,7 @@ class ProviderMetadataReviewAccess:
             allowed.add("releaseDate")
         if set(changes) - allowed:
             logger.warning("Metadata fields do not match provider media")
-            return Result(
-                code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_UNSUPPORTED"
-            )
+            return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_UNSUPPORTED")
         artist_ids: list[int] = []
         if "artist" in changes:
             names = list(

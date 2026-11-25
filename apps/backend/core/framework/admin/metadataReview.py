@@ -47,9 +47,7 @@ class MetadataReview:
             return Result[dict[str, str]].ok(changes)
         except (ValueError, TypeError, KeyError):
             logger.warning("Unsupported or invalid metadata proposal")
-            return Result(
-                code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_INVALID"
-            )
+            return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_INVALID")
 
     @staticmethod
     async def apply_async(

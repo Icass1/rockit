@@ -74,24 +74,28 @@ function TimeField({
     label,
     value,
     optional,
+    signed,
     disabled,
     onChange,
 }: {
     label: string;
     value: number | null;
     optional?: boolean;
+    signed?: boolean;
     disabled: boolean;
     onChange: (time: number | null) => void;
 }) {
     const styles = useThemedStyles(createStyles);
-    const [draft, setDraft] = useState(value === null ? "" : String(value));
+    const [draft, setDraft] = useState(
+        value === null || !Number.isFinite(value) ? "" : String(value)
+    );
     return (
         <View style={styles.field}>
             <Text style={styles.label}>{label}</Text>
             <TextInput
                 accessibilityLabel={label}
                 keyboardType="numbers-and-punctuation"
-                inputMode="decimal"
+                inputMode={signed ? undefined : "decimal"}
                 style={styles.input}
                 value={draft}
                 editable={!disabled}
@@ -153,6 +157,7 @@ function Editor({
         <View style={styles.content}>
             <TimeField
                 label={v.LYRICS_OFFSET_LABEL}
+                signed
                 value={offset}
                 disabled={locked}
                 onChange={(value) => setOffset(value ?? NaN)}
@@ -196,6 +201,8 @@ function Editor({
                                     style={styles.input}
                                     editable={!locked}
                                     value={word.text}
+                                    autoCorrect={false}
+                                    autoCapitalize="none"
                                     onChangeText={(text) =>
                                         editWord(index, i, { text })
                                     }

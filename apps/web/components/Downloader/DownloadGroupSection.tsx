@@ -67,9 +67,9 @@ function DownloadGroupSection({
     ];
     const allCancelled =
         group.active === 0 && group.success === 0 && group.fail === 0;
-    const cancelGroup = () =>
+    const cancelGroup = (): Promise<void> =>
         rockIt.downloaderManager.runGroupActionAsync(group, "cancel");
-    const deleteGroup = () => {
+    const deleteGroup = (): void => {
         if (allCancelled) {
             void rockIt.downloaderManager.runGroupActionAsync(group, "delete");
         } else {

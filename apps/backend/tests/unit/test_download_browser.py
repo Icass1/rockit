@@ -230,7 +230,12 @@ async def test_cancel_and_delete_a_stale_group_preserves_audio(
 ) -> None:
     session = AsyncMock(spec=AsyncSession)
     group_action.row.status_key = status
-    stop_workers = Mock(side_effect=lambda **_: session.commit.assert_awaited_once())
+
+    def assert_committed(*, download_ids: set[int]) -> None:
+        assert download_ids == {12}
+        session.commit.assert_awaited_once()
+
+    stop_workers = Mock(side_effect=assert_committed)
     monkeypatch.setattr(downloads_manager, "cancel_downloads", stop_workers)
     update_group = AsyncMock(return_value=ok(group_action.group))
     monkeypatch.setattr(DownloadAccess, "update_download_group_completion", update_group)

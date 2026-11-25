@@ -13,6 +13,7 @@ export default function StatsButton() {
 
     return (
         <Pressable
+            accessibilityRole="button"
             style={({ pressed }) => [
                 styles.button,
                 pressed && styles.buttonPressed,

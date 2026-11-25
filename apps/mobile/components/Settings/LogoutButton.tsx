@@ -30,6 +30,7 @@ export default function LogoutButton() {
 
     return (
         <Pressable
+            accessibilityRole="button"
             style={({ pressed }) => [
                 styles.button,
                 pressed && styles.buttonPressed,

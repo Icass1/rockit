@@ -9,6 +9,7 @@ import { Image } from "expo-image";
 import { Link } from "expo-router";
 import {
     ActivityIndicator,
+    Platform,
     Pressable,
     StyleSheet,
     Text,
@@ -23,6 +24,10 @@ import LogoutButton from "@/components/Settings/LogoutButton";
 import StatsButton from "@/components/Settings/StatsButton";
 
 const adminHref = new URL("/admin", SITE_URL).href as `${string}:${string}`;
+const adminLinkAttrs = {
+    target: "_blank",
+    rel: "noopener noreferrer",
+} as const;
 
 export default function ProfileSection() {
     const { vocabulary } = useVocabulary();
@@ -126,13 +131,12 @@ export default function ProfileSection() {
                     <LogoutButton />
                 </View>
                 {admin && (
-                    <Link
-                        href={adminHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        asChild
-                    >
+                    <Link href={adminHref} asChild>
                         <Pressable
+                            {...Platform.select({
+                                web: { hrefAttrs: adminLinkAttrs },
+                                default: {},
+                            })}
                             accessibilityRole="link"
                             style={({ pressed }) => [
                                 styles.adminButton,

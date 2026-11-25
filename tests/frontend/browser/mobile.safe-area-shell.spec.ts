@@ -94,8 +94,8 @@ test("settings shows the centered administration shortcut only for administrator
     request,
 }, info) => {
     const settings = page.getByRole("button", { name: "Settings" });
-    const stats = page.getByText("Stats", { exact: true });
-    const logout = page.getByText("Log Out", { exact: true });
+    const stats = page.getByRole("button", { name: "Stats", exact: true });
+    const logout = page.getByRole("button", { name: "Log Out", exact: true });
     const admin = page.getByRole("link", { name: "Administration" });
     await page.goto(app + "/settings");
     await expect(settings).toBeVisible();
@@ -128,4 +128,14 @@ test("settings shows the centered administration shortcut only for administrator
     await page.screenshot({
         path: info.outputPath("mobile-settings-admin.png"),
     });
+    const destination = (await admin.getAttribute("href"))!;
+    await page
+        .context()
+        .route(destination, (route) =>
+            route.fulfill({ body: "Admin fixture" })
+        );
+    const popup = page.waitForEvent("popup");
+    await admin.click();
+    await expect(await popup).toHaveURL(destination);
+    await expect(page).toHaveURL(app + "/settings");
 });

@@ -78,6 +78,31 @@ class NotificationAccess:
         return Result[int].ok(len(user_ids))
 
     @staticmethod
+    @safe_async
+    async def deliver_admin_request_async(session: AsyncSession) -> Result[list[int]]:
+        """Target current admins independently of personal subscriptions."""
+        user_ids = list(
+            await session.scalars(
+                select(UserRow.id).where(UserRow.admin.is_(True) | UserRow.super_admin.is_(True))
+            )
+        )
+        session.add_all(
+            [
+                NotificationRow(
+                    user_id=user_id,
+                    public_id=str(uuid.uuid4()),
+                    event_key="ADMIN_REQUEST_CREATED",
+                    vocabulary_key="NOTIFICATION_ADMIN_REQUEST_CREATED",
+                    replacements=[],
+                    destination=NotificationDestination(path="/admin?tab=requests").model_dump(),
+                )
+                for user_id in user_ids
+            ]
+        )
+        await session.flush()
+        return Result[list[int]].ok(user_ids)
+
+    @staticmethod
     async def list_async(
         session: AsyncSession, user_id: int, limit: int, offset: int, unread_only: bool = True
     ) -> Result[tuple[list[NotificationRow], int, int]]:

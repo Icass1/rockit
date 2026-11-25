@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import type { DownloadProgressMessage } from "@rockit/shared";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type {
+    DownloadItemResponse,
+    DownloadProgressMessage,
+} from "@rockit/shared";
 import { EWebSocketMessage } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme } from "@rockit/ui";
@@ -14,9 +17,8 @@ export interface DownloadInfo {
     title: string;
     subtitle: string | null;
     imageUrl: string | null;
-    status: string;
+    status: DownloadItemResponse["status"];
     completed: number;
-    message: string;
     dateAdded: string;
 }
 
@@ -32,10 +34,14 @@ export interface DownloadGroup {
 export function useDownloads() {
     const theme = useDesignTheme();
     const [downloads, setDownloads] = useState<DownloadInfo[]>([]);
+    const [pending, setPending] = useState<ReadonlySet<string>>(new Set());
+    const actionsInFlight = useRef(new Set<string>());
+    const removed = useRef(new Set<string>());
+    const cancelledDownloads = useRef(new Set<string>());
     const { vocabulary } = useVocabulary();
 
     const fetchDownloads = useCallback(async () => {
-        const response = await Http.getDownloads();
+        const response = await Http.getDownloads(true);
         if (!response.isOk()) {
             toasterManager.notifyError(vocabulary.ERROR_GETTING_DOWNLOADS);
             return;
@@ -45,18 +51,16 @@ export function useDownloads() {
         const flatDownloads: DownloadInfo[] = [];
         for (const group of downloadGroups) {
             for (const item of group.items || []) {
-                const isDone =
-                    item.progress >= 100 || item.status === "COMPLETED";
-                const isError = item.status === "FAILED";
+                if (removed.current.has(item.publicId)) continue;
+                const cancelled = cancelledDownloads.current.has(item.publicId);
                 flatDownloads.push({
                     publicId: item.publicId,
                     groupId: group.publicId,
                     title: item.name,
                     subtitle: item.subtitle ?? null,
                     imageUrl: item.imageUrl ?? null,
-                    status: item.status,
-                    completed: item.progress,
-                    message: isDone ? "Done" : isError ? "Error" : item.status,
+                    status: cancelled ? "CANCELLED" : item.status,
+                    completed: cancelled ? 0 : item.progress,
                     dateAdded: item.dateStarted ?? "",
                 });
             }
@@ -68,15 +72,14 @@ export function useDownloads() {
         let cancelled = false;
 
         const handleDownloadProgress = (data: DownloadProgressMessage) => {
-            if (cancelled) return;
+            if (
+                cancelled ||
+                removed.current.has(data.publicId) ||
+                cancelledDownloads.current.has(data.publicId)
+            )
+                return;
             setDownloads((prev) => {
                 const existing = prev.find((d) => d.publicId === data.publicId);
-                const message =
-                    data.progress >= 100
-                        ? "Done"
-                        : data.status === "FAILED"
-                          ? "Error"
-                          : data.status;
                 const completed = data.progress >= 100 ? 100 : data.progress;
 
                 if (existing) {
@@ -88,7 +91,6 @@ export function useDownloads() {
                                   subtitle: data.subtitle || d.subtitle,
                                   status: data.status,
                                   completed,
-                                  message,
                               }
                             : d
                     );
@@ -104,7 +106,6 @@ export function useDownloads() {
                         imageUrl: null,
                         status: data.status,
                         completed,
-                        message,
                         dateAdded: "",
                     },
                 ];
@@ -160,19 +161,19 @@ export function useDownloads() {
     const clearCompleted = async () => {
         const completedGroups = new Set(
             downloads
-                .filter((d) => d.completed === 100 && d.groupId)
+                .filter((d) => d.status === "COMPLETED" && d.groupId)
                 .map((d) => d.groupId)
         );
         for (const groupId of completedGroups) {
             await Http.markDownloadSeen(groupId);
         }
-        setDownloads((prev) => prev.filter((d) => d.completed !== 100));
+        setDownloads((prev) => prev.filter((d) => d.status !== "COMPLETED"));
     };
 
     const clearFailed = async () => {
         const failedGroups = new Set(
             downloads
-                .filter((d) => d.message === "Error" && d.groupId)
+                .filter((d) => d.status === "FAILED" && d.groupId)
                 .map((d) => d.groupId)
         );
         for (const groupId of failedGroups) {
@@ -182,17 +183,54 @@ export function useDownloads() {
                 // Ignore API errors, filter locally anyway
             }
         }
-        setDownloads((prev) => prev.filter((d) => d.message !== "Error"));
+        setDownloads((prev) => prev.filter((d) => d.status !== "FAILED"));
+    };
+
+    const runAction = async (publicId: string, action: "cancel" | "delete") => {
+        if (actionsInFlight.current.has(publicId)) return;
+        actionsInFlight.current.add(publicId);
+        setPending(new Set(actionsInFlight.current));
+        try {
+            const response = await (action === "cancel"
+                ? Http.cancelDownload(publicId)
+                : Http.deleteDownload(publicId));
+            if (!response.isOk()) {
+                toasterManager.notifyError(vocabulary.ERROR);
+                return;
+            }
+            if (action === "cancel") {
+                cancelledDownloads.current.add(publicId);
+                setDownloads((prev) =>
+                    prev.map((item) =>
+                        item.publicId === publicId
+                            ? { ...item, status: "CANCELLED", completed: 0 }
+                            : item
+                    )
+                );
+            } else {
+                cancelledDownloads.current.delete(publicId);
+                removed.current.add(publicId);
+                setDownloads((prev) =>
+                    prev.filter((item) => item.publicId !== publicId)
+                );
+            }
+        } catch {
+            toasterManager.notifyError(vocabulary.ERROR);
+        } finally {
+            actionsInFlight.current.delete(publicId);
+            setPending(new Set(actionsInFlight.current));
+        }
     };
 
     const active = downloads.filter(
         (d) =>
-            d.completed < 100 && d.message !== "Error" && d.message !== "Done"
+            d.status !== "COMPLETED" &&
+            d.status !== "FAILED" &&
+            d.status !== "CANCELLED"
     );
-    const completed = downloads.filter(
-        (d) => d.completed === 100 || d.message === "Done"
-    );
-    const failed = downloads.filter((d) => d.message === "Error");
+    const completed = downloads.filter((d) => d.status === "COMPLETED");
+    const failed = downloads.filter((d) => d.status === "FAILED");
+    const cancelled = downloads.filter((d) => d.status === "CANCELLED");
 
     const groups: DownloadGroup[] = [
         {
@@ -219,6 +257,14 @@ export function useDownloads() {
             color: theme.colors.destructive,
             badgeColor: withAlpha(theme.colors.destructive, 0.15),
         },
+        {
+            id: "cancelled",
+            label: vocabulary.DOWNLOAD_CANCELLED,
+            items: cancelled,
+            isOpen: true,
+            color: theme.legacy.gray400,
+            badgeColor: withAlpha(theme.legacy.gray400, 0.15),
+        },
     ];
 
     return {
@@ -231,5 +277,7 @@ export function useDownloads() {
         startDownload,
         clearCompleted,
         clearFailed,
+        pending,
+        runAction,
     };
 }

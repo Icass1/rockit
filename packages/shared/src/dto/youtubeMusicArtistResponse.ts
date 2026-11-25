@@ -7,6 +7,7 @@ import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
 
 export const YoutubeMusicArtistResponseSchema = z.object({
     type: z.union([z.literal("artist")]).default("artist"),
+    genre: z.string().nullable().default(null),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

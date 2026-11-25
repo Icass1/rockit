@@ -6,7 +6,7 @@ import { z } from "zod";
 export const UserSearchResultSchema = z.object({
     publicId: z.string(),
     username: z.string(),
-    imageUrl: z.string().nullable(),
+    imageUrl: z.string().nullable().default(null),
     isFriend: z.boolean().default(false),
     requestSent: z.boolean().default(false),
 });

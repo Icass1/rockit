@@ -7,8 +7,8 @@ export const FriendRequestResponseSchema = z.object({
     publicId: z.string(),
     fromUserPublicId: z.string(),
     fromUsername: z.string(),
-    fromUserImageUrl: z.string().nullable(),
-    message: z.string().nullable(),
+    fromUserImageUrl: z.string().nullable().default(null),
+    message: z.string().nullable().default(null),
     status: z.union([
         z.literal("pending"),
         z.literal("accepted"),

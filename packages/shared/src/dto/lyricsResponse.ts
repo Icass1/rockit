@@ -12,9 +12,9 @@ export const LyricsResponseSchema = z.object({
     duration: z.number().default(0),
     instrumental: z.boolean().default(false),
     hasWordSync: z.boolean().default(false),
-    plainLyrics: z.string().nullable(),
-    syncedLyrics: z.string().nullable(),
-    lyricsfile: z.string().nullable(),
+    plainLyrics: z.string().nullable().default(null),
+    syncedLyrics: z.string().nullable().default(null),
+    lyricsfile: z.string().nullable().default(null),
 });
 
 export type LyricsResponse = z.infer<typeof LyricsResponseSchema>;

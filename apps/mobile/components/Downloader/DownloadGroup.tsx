@@ -9,10 +9,17 @@ import DownloadItem from "@/components/Downloader/DownloadItem";
 
 interface DownloadGroupProps {
     group: DownloadGroupType;
+    pending: ReadonlySet<string>;
+    onAction: (publicId: string, action: "cancel" | "delete") => void;
     onClear?: () => void;
 }
 
-export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
+export default function DownloadGroup({
+    group,
+    pending,
+    onAction,
+    onClear,
+}: DownloadGroupProps) {
     const { vocabulary } = useVocabulary();
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
@@ -86,6 +93,8 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
                         <DownloadItem
                             key={`${item.publicId}-${index}`}
                             item={item}
+                            pending={pending.has(item.publicId)}
+                            onAction={onAction}
                         />
                     ))}
                 </View>

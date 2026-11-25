@@ -2,6 +2,11 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+def apkVersionCode = System.getenv("EXPO_PUBLIC_ANDROID_APK_VERSION_CODE")
+tasks.matching { it.name == "createBundleReleaseJsAndAssets" }.configureEach {
+    inputs.property("rockitAndroidApkVersionCode", apkVersionCode ?: "")
+}
+
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
@@ -92,7 +97,7 @@ android {
         applicationId 'com.rockit.mobile'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode(apkVersionCode?.toInteger() ?: 1)
         versionName "1.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""

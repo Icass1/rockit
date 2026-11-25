@@ -24,3 +24,12 @@ class ExportFile:
     name: str
     key: str
     tags: AudioTags | None = None
+
+
+@dataclass(frozen=True)
+class DownloadExport:
+    """Temporary artifact and its actual attachment metadata."""
+
+    path: str
+    filename: str
+    media_type: str

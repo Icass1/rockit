@@ -21,7 +21,7 @@ export const BaseSearchResultsItemSchema = z.object({
     provider: z.string(),
     downloaded: z.boolean().nullable(),
     url: z.string().nullable(),
-    publicId: z.string().nullable(),
+    publicId: z.string().nullable().default(null),
     lyricsScore: z.number().default(0),
 });
 

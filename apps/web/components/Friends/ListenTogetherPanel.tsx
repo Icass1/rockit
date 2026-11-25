@@ -41,9 +41,9 @@ export default function ListenTogetherPanel({
                     )}
                 </div>
                 <div className={styles.sessionCopy}>
-                    <h2 className={styles.sessionTitle}>
+                    <h3 className={styles.sessionTitle}>
                         {isHost ? active.guestUsername : active.hostUsername}
-                    </h2>
+                    </h3>
                     <p className={styles.sessionStatus}>
                         {active.status === "invited"
                             ? v.FRIENDS_PENDING
@@ -117,7 +117,10 @@ export default function ListenTogetherPanel({
                     </button>
                 </div>
             ))}
-            {sessions.length === 0 && (
+            {sessions.length === 0 && compact && (
+                <p className={styles.quietMessage}>{v.INVITE_FRIEND_LISTEN}</p>
+            )}
+            {sessions.length === 0 && !compact && (
                 <div className={styles.empty}>
                     <div className={styles.emptyIcon}>
                         <Headphones size={30} strokeWidth={1.5} aria-hidden />

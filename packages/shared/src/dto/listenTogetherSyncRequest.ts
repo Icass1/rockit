@@ -5,10 +5,10 @@ import { z } from "zod";
 
 export const ListenTogetherSyncRequestSchema = z.object({
     sessionPublicId: z.string(),
-    mediaPublicId: z.string().nullable(),
-    currentTimeMs: z.number().nullable(),
-    isPlaying: z.boolean().nullable(),
-    queue: z.array(z.string()).nullable(),
+    mediaPublicId: z.string().nullable().default(null),
+    currentTimeMs: z.number().nullable().default(null),
+    isPlaying: z.boolean().nullable().default(null),
+    queue: z.array(z.string()).nullable().default(null),
 });
 
 export type ListenTogetherSyncRequest = z.infer<

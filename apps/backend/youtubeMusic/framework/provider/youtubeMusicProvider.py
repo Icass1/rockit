@@ -28,6 +28,7 @@ from logger import getLogger
 from result import Result, ResultCode
 from youtubeMusic.access.artistCatalogAccess import ArtistCatalogAccess
 from youtubeMusic.access.db.ormModels.track import TrackRow
+from youtubeMusic.access.metadataReviewAccess import MetadataReviewAccess
 from youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
 from youtubeMusic.framework.youtubeMusic import YoutubeMusic, youtube_music
 
@@ -73,6 +74,13 @@ YOUTUBE_MUSIC_URL_PATTERNS: list[UrlPattern] = [
 
 
 class YoutubeMusicProvider(BaseMediaProvider):
+    async def apply_metadata_review_async(
+        self, session: AsyncSession, public_id: str, changes: dict[str, str]
+    ) -> Result[bool]:
+        return await MetadataReviewAccess.apply_async(
+            session=session, public_id=public_id, changes=changes
+        )
+
     async def get_content_rating_evidence_async(
         self, session: AsyncSession, public_ids: list[str], allow_remote: bool = False
     ) -> Result[dict[str, bool | None]]:

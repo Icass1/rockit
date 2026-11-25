@@ -147,14 +147,9 @@ export default function FriendActivityFeed({
     const visibleActivities = expanded ? activities : activities.slice(0, 4);
     if (activities.length === 0)
         return (
-            <div className={styles.activityEmpty}>
-                <Music2 size={40} strokeWidth={1.25} aria-hidden="true" />
-                <h2>{v.NOTHING_PLAYING_YET}</h2>
-                <p>{v.FRIENDS_ACTIVITY_WILL_APPEAR}</p>
-                <a className={styles.circleLink} href="#social-circle">
-                    {v.SOCIAL_MANAGE}
-                </a>
-            </div>
+            <p className={styles.quietMessage}>
+                {v.FRIENDS_ACTIVITY_WILL_APPEAR}
+            </p>
         );
     return (
         <div>

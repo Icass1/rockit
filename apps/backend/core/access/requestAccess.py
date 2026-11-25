@@ -39,7 +39,7 @@ class RequestAccess:
             status_key=1,
         )
         session.add(row)
-        await session.commit()
+        await session.flush()
         await session.refresh(row)
         return Result(code=ResultCode.OK, message="OK", result=row)
 

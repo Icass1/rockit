@@ -1,5 +1,9 @@
 import { LyricsCorrectionContextResponseSchema } from "@/dto";
-import { lyricSeekTime, lyricWordState } from "@/utils/lyricsTiming";
+import {
+    lyricSeekTime,
+    lyricWordFill,
+    lyricWordState,
+} from "@/utils/lyricsTiming";
 import { expect, it } from "vitest";
 
 it("uses word boundaries, explicit gaps, missing ends, offsets and backward seeks", () => {
@@ -15,6 +19,18 @@ it("uses word boundaries, explicit gaps, missing ends, offsets and backward seek
     expect(lyricWordState(second, 12, 2, 14)).toBe("past");
     expect(lyricWordState(second, 7, 2, 14)).toBe("future");
     expect(lyricSeekTime(second.timestamp_s, 2)).toBe(10);
+});
+
+it("fills only within the current word, including with offsets and fallback ends", () => {
+    const word = { text: "Hello ", timestamp_s: 10, end_timestamp_s: 11 };
+    expect(lyricWordFill(word, 7, 2)).toBe("future");
+    expect(lyricWordFill(word, 8, 2)).toBe(0);
+    expect(lyricWordFill(word, 8.5, 2)).toBe(0.5);
+    expect(lyricWordFill(word, 9, 2)).toBe("past");
+    const withoutEnd = { ...word, end_timestamp_s: null };
+    expect(lyricWordFill(withoutEnd, 9, 2, 12)).toBe(0.5);
+    expect(lyricWordFill(withoutEnd, 9, 2)).toBe(1);
+    expect(lyricWordFill(withoutEnd, 8, 2, 10)).toBe("past");
 });
 
 it("validates and retains word timings at the shared HTTP boundary", () => {

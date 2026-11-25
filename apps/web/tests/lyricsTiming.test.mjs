@@ -7,7 +7,7 @@ const result = await build({
     absWorkingDir: fileURLToPath(new URL("..", import.meta.url)),
     stdin: {
         contents: `export { lyricPlaybackTime, lyricSeekTime } from "@rockit/shared/utils/lyricsTiming";
-            export { lyricsCorrectionSchema } from "@/models/schemas/lyricsCorrection";`,
+            export { lyricsCorrectionSchema } from "@rockit/shared/models/schemas/lyricsCorrection";`,
         resolveDir: fileURLToPath(new URL("..", import.meta.url)),
     },
     bundle: true,
@@ -15,9 +15,10 @@ const result = await build({
     format: "esm",
     write: false,
 });
-const { lyricPlaybackTime, lyricSeekTime, lyricsCorrectionSchema } = await import(
-    `data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString("base64")}`
-);
+const { lyricPlaybackTime, lyricSeekTime, lyricsCorrectionSchema } =
+    await import(
+        `data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString("base64")}`
+    );
 
 test("delay and advance use the same original clock for highlighting and seeking", () => {
     assert.equal(lyricPlaybackTime(10, -1), 11);
@@ -57,4 +58,39 @@ test("invalid partial, reversed or non-finite timing cannot be submitted", () =>
         }).success,
         true
     );
+});
+
+test("word corrections preserve validated timing and reject inconsistent lines", () => {
+    const line = {
+        text: "Hello world",
+        timestamp_s: 1,
+        end_timestamp_s: 4,
+        words: [
+            { text: "Hello ", timestamp_s: 1, end_timestamp_s: 2 },
+            { text: "world", timestamp_s: 2.25, end_timestamp_s: 4 },
+        ],
+    };
+    const base = {
+        kind: "lyrics_correction",
+        provider: "LRCLIB",
+        revision: "a".repeat(64),
+        offset: 0,
+    };
+    const valid = lyricsCorrectionSchema.parse({ ...base, lines: [line] });
+    assert.deepEqual(valid.lines[0], line);
+    for (const invalid of [
+        { ...line, text: "Not the same words" },
+        { ...line, words: [...line.words].reverse() },
+        { ...line, end_timestamp_s: 3 },
+        {
+            ...line,
+            words: [{ text: line.text, timestamp_s: 2, end_timestamp_s: 1 }],
+        },
+    ]) {
+        assert.equal(
+            lyricsCorrectionSchema.safeParse({ ...base, lines: [invalid] })
+                .success,
+            false
+        );
+    }
 });

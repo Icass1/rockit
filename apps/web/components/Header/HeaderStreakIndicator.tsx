@@ -21,7 +21,7 @@ export default function StreakIndicator(): JSX.Element | null {
 
     return (
         <div
-            className="text-warning-foreground flex items-center gap-1"
+            className="text-streak-foreground flex items-center gap-1"
             title={`${streak} ${vocabulary.HOME_STREAK_DAYS}`}
         >
             <span className="text-sm font-semibold tabular-nums">{streak}</span>

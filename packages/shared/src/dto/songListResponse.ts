@@ -8,7 +8,7 @@ import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
 export const SongListResponseSchema = z.object({
     songs: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
     discover: z.array(z.lazy(() => BaseSearchResultsItemSchema)).default([]),
-    discoverProvider: z.string().nullable(),
+    discoverProvider: z.string().nullable().default(null),
     discoverStatus: z
         .union([
             z.literal("disabled"),

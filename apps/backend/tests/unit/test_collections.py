@@ -190,7 +190,11 @@ async def test_collection_queue_selects_and_persists_start_for_queue_mode(
     assert selected.randomIndex == (0 if start_public_id or expected_start == 2 else 2)
     assert sorted(item.randomIndex for item in response.queue) == [0, 1, 2]
     assert [item.sortedIndex for item in response.queue] == [0, 1, 2]
-    persisted_update = session.execute.await_args_list[-1].args[0]
+    persisted_update = next(
+        call.args[0]
+        for call in session.execute.await_args_list
+        if "current_queue_id" in call.args[0].compile().params
+    )
     assert persisted_update.compile().params["current_queue_id"] == expected_start
     inserted_rows = session.execute.await_args_list[2].args[1]
     assert inserted_rows[expected_start]["random_index"] == selected.randomIndex

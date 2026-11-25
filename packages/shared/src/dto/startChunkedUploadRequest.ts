@@ -7,7 +7,7 @@ export const StartChunkedUploadRequestSchema = z.object({
     fileName: z.string(),
     totalSize: z.number(),
     version: z.string(),
-    description: z.string().nullable(),
+    description: z.string().nullable().default(null),
 });
 
 export type StartChunkedUploadRequest = z.infer<

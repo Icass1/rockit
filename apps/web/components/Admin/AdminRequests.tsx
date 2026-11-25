@@ -22,6 +22,7 @@ import { LyricsProposalPreview } from "@/components/Lyrics/LyricsProposalPreview
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 type RequestStatus = "ALL" | "PENDING" | "ACCEPTED" | "REJECTED";
+const PAGE_SIZE = 50;
 
 const statusBadges = (
     vocabulary: import("@rockit/shared").Vocabulary
@@ -62,7 +63,10 @@ export default function AdminRequests(): JSX.Element {
     const STATUS_BADGES = statusBadges(vocabulary);
     const isAdmin = useStore(rockIt.userManager.admin);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [loadError, setLoadError] = useState(false);
+    const [reviewError, setReviewError] = useState<string | null>(null);
+    const [page, setPage] = useState(0);
+    const [reload, setReload] = useState(0);
     const [filter, setFilter] = useState<RequestStatus>("ALL");
     const [reviewingId, setReviewingId] = useState<string | null>(null);
 
@@ -71,73 +75,75 @@ export default function AdminRequests(): JSX.Element {
         let cancelled = false;
 
         const fetchData = async (): Promise<void> => {
-            const [requestsResult, statsResult] = await Promise.all([
-                Http.getAllRequests({ status: null, limit: 50, offset: 0 }),
-                Http.getRequestStats(),
-            ]);
-
-            if (cancelled) return;
-
-            if (requestsResult.isOk()) {
-                setRequests(requestsResult.result.requests);
-            } else {
-                setError(
-                    typeof requestsResult.detail === "string"
-                        ? requestsResult.detail
-                        : "Failed to load requests"
-                );
+            try {
+                const [requestsResult, statsResult] = await Promise.all([
+                    Http.getAllRequests({
+                        status: filter === "ALL" ? null : filter,
+                        limit: PAGE_SIZE + 1,
+                        offset: page * PAGE_SIZE,
+                    }),
+                    Http.getRequestStats(),
+                ]);
+                if (cancelled) return;
+                setLoadError(!requestsResult.isOk());
+                if (requestsResult.isOk())
+                    setRequests(requestsResult.result.requests);
+                if (statsResult.isOk()) setStats(statsResult.result);
+            } catch {
+                if (!cancelled) setLoadError(true);
+            } finally {
+                if (!cancelled) setLoading(false);
             }
-
-            if (statsResult.isOk()) {
-                setStats(statsResult.result);
-            }
-
-            setLoading(false);
         };
 
-        fetchData();
-
+        void fetchData();
         return () => {
             cancelled = true;
         };
-    }, [isAdmin, $vocabulary]);
+    }, [isAdmin, filter, page, reload]);
 
     const handleReview = async (
         publicId: string,
         status: "ACCEPTED" | "REJECTED"
     ): Promise<void> => {
         setReviewingId(publicId);
+        setReviewError(null);
         try {
             const result = await Http.reviewRequest(publicId, {
                 status,
                 reviewComment: null,
             });
             if (result.isOk()) {
-                window.dispatchEvent(new Event("lyrics-updated"));
-                setError(null);
+                const reviewed = result.result;
                 setRequests((prev) =>
-                    prev.map((r) =>
-                        r.publicId === publicId ? { ...r, status } : r
-                    )
+                    prev.map((r) => (r.publicId === publicId ? reviewed : r))
                 );
+                if (filter !== "ALL") setReload((value) => value + 1);
+                if (reviewed.requestType === "LYRICS")
+                    window.dispatchEvent(new Event("lyrics-updated"));
+                void Http.getRequestStats()
+                    .then((stats) => {
+                        if (stats.isOk()) setStats(stats.result);
+                    })
+                    .catch(() => undefined);
             } else {
-                setError(
-                    typeof result.detail === "string"
-                        ? result.detail
+                setReviewError(
+                    typeof result.detail === "string" &&
+                        Object.hasOwn($vocabulary, result.detail)
+                        ? $vocabulary[result.detail as keyof typeof $vocabulary]
                         : $vocabulary.EDIT_METADATA_ERROR
                 );
             }
         } catch {
-            setError($vocabulary.EDIT_METADATA_ERROR);
+            setReviewError($vocabulary.EDIT_METADATA_ERROR);
         } finally {
             setReviewingId(null);
         }
     };
 
-    const filteredRequests =
-        filter === "ALL"
-            ? requests
-            : requests.filter((r) => r.status === filter);
+    const visibleRequests = requests
+        .slice(0, PAGE_SIZE)
+        .filter((row) => filter === "ALL" || row.status === filter);
 
     const statCards = [
         {
@@ -197,15 +203,22 @@ export default function AdminRequests(): JSX.Element {
         );
     }
 
-    if (error) {
+    if (loadError) {
         return (
             <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
-                <p className="text-destructive-soft">{error}</p>
+                <p role="alert" className="text-destructive-soft">
+                    {vocabulary.EDIT_METADATA_ERROR}
+                </p>
                 <button
-                    onClick={() => window.location.reload()}
-                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition"
+                    type="button"
+                    onClick={() => {
+                        setLoadError(false);
+                        setLoading(true);
+                        setReload((value) => value + 1);
+                    }}
+                    className="bg-primary text-primary-foreground mt-4 rounded-lg px-4 py-2 text-sm font-semibold"
                 >
-                    {$vocabulary.RETRY}
+                    {vocabulary.RETRY}
                 </button>
             </div>
         );
@@ -243,7 +256,15 @@ export default function AdminRequests(): JSX.Element {
                 {filters.map((f) => (
                     <button
                         key={f.id}
-                        onClick={() => setFilter(f.id)}
+                        aria-pressed={filter === f.id}
+                        disabled={reviewingId !== null}
+                        onClick={() => {
+                            if (filter === f.id) return;
+                            setReviewError(null);
+                            setLoading(true);
+                            setPage(0);
+                            setFilter(f.id);
+                        }}
                         className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                             filter === f.id
                                 ? "bg-primary text-primary-foreground"
@@ -255,7 +276,12 @@ export default function AdminRequests(): JSX.Element {
                 ))}
             </div>
 
-            {filteredRequests.length === 0 ? (
+            {reviewError && (
+                <p role="alert" className="text-destructive-soft mb-4">
+                    {reviewError}
+                </p>
+            )}
+            {visibleRequests.length === 0 ? (
                 <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
                     <MessageSquare className="text-disabled-foreground mb-4 h-12 w-12" />
                     <p className="text-subtle-foreground">
@@ -264,7 +290,7 @@ export default function AdminRequests(): JSX.Element {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {filteredRequests.map((req) => {
+                    {visibleRequests.map((req) => {
                         const badge =
                             STATUS_BADGES[req.status.toLowerCase()] ||
                             STATUS_BADGES.pending;
@@ -304,6 +330,10 @@ export default function AdminRequests(): JSX.Element {
                                                 {req.requestType === "LYRICS" &&
                                                 req.mediaPublicId ? (
                                                     <LyricsProposalPreview
+                                                        pending={
+                                                            req.status ===
+                                                            "PENDING"
+                                                        }
                                                         mediaPublicId={
                                                             req.mediaPublicId
                                                         }
@@ -378,9 +408,7 @@ export default function AdminRequests(): JSX.Element {
                                                         "ACCEPTED"
                                                     )
                                                 }
-                                                disabled={
-                                                    reviewingId === req.publicId
-                                                }
+                                                disabled={reviewingId !== null}
                                                 className="bg-success/10 text-success-foreground hover:bg-success/20 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50"
                                             >
                                                 {reviewingId ===
@@ -398,9 +426,7 @@ export default function AdminRequests(): JSX.Element {
                                                         "REJECTED"
                                                     )
                                                 }
-                                                disabled={
-                                                    reviewingId === req.publicId
-                                                }
+                                                disabled={reviewingId !== null}
                                                 className="bg-destructive/10 text-destructive-soft hover:bg-destructive/20 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50"
                                             >
                                                 {reviewingId ===
@@ -427,6 +453,36 @@ export default function AdminRequests(): JSX.Element {
                             </div>
                         );
                     })}
+                </div>
+            )}
+            {(page > 0 || requests.length > PAGE_SIZE) && (
+                <div className="mt-4 flex flex-wrap justify-between gap-2">
+                    <button
+                        type="button"
+                        className="text-primary min-h-11 disabled:opacity-40"
+                        disabled={page === 0 || reviewingId !== null}
+                        onClick={() => {
+                            setLoading(true);
+                            setReviewError(null);
+                            setPage((value) => value - 1);
+                        }}
+                    >
+                        {vocabulary.DOWNLOADER_PREVIOUS_PAGE}
+                    </button>
+                    <button
+                        type="button"
+                        className="text-primary min-h-11 disabled:opacity-40"
+                        disabled={
+                            requests.length <= PAGE_SIZE || reviewingId !== null
+                        }
+                        onClick={() => {
+                            setLoading(true);
+                            setReviewError(null);
+                            setPage((value) => value + 1);
+                        }}
+                    >
+                        {vocabulary.DOWNLOADER_NEXT_PAGE}
+                    </button>
                 </div>
             )}
         </div>

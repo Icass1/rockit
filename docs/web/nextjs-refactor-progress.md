@@ -809,3 +809,70 @@ production build, web typecheck/lint, frontend fixture types, 20 focused SSR/sha
 menu tests and all seven public-sharing Chromium flows. The desktop, phone and
 short-landscape flows activate the footer menu with Enter and verify copied song
 and video URLs contain the current media's `?media=` identifier.
+
+### Open follow-up batch: downloads, mobile motion and administration
+
+Keep this batch in a draft PR against develop; do not merge or close it while the
+user is adding tasks. Initial export fixes return an actual tagged audio attachment
+when only one audio file is resolved, retaining ZIPs for larger selections. Both
+browser clients and native sharing honor the response filename and MIME type.
+Expose Content-Disposition through CORS, resolve virtual featured list IDs before
+export, and offer the export action in mobile collection menus. Retain cancellation,
+size bounds, session checks, source bytes and temporary-file cleanup. Generalize
+existing ready-notification copy through the EN/ES/FR workbook.
+
+Task checklist (also maintained in the draft PR):
+
+- [ ] Verify direct single-song exports and mobile featured-list ZIPs in production previews.
+- [ ] Preserve visible mobile lyrics across portrait/landscape changes.
+- [ ] Improve the admin page and track Android builds generated through GitHub.
+- [ ] Deliver administrative notifications for new requests.
+- [ ] Complete the supported metadata-request review/application flows.
+- [ ] Make admin statistics table columns sortable, including request counts.
+- [ ] Add reversible mini-player dragging; change tracks only on release.
+- [ ] Animate streak flames with daily shape/color progression and reduced-motion support.
+- [ ] Stage annual-recap reveals while keeping the final summary static.
+
+Initial validation: eight backend export checks, shared filename/ID resolution and
+native streaming/sharing checks. Production build and runtime review are in progress;
+this entry is not a claim of completed browser or physical-device acceptance.
+
+## Mobile interaction and admin follow-ups — PR234 (open draft)
+
+Single-song exports now return audio rather than ZIP, preserving the server's
+attachment name and MIME type in both browser and native adapters. Mobile featured
+menus resolve virtual lists before exporting. Multiple songs retain ZIP export.
+
+Mobile lyric data survives orientation changes while the measured scroll viewport
+is recreated and recentred. Mini-player horizontal dragging moves artwork and
+credits only, commits on release, supports reversal/cancellation and leaves the
+transport controls stationary. Shared streak flames gain daily warmth and four
+silhouettes; decorative animation stops in the background or with reduced motion.
+Shared recap stories stage their title/rank/artwork/copy and respect pause; the
+final summary remains static.
+
+Admin work prioritizes GitHub Android build history and direct authenticated APK
+downloads, with manual uploads collapsed below. Accessible tabs share a consistent
+workspace header. It also adds sortable route/user/IP statistics,
+request inbox notifications for current administrators, and application of reviewed
+metadata before acceptance. Rockit, YouTube Music and Spotify implement the local
+metadata capability. Remote artist/album reassignment must resolve uniquely to an
+existing imported provider record; unsupported providers and legacy cover-art
+proposals return errors instead of being marked applied. Genre corrections are
+stored independently of provider refreshes through core migration 10. Metadata
+forms send changed fields only; mobile's nonfunctional free-text lyrics metadata
+field is removed in favour of the existing lyrics correction/source workflows.
+Nullable model defaults generated for older cached responses preserve compatibility.
+
+The draft targets develop and must remain open for the user's additional fixes.
+Validation evidence and configuration details are tracked in the PR and
+[Android build history setup](../admin/android-build-history.md). Browser emulation
+is not physical iOS/Android acceptance; the previously confirmed footer layout is
+unchanged.
+
+## Word-synced lyrics moderation
+
+Lyrics corrections now retain word text, start and end times through proposal,
+approval and playback. Both metadata editors expose timed words, while the web
+admin preview uses the same word timing as playback. The requests inbox loads
+filtered pages from the API and keeps the list visible when a review fails.

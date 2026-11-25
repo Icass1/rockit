@@ -8,7 +8,7 @@ export const DynamicLyricsItemSchema = z.object({
     text: z.string(),
     timestamp_s: z.number(),
     words: z.array(z.lazy(() => LyricsWordSchema)).default([]),
-    end_timestamp_s: z.number().nullable(),
+    end_timestamp_s: z.number().nullable().default(null),
 });
 
 export type DynamicLyricsItem = z.infer<typeof DynamicLyricsItemSchema>;

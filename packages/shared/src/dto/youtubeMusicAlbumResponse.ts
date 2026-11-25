@@ -7,6 +7,7 @@ import { BaseSongWithoutAlbumResponseSchema } from "./baseSongWithoutAlbumRespon
 
 export const YoutubeMusicAlbumResponseSchema = z.object({
     type: z.union([z.literal("album")]).default("album"),
+    genre: z.string().nullable().default(null),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),
@@ -24,7 +25,7 @@ export const YoutubeMusicAlbumResponseSchema = z.object({
     hasMore: z.boolean().default(false),
     playableCount: z.number().default(0),
     youtubeId: z.string(),
-    year: z.number().nullable(),
+    year: z.number().nullable().default(null),
 });
 
 export type YoutubeMusicAlbumResponse = z.infer<

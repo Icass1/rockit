@@ -20,7 +20,6 @@ class ContentRatingAccess:
             .execution_options(populate_existing=True)
             .where(
                 CoreMediaRow.public_id.in_(public_ids),
-                CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
             )
         )
         return Result(
@@ -28,6 +27,17 @@ class ContentRatingAccess:
             message="OK",
             result={row.public_id: row for row in rows.scalars().all()},
         )
+
+    @staticmethod
+    @safe_async
+    async def record_genre_async(session: AsyncSession, media_id: int, genre: str) -> Result[bool]:
+        await session.execute(
+            update(CoreMediaRow)
+            .where(CoreMediaRow.id == media_id)
+            .values(reviewed_genre=genre, date_updated=func.now())
+        )
+        await session.flush()
+        return Result[bool].ok(True)
 
     @staticmethod
     @safe_async

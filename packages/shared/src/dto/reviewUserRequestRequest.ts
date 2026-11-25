@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const ReviewUserRequestRequestSchema = z.object({
     status: z.enum(["PENDING", "ACCEPTED", "REJECTED"]),
-    reviewComment: z.string().nullable(),
+    reviewComment: z.string().nullable().default(null),
 });
 
 export type ReviewUserRequestRequest = z.infer<

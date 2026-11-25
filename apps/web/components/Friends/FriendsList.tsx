@@ -186,6 +186,8 @@ export default function FriendsList({
                         <li key={friend.publicId}>
                             <div className={styles.directoryRow}>
                                 <button
+                                    type="button"
+                                    className={styles.personIdentity}
                                     aria-label={v.SOCIAL_PROFILE_OPEN.replace(
                                         "{name}",
                                         friend.username
@@ -199,25 +201,20 @@ export default function FriendsList({
                                         username={friend.username}
                                         online={friend.isOnline}
                                     />
-                                </button>
-                                <div className={styles.personCopy}>
-                                    <button
-                                        className={`${styles.personName} text-left hover:underline`}
-                                        onClick={() =>
-                                            onViewProfile(friend.publicId)
-                                        }
-                                    >
-                                        {friend.username}
-                                    </button>
-                                    <span className={styles.personAction}>
-                                        {friend.isOnline
-                                            ? v.FRIENDS_ONLINE
-                                            : v.FRIENDS_OFFLINE}
-                                        {friend.isOnline &&
-                                            friend.nowPlaying &&
-                                            ` · ${friend.nowPlaying}`}
+                                    <span className={styles.personCopy}>
+                                        <span className={styles.personName}>
+                                            {friend.username}
+                                        </span>
+                                        <span className={styles.personAction}>
+                                            {friend.isOnline
+                                                ? v.FRIENDS_ONLINE
+                                                : v.FRIENDS_OFFLINE}
+                                            {friend.isOnline &&
+                                                friend.nowPlaying &&
+                                                ` · ${friend.nowPlaying}`}
+                                        </span>
                                     </span>
-                                </div>
+                                </button>
                                 {friend.isOnline && (
                                     <button
                                         className={styles.inviteButton}

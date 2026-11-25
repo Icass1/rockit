@@ -6,7 +6,7 @@ import { z } from "zod";
 export const AddVersionRequestSchema = z.object({
     version: z.string(),
     apkFilename: z.string(),
-    description: z.string().nullable(),
+    description: z.string().nullable().default(null),
 });
 
 export type AddVersionRequest = z.infer<typeof AddVersionRequestSchema>;

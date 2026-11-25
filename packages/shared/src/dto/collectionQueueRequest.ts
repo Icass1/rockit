@@ -4,7 +4,7 @@
 import { z } from "zod";
 
 export const CollectionQueueRequestSchema = z.object({
-    startPublicId: z.string().nullable(),
+    startPublicId: z.string().nullable().default(null),
 });
 
 export type CollectionQueueRequest = z.infer<

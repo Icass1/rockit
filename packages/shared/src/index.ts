@@ -163,3 +163,5 @@ export { CollectionHttp, isFeaturedCollectionId } from "@/http/collectionHttp";
 export { parseLyricsSourceId } from "@/utils/lyricsSource";
 
 export type { OfflineCollectionReference } from "@/models/interfaces/offlineCollection";
+export type { BinaryDownload } from "@/models/interfaces/binaryDownload";
+export { exportFilename, resolveExportIds } from "@/utils/downloadExport";

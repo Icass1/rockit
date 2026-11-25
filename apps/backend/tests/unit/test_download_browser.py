@@ -9,10 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadBrowseAccess import DownloadBrowseAccess
+from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.framework import providers
 from core.framework.downloader import downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
 from core.framework.downloader.downloadBrowser import DownloadBrowser
+from core.framework.downloader.downloader import Downloader
 from core.framework.media.image import Image
 from core.framework.objectFiles import ObjectFiles
 from core.framework.user.user import User
@@ -220,6 +222,79 @@ async def test_active_group_actions_do_not_touch_files_or_queue(
     assert result.code() == ResultCode.BAD_REQUEST
     group_action.clear.assert_not_awaited()
     group_action.queue.assert_not_called()
+
+
+@pytest.mark.parametrize("status", [1, 2, 5, 6, 7])
+async def test_cancel_and_delete_a_stale_group_preserves_audio(
+    group_action: GroupActionFixture, monkeypatch: pytest.MonkeyPatch, status: int
+) -> None:
+    session = AsyncMock(spec=AsyncSession)
+    group_action.row.status_key = status
+
+    def assert_committed(*, download_ids: set[int]) -> None:
+        assert download_ids == {12}
+        session.commit.assert_awaited_once()
+
+    stop_workers = Mock(side_effect=assert_committed)
+    monkeypatch.setattr(downloads_manager, "cancel_downloads", stop_workers)
+    update_group = AsyncMock(return_value=ok(group_action.group))
+    monkeypatch.setattr(DownloadAccess, "update_download_group_completion", update_group)
+    unavailable_provider = Mock(return_value=None)
+    monkeypatch.setattr(providers, "find_media_provider", unavailable_provider)
+
+    cancelled = await DownloadBrowser.group_action_async(
+        session=session, user_id=1, public_id="group", action="cancel"
+    )
+    assert cancelled.is_ok()
+    assert group_action.row.status_key == DownloadStatusEnum.CANCELLED.value
+    assert isinstance(group_action.row.date_ended, datetime)
+    stop_workers.assert_called_once_with(download_ids={12})
+    update_group.assert_awaited_once_with(session=session, download_group_id=10)
+
+    deleted = await DownloadBrowser.group_action_async(
+        session=session, user_id=1, public_id="group", action="delete"
+    )
+    assert deleted.is_ok()
+    unavailable_provider.assert_not_called()
+    group_action.clear.assert_not_awaited()
+    group_action.hide.assert_awaited_once_with(session=session, group=group_action.group)
+    assert group_action.store.objects == {"song.mp3": b"audio"}
+
+
+async def test_cancel_item_checks_ownership_and_is_repeatable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = AsyncMock(spec=AsyncSession)
+    download = SimpleNamespace(id=2, download_group_id=3, status_key=1)
+    find = AsyncMock(
+        side_effect=[
+            Result(code=ResultCode.NOT_FOUND, message="Not found"),
+            ok(download),
+            ok(download),
+        ]
+    )
+    monkeypatch.setattr(DownloadAccess, "owned_download_for_cancellation_async", find)
+    monkeypatch.setattr(
+        DownloadAccess, "update_download_group_completion", AsyncMock(return_value=ok(True))
+    )
+    stop_workers = Mock()
+    monkeypatch.setattr(downloads_manager, "cancel_downloads", stop_workers)
+
+    forbidden = await Downloader.cancel_download_async(
+        session=session, user_id=2, public_id="download"
+    )
+    assert forbidden.code() == ResultCode.NOT_FOUND
+    find.assert_awaited_once_with(session=session, public_id="download", user_id=2)
+    session.commit.assert_not_awaited()
+
+    for _ in range(2):
+        cancelled = await Downloader.cancel_download_async(
+            session=session, user_id=1, public_id="download"
+        )
+        assert cancelled.is_ok()
+    assert download.status_key == DownloadStatusEnum.CANCELLED.value
+    session.commit.assert_awaited_once()
+    stop_workers.assert_called_once_with(download_ids={2})
 
 
 async def test_another_active_group_prevents_file_changes(

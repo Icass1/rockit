@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
 import type { StatsSummaryResponse, Vocabulary } from "@rockit/shared";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { Clock, Music, TrendingUp, Zap } from "@rockit/ui/icons";
+import { Clock, Music, TrendingUp } from "@rockit/ui/icons";
+import { StreakFlame } from "@rockit/ui/primitives/StreakFlame";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -32,12 +34,20 @@ function formatDuration(minutes: number, v: Vocabulary, lang: string): string {
 interface CardProps {
     label: string;
     value: string;
+    valueColor?: string;
     icon: React.ReactNode;
     accent?: boolean;
     onPress?: () => void;
 }
 
-function SummaryCard({ label, value, icon, accent, onPress }: CardProps) {
+function SummaryCard({
+    label,
+    value,
+    valueColor,
+    icon,
+    accent,
+    onPress,
+}: CardProps) {
     const styles = useThemedStyles(createStyles);
     return (
         <View
@@ -51,7 +61,10 @@ function SummaryCard({ label, value, icon, accent, onPress }: CardProps) {
                 <Text style={styles.label}>{label}</Text>
                 <View>{icon}</View>
             </View>
-            <Text style={styles.value} onPress={onPress}>
+            <Text
+                style={[styles.value, valueColor && { color: valueColor }]}
+                onPress={onPress}
+            >
                 {value}
             </Text>
         </View>
@@ -63,6 +76,7 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
     const styles = useThemedStyles(createStyles);
     const { vocabulary, lang } = useVocabulary();
     const { width } = useWindowDimensions();
+    const focused = useIsFocused();
     const numColumns = width > 500 ? 4 : 2;
     const [showMinutes, setShowMinutes] = useState(false);
 
@@ -100,12 +114,19 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
         />,
         <SummaryCard
             key="streak"
-            icon={<Zap size={16} color={theme.legacy.gray600} />}
+            icon={
+                <StreakFlame
+                    days={summary.currentStreak}
+                    size={24}
+                    active={focused}
+                />
+            }
             label={vocabulary.SOCIAL_STREAK}
             value={vocabulary.TIME_DAYS.replace(
                 "{n}",
                 summary.currentStreak.toLocaleString(lang)
             )}
+            valueColor={theme.colors["streak-foreground"]}
         />,
     ];
 

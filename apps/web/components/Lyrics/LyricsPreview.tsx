@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, type JSX } from "react";
-import type { LyricsSnapshot } from "@/models/interfaces/lyricsSnapshot";
+import type { LyricsWord } from "@/dto";
+import { lyricWordFill } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
+import { HighlightedLyricWord } from "@/components/Lyrics/HighlightedLyricWord";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 export function LyricsPreview({
@@ -13,7 +15,12 @@ export function LyricsPreview({
     offset,
 }: {
     mediaPublicId: string;
-    lines: LyricsSnapshot["lines"];
+    lines: ReadonlyArray<{
+        text: string;
+        timestamp_s: number | null;
+        words?: readonly LyricsWord[] | null;
+        end_timestamp_s?: number | null;
+    }>;
     offset: number;
 }): JSX.Element {
     const vocabulary = useVocabulary();
@@ -39,8 +46,22 @@ export function LyricsPreview({
     }, [mediaPublicId]);
     useEffect(() => {
         const element = audio.current;
+        if (!element) return;
+        let frame = 0;
+        const tick = (): void => {
+            setTime(element.currentTime);
+            if (!element.paused && !element.ended)
+                frame = requestAnimationFrame(tick);
+        };
+        const start = (): void => {
+            cancelAnimationFrame(frame);
+            tick();
+        };
+        element.addEventListener("playing", start);
         return (): void => {
-            element?.pause();
+            cancelAnimationFrame(frame);
+            element.removeEventListener("playing", start);
+            element.pause();
         };
     }, [url]);
     let active = -1;
@@ -78,7 +99,7 @@ export function LyricsPreview({
                         key={i}
                         type="button"
                         disabled={line.timestamp_s === null || !url}
-                        className={`block w-full py-1 text-left ${i === active ? "text-primary-soft" : "text-foreground"}`}
+                        className={`block w-full py-1 text-left whitespace-pre-wrap ${i === active ? "text-foreground-strong" : i < active ? "text-subtle-foreground" : "text-foreground"}`}
                         onClick={() => {
                             if (audio.current && line.timestamp_s !== null) {
                                 const target = lyricSeekTime(
@@ -93,7 +114,22 @@ export function LyricsPreview({
                             }
                         }}
                     >
-                        {line.text || "…"}
+                        {i === active && line.words?.length
+                            ? line.words.map((word, index) => (
+                                  <HighlightedLyricWord
+                                      key={index}
+                                      text={word.text}
+                                      fill={lyricWordFill(
+                                          word,
+                                          time,
+                                          offset,
+                                          line.words?.[index + 1]
+                                              ?.timestamp_s ??
+                                              line.end_timestamp_s
+                                      )}
+                                  />
+                              ))
+                            : line.text || "…"}
                     </button>
                 ))}
             </div>

@@ -7,9 +7,6 @@ export async function verifyEmblemCollection(
     prefix: string
 ) {
     const circle = page.getByTestId("listening-circle");
-    await circle
-        .getByRole("button", { name: "View Sam in your listening circle" })
-        .click();
     await circle.getByRole("button", { name: "View Sam's profile" }).click();
     const profile = page.getByTestId("listening-profile");
     await profile

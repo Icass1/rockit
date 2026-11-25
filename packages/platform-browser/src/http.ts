@@ -3,9 +3,11 @@ import {
     BACKEND_URL,
     CollectionHttp as BaseHttp,
     DownloadZipRequestSchema,
+    exportFilename,
     HttpResult,
     IApiFetchOptions,
     type ArtistPageResponse,
+    type BinaryDownload,
     type DownloadZipRequest,
 } from "@rockit/shared";
 import { z } from "zod";
@@ -35,12 +37,15 @@ export class Http extends BaseHttp {
 
     static async downloadBinary(
         path: string,
-        payload: DownloadZipRequest,
+        payload?: DownloadZipRequest,
         signal?: AbortSignal
-    ): Promise<HttpResult<Blob>> {
-        const parsed = DownloadZipRequestSchema.safeParse(payload);
-        if (!parsed.success) {
-            return new HttpResult<Blob>({
+    ): Promise<HttpResult<BinaryDownload>> {
+        const parsed =
+            payload === undefined
+                ? undefined
+                : DownloadZipRequestSchema.safeParse(payload);
+        if (parsed && !parsed.success) {
+            return new HttpResult<BinaryDownload>({
                 ok: false,
                 code: 400,
                 message: "Validation Error",
@@ -50,9 +55,9 @@ export class Http extends BaseHttp {
 
         try {
             const response = await this.baseApiFetchAsync(path, {
-                method: "POST",
+                method: parsed ? "POST" : "GET",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(parsed.data),
+                body: parsed?.success ? JSON.stringify(parsed.data) : undefined,
                 signal,
             });
             if (!response.ok) {
@@ -66,7 +71,7 @@ export class Http extends BaseHttp {
                 const error = errorSchema.safeParse(
                     await response.json().catch(() => undefined)
                 );
-                return new HttpResult<Blob>({
+                return new HttpResult<BinaryDownload>({
                     ok: false,
                     code: response.status,
                     message: response.statusText,
@@ -74,14 +79,26 @@ export class Http extends BaseHttp {
                 });
             }
 
-            return new HttpResult<Blob>({
+            return new HttpResult<BinaryDownload>({
                 ok: true,
                 code: response.status,
                 message: response.statusText,
-                result: await response.blob(),
+                result: {
+                    blob: await response.blob(),
+                    filename: exportFilename(
+                        response.headers.get("content-disposition"),
+                        response.headers.get("content-type"),
+                        parsed?.success ? parsed.data.title : "RockIt-Android"
+                    ),
+                    contentType:
+                        response.headers
+                            .get("content-type")
+                            ?.split(";")[0]
+                            .trim() ?? "application/zip",
+                },
             });
         } catch (error) {
-            return new HttpResult<Blob>({
+            return new HttpResult<BinaryDownload>({
                 ok: false,
                 code: 0,
                 message: "Network Error",

@@ -8,7 +8,10 @@ from core.access.contentRatingAccess import ContentRatingAccess
 from core.access.mediaAccess import MediaAccess
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.requests.contentRatingRequest import UpdateContentRatingRequest
+from core.responses.baseAlbumWithoutSongsResponse import BaseAlbumWithoutSongsResponse
+from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.baseSongWithoutAlbumResponse import BaseSongWithoutAlbumResponse
+from core.responses.baseVideoResponse import BaseVideoResponse
 from core.responses.contentRatingResponse import (
     ContentRatingBackfillResponse,
     ContentRatingLookupResponse,
@@ -97,8 +100,27 @@ class ContentRatings:
     @staticmethod
     async def enrich_async(session: AsyncSession, response: T) -> Result[T]:
         songs: dict[str, list[BaseSongWithoutAlbumResponse]] = {}
+        media: dict[
+            str,
+            list[
+                BaseSongWithoutAlbumResponse
+                | BaseAlbumWithoutSongsResponse
+                | BaseArtistResponse
+                | BaseVideoResponse
+            ],
+        ] = {}
 
         def collect(value: object) -> None:
+            if isinstance(
+                value,
+                (
+                    BaseSongWithoutAlbumResponse,
+                    BaseAlbumWithoutSongsResponse,
+                    BaseArtistResponse,
+                    BaseVideoResponse,
+                ),
+            ):
+                media.setdefault(value.publicId, []).append(value)
             if isinstance(value, BaseSongWithoutAlbumResponse):
                 songs.setdefault(value.publicId, []).append(value)
             if isinstance(value, BaseModel):
@@ -109,12 +131,17 @@ class ContentRatings:
                     collect(child)
 
         collect(response)
-        if not songs:
+        if not media:
             return Result(code=ResultCode.OK, message="OK", result=response)
-        ratings = await ContentRatingAccess.get_batch_async(session=session, public_ids=list(songs))
+        ratings = await ContentRatingAccess.get_batch_async(session=session, public_ids=list(media))
         if ratings.is_not_ok():
             logger.error("Could not read recording content ratings: %s", ratings.info())
             return Result(code=ratings.code(), message=ratings.message())
+        for public_id, items in media.items():
+            record = ratings.result().get(public_id)
+            if record is not None:
+                for item in items:
+                    item.genre = record.reviewed_genre
         for public_id, rows in songs.items():
             rating = ratings.result().get(public_id)
             for song in rows:

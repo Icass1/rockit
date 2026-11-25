@@ -4,7 +4,7 @@
 import { z } from "zod";
 
 export const GetBookmarksRequestSchema = z.object({
-    mediaPublicId: z.string().nullable(),
+    mediaPublicId: z.string().nullable().default(null),
 });
 
 export type GetBookmarksRequest = z.infer<typeof GetBookmarksRequestSchema>;

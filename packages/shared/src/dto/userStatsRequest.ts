@@ -13,8 +13,8 @@ export const UserStatsRequestSchema = z.object({
             z.literal("custom"),
         ])
         .default("7d"),
-    start: z.iso.datetime().nullable(),
-    end: z.iso.datetime().nullable(),
+    start: z.iso.datetime().nullable().default(null),
+    end: z.iso.datetime().nullable().default(null),
     timezoneOffsetMinutes: z.number().default(0),
 });
 

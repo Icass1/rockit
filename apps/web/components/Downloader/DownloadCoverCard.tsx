@@ -15,6 +15,7 @@ import {
     RefreshCw,
     RotateCw,
     Trash2,
+    X,
 } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -45,6 +46,8 @@ function DownloadCoverCard({
     const playlists = useStore(rockIt.playlistManager.playlistsAtom);
     const isCompleted = item.status === "COMPLETED";
     const isFailed = item.status === "FAILED";
+    const isCancelled = item.status === "CANCELLED";
+    const isActive = !isCompleted && !isFailed && !isCancelled;
     const isRetrying = item.status === "RETRYING";
     const progress = Math.max(0, Math.min(100, item.progress ?? 0));
 
@@ -153,7 +156,7 @@ function DownloadCoverCard({
                                 </div>
                             </div>
                         )}
-                        {!isCompleted && !isRetrying && (
+                        {!isCompleted && !isRetrying && !isCancelled && (
                             <div className="bg-backdrop/50 absolute inset-0 flex items-center justify-center">
                                 <svg
                                     width="44"
@@ -240,9 +243,11 @@ function DownloadCoverCard({
                                 role="status"
                                 className="text-muted-foreground text-xs"
                             >
-                                {isFailed
-                                    ? $vocabulary.ERROR
-                                    : `${$vocabulary.DOWNLOADING} · ${Math.round(progress)}%`}
+                                {isCancelled
+                                    ? $vocabulary.DOWNLOAD_CANCELLED
+                                    : isFailed
+                                      ? $vocabulary.ERROR
+                                      : `${$vocabulary.DOWNLOADING} · ${Math.round(progress)}%`}
                             </p>
                         )}
                     </div>
@@ -316,13 +321,28 @@ function DownloadCoverCard({
                         </span>
                     </ContextMenuOption>
                 )}
-                <ContextMenuOption
-                    disable={!!pending || (!isCompleted && !isFailed)}
-                    onClick={handleDelete}
-                >
-                    <Trash2 size={16} />
-                    <span>{$vocabulary.DELETE}</span>
-                </ContextMenuOption>
+                {isActive ? (
+                    <ContextMenuOption
+                        disable={!!pending}
+                        onClick={() =>
+                            rockIt.downloaderManager.runActionAsync(
+                                item,
+                                "cancel"
+                            )
+                        }
+                    >
+                        <X size={16} />
+                        <span>{$vocabulary.DOWNLOAD_CANCEL}</span>
+                    </ContextMenuOption>
+                ) : (
+                    <ContextMenuOption
+                        disable={!!pending}
+                        onClick={handleDelete}
+                    >
+                        <Trash2 size={16} />
+                        <span>{$vocabulary.DELETE}</span>
+                    </ContextMenuOption>
+                )}
             </ContextMenuContent>
         </ContextMenu>
     );

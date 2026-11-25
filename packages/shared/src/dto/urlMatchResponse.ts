@@ -4,7 +4,7 @@
 import { z } from "zod";
 
 export const UrlMatchResponseSchema = z.object({
-    path: z.string().nullable(),
+    path: z.string().nullable().default(null),
 });
 
 export type UrlMatchResponse = z.infer<typeof UrlMatchResponseSchema>;

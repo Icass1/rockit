@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const SendFriendRequestSchema = z.object({
     userPublicId: z.string(),
-    message: z.string().nullable(),
+    message: z.string().nullable().default(null),
 });
 
 export type SendFriendRequest = z.infer<typeof SendFriendRequestSchema>;

@@ -9,7 +9,7 @@ from core.access.db.ormModels.download import DownloadRow
 from core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from core.access.db.ormModels.media import CoreMediaRow
-from core.enums.downloadStatusEnum import DownloadStatusEnum
+from core.enums.downloadStatusEnum import TERMINAL_DOWNLOAD_STATUS_KEYS, DownloadStatusEnum
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
@@ -135,6 +135,16 @@ class DownloadAccess:
     ) -> Result[DownloadGroupRow]:
         """Update download group with success/fail counts and date_ended."""
 
+        group = await session.scalar(
+            select(DownloadGroupRow)
+            .where(DownloadGroupRow.id == download_group_id)
+            .with_for_update()
+        )
+        if group is None:
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message=f"Download group {download_group_id} not found",
+            )
         result = await session.execute(
             select(DownloadRow).where(DownloadRow.download_group_id == download_group_id)
         )
@@ -148,22 +158,16 @@ class DownloadAccess:
             elif download.status_key == DownloadStatusEnum.FAILED.value:
                 fail_count += 1
 
-        result_group = await session.execute(
-            select(DownloadGroupRow).where(DownloadGroupRow.id == download_group_id)
-        )
-        group: DownloadGroupRow | None = result_group.scalar_one_or_none()
-        if group is None:
-            return Result(
-                code=ResultCode.GENERAL_ERROR,
-                message=f"Download group {download_group_id} not found",
-            )
-
-        group.date_ended = datetime.now(UTC)
         group.success = success_count
         group.fail = fail_count
+        if any(download.status_key not in TERMINAL_DOWNLOAD_STATUS_KEYS for download in downloads):
+            return Result(code=ResultCode.OK, message="OK", result=group)
 
+        group.date_ended = group.date_ended or datetime.now(UTC)
         if fail_count > 0:
             group.status_key = DownloadStatusEnum.FAILED.value
+        elif success_count < len(downloads):
+            group.status_key = DownloadStatusEnum.CANCELLED.value
         else:
             group.status_key = DownloadStatusEnum.COMPLETED.value
 
@@ -391,10 +395,12 @@ class DownloadAccess:
         session: AsyncSession,
         media_public_id: str,
         user_id: int,
+        lock: bool = False,
+        visible_only: bool = False,
     ) -> Result[DownloadRow]:
         """Get the latest download row for a given media public_id and user."""
 
-        result = await session.execute(
+        stmt = (
             select(DownloadRow)
             .join(DownloadGroupRow, DownloadRow.download_group_id == DownloadGroupRow.id)
             .join(CoreMediaRow, DownloadRow.media_id == CoreMediaRow.id)
@@ -408,6 +414,11 @@ class DownloadAccess:
             .order_by(DownloadRow.id.desc())
             .limit(1)
         )
+        if visible_only:
+            stmt = stmt.where(DownloadRow.seen.is_(False), DownloadGroupRow.seen.is_(False))
+        if lock:
+            stmt = stmt.with_for_update(of=DownloadRow)
+        result = await session.execute(stmt)
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:
             return Result(
@@ -415,6 +426,41 @@ class DownloadAccess:
                 message=f"No download found for media {media_public_id}",
             )
         return Result(code=ResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def owned_download_for_cancellation_async(
+        session: AsyncSession, public_id: str, user_id: int
+    ) -> Result[DownloadRow]:
+        """Lock the specific visible download belonging to this user."""
+        download = await session.scalar(
+            select(DownloadRow)
+            .join(DownloadGroupRow)
+            .where(
+                DownloadRow.public_id == public_id,
+                DownloadGroupRow.user_id == user_id,
+                DownloadGroupRow.seen.is_(False),
+                DownloadRow.seen.is_(False),
+            )
+            .with_for_update(of=DownloadRow)
+        )
+        if download is None:
+            return Result(code=ResultCode.NOT_FOUND, message="Download not found")
+        return Result(code=ResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def get_download_status_key_async(
+        session: AsyncSession, download_id: int, lock: bool = False
+    ) -> Result[int]:
+        """Read the current worker state, optionally locking it before finalization."""
+        stmt = select(DownloadRow.status_key).where(DownloadRow.id == download_id)
+        if lock:
+            stmt = stmt.with_for_update()
+        status = await session.scalar(stmt)
+        if status is None:
+            return Result(code=ResultCode.NOT_FOUND, message="Download not found")
+        return Result(code=ResultCode.OK, message="OK", result=status)
 
     @staticmethod
     @safe_async

@@ -27,7 +27,8 @@
             ],
             "@/models/types/playerArtwork": [
                 "apps/mobile/models/types/playerArtwork.ts"
-            ]
+            ],
+            "@/lib/miniPlayerSwipe": ["apps/mobile/lib/miniPlayerSwipe.ts"]
         },
         "types": ["node", "jest"],
         "allowImportingTsExtensions": true,

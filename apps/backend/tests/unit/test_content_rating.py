@@ -85,7 +85,13 @@ async def test_nested_response_uses_one_local_query_and_never_guesses_clean(
 ) -> None:
     first, duplicate, missing = song("one"), song("one"), song("missing")
     ratings = AsyncMock(
-        return_value=ok({"one": SimpleNamespace(is_explicit=True, explicit_source="review")})
+        return_value=ok(
+            {
+                "one": SimpleNamespace(
+                    is_explicit=True, explicit_source="review", reviewed_genre="Rock"
+                )
+            }
+        )
     )
     monkeypatch.setattr(ContentRatingAccess, "get_batch_async", ratings)
     result = await ContentRatings.enrich_async(
@@ -94,8 +100,9 @@ async def test_nested_response_uses_one_local_query_and_never_guesses_clean(
     )
     assert result.is_ok()
     assert [item.explicit for item in result.result().songs] == [True, True, None]
+    assert [item.genre for item in result.result().songs] == ["Rock", "Rock", None]
     ratings.assert_awaited_once()
-    assert ratings.call_args.kwargs["public_ids"] == ["one", "missing"]
+    assert ratings.call_args.kwargs["public_ids"] == ["one", "album", "missing"]
 
 
 @pytest.mark.parametrize("batch", [False, True])

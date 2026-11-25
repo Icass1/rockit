@@ -5,11 +5,15 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from core.models.lyrics import LyricsWord
+
 
 class LyricsCorrectionLine(BaseModel):
     model_config = ConfigDict(extra="forbid")
     text: str
     timestamp_s: float | None = None
+    words: list[LyricsWord] | None = Field(default=None, max_length=2000)
+    end_timestamp_s: float | None = Field(default=None, ge=0, le=86400, allow_inf_nan=False)
 
 
 class LyricsCorrection(BaseModel):
@@ -34,6 +38,23 @@ class LyricsCorrection(BaseModel):
                 raise ValueError("Lyrics timestamps must be ordered")
             if not any(line.text.strip() for line in self.lines):
                 raise ValueError("Lyrics cannot be empty")
+            for line in self.lines:
+                start, end = line.timestamp_s, line.end_timestamp_s
+                if end is not None and (start is None or end < start):
+                    raise ValueError("Line end must follow its start")
+                if not line.words:
+                    continue
+                if "".join(word.text for word in line.words) != line.text:
+                    raise ValueError("Words must reconstruct the line")
+                starts = [word.timestamp_s for word in line.words]
+                if start is None or starts[0] < start or starts != sorted(starts):
+                    raise ValueError("Word starts must be ordered within the line")
+                if end is not None and any(
+                    (word.end_timestamp_s if word.end_timestamp_s is not None else word.timestamp_s)
+                    > end
+                    for word in line.words
+                ):
+                    raise ValueError("Words fall outside the line")
         return self
 
 

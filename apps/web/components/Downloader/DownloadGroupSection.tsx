@@ -16,6 +16,7 @@ import {
     Music,
     RefreshCw,
     Trash2,
+    X,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DownloadCoverCard from "@/components/Downloader/DownloadCoverCard";
@@ -64,6 +65,17 @@ function DownloadGroupSection({
     const pending = useStore(rockIt.downloaderManager.groupPendingAtom)[
         group.publicId
     ];
+    const allCancelled =
+        group.active === 0 && group.success === 0 && group.fail === 0;
+    const cancelGroup = (): Promise<void> =>
+        rockIt.downloaderManager.runGroupActionAsync(group, "cancel");
+    const deleteGroup = (): void => {
+        if (allCancelled) {
+            void rockIt.downloaderManager.runGroupActionAsync(group, "delete");
+        } else {
+            confirmation.current?.showModal();
+        }
+    };
     const expanded = detail?.groupId === group.publicId;
     const confirmation = useRef<HTMLDialogElement>(null);
     const title =
@@ -182,14 +194,28 @@ function DownloadGroupSection({
                             )}
                             {vocabulary.REDOWNLOAD}
                         </button>
-                        <button
-                            className={buttonClass}
-                            disabled={!!pending || !group.canManage}
-                            onClick={() => confirmation.current?.showModal()}
-                        >
-                            <Trash2 size={14} />
-                            {vocabulary.DELETE}
-                        </button>
+                        {group.active > 0 ? (
+                            <button
+                                className={buttonClass}
+                                disabled={!!pending}
+                                onClick={cancelGroup}
+                            >
+                                <X size={14} />
+                                {vocabulary.DOWNLOAD_CANCEL}
+                            </button>
+                        ) : (
+                            <button
+                                className={buttonClass}
+                                disabled={
+                                    !!pending ||
+                                    !(group.canManage || allCancelled)
+                                }
+                                onClick={deleteGroup}
+                            >
+                                <Trash2 size={14} />
+                                {vocabulary.DELETE}
+                            </button>
+                        )}
                         {group.providerUrl && (
                             <a
                                 className={buttonClass}
@@ -236,13 +262,25 @@ function DownloadGroupSection({
                         <RefreshCw size={16} />
                         {vocabulary.REDOWNLOAD}
                     </ContextMenuOption>
-                    <ContextMenuOption
-                        disable={!!pending || !group.canManage}
-                        onClick={() => confirmation.current?.showModal()}
-                    >
-                        <Trash2 size={16} />
-                        {vocabulary.DELETE}
-                    </ContextMenuOption>
+                    {group.active > 0 ? (
+                        <ContextMenuOption
+                            disable={!!pending}
+                            onClick={cancelGroup}
+                        >
+                            <X size={16} />
+                            {vocabulary.DOWNLOAD_CANCEL}
+                        </ContextMenuOption>
+                    ) : (
+                        <ContextMenuOption
+                            disable={
+                                !!pending || !(group.canManage || allCancelled)
+                            }
+                            onClick={deleteGroup}
+                        >
+                            <Trash2 size={16} />
+                            {vocabulary.DELETE}
+                        </ContextMenuOption>
+                    )}
                 </ContextMenuContent>
             </ContextMenu>
             <button

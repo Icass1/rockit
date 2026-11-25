@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const UploadApkRequestSchema = z.object({
     version: z.string(),
-    description: z.string().nullable(),
+    description: z.string().nullable().default(null),
     fileContent: z.string(),
     fileName: z.string(),
 });

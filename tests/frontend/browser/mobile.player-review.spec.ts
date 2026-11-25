@@ -90,6 +90,8 @@ test("wrapped lyrics center the active line on open, resize and seeking to the f
 }, info) => {
     const lines = Array.from({ length: 16 }, (_, i) => ({
         timestamp_s: i <= 8 ? 0 : (i - 8) * 2,
+        words: [],
+        end_timestamp_s: null,
         text: `A long fixture lyric with several wrapped words that must keep its measured position when this verse becomes active, line ${i}`,
     }));
     await request.post(backend + "/__fixture/fault", {
@@ -152,6 +154,10 @@ test("wrapped lyrics center the active line on open, resize and seeking to the f
     };
     await expectCentered(8);
     await page.setViewportSize({ width: 320, height: 844 });
+    await expectCentered(8);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expectCentered(8);
+    await page.setViewportSize({ width: 390, height: 844 });
     await expectCentered(8);
     await page.getByText(lines[12].text, { exact: true }).click();
     await expectCentered(12);

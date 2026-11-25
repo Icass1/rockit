@@ -160,14 +160,26 @@ export default function VirtualCollectionList({
         const update = (): void => {
             const bounds = element.getBoundingClientRect();
             const parentBounds = scrollParent(element)?.getBoundingClientRect();
-            const top = Math.max(0, parentBounds?.top ?? 0);
+            // Screen rectangles include transforms; the row layout uses CSS pixels.
+            const scale =
+                element.offsetHeight > 0
+                    ? bounds.height / element.offsetHeight || 1
+                    : 1;
+            const visualViewport = window.visualViewport;
+            const viewportTop = visualViewport?.offsetTop ?? 0;
+            const viewportBottom =
+                viewportTop + (visualViewport?.height ?? window.innerHeight);
+            const top = Math.max(viewportTop, parentBounds?.top ?? viewportTop);
             const bottom = Math.min(
-                window.innerHeight,
-                parentBounds?.bottom ?? window.innerHeight
+                viewportBottom,
+                parentBounds?.bottom ?? viewportBottom
             );
             const next = {
-                offset: Math.max(0, top - bounds.top),
-                height: Math.max(0, bottom - Math.max(top, bounds.top)),
+                offset: Math.max(0, (top - bounds.top) / scale),
+                height: Math.max(
+                    0,
+                    (bottom - Math.max(top, bounds.top)) / scale
+                ),
             };
             setViewport((previous) =>
                 Math.abs(previous.offset - next.offset) < 1 &&
@@ -183,13 +195,25 @@ export default function VirtualCollectionList({
             capture: true,
         });
         window.addEventListener("resize", update);
+        window.visualViewport?.addEventListener("resize", update);
+        window.visualViewport?.addEventListener("scroll", update);
         const observer = new ResizeObserver(update);
         observer.observe(element);
         if (parent) observer.observe(parent);
+        // Extension zoom changes the body transform without resizing its layout box.
+        const zoomObserver = new MutationObserver(update);
+        for (const target of [document.documentElement, document.body])
+            zoomObserver.observe(target, {
+                attributes: true,
+                attributeFilter: ["style", "class"],
+            });
         return () => {
             window.removeEventListener("scroll", update, true);
             window.removeEventListener("resize", update);
+            window.visualViewport?.removeEventListener("resize", update);
+            window.visualViewport?.removeEventListener("scroll", update);
             observer.disconnect();
+            zoomObserver.disconnect();
         };
     }, [layout]);
     useLayoutEffect(() => {
@@ -206,7 +230,7 @@ export default function VirtualCollectionList({
         const measure = (elements: Iterable<HTMLElement>): void => {
             const measurements = Array.from(elements, (element) => ({
                 key: element.dataset.rowKey,
-                height: element.getBoundingClientRect().height,
+                height: element.offsetHeight,
             }));
             setHeights((previous) => {
                 let next = previous;
@@ -241,7 +265,7 @@ export default function VirtualCollectionList({
     }, [rows, range.start, range.end, focused]);
     useEffect(() => {
         if (!root.current) return;
-        let width = root.current.getBoundingClientRect().width;
+        let width = root.current.clientWidth;
         const observer = new ResizeObserver((entries) => {
             const next = entries[0]?.contentRect.width ?? width;
             if (Math.abs(next - width) > 1) {
@@ -261,14 +285,21 @@ export default function VirtualCollectionList({
             ref={root}
             role="list"
             aria-label={page.collection?.name}
+            className="flex flex-col"
             style={{
                 height: layout.total,
                 position: "relative",
                 overflowAnchor: "none",
             }}
         >
-            {visible.map((row) => {
+            {visible.map((row, visibleIndex) => {
                 const index = layout.indices.get(row.key)!;
+                const previousRow = visible[visibleIndex - 1];
+                // Flow gaps preserve virtual offsets, including a retained focus row,
+                // without offscreen absolute elements that zoom extensions relocate.
+                const previousEnd = previousRow
+                    ? layout.offsets[layout.indices.get(previousRow.key)! + 1]!
+                    : 0;
                 return (
                     <div
                         key={row.key}
@@ -284,10 +315,8 @@ export default function VirtualCollectionList({
                                 setFocused(undefined);
                         }}
                         style={{
-                            position: "absolute",
-                            top: layout.offsets[index],
-                            left: 0,
-                            right: 0,
+                            flexShrink: 0,
+                            marginTop: layout.offsets[index]! - previousEnd,
                             paddingBottom: 8,
                             paddingLeft: Math.min(row.depth, 8) * 24,
                         }}

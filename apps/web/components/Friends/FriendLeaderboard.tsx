@@ -3,7 +3,8 @@
 import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { ArrowUpRight, ChevronDown, Flame, Headphones } from "lucide-react";
+import { StreakFlame } from "@rockit/ui/primitives/StreakFlame";
+import { ArrowUpRight, ChevronDown, Headphones } from "lucide-react";
 import type { LeaderboardEntry } from "@/models/interfaces";
 import EmblemCollection from "@/components/Friends/EmblemCollection";
 import styles from "@/components/Friends/Friends.module.css";
@@ -163,8 +164,14 @@ export default function FriendLeaderboard({
                             <span>{v.SOCIAL_LISTENS}</span>
                         </div>
                         <div>
-                            <Flame size={18} />
-                            <strong>{self.streak}</strong>
+                            <StreakFlame days={self.streak} size={18} />
+                            <strong
+                                style={{
+                                    color: "var(--theme-streak-foreground)",
+                                }}
+                            >
+                                {self.streak}
+                            </strong>
                             <span>{v.SOCIAL_STREAK}</span>
                         </div>
                     </div>

@@ -6,10 +6,10 @@ import { z } from "zod";
 export const FriendActivityItemSchema = z.object({
     userPublicId: z.string(),
     username: z.string(),
-    userImageUrl: z.string().nullable(),
+    userImageUrl: z.string().nullable().default(null),
     mediaPublicId: z.string(),
     mediaName: z.string(),
-    mediaImageUrl: z.string().nullable(),
+    mediaImageUrl: z.string().nullable().default(null),
     listenedAt: z.string(),
 });
 

@@ -23,6 +23,10 @@ export default defineConfig({
                 replacement: path.resolve("packages/ui/src/icons.web.ts"),
             },
             {
+                find: "@rockit/ui/streakSvg",
+                replacement: path.resolve("packages/ui/src/streakSvg.web.ts"),
+            },
+            {
                 find: /^@rockit\/ui\/(.+)$/,
                 replacement: path.resolve("packages/ui/src") + "/$1",
             },
@@ -43,6 +47,10 @@ export default defineConfig({
             {
                 find: /^@rockit\/shared$/,
                 replacement: path.resolve("packages/shared/src/index.ts"),
+            },
+            {
+                find: /^@\/components\/Lyrics\/(.+)$/,
+                replacement: path.resolve("apps/web/components/Lyrics") + "/$1",
             },
             {
                 find: /^@\//,

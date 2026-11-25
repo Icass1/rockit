@@ -9,3 +9,11 @@ class DownloadStatusEnum(Enum):
     FETCHING = 5
     WAITING_FOR_QUEUE_SETUP = 6
     RETRYING = 7
+    CANCELLED = 8
+
+
+TERMINAL_DOWNLOAD_STATUS_KEYS = (
+    DownloadStatusEnum.COMPLETED.value,
+    DownloadStatusEnum.FAILED.value,
+    DownloadStatusEnum.CANCELLED.value,
+)

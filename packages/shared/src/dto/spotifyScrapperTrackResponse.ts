@@ -7,8 +7,9 @@ import { BaseArtistResponseSchema } from "./baseArtistResponse";
 
 export const SpotifyScrapperTrackResponseSchema = z.object({
     type: z.union([z.literal("song")]).default("song"),
-    explicit: z.boolean().nullable(),
-    explicitSource: z.string().nullable(),
+    explicit: z.boolean().nullable().default(null),
+    explicitSource: z.string().nullable().default(null),
+    genre: z.string().nullable().default(null),
     provider: z.string(),
     publicId: z.string(),
     providerUrl: z.string(),

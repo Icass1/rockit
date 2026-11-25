@@ -1,8 +1,8 @@
 """ZIP exports preserve MPEG bytes and source files while adding portable tags."""
 
 import asyncio
+import base64
 import io
-import subprocess
 import threading
 import zipfile
 from dataclasses import replace
@@ -16,7 +16,7 @@ from result import Result, ResultCode
 from tests.fake_object_store import FakeObjectStore
 from zipExport.framework import downloadZip
 from zipExport.framework.downloadZip import DownloadZip
-from zipExport.models.exportFile import AudioTags, ExportFile
+from zipExport.models.exportFile import AudioTags, DownloadExport, ExportFile
 from zipExport.utils.archive import build_archive
 from zipExport.utils.audioMetadata import read_cover_bytes
 
@@ -32,22 +32,10 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def mp3(tmp_path: Path) -> Path:
-    """Generate real MPEG audio so ffmpeg can also validate the exported payload."""
+    """Decode the synthetic 440 Hz fixture without requiring an encoder on CI."""
     path = tmp_path / "source.mp3"
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-v",
-            "error",
-            "-f",
-            "lavfi",
-            "-i",
-            "sine=frequency=440:duration=0.1",
-            str(path),
-        ],
-        check=True,
-        capture_output=True,
-    )
+    encoded = Path(__file__).parents[1] / "fixtures" / "export-audio.mp3.b64"
+    path.write_bytes(base64.decodebytes(encoded.read_bytes()))
     return path
 
 
@@ -205,8 +193,11 @@ async def test_cancelled_export_removes_zip_after_worker_finishes(
     assert not list(tmp_path.glob("rockit-*.zip"))
 
 
+@pytest.mark.parametrize(
+    "filename,mime_type", [("Album.zip", "application/zip"), ("Track.mp3", "audio/mpeg")]
+)
 async def test_http_route_keeps_contract_and_removes_completed_zip(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, filename: str, mime_type: str
 ) -> None:
     from fastapi import FastAPI
     from httpx import ASGITransport, AsyncClient
@@ -229,15 +220,75 @@ async def test_http_route_keeps_contract_and_removes_completed_zip(
         "get_current_user",
         Mock(return_value=Result(code=ResultCode.OK, message="OK", result=user)),
     )
-    create = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=str(path)))
+    create = AsyncMock(
+        return_value=Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=DownloadExport(path=str(path), filename=filename, media_type=mime_type),
+        )
+    )
     monkeypatch.setattr(controller.DownloadZip, "create_async", create)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/downloader/download-zip", json={"ids": ["song"], "title": "Album"}
         )
     assert response.status_code == 200
-    assert response.headers["content-type"] == "application/zip"
-    assert 'filename="Album.zip"' in response.headers["content-disposition"]
+    assert response.headers["content-type"] == mime_type
+    assert f'filename="{filename}"' in response.headers["content-disposition"]
     assert response.content == b"zip response bytes"
     assert create.call_args.kwargs["public_ids"] == ["song"]
     assert not path.exists()
+
+
+@pytest.mark.parametrize("count", [1, 2])
+async def test_album_export_uses_audio_for_one_song_and_zip_for_many(
+    tmp_path: Path,
+    mp3: Path,
+    object_store: FakeObjectStore,
+    monkeypatch: pytest.MonkeyPatch,
+    count: int,
+) -> None:
+    object_store.objects["source.mp3"] = mp3.read_bytes()
+    monkeypatch.setattr(downloadZip, "TEMP_PATH", str(tmp_path))
+    monkeypatch.setattr(
+        downloadZip.DownloadZipAccess,
+        "get_container_public_ids_async",
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=["album"])),
+    )
+    expand = AsyncMock(
+        return_value=Result(
+            code=ResultCode.OK, message="OK", result=[f"song-{i}" for i in range(count)]
+        )
+    )
+    monkeypatch.setattr(downloadZip.Downloader, "expand_container_async", expand)
+    files = [
+        ExportFile(f"Track {i}", "source.mp3", AudioTags(artists=("Artist",))) for i in range(count)
+    ]
+    monkeypatch.setattr(
+        downloadZip.DownloadZipAccess,
+        "get_export_files_async",
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=files)),
+    )
+    monkeypatch.setattr(
+        downloadZip.Notification,
+        "emit_async",
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=True)),
+    )
+    result = await DownloadZip.create_async(
+        session=AsyncMock(), user_id=1, public_ids=["album"], title="Album"
+    )
+    assert result.is_ok()
+    artifact = result.result()
+    try:
+        assert artifact.media_type == ("audio/mpeg" if count == 1 else "application/zip")
+        assert artifact.filename == ("Track 0.mp3" if count == 1 else "Album.zip")
+        if count == 1:
+            data = Path(artifact.path).read_bytes()
+            assert ID3(fileobj=io.BytesIO(data))["TIT2"].text == ["Track 0"]
+            assert mpeg_bytes(data) == mpeg_bytes(mp3.read_bytes())
+        else:
+            with zipfile.ZipFile(artifact.path) as archive:
+                assert len(archive.namelist()) == 2
+        assert object_store.objects["source.mp3"] == mp3.read_bytes()
+    finally:
+        Path(artifact.path).unlink()

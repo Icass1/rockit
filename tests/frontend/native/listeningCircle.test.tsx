@@ -8,8 +8,9 @@ jest.mock("@rockit/ui/icons", () => ({
     Headphones: () => null,
     UserPlus: () => null,
 }));
-it("keeps native friend selection separate from sending an invitation", async () => {
+it("opens the native profile directly and only sends an invitation explicitly", async () => {
     const invite = jest.fn();
+    const openProfile = jest.fn();
     await render(
         <DesignThemeProvider mode="dark">
             <ListeningCircle
@@ -19,19 +20,22 @@ it("keeps native friend selection separate from sending an invitation", async ()
                     vocabulary: {},
                 })}
                 onInvite={invite}
+                onViewProfile={openProfile}
                 onFindFriends={jest.fn()}
             />
         </DesignThemeProvider>
     );
     await fireEvent.press(
         screen.getByRole("button", {
-            name: "View Sam in your listening circle",
+            name: "View Sam's profile",
         })
     );
     expect(
         screen.getByText("Everything In Its Right Place · Radiohead")
     ).toBeTruthy();
     expect(invite).not.toHaveBeenCalled();
+    expect(openProfile).toHaveBeenCalledTimes(1);
+    expect(openProfile).toHaveBeenCalledWith("circle-sam");
     await fireEvent.press(
         screen.getByRole("button", { name: "Invite Sam to listen together" })
     );

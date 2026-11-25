@@ -14,6 +14,7 @@ import { recapStats } from "../fixtures/annualRecap";
 const adapters = vi.hoisted(() => ({
     motion: false,
     state: undefined as undefined | ((state: string) => void),
+    listeners: new Set<(state: string) => void>(),
     remove: vi.fn(),
 }));
 vi.mock("@rockit/ui/runtime", async (original) => ({
@@ -25,8 +26,15 @@ vi.mock("@rockit/ui/runtime", async (original) => ({
     AppState: {
         currentState: "active",
         addEventListener: (_: string, listener: (state: string) => void) => {
-            adapters.state = listener;
-            return { remove: adapters.remove };
+            adapters.listeners.add(listener);
+            adapters.state = (state) =>
+                adapters.listeners.forEach((callback) => callback(state));
+            return {
+                remove: () => {
+                    adapters.listeners.delete(listener);
+                    adapters.remove();
+                },
+            };
         },
     },
 }));

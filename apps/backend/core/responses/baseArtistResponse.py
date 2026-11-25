@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class BaseArtistResponse(BaseModel):
     type: Literal["artist"] = "artist"
+    genre: str | None = None
     provider: str
     publicId: str
     url: str

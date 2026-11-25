@@ -36,6 +36,12 @@ logger: Logger = getLogger(__name__)
 class BaseMediaProvider(BaseProvider):
     """Shared contract for media providers."""
 
+    async def apply_metadata_review_async(
+        self, session: AsyncSession, public_id: str, changes: dict[str, str]
+    ) -> Result[bool]:
+        logger.warning("Provider does not support reviewed metadata changes")
+        return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_METADATA_UNSUPPORTED")
+
     async def get_content_rating_evidence_async(
         self, session: AsyncSession, public_ids: list[str], allow_remote: bool = False
     ) -> Result[dict[str, bool | None]]:

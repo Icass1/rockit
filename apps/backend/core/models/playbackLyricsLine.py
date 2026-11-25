@@ -1,9 +1,11 @@
-from pydantic import Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from core.models.lyrics import LyricsWord
-from core.models.lyricsCorrection import LyricsCorrectionLine
 
 
-class PlaybackLyricsLine(LyricsCorrectionLine):
+class PlaybackLyricsLine(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str
+    timestamp_s: float | None = None
     words: list[LyricsWord] = Field(default_factory=list[LyricsWord])
     end_timestamp_s: float | None = None

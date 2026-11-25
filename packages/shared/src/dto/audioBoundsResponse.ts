@@ -12,9 +12,9 @@ export const AudioBoundsResponseSchema = z.object({
         ])
         .default("unavailable"),
     start: z.number().default(0.0),
-    end: z.number().nullable(),
-    duration: z.number().nullable(),
-    fingerprint: z.string().nullable(),
+    end: z.number().nullable().default(null),
+    duration: z.number().nullable().default(null),
+    fingerprint: z.string().nullable().default(null),
 });
 
 export type AudioBoundsResponse = z.infer<typeof AudioBoundsResponseSchema>;

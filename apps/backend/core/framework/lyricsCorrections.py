@@ -3,6 +3,7 @@
 import hashlib
 import json
 import math
+from collections import defaultdict, deque
 from dataclasses import dataclass
 
 from pydantic import ValidationError
@@ -56,6 +57,31 @@ class LyricsContext:
     pending: bool = False
 
 
+def correction_lines(
+    source: list[PlaybackLyricsLine], proposal: list[LyricsCorrectionLine]
+) -> list[PlaybackLyricsLine]:
+    """Resolve legacy line-only edits against matching source lines."""
+    originals: dict[tuple[str, float | None], deque[PlaybackLyricsLine]] = defaultdict(deque)
+    for line in source:
+        originals[line.text, line.timestamp_s].append(line)
+    corrected: list[PlaybackLyricsLine] = []
+    for line in proposal:
+        matches = originals[line.text, line.timestamp_s]
+        original = matches.popleft() if matches else None
+        if line.words is None and line.end_timestamp_s is None and original is not None:
+            corrected.append(original)
+        else:
+            corrected.append(
+                PlaybackLyricsLine(
+                    text=line.text,
+                    timestamp_s=line.timestamp_s,
+                    words=line.words or [],
+                    end_timestamp_s=line.end_timestamp_s,
+                )
+            )
+    return corrected
+
+
 def apply_overlay(context: LyricsContext, proposals: list[tuple[str, str]]) -> LyricsContext:
     """Apply the newest compatible approved proposal, never modifying source data."""
     latest: str | None = None
@@ -72,14 +98,7 @@ def apply_overlay(context: LyricsContext, proposals: list[tuple[str, str]]) -> L
             ):
                 continue
             if proposal.lines is not None:
-                context.lines = [
-                    context.lines[index]
-                    if index < len(context.lines)
-                    and line.text == context.lines[index].text
-                    and line.timestamp_s == context.lines[index].timestamp_s
-                    else PlaybackLyricsLine(text=line.text, timestamp_s=line.timestamp_s)
-                    for index, line in enumerate(proposal.lines)
-                ]
+                context.lines = correction_lines(source=context.lines, proposal=proposal.lines)
             context.offset = proposal.offset
             context.approved = True
             latest = public_id
@@ -248,7 +267,7 @@ class LyricsCorrections:
             proposal = LyricsCorrection.model_validate_json(payload)
         except ValidationError:
             logger.warning("Invalid lyrics correction proposal")
-            return Result(code=ResultCode.BAD_REQUEST, message="Invalid lyrics correction")
+            return Result(code=ResultCode.BAD_REQUEST, message="LYRICS_INVALID_CORRECTION")
         locked = await RequestAccess.lock_media_async(session=session, media_id=media_id)
         if locked.is_not_ok():
             logger.error("Cannot lock lyrics media: %s", locked.info())
@@ -267,26 +286,27 @@ class LyricsCorrections:
             logger.warning("Lyrics correction is stale or audio revision unavailable")
             return Result(
                 code=ResultCode.BAD_REQUEST,
-                message="Lyrics or audio changed; reload and propose again",
+                message="LYRICS_STALE_PROPOSAL",
             )
-        lines: list[LyricsCorrectionLine] = (
-            proposal.lines
+        lines = (
+            correction_lines(source=context.lines, proposal=proposal.lines)
             if proposal.lines is not None
-            else [
-                LyricsCorrectionLine(text=line.text, timestamp_s=line.timestamp_s)
-                for line in context.lines
-            ]
+            else context.lines
         )
         if not lines:
             logger.warning("An offset requires existing lyrics")
             return Result(code=ResultCode.BAD_REQUEST, message="No lyrics to adjust")
         # Store a full effective overlay so later offset-only proposals retain prior text edits.
-        stored = StoredLyricsCorrection(
-            **proposal.model_dump(exclude={"lines"}),
-            lines=lines,
-            sourceHash=context.source_hash,
-            audioIdentity=context.audio_identity,
-        )
+        try:
+            stored = StoredLyricsCorrection(
+                **proposal.model_dump(exclude={"lines"}),
+                lines=[LyricsCorrectionLine.model_validate(line.model_dump()) for line in lines],
+                sourceHash=context.source_hash,
+                audioIdentity=context.audio_identity,
+            )
+        except ValidationError:
+            logger.warning("Effective lyrics correction is invalid")
+            return Result(code=ResultCode.BAD_REQUEST, message="LYRICS_INVALID_CORRECTION")
         return Result(code=ResultCode.OK, message="OK", result=stored.model_dump_json())
 
     @staticmethod
@@ -298,9 +318,7 @@ class LyricsCorrections:
             stored = StoredLyricsCorrection.model_validate_json(payload)
         except ValidationError:
             logger.warning("Legacy/unstructured lyrics request requires a new proposal")
-            return Result(
-                code=ResultCode.BAD_REQUEST, message="Resubmit as a structured lyrics proposal"
-            )
+            return Result(code=ResultCode.BAD_REQUEST, message="LYRICS_LEGACY_PROPOSAL")
         prepared = await LyricsCorrections.prepare_async(
             session=session,
             media_id=media_id,

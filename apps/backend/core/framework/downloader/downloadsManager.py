@@ -8,7 +8,7 @@ from constants import DOWNLOAD_THREADS
 from core.access.db import db_context
 from core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from core.access.downloadAccess import DownloadAccess
-from core.enums.downloadStatusEnum import DownloadStatusEnum
+from core.enums.downloadStatusEnum import TERMINAL_DOWNLOAD_STATUS_KEYS, DownloadStatusEnum
 from core.framework import providers
 from core.framework.contentRating import ContentRatings
 from core.framework.downloader.baseDownload import BaseDownload
@@ -31,8 +31,6 @@ RATE_LIMIT_RETRY_DELAYS_SECONDS: list[float] = [300.0, 1800.0, 3600.0, 7200.0]
 
 
 class DownloadsManager:
-    downloads: list[BaseDownload]
-
     download_threads: list[OngoingDownload]
 
     max_download_threads: int
@@ -51,7 +49,6 @@ class DownloadsManager:
 
     def __init__(self) -> None:
         self.download_threads = []
-        self.downloads = []
         self.max_download_threads = DOWNLOAD_THREADS
         self.queue = []
         self.pending_per_group = defaultdict(int)
@@ -87,6 +84,35 @@ class DownloadsManager:
             f"(retry #{download.retry_count})"
         )
 
+    def _finish_download(self, download: BaseDownload) -> None:
+        group_id = download.download_group_id
+        self.pending_per_group[group_id] -= 1
+        if self.pending_per_group[group_id] == 0:
+            del self.pending_per_group[group_id]
+            asyncio.create_task(self._update_group_completion(group_id))
+
+    def cancel_downloads(self, download_ids: set[int]) -> None:
+        """Stop local workers and discard queued or delayed retries for cancelled rows."""
+        removed = {
+            task.download_id: task
+            for task in [*self.queue, *(task for _, task in self.delayed_queue)]
+            if task.download_id in download_ids
+        }
+        self.queue = [task for task in self.queue if task.download_id not in download_ids]
+        self.delayed_queue = [
+            (ready, task)
+            for ready, task in self.delayed_queue
+            if task.download_id not in download_ids
+        ]
+        for ongoing in self.download_threads:
+            download_id = ongoing.download.download_id
+            if download_id in download_ids:
+                self._retry_scheduled.discard(download_id)
+                removed.pop(download_id, None)
+                ongoing.task.cancel()
+        for task in removed.values():
+            self._finish_download(task)
+
     async def _update_group_completion(self, group_id: int) -> None:
         async with db_context.session_scope_async() as session:
             result = await DownloadAccess.update_download_group_completion(
@@ -100,9 +126,6 @@ class DownloadsManager:
     async def download_manager(self) -> None:
         try:
             logger.info("Started async download manager.")
-            ongoing: list[OngoingDownload] = []
-            group_tasks: dict[int, list[OngoingDownload]] = defaultdict(list)
-
             while True:
                 await asyncio.sleep(0.4)
 
@@ -117,34 +140,18 @@ class DownloadsManager:
                 self.delayed_queue = still_delayed
 
                 still_ongoing: list[OngoingDownload] = []
-                for od in ongoing:
+                for od in self.download_threads:
                     if od.task.done():
                         did: int = od.download.download_id
                         if did in self._retry_scheduled:
                             self._retry_scheduled.discard(did)
                         else:
-                            for group_id, tasks in group_tasks.items():
-                                for gt in tasks:
-                                    if gt.task == od.task:
-                                        self.pending_per_group[group_id] -= 1
-                                        remaining = self.pending_per_group[group_id]
-                                        logger.info(
-                                            f"Download completed for group {group_id}, "
-                                            f"{remaining} remaining"
-                                        )
-                                        if remaining == 0:
-                                            logger.info(
-                                                f"All downloads complete for group {group_id}"
-                                            )
-                                            asyncio.create_task(
-                                                self._update_group_completion(group_id)
-                                            )
-                                        break
+                            self._finish_download(od.download)
                     else:
                         still_ongoing.append(od)
-                ongoing = still_ongoing
+                self.download_threads = still_ongoing
 
-                while len(ongoing) < self.max_download_threads and len(self.queue) > 0:
+                while len(self.download_threads) < self.max_download_threads and self.queue:
                     download: BaseDownload = self.queue.pop(0)
                     logger.info(f"Starting new async download: {download.public_id}")
 
@@ -152,7 +159,28 @@ class DownloadsManager:
                         sem: asyncio.Semaphore = self._get_provider_semaphore(d.provider_id)
                         async with sem:
                             async with db_context.session_scope_async() as session:
+                                status = await DownloadAccess.get_download_status_key_async(
+                                    session=session, download_id=d.download_id
+                                )
+                                if status.is_not_ok():
+                                    logger.warning(f"Queued download unavailable: {status.info()}")
+                                    return ResultCode(code=status.code(), message=status.message())
+                                if status.result() in TERMINAL_DOWNLOAD_STATUS_KEYS:
+                                    return ResultCode(
+                                        code=ResultCode.OK, message="Already finished"
+                                    )
                                 a_result: ResultCode = await d.download_method_async(session)
+                                status = await DownloadAccess.get_download_status_key_async(
+                                    session=session, download_id=d.download_id, lock=True
+                                )
+                                if status.is_not_ok():
+                                    logger.warning(f"Download unavailable: {status.info()}")
+                                    return ResultCode(code=status.code(), message=status.message())
+                                if status.result() in TERMINAL_DOWNLOAD_STATUS_KEYS:
+                                    await session.rollback()
+                                    return ResultCode(
+                                        code=ResultCode.OK, message="Already finished"
+                                    )
                                 if a_result.is_ok():
                                     rating = await ContentRatings.ingest_download_async(
                                         session=session, public_id=d.public_id
@@ -295,8 +323,7 @@ class DownloadsManager:
 
                     task: asyncio.Task[ResultCode] = asyncio.create_task(run_download(download))
                     od = OngoingDownload(task=task, download=download)
-                    group_tasks[download.download_group_id].append(od)
-                    ongoing.append(od)
+                    self.download_threads.append(od)
 
         except Exception as e:
             logger.critical(f"Error in async download manager: {e}")

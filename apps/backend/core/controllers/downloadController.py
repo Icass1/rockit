@@ -132,7 +132,7 @@ async def start_download_from_search(
 
 
 @router.get("/downloads")
-async def get_downloads(request: Request) -> DownloadsResponse:
+async def get_downloads(request: Request, include_cancelled: bool = False) -> DownloadsResponse:
     """Get all downloads for the current user."""
 
     session = DBSessionMiddleware.get_session(request=request)
@@ -146,7 +146,7 @@ async def get_downloads(request: Request) -> DownloadsResponse:
     user: UserRow = a_result_user.result()
 
     a_result: Result[DownloadsResponse] = await Downloader.get_downloads_async(
-        session=session, user_id=user.id
+        session=session, user_id=user.id, include_cancelled=include_cancelled
     )
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
@@ -197,6 +197,24 @@ async def mark_download_seen(request: Request, public_id: str) -> OkResponse:
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
+    return OkResponse()
+
+
+@router.post("/downloads/{public_id}/cancel")
+async def cancel_download(request: Request, public_id: str) -> OkResponse:
+    """Stop an active download and retain its history entry."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Error authenticating download cancellation. {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Downloader.cancel_download_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        public_id=public_id,
+    )
+    if result.is_not_ok():
+        logger.error(f"Error cancelling download. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse()
 
 
@@ -274,7 +292,7 @@ async def browse_download_group_items(
 
 @router.post("/groups/{public_id}/{action}")
 async def manage_download_group(
-    request: Request, public_id: str, action: Literal["retry", "delete", "library"]
+    request: Request, public_id: str, action: Literal["retry", "delete", "library", "cancel"]
 ) -> OkResponse:
     """Manage a complete download group, including its library membership."""
     user = AuthMiddleware.get_current_user(request=request)

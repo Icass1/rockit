@@ -9,6 +9,7 @@ class BaseVideoResponse(BaseModel):
     """Base response model for video information."""
 
     type: Literal["video"] = "video"
+    genre: str | None = None
     provider: str
     publicId: str
     providerUrl: str

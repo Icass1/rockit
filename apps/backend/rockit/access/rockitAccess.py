@@ -394,7 +394,7 @@ class RockitAccess:
 
         try:
             for name in artist_names:
-                a_result_artist = await RockitAccess._get_or_create_artist_async(
+                a_result_artist = await RockitAccess.get_or_create_artist_async(
                     session=session, name=name, image_id=image_id
                 )
                 if a_result_artist.is_ok():
@@ -421,7 +421,7 @@ class RockitAccess:
             return Result(code=ResultCode.GENERAL_ERROR, message="Error linking artists")
 
     @staticmethod
-    async def _get_or_create_artist_async(
+    async def get_or_create_artist_async(
         session: AsyncSession,
         name: str,
         image_id: int,

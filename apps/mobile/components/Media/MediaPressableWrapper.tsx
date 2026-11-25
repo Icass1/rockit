@@ -24,6 +24,7 @@ import { useDesignTheme } from "@rockit/ui";
 import {
     CheckSquare,
     Download,
+    FileArchive,
     HardDriveDownload,
     Heart,
     ListEnd,
@@ -41,6 +42,7 @@ import {
     Square,
 } from "@rockit/ui/icons";
 import { Pressable, View } from "react-native";
+import { useExportDownload } from "@/hooks/useExportDownload";
 import {
     ContextMenuConfig,
     ContextMenuOption,
@@ -84,6 +86,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     onPress,
 }: MediaCardProps) {
     const selection = useLibrarySelection();
+    const exportDownload = useExportDownload();
     const theme = useDesignTheme();
     const { show, hide } = useContextMenu();
     const { vocabulary } = useVocabulary();
@@ -145,6 +148,18 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     onPress: () => {
                         hide();
                         selection.start(media.publicId);
+                    },
+                });
+
+            if (!isSearchResult(media) && canSelectForZip(media))
+                options.push({
+                    label: isSong(media)
+                        ? vocabulary.DOWNLOAD
+                        : vocabulary.DOWNLOAD_ZIP,
+                    icon: FileArchive,
+                    onPress: () => {
+                        hide();
+                        void exportDownload([media.publicId], media.name);
                     },
                 });
 
@@ -536,7 +551,15 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [hide, show, extraOptions, listPublicId, vocabulary, selection]
+        [
+            hide,
+            show,
+            extraOptions,
+            listPublicId,
+            vocabulary,
+            selection,
+            exportDownload,
+        ]
     );
 
     const showPlaylistPicker = useCallback(

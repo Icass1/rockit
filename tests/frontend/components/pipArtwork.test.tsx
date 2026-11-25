@@ -15,6 +15,7 @@ vi.hoisted(() => {
 function song(id: string, album = id): BaseSongWithAlbumResponse {
     return {
         type: "song",
+        genre: null,
         publicId: id,
         provider: "Fixture",
         providerUrl: "",
@@ -31,6 +32,7 @@ function song(id: string, album = id): BaseSongWithAlbumResponse {
         trackNumber: 1,
         album: {
             type: "album",
+            genre: null,
             publicId: album,
             provider: "Fixture",
             providerUrl: "",

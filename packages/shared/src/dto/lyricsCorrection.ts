@@ -11,7 +11,10 @@ export const LyricsCorrectionSchema = z.object({
     provider: z.string(),
     revision: z.string(),
     offset: z.number(),
-    lines: z.array(z.lazy(() => LyricsCorrectionLineSchema)).nullable(),
+    lines: z
+        .array(z.lazy(() => LyricsCorrectionLineSchema))
+        .nullable()
+        .default(null),
 });
 
 export type LyricsCorrection = z.infer<typeof LyricsCorrectionSchema>;

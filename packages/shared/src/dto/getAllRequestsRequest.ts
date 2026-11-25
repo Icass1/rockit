@@ -4,7 +4,10 @@
 import { z } from "zod";
 
 export const GetAllRequestsRequestSchema = z.object({
-    status: z.enum(["PENDING", "ACCEPTED", "REJECTED"]).nullable(),
+    status: z
+        .enum(["PENDING", "ACCEPTED", "REJECTED"])
+        .nullable()
+        .default(null),
     limit: z.number().default(50),
     offset: z.number().default(0),
 });

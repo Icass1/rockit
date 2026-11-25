@@ -1,0 +1,9 @@
+export const Svg = "svg";
+export const Defs = "defs";
+export const RadialGradient = "radialGradient";
+export const LinearGradient = "linearGradient";
+export const Stop = "stop";
+export const ClipPath = "clipPath";
+export const Rect = "rect";
+export const Path = "path";
+export const G = "g";

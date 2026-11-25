@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { miniPlayerGestureStyle } from "@/platform/miniPlayerGestureStyle";
 import { useStore } from "@nanostores/react";
 import { getMediaArtistsString } from "@rockit/shared";
 import { designTokens, withAlpha } from "@rockit/theme";
@@ -19,6 +20,7 @@ import {
     Text,
     View,
 } from "react-native";
+import { useMiniPlayerSwipe } from "@/hooks/useMiniPlayerSwipe";
 import { useOfflineArtwork } from "@/hooks/useOfflineArtwork";
 import { useContextMenu } from "@/lib/ContextMenuContext";
 import {
@@ -41,6 +43,7 @@ export default function MiniPlayer() {
         isLoading: nativeLoading,
         togglePlayPause,
         skipForward,
+        skipBack,
         showPlayer,
     } = usePlayer();
     const services = usePlayerServices();
@@ -59,6 +62,12 @@ export default function MiniPlayer() {
     const shouldHide = isPlayerVisible || isContextMenuOpen;
     const [opacity] = useState(() => new Animated.Value(shouldHide ? 0 : 1));
     const [isHidden, setIsHidden] = useState(false);
+    const swipe = useMiniPlayerSwipe({
+        publicId: currentMedia?.publicId,
+        disabled: !!pending || shouldHide,
+        next: skipForward,
+        previous: skipBack,
+    });
 
     useEffect(() => {
         logSheetDebug("miniPlayer.visibility", {
@@ -112,49 +121,67 @@ export default function MiniPlayer() {
             {/* Active accent strip on the left edge */}
             <View style={[styles.accent, isPlaying && styles.accentActive]} />
 
-            <Pressable
-                style={styles.content}
-                accessibilityRole="button"
-                accessibilityLabel={currentMedia.name}
-                disabled={!!pending}
-                onPress={showPlayer}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-            >
-                <View style={styles.thumbnailContainer}>
-                    <Image
-                        source={imageUrl ? { uri: imageUrl } : null}
-                        style={styles.thumbnail}
-                        contentFit="cover"
-                        transition={200}
-                    />
-                </View>
-
-                <View style={styles.info}>
-                    <Text style={styles.title} numberOfLines={1}>
-                        {currentMedia.name}
-                    </Text>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: theme.spacing.xs,
+            <View style={styles.content}>
+                <Animated.View
+                    testID="mini-player-swipe"
+                    onLayout={swipe.onLayout}
+                    {...swipe.panHandlers}
+                    style={[
+                        miniPlayerGestureStyle,
+                        {
+                            flex: 1,
+                            minWidth: 0,
+                            transform: [{ translateX: swipe.x }],
+                        },
+                    ]}
+                >
+                    <Pressable
+                        style={styles.identity}
+                        accessibilityRole="button"
+                        accessibilityLabel={currentMedia.name}
+                        disabled={!!pending}
+                        onPress={() => swipe.openOnTap(showPlayer)}
+                        onPressIn={() => {
+                            swipe.beginPress();
+                            handlePressIn();
                         }}
+                        onPressOut={handlePressOut}
                     >
-                        <ExplicitBadge
-                            explicit={
-                                currentMedia.type === "song"
-                                    ? currentMedia.explicit
-                                    : null
-                            }
-                            label={vocabulary.CONTENT_RATING_EXPLICIT}
-                        />
-                        <Text style={styles.artist} numberOfLines={1}>
-                            {getMediaArtistsString(currentMedia)}
-                        </Text>
-                    </View>
-                </View>
+                        <View style={styles.thumbnailContainer}>
+                            <Image
+                                source={imageUrl ? { uri: imageUrl } : null}
+                                style={styles.thumbnail}
+                                contentFit="cover"
+                                transition={200}
+                            />
+                        </View>
 
+                        <View style={styles.info}>
+                            <Text style={styles.title} numberOfLines={1}>
+                                {currentMedia.name}
+                            </Text>
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: theme.spacing.xs,
+                                }}
+                            >
+                                <ExplicitBadge
+                                    explicit={
+                                        currentMedia.type === "song"
+                                            ? currentMedia.explicit
+                                            : null
+                                    }
+                                    label={vocabulary.CONTENT_RATING_EXPLICIT}
+                                />
+                                <Text style={styles.artist} numberOfLines={1}>
+                                    {getMediaArtistsString(currentMedia)}
+                                </Text>
+                            </View>
+                        </View>
+                    </Pressable>
+                </Animated.View>
                 {/* Play / Pause */}
                 <Pressable
                     accessibilityRole="button"
@@ -207,7 +234,7 @@ export default function MiniPlayer() {
                         color={theme.legacy.white}
                     />
                 </Pressable>
-            </Pressable>
+            </View>
 
             {/* Progress track hint at the very bottom */}
             <View style={styles.progressTrack}>
@@ -262,6 +289,12 @@ const createStyles = (theme: DesignTheme) =>
             alignItems: "center",
             paddingLeft: 0,
             paddingRight: theme.spacing.md,
+            gap: theme.spacing.md,
+        },
+        identity: {
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
             gap: theme.spacing.md,
         },
         thumbnailContainer: {

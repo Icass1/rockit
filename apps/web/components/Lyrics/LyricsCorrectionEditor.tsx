@@ -2,10 +2,15 @@
 
 import { useEffect, useId, useState, type JSX } from "react";
 import type { LyricsCorrectionContextResponse } from "@/dto";
-import { lyricsCorrectionSchema } from "@/models/schemas/lyricsCorrection";
+import {
+    lyricsCorrectionError,
+    useLyricsCorrectionDraft,
+} from "@rockit/ui/headless/useLyricsCorrectionDraft";
 import { Http } from "@/lib/http";
 import { LyricsPreview } from "@/components/Lyrics/LyricsPreview";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
+import { Input } from "@/components/ui/Input";
+import { NumberInput } from "@/components/ui/NumberInput";
 
 export function LyricsCorrectionEditor({
     mediaPublicId,
@@ -59,32 +64,20 @@ function CorrectionForm({
 }): JSX.Element {
     const vocabulary = useVocabulary();
     const id = useId();
-    const [offset, setOffset] = useState(snapshot.offset);
-    const [lines, setLines] = useState(
-        snapshot.lines.map((line) => ({
-            text: line.text,
-            timestamp_s: line.timestamp_s,
-        }))
-    );
+    const {
+        offset,
+        setOffset,
+        lines,
+        setLines,
+        editLine,
+        editWord,
+        proposal,
+        changed,
+    } = useLyricsCorrectionDraft(snapshot);
+    const [expanded, setExpanded] = useState<number>();
     const [pending, setPending] = useState(false);
     const [sent, setSent] = useState(false);
     const [error, setError] = useState<string>();
-    const proposal = lyricsCorrectionSchema.safeParse({
-        kind: "lyrics_correction",
-        provider: snapshot.provider,
-        revision: snapshot.revision,
-        offset,
-        lines,
-    });
-    const changed =
-        offset !== snapshot.offset ||
-        JSON.stringify(lines) !==
-            JSON.stringify(
-                snapshot.lines.map((line) => ({
-                    text: line.text,
-                    timestamp_s: line.timestamp_s,
-                }))
-            );
     const submit = async (): Promise<void> => {
         if (!proposal.success || pending || !changed) return;
         setPending(true);
@@ -97,12 +90,7 @@ function CorrectionForm({
                 comment: null,
             });
             if (response.isOk()) setSent(true);
-            else
-                setError(
-                    typeof response.detail === "string"
-                        ? response.detail
-                        : vocabulary.EDIT_METADATA_ERROR
-                );
+            else setError(lyricsCorrectionError(vocabulary, response.detail));
         } catch {
             setError(vocabulary.EDIT_METADATA_ERROR);
         } finally {
@@ -120,9 +108,8 @@ function CorrectionForm({
             <label htmlFor={`${id}-offset`} className="block text-sm">
                 {vocabulary.LYRICS_OFFSET_LABEL}
             </label>
-            <input
+            <NumberInput
                 id={`${id}-offset`}
-                type="number"
                 min={-120}
                 max={120}
                 step={0.1}
@@ -138,64 +125,166 @@ function CorrectionForm({
                 <summary>{vocabulary.LYRICS_EDIT_LINES}</summary>
                 <div className="max-h-60 overflow-y-auto">
                     {lines.map((line, index) => (
-                        <div key={index} className="my-2 flex gap-1">
-                            <input
-                                aria-label={`${vocabulary.LYRICS_TIME} ${index + 1}`}
-                                type="number"
-                                min={0}
-                                max={86400}
-                                step={0.01}
-                                value={line.timestamp_s ?? ""}
-                                disabled={pending || sent}
-                                onChange={(event) =>
-                                    setLines((current) =>
-                                        current.map((item, i) =>
-                                            i === index
-                                                ? {
-                                                      ...item,
-                                                      timestamp_s:
-                                                          event.target.value ===
-                                                          ""
-                                                              ? null
-                                                              : event.target
-                                                                    .valueAsNumber,
-                                                  }
-                                                : item
-                                        )
-                                    )
-                                }
-                                className="bg-muted w-24 rounded p-1"
-                            />
-                            <input
-                                aria-label={`${vocabulary.LYRICS_TEXT} ${index + 1}`}
-                                value={line.text}
-                                disabled={pending || sent}
-                                onChange={(event) =>
-                                    setLines((current) =>
-                                        current.map((item, i) =>
-                                            i === index
-                                                ? {
-                                                      ...item,
-                                                      text: event.target.value,
-                                                  }
-                                                : item
-                                        )
-                                    )
-                                }
-                                className="bg-muted min-w-0 flex-1 rounded p-1"
-                            />
-                            <button
-                                type="button"
-                                aria-label={vocabulary.LYRICS_REMOVE_LINE}
-                                disabled={pending || sent}
-                                onClick={() =>
-                                    setLines((current) =>
-                                        current.filter((_, i) => i !== index)
-                                    )
-                                }
-                            >
-                                ×
-                            </button>
+                        <div
+                            key={index}
+                            className="border-border space-y-2 border-b py-2"
+                        >
+                            <div className="flex flex-wrap items-center gap-2">
+                                <NumberInput
+                                    aria-label={`${vocabulary.LYRICS_TIME} ${index + 1}`}
+                                    min={0}
+                                    max={86400}
+                                    step="any"
+                                    value={line.timestamp_s ?? ""}
+                                    disabled={
+                                        pending || sent || !!line.words.length
+                                    }
+                                    onChange={(event) => {
+                                        const timestamp_s =
+                                            event.currentTarget.value === ""
+                                                ? null
+                                                : event.currentTarget
+                                                      .valueAsNumber;
+                                        editLine(index, (item) => ({
+                                            ...item,
+                                            timestamp_s,
+                                            end_timestamp_s: null,
+                                        }));
+                                    }}
+                                    className="w-24"
+                                />
+                                {line.words.length ? (
+                                    <button
+                                        type="button"
+                                        className="min-w-0 flex-1 text-left"
+                                        aria-expanded={expanded === index}
+                                        aria-label={`${vocabulary.LYRICS_WORDS_EDIT} ${index + 1}`}
+                                        onClick={() =>
+                                            setExpanded(
+                                                expanded === index
+                                                    ? undefined
+                                                    : index
+                                            )
+                                        }
+                                    >
+                                        <span className="block">
+                                            {line.text}
+                                        </span>
+                                        <span className="text-primary text-xs">
+                                            {vocabulary.LYRICS_WORDS_EDIT}
+                                        </span>
+                                    </button>
+                                ) : (
+                                    <Input
+                                        aria-label={`${vocabulary.LYRICS_TEXT} ${index + 1}`}
+                                        value={line.text}
+                                        disabled={pending || sent}
+                                        onChange={(event) => {
+                                            const text =
+                                                event.currentTarget.value;
+                                            editLine(index, (item) => ({
+                                                ...item,
+                                                text,
+                                            }));
+                                        }}
+                                        className="min-w-0 flex-1"
+                                    />
+                                )}
+                                <button
+                                    type="button"
+                                    aria-label={vocabulary.LYRICS_REMOVE_LINE}
+                                    disabled={pending || sent}
+                                    className="min-h-11 min-w-11"
+                                    onClick={() => {
+                                        setExpanded(undefined);
+                                        setLines((current) =>
+                                            current.filter(
+                                                (_, i) => i !== index
+                                            )
+                                        );
+                                    }}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                            {expanded === index && line.words.length > 0 && (
+                                <div className="space-y-2">
+                                    <p className="text-muted-foreground text-xs">
+                                        {vocabulary.LYRICS_WORDS_HELP}
+                                    </p>
+                                    {line.words.map((word, i) => (
+                                        <div
+                                            key={i}
+                                            className="flex flex-wrap gap-2"
+                                        >
+                                            <Input
+                                                className="min-w-24 flex-1"
+                                                aria-label={`${vocabulary.LYRICS_WORD_TEXT} ${i + 1}`}
+                                                value={word.text}
+                                                disabled={pending || sent}
+                                                onChange={(event) =>
+                                                    editWord(index, i, {
+                                                        text: event
+                                                            .currentTarget
+                                                            .value,
+                                                    })
+                                                }
+                                            />
+                                            <NumberInput
+                                                className="w-24"
+                                                aria-label={`${vocabulary.LYRICS_WORD_START} ${i + 1}`}
+                                                min={line.timestamp_s ?? 0}
+                                                step="any"
+                                                value={
+                                                    Number.isFinite(
+                                                        word.timestamp_s
+                                                    )
+                                                        ? word.timestamp_s
+                                                        : ""
+                                                }
+                                                disabled={pending || sent}
+                                                onChange={(event) =>
+                                                    editWord(index, i, {
+                                                        timestamp_s:
+                                                            event.currentTarget
+                                                                .valueAsNumber,
+                                                    })
+                                                }
+                                            />
+                                            <NumberInput
+                                                className="w-24"
+                                                aria-label={`${vocabulary.LYRICS_WORD_END} ${i + 1}`}
+                                                min={
+                                                    Number.isFinite(
+                                                        word.timestamp_s
+                                                    )
+                                                        ? word.timestamp_s
+                                                        : undefined
+                                                }
+                                                step="any"
+                                                placeholder={
+                                                    vocabulary.LYRICS_WORD_END
+                                                }
+                                                value={
+                                                    word.end_timestamp_s ?? ""
+                                                }
+                                                disabled={pending || sent}
+                                                onChange={(event) =>
+                                                    editWord(index, i, {
+                                                        end_timestamp_s:
+                                                            event.currentTarget
+                                                                .value === ""
+                                                                ? null
+                                                                : event
+                                                                      .currentTarget
+                                                                      .valueAsNumber,
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -205,7 +294,12 @@ function CorrectionForm({
                     onClick={() =>
                         setLines((current) => [
                             ...current,
-                            { text: "", timestamp_s: null },
+                            {
+                                text: "",
+                                timestamp_s: null,
+                                words: [],
+                                end_timestamp_s: null,
+                            },
                         ])
                     }
                 >

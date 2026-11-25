@@ -46,6 +46,7 @@ export async function createFixtureBackend(port = 0) {
     let onlineCount = 12;
     const artist: dto.BaseArtistResponse = {
         type: "artist",
+        genre: null,
         provider: "Fixture",
         publicId: "artist-1",
         url: "/artist/artist-1",
@@ -56,6 +57,7 @@ export async function createFixtureBackend(port = 0) {
     };
     const album: dto.BaseAlbumWithoutSongsResponse = {
         type: "album",
+        genre: null,
         provider: "Fixture",
         publicId: "album-1",
         url: "/album/album-1",
@@ -69,6 +71,7 @@ export async function createFixtureBackend(port = 0) {
     };
     const song: dto.BaseSongWithAlbumResponse = {
         type: "song",
+        genre: null,
         provider: "Fixture",
         publicId: "song-1",
         explicit: true,
@@ -136,6 +139,10 @@ export async function createFixtureBackend(port = 0) {
         const origin = request.headers.origin;
         if (origin) response.setHeader("Access-Control-Allow-Origin", origin);
         response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader(
+            "Access-Control-Expose-Headers",
+            "Content-Disposition"
+        );
         response.setHeader("Access-Control-Allow-Headers", "content-type");
         response.setHeader(
             "Access-Control-Allow-Methods",
@@ -715,6 +722,17 @@ export async function createFixtureBackend(port = 0) {
             }
             if (path === "/bookmark/list")
                 return send({ bookmarks: [] }, dto.BookmarkListResponseSchema);
+            if (path === "/version/android/latest")
+                return send(
+                    {
+                        apk: {
+                            buildNumber: 42,
+                            versionCode: 43,
+                            apkUrl: `http://127.0.0.1:${port}/version/android/42/apk`,
+                        },
+                    },
+                    dto.LatestAndroidReleaseResponseSchema
+                );
             if (path === "/version/latest")
                 return send(
                     { version: "1.0.0", apkUrl: "" },
@@ -724,7 +742,7 @@ export async function createFixtureBackend(port = 0) {
                 return send(
                     {
                         ...playlist,
-                        publicId: `featured-${path.split("/").at(-1)}`,
+                        publicId: path.split("/").at(-1)!,
                         medias: catalog.slice(0, 2).map((item) => ({
                             item,
                             addedAt: "2026-01-01T00:00:00Z",
@@ -798,8 +816,34 @@ export async function createFixtureBackend(port = 0) {
                     { ...session(), lang, crossfade: 0 },
                     dto.UserSettingsResponseSchema
                 );
+            if (/^\/admin\/builds\/android\/\d+\/download$/.test(path)) {
+                response.writeHead(200, {
+                    "content-type": "application/vnd.android.package-archive",
+                    "content-disposition":
+                        "attachment; filename=RockIt-Android-25.apk",
+                });
+                response.end(
+                    Buffer.from(
+                        "UEsDBBQAAAAAABCfeF0KIFuJFQAAABUAAAATAAAAQW5kcm9pZE1hbmlmZXN0LnhtbFN5bnRoZXRpYyBmaXh0dXJlIEFQS1BLAQIUAxQAAAAAABCfeF0KIFuJFQAAABUAAAATAAAAAAAAAAAAAACAAQAAAABBbmRyb2lkTWFuaWZlc3QueG1sUEsFBgAAAAABAAEAQQAAAEYAAAAAAA==",
+                        "base64"
+                    )
+                );
+                return;
+            }
             if (path === "/downloader/download-zip") {
-                dto.DownloadZipRequestSchema.parse(body);
+                const selection = dto.DownloadZipRequestSchema.parse(body);
+                if (
+                    selection.ids.length === 1 &&
+                    selection.ids[0] === "song-1"
+                ) {
+                    response.writeHead(200, {
+                        "content-type": "audio/mpeg",
+                        "content-disposition":
+                            "attachment; filename=Fixture-track.mp3",
+                    });
+                    response.end(Buffer.from("ID3 audio export fixture"));
+                    return;
+                }
                 const archive = Buffer.from(
                     "UEsDBBQAAAAAAFW1a12gkUEDFgAAABYAAAALAAAAZml4dHVyZS50eHRSb2NrSXQgYXJjaGl2ZSBmaXh0dXJlUEsBAhQDFAAAAAAAVbVrXaCRQQMWAAAAFgAAAAsAAAAAAAAAAAAAAIABAAAAAGZpeHR1cmUudHh0UEsFBgAAAAABAAEAOQAAAD8AAAAAAA==",
                     "base64"

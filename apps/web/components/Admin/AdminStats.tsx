@@ -27,6 +27,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import { useAdminTableSort } from "@/hooks/useAdminTableSort";
 import { Http } from "@/lib/http";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
@@ -99,6 +100,16 @@ function SectionHeader({ title, icon }: SectionHeaderProps): JSX.Element {
 }
 
 export default function AdminStats(): JSX.Element {
+    const routes =
+        useAdminTableSort<RequestLogStatsResponse["routeStats"][number]>(
+            "count"
+        );
+    const users =
+        useAdminTableSort<RequestLogStatsResponse["userActivity"][number]>(
+            "requestCount"
+        );
+    const ips =
+        useAdminTableSort<RequestLogStatsResponse["topIps"][number]>("count");
     const [data, setData] = useState<RequestLogStatsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -151,10 +162,7 @@ export default function AdminStats(): JSX.Element {
     }
 
     const timeSeriesReversed = [...data.timeSeries].reverse();
-    const routeStatsSorted = [...data.routeStats].sort(
-        (a, b): number => b.count - a.count
-    );
-    const routeTop = routeStatsSorted.slice(0, 15);
+    const routeTop = routes.sort(data.routeStats);
     const codeChartData = data.codeDistribution.map(
         (c): { name: string; count: number; fill: string } => ({
             name: `${c.code}`,
@@ -513,23 +521,109 @@ export default function AdminStats(): JSX.Element {
                         <table className="w-full text-left text-sm">
                             <thead>
                                 <tr className="border-border-subtle bg-background/50 border-b">
-                                    <th className="text-muted-foreground px-4 py-3 font-medium">
-                                        {$vocabulary.ADMIN_ROUTE}
+                                    <th
+                                        className="text-muted-foreground px-4 py-3 font-medium"
+                                        {...routes.header("normalizedRoute")}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                            onClick={() =>
+                                                routes.toggle("normalizedRoute")
+                                            }
+                                        >
+                                            {$vocabulary.ADMIN_ROUTE}
+                                            <span aria-hidden="true">
+                                                {routes.indicator(
+                                                    "normalizedRoute"
+                                                )}
+                                            </span>
+                                        </button>
                                     </th>
-                                    <th className="text-muted-foreground px-4 py-3 font-medium">
-                                        {$vocabulary.ADMIN_METHOD}
+                                    <th
+                                        className="text-muted-foreground px-4 py-3 font-medium"
+                                        {...routes.header("method")}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                            onClick={() =>
+                                                routes.toggle("method")
+                                            }
+                                        >
+                                            {$vocabulary.ADMIN_METHOD}
+                                            <span aria-hidden="true">
+                                                {routes.indicator("method")}
+                                            </span>
+                                        </button>
                                     </th>
-                                    <th className="text-muted-foreground px-4 py-3 text-right font-medium">
-                                        {$vocabulary.ADMIN_COUNT}
+                                    <th
+                                        className="text-muted-foreground px-4 py-3 text-right font-medium"
+                                        {...routes.header("count")}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                            onClick={() =>
+                                                routes.toggle("count")
+                                            }
+                                        >
+                                            {$vocabulary.ADMIN_COUNT}
+                                            <span aria-hidden="true">
+                                                {routes.indicator("count")}
+                                            </span>
+                                        </button>
                                     </th>
-                                    <th className="text-muted-foreground px-4 py-3 text-right font-medium">
-                                        {$vocabulary.ADMIN_AVG_TIME}
+                                    <th
+                                        className="text-muted-foreground px-4 py-3 text-right font-medium"
+                                        {...routes.header("avgTimeMs")}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                            onClick={() =>
+                                                routes.toggle("avgTimeMs")
+                                            }
+                                        >
+                                            {$vocabulary.ADMIN_AVG_TIME}
+                                            <span aria-hidden="true">
+                                                {routes.indicator("avgTimeMs")}
+                                            </span>
+                                        </button>
                                     </th>
-                                    <th className="text-muted-foreground px-4 py-3 text-right font-medium">
-                                        {$vocabulary.ADMIN_MIN}
+                                    <th
+                                        className="text-muted-foreground px-4 py-3 text-right font-medium"
+                                        {...routes.header("minTimeMs")}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                            onClick={() =>
+                                                routes.toggle("minTimeMs")
+                                            }
+                                        >
+                                            {$vocabulary.ADMIN_MIN}
+                                            <span aria-hidden="true">
+                                                {routes.indicator("minTimeMs")}
+                                            </span>
+                                        </button>
                                     </th>
-                                    <th className="text-muted-foreground px-4 py-3 text-right font-medium">
-                                        {$vocabulary.ADMIN_MAX}
+                                    <th
+                                        className="text-muted-foreground px-4 py-3 text-right font-medium"
+                                        {...routes.header("maxTimeMs")}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                            onClick={() =>
+                                                routes.toggle("maxTimeMs")
+                                            }
+                                        >
+                                            {$vocabulary.ADMIN_MAX}
+                                            <span aria-hidden="true">
+                                                {routes.indicator("maxTimeMs")}
+                                            </span>
+                                        </button>
                                     </th>
                                 </tr>
                             </thead>
@@ -578,20 +672,69 @@ export default function AdminStats(): JSX.Element {
                             <table className="w-full text-left text-sm">
                                 <thead>
                                     <tr className="border-border-subtle bg-background/50 border-b">
-                                        <th className="text-muted-foreground px-4 py-3 font-medium">
-                                            {$vocabulary.ADMIN_USER}
+                                        <th
+                                            className="text-muted-foreground px-4 py-3 font-medium"
+                                            {...users.header("username")}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                                onClick={() =>
+                                                    users.toggle("username")
+                                                }
+                                            >
+                                                {$vocabulary.ADMIN_USER}
+                                                <span aria-hidden="true">
+                                                    {users.indicator(
+                                                        "username"
+                                                    )}
+                                                </span>
+                                            </button>
                                         </th>
-                                        <th className="text-muted-foreground px-4 py-3 text-right font-medium">
-                                            {$vocabulary.ADMIN_REQUESTS}
+                                        <th
+                                            className="text-muted-foreground px-4 py-3 text-right font-medium"
+                                            {...users.header("requestCount")}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                                onClick={() =>
+                                                    users.toggle("requestCount")
+                                                }
+                                            >
+                                                {$vocabulary.ADMIN_REQUESTS}
+                                                <span aria-hidden="true">
+                                                    {users.indicator(
+                                                        "requestCount"
+                                                    )}
+                                                </span>
+                                            </button>
                                         </th>
-                                        <th className="text-muted-foreground px-4 py-3 text-right font-medium">
-                                            {$vocabulary.ADMIN_AVG_TIME}
+                                        <th
+                                            className="text-muted-foreground px-4 py-3 text-right font-medium"
+                                            {...users.header("avgTimeMs")}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                                onClick={() =>
+                                                    users.toggle("avgTimeMs")
+                                                }
+                                            >
+                                                {$vocabulary.ADMIN_AVG_TIME}
+                                                <span aria-hidden="true">
+                                                    {users.indicator(
+                                                        "avgTimeMs"
+                                                    )}
+                                                </span>
+                                            </button>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.userActivity.map(
-                                        (u, i): JSX.Element => (
+                                    {users
+                                        .sort(data.userActivity)
+                                        .map((u, i): JSX.Element => (
                                             <tr
                                                 key={i}
                                                 className="border-border-subtle/50 hover:bg-muted/30 border-b transition"
@@ -607,8 +750,7 @@ export default function AdminStats(): JSX.Element {
                                                     {formatMs(u.avgTimeMs)}
                                                 </td>
                                             </tr>
-                                        )
-                                    )}
+                                        ))}
                                 </tbody>
                             </table>
                         </div>
@@ -627,28 +769,56 @@ export default function AdminStats(): JSX.Element {
                             <table className="w-full text-left text-sm">
                                 <thead>
                                     <tr className="border-border-subtle bg-background/50 border-b">
-                                        <th className="text-muted-foreground px-4 py-3 font-medium">
-                                            {$vocabulary.ADMIN_IP}
+                                        <th
+                                            className="text-muted-foreground px-4 py-3 font-medium"
+                                            {...ips.header("ip")}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                                onClick={() => ips.toggle("ip")}
+                                            >
+                                                {$vocabulary.ADMIN_IP}
+                                                <span aria-hidden="true">
+                                                    {ips.indicator("ip")}
+                                                </span>
+                                            </button>
                                         </th>
-                                        <th className="text-muted-foreground px-4 py-3 text-right font-medium">
-                                            {$vocabulary.ADMIN_REQUESTS}
+                                        <th
+                                            className="text-muted-foreground px-4 py-3 text-right font-medium"
+                                            {...ips.header("count")}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="hover:text-foreground cursor-pointer whitespace-nowrap"
+                                                onClick={() =>
+                                                    ips.toggle("count")
+                                                }
+                                            >
+                                                {$vocabulary.ADMIN_REQUESTS}
+                                                <span aria-hidden="true">
+                                                    {ips.indicator("count")}
+                                                </span>
+                                            </button>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.topIps.map((ip, i): JSX.Element => (
-                                        <tr
-                                            key={i}
-                                            className="border-border-subtle/50 hover:bg-muted/30 border-b transition"
-                                        >
-                                            <td className="text-foreground-strong px-4 py-3 font-mono text-xs">
-                                                {ip.ip}
-                                            </td>
-                                            <td className="text-foreground-strong px-4 py-3 text-right">
-                                                {ip.count.toLocaleString()}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {ips
+                                        .sort(data.topIps)
+                                        .map((ip, i): JSX.Element => (
+                                            <tr
+                                                key={i}
+                                                className="border-border-subtle/50 hover:bg-muted/30 border-b transition"
+                                            >
+                                                <td className="text-foreground-strong px-4 py-3 font-mono text-xs">
+                                                    {ip.ip}
+                                                </td>
+                                                <td className="text-foreground-strong px-4 py-3 text-right">
+                                                    {ip.count.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))}
                                 </tbody>
                             </table>
                         </div>

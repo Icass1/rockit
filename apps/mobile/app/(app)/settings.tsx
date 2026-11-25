@@ -11,6 +11,7 @@ import {
     ProfileSection,
     StorageButton,
 } from "@/components/Settings";
+import AndroidReleaseSection from "@/components/Settings/AndroidReleaseSection";
 import ThemeSection from "@/components/Settings/ThemeSection";
 
 function SettingsSection({
@@ -57,6 +58,9 @@ export default function SettingsScreen() {
                 </SettingsSection>
                 <SettingsSection title={vocabulary.STORAGE_MANAGEMENT}>
                     <StorageButton />
+                </SettingsSection>
+                <SettingsSection title={vocabulary.DOWNLOAD_APP}>
+                    <AndroidReleaseSection />
                 </SettingsSection>
             </PageContainer>
         </>

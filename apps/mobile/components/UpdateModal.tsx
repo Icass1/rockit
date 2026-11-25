@@ -1,17 +1,19 @@
-import { APP_VERSION } from "@/constants/version";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { useModal } from "@/lib/ModalContext";
+import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 
 interface UpdateModalContentProps {
     apkUrl: string;
-    latestVersion: string;
+    currentBuild: number;
+    latestBuild: number;
 }
 
 export function UpdateModalContent({
     apkUrl,
-    latestVersion,
+    currentBuild,
+    latestBuild,
 }: UpdateModalContentProps) {
     const { vocabulary } = useVocabulary();
     const styles = useThemedStyles(createStyles);
@@ -25,26 +27,34 @@ export function UpdateModalContent({
             <View style={styles.versions}>
                 <Text style={styles.versionLabel}>
                     {vocabulary.MOBILE_UPDATE_CURRENT}{" "}
-                    <Text style={styles.versionValue}>{APP_VERSION}</Text>
+                    <Text style={styles.versionValue}>#{currentBuild}</Text>
                 </Text>
                 <Text style={styles.versionLabel}>
                     {vocabulary.MOBILE_UPDATE_NEW}{" "}
                     <Text style={[styles.versionValue, styles.accent]}>
-                        {latestVersion}
+                        #{latestBuild}
                     </Text>
                 </Text>
             </View>
             <Pressable
                 style={styles.button}
                 onPress={() => {
-                    Linking.openURL(apkUrl);
-                    hide();
+                    void Linking.openURL(apkUrl)
+                        .then(hide)
+                        .catch(() => {
+                            toasterManager.notifyError(
+                                vocabulary.ADMIN_ANDROID_DOWNLOAD_FAILED
+                            );
+                        });
                 }}
             >
                 <Text style={styles.buttonText}>
-                    {vocabulary.MOBILE_UPDATE_INSTALL}
+                    {vocabulary.ANDROID_RELEASE_UPDATE}
                 </Text>
             </Pressable>
+            <Text style={styles.body}>
+                {vocabulary.ANDROID_RELEASE_INSTALL_HINT}
+            </Text>
         </>
     );
 }

@@ -21,6 +21,8 @@ export default function DownloaderScreen() {
         failed,
         startDownload,
         clearFailed,
+        pending,
+        runAction,
     } = useDownloads();
 
     if (vocabLoading) {
@@ -62,6 +64,8 @@ export default function DownloaderScreen() {
                             <DownloadGroup
                                 key={`${group.id}-${groupIndex}`}
                                 group={group}
+                                pending={pending}
+                                onAction={runAction}
                                 onClear={
                                     group.id === "failed"
                                         ? clearFailed

@@ -16,7 +16,8 @@ export const SearchProviderRequestSchema = z.object({
             z.literal("video"),
             z.literal("radio"),
         ])
-        .nullable(),
+        .nullable()
+        .default(null),
 });
 
 export type SearchProviderRequest = z.infer<typeof SearchProviderRequestSchema>;

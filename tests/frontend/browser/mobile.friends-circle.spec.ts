@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { listeningProfile } from "../fixtures/listeningProfile";
 import { circleFriends } from "../fixtures/socialCircle";
 
 const mobile = "http://127.0.0.1:13001",
@@ -9,12 +10,15 @@ test.beforeEach(async ({ request, context }) => {
         { name: "session_id", value: "fixture", url: backend, httpOnly: true },
     ]);
 });
-test("the mobile listening circle selects friends before inviting and retains social navigation", async ({
+test("the mobile listening circle opens profiles before inviting and retains social navigation", async ({
     page,
     request,
 }, info) => {
     await request.post(backend + "/__fixture/fault", {
         data: { path: "/friends", body: { friends: circleFriends } },
+    });
+    await request.post(backend + "/__fixture/fault", {
+        data: { path: "/friends/circle-sam/level", body: listeningProfile },
     });
     await request.post(backend + "/__fixture/fault", {
         data: {
@@ -27,16 +31,16 @@ test("the mobile listening circle selects friends before inviting and retains so
     const circle = page.getByTestId("listening-circle");
     await expect(
         circle.getByRole("button", {
-            name: /^View .* in your listening circle$/,
+            name: /^View .*'s profile$/,
         })
     ).toHaveCount(6);
     await expect(page.getByRole("tab")).toHaveCount(4);
     await page.screenshot({
         path: info.outputPath("friends-mobile-circle.png"),
     });
-    await circle
-        .getByRole("button", { name: "View Sam in your listening circle" })
-        .click();
+    await circle.getByRole("button", { name: "View Sam's profile" }).click();
+    await expect(page.getByTestId("listening-profile")).toBeVisible();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
     await expect(circle.getByTestId("listening-circle-detail")).toContainText(
         "Everything In Its Right Place"
     );

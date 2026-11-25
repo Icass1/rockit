@@ -4,11 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadBrowseAccess import DownloadBrowseAccess
-from core.enums.downloadStatusEnum import DownloadStatusEnum
+from core.enums.downloadStatusEnum import TERMINAL_DOWNLOAD_STATUS_KEYS, DownloadStatusEnum
 from core.enums.mediaTypeEnum import MEDIA_TYPE_NAMES
 from core.framework import providers
 from core.framework.downloader import downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
+from core.framework.downloader.downloader import Downloader
 from core.framework.media.image import Image
 from core.framework.objectFiles import ObjectFiles
 from core.framework.user.user import User
@@ -130,7 +131,9 @@ class DownloadBrowser:
                     inLibrary=row["in_library"],
                     items=items.get(row["id"], []),
                     hasMoreItems=row["matching"] > 6,
-                    canManage=row["active"] == 0 and row["manageable"],
+                    canManage=row["active"] == 0
+                    and row["manageable"]
+                    and row["completed"] + row["failed"] > 0,
                 )
             )
         return Result(
@@ -227,12 +230,33 @@ class DownloadBrowser:
                 logger.error(f"Could not save download group to library: {saved.info()}")
                 return Result(code=saved.code(), message=saved.message())
             return Result(code=ResultCode.OK, message="OK", result=True)
-        if group.seen or not rows or any(row.status_key not in {3, 4} for row, _ in rows):
+        if action == "cancel":
+            if group.seen or not rows:
+                logger.warning("Cannot cancel a hidden or empty download group")
+                return Result(code=ResultCode.NOT_FOUND, message="Download group not found")
+            return await Downloader.cancel_download_rows_async(
+                session=session, group_id=group.id, downloads=[row for row, _ in rows]
+            )
+        if (
+            group.seen
+            or not rows
+            or any(row.status_key not in TERMINAL_DOWNLOAD_STATUS_KEYS for row, _ in rows)
+        ):
             logger.warning("Group is hidden, empty, or still has active downloads")
             return Result(
                 code=ResultCode.BAD_REQUEST,
                 message="Wait for the active downloads to finish",
             )
+        rows = [
+            (row, media)
+            for row, media in rows
+            if row.status_key != DownloadStatusEnum.CANCELLED.value
+        ]
+        if not rows:
+            if action == "delete":
+                return await DownloadAccess.mark_download_group_seen(session=session, group=group)
+            logger.warning("Group has no downloads to retry")
+            return Result(code=ResultCode.BAD_REQUEST, message="Group has no downloads to retry")
         for _, media in rows:
             provider = providers.find_media_provider(provider_id=media.provider_id)
             if provider is None or not provider.can_manage_downloads():

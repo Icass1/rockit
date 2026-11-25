@@ -58,7 +58,7 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
                 {
                     key: "genre",
                     label: "EDIT_METADATA_FIELD_GENRE",
-                    value: "",
+                    value: "genre" in media ? (media.genre ?? "") : "",
                     type: "text",
                 },
             ];
@@ -79,7 +79,7 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
                 {
                     key: "genre",
                     label: "EDIT_METADATA_FIELD_GENRE",
-                    value: "",
+                    value: "genre" in media ? (media.genre ?? "") : "",
                     type: "text",
                 },
             ];
@@ -108,7 +108,7 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
                 {
                     key: "genre",
                     label: "EDIT_METADATA_FIELD_GENRE",
-                    value: "",
+                    value: "genre" in media ? (media.genre ?? "") : "",
                     type: "text",
                 },
             ];
@@ -123,7 +123,7 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
                 {
                     key: "genre",
                     label: "EDIT_METADATA_FIELD_GENRE",
-                    value: "",
+                    value: "genre" in media ? (media.genre ?? "") : "",
                     type: "text",
                 },
             ];
@@ -158,19 +158,42 @@ export default function EditMetadataModal({
         );
     };
 
+    const hasChanges =
+        rating !== null ||
+        fields.some(
+            (field) =>
+                field.value.trim() &&
+                field.value.trim() !==
+                    getOtherFields(media)
+                        .find((initial) => initial.key === field.key)
+                        ?.value.trim()
+        );
+
     const handleSubmit = async (): Promise<void> => {
         setSubmitting(true);
         setError(null);
 
         const changes: Record<string, string> = {};
+        const initialFields = getOtherFields(media);
         for (const f of fields) {
-            if (f.value.trim()) {
+            if (
+                f.value.trim() &&
+                f.value.trim() !==
+                    initialFields
+                        .find((initial) => initial.key === f.key)
+                        ?.value.trim()
+            ) {
                 changes[f.key] = f.value.trim();
             }
         }
 
         if (rating !== null && isSong) changes.explicit = rating;
         if (!mediaPublicId) {
+            setSubmitting(false);
+            return;
+        }
+
+        if (Object.keys(changes).length === 0) {
             setSubmitting(false);
             return;
         }
@@ -186,8 +209,9 @@ export default function EditMetadataModal({
             setSubmitted(true);
         } else {
             setError(
-                typeof result.detail === "string"
-                    ? result.detail
+                typeof result.detail === "string" &&
+                    Object.hasOwn($vocabulary, result.detail)
+                    ? $vocabulary[result.detail as keyof typeof $vocabulary]
                     : $vocabulary.EDIT_METADATA_ERROR
             );
         }
@@ -403,7 +427,7 @@ export default function EditMetadataModal({
                         </button>
                         <button
                             onClick={handleSubmit}
-                            disabled={submitting}
+                            disabled={submitting || !hasChanges}
                             className="bg-primary-hover text-primary-foreground hover:bg-primary hover:text-primary-foreground flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap transition disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {submitting ? (

@@ -2,7 +2,7 @@ import os
 import sys
 from typing import Annotated, Literal
 
-from pydantic import Field, ValidationError, field_validator, model_validator
+from pydantic import Field, SecretStr, ValidationError, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -21,6 +21,9 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    ANDROID_BUILDS_REPOSITORY: str = "Icass1/rockit"
+    ANDROID_BUILDS_GITHUB_TOKEN: SecretStr | None = None
 
     # Strings
     BACKEND_URL: str

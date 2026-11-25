@@ -17,8 +17,21 @@ jest.mock(
     "expo-file-system",
     () => ({
         Paths: { cache: "cache" },
+        Directory: class {
+            exists = false;
+            create() {
+                this.exists = true;
+            }
+            delete() {
+                this.exists = false;
+                mockDeleted();
+            }
+        },
         File: class {
-            uri = "file:///cache/fixture.zip";
+            uri: string;
+            constructor(_directory: unknown, name: string) {
+                this.uri = `file:///cache/${name}`;
+            }
             exists = false;
             create() {
                 this.exists = true;
@@ -57,7 +70,7 @@ it("streams the authenticated archive into a temporary file, shares it and remov
     );
     expect(mockChunks.reduce((n, bytes) => n + bytes.length, 0)).toBe(4);
     expect(shareAsync).toHaveBeenCalledWith(
-        "file:///cache/fixture.zip",
+        "file:///cache/RockIt.zip",
         expect.objectContaining({ mimeType: "application/zip" })
     );
     expect(mockDeleted).toHaveBeenCalledTimes(1);
@@ -110,5 +123,27 @@ it("removes a partial archive and never shares it when cancelled during transfer
     setTimeout(() => abort.abort(), 0);
     await expect(pending).rejects.toThrow();
     expect(shareAsync).not.toHaveBeenCalled();
+    expect(mockDeleted).toHaveBeenCalledTimes(1);
+});
+
+it("shares a single song as audio with its actual filename", async () => {
+    jest.mocked(Http.downloadZipResponse).mockResolvedValue(
+        new Response("audio", {
+            headers: {
+                "content-type": "audio/mpeg",
+                "content-disposition": 'attachment; filename="Track.mp3"',
+            },
+        })
+    );
+    await downloadZip(
+        ["song-1"],
+        "Album",
+        new AbortController().signal,
+        () => true
+    );
+    expect(shareAsync).toHaveBeenCalledWith(
+        "file:///cache/Track.mp3",
+        expect.objectContaining({ mimeType: "audio/mpeg", UTI: "public.mp3" })
+    );
     expect(mockDeleted).toHaveBeenCalledTimes(1);
 });

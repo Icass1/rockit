@@ -8,7 +8,7 @@ import { ListeningMilestoneResponseSchema } from "./listeningMilestoneResponse";
 export const UserLevelResponseSchema = z.object({
     userId: z.string(),
     username: z.string(),
-    imageUrl: z.string().nullable(),
+    imageUrl: z.string().nullable().default(null),
     level: z.number(),
     xp: z.number(),
     xpToNext: z.number().default(0),

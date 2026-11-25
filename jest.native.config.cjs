@@ -17,10 +17,14 @@ module.exports = {
             "<rootDir>/apps/mobile/node_modules/react-native-svg",
         "^@/assets/medals/viewer.html$":
             "<rootDir>/tests/frontend/fixtures/nativeMedalAsset.cjs",
+        "^@/lib/miniPlayerSwipe$":
+            "<rootDir>/apps/mobile/lib/miniPlayerSwipe.ts",
         "^@/lib/http$": "<rootDir>/apps/mobile/lib/http.native.ts",
         "^@/lib/api$": "<rootDir>/apps/mobile/lib/api.native.ts",
         "^@/(.*)$": "<rootDir>/packages/shared/src/$1",
         "^@rockit/ui/runtime$": "<rootDir>/packages/ui/src/runtime.native.ts",
+        "^@rockit/ui/streakSvg$":
+            "<rootDir>/packages/ui/src/streakSvg.native.ts",
         "^@rockit/ui$": "<rootDir>/packages/ui/src/index.ts",
         "^@rockit/ui/primitives/ExplicitBadge$":
             "<rootDir>/packages/ui/src/primitives/ExplicitBadge.native.tsx",

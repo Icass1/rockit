@@ -22,6 +22,11 @@
             "react-native": "./src/icons.native.ts",
             "default": "./src/icons.web.ts"
         },
+        "./streakSvg": {
+            "browser": "./src/streakSvg.web.ts",
+            "react-native": "./src/streakSvg.native.ts",
+            "default": "./src/streakSvg.web.ts"
+        },
         "./featuredAssets": {
             "browser": "./src/featuredAssets.ts",
             "react-native": "./src/featuredAssets.native.ts",
@@ -42,6 +47,7 @@
         "@rockit/theme": "workspace:*",
         "lucide-react": "^0.487.0",
         "lucide-react-native": "^1.8.0",
+        "react-native-svg": "^15.15.4",
         "react-native-web": "~0.21.0",
         "three": "0.187.0"
     },

@@ -9,10 +9,12 @@ export function ProfileAvatar({
     imageUrl,
     name,
     size,
+    neutral = false,
 }: {
     imageUrl?: string | null;
     name: string;
     size?: number;
+    neutral?: boolean;
 }) {
     const theme = useDesignTheme();
     const [failed, setFailed] = useState<string>();
@@ -24,7 +26,9 @@ export function ProfileAvatar({
                 height: length,
                 borderRadius: theme.radius.full,
                 overflow: "hidden",
-                backgroundColor: theme.colors.primary,
+                backgroundColor: neutral
+                    ? theme.colors["surface-raised"]
+                    : theme.colors.primary,
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
@@ -43,7 +47,9 @@ export function ProfileAvatar({
                     style={{
                         fontSize: theme.typography.subtitle,
                         fontWeight: "600",
-                        color: theme.colors["primary-foreground"],
+                        color: neutral
+                            ? theme.colors["foreground-strong"]
+                            : theme.colors["primary-foreground"],
                     }}
                 >
                     {Array.from(name)[0]?.toLocaleUpperCase()}

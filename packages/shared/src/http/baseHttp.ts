@@ -187,6 +187,25 @@ export class BaseHttp {
         return this.apiGetAsync(`/admin/builds`, dto.AllBuildsResponseSchema);
     }
 
+    static async getAndroidBuildHistory() {
+        return this.apiGetAsync(
+            `/admin/builds/android-history`,
+            dto.AndroidBuildHistoryResponseSchema
+        );
+    }
+
+    static downloadAndroidBuildURL(runId: string) {
+        return `/admin/builds/android/${encodeURIComponent(runId)}/download`;
+    }
+
+    static async shareAndroidBuild(runId: string) {
+        return this.apiFetchAsync(
+            `/admin/builds/android/${encodeURIComponent(runId)}/share`,
+            dto.AndroidBuildShareResponseSchema,
+            { method: "POST" }
+        );
+    }
+
     static async uploadApk(payload: dto.UploadApkRequest) {
         return this.apiPostAsync(
             `/admin/builds/upload`,
@@ -532,9 +551,13 @@ export class BaseHttp {
         return `/downloader/download-zip`;
     }
 
-    static async getDownloads() {
+    static async getDownloads(includeCancelled?: boolean) {
+        const queryParams = new URLSearchParams();
+        if (includeCancelled !== undefined)
+            queryParams.append("include_cancelled", `${includeCancelled}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/downloader/downloads`,
+            `/downloader/downloads${queryString ? `?${queryString}` : ""}`,
             dto.DownloadsResponseSchema
         );
     }
@@ -543,6 +566,14 @@ export class BaseHttp {
         return this.apiDeleteAsync(
             `/downloader/downloads/${encodeURIComponent(publicId)}`,
             dto.OkResponseSchema
+        );
+    }
+
+    static async cancelDownload(publicId: string) {
+        return this.apiFetchAsync(
+            `/downloader/downloads/${encodeURIComponent(publicId)}/cancel`,
+            dto.OkResponseSchema,
+            { method: "POST" }
         );
     }
 
@@ -1731,6 +1762,27 @@ export class BaseHttp {
             dto.OkResponseSchema,
             payload
         );
+    }
+
+    static async getLatestAndroidRelease() {
+        return this.apiGetAsync(
+            `/version/android/latest`,
+            dto.LatestAndroidReleaseResponseSchema
+        );
+    }
+
+    static downloadSharedAndroidBuildURL(
+        runId: string,
+        artifact: number,
+        expires: number,
+        token: string
+    ) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("artifact", `${artifact}`);
+        queryParams.append("expires", `${expires}`);
+        queryParams.append("token", `${token}`);
+        const queryString = queryParams.toString();
+        return `/version/android/${encodeURIComponent(runId)}/apk${queryString ? `?${queryString}` : ""}`;
     }
 
     static downloadApkURL(filename: string) {

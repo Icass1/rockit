@@ -8,6 +8,7 @@ import { SpotifyScrapperExternalImageResponseSchema } from "./spotifyScrapperExt
 
 export const SpotifyScrapperAlbumResponseSchema = z.object({
     type: z.union([z.literal("album")]).default("album"),
+    genre: z.string().nullable().default(null),
     provider: z.string(),
     publicId: z.string(),
     url: z.string(),

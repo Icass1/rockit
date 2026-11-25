@@ -6,7 +6,7 @@ import { z } from "zod";
 export const ShareMediaRequestSchema = z.object({
     recipientPublicId: z.string(),
     mediaPublicId: z.string(),
-    message: z.string().nullable(),
+    message: z.string().nullable().default(null),
 });
 
 export type ShareMediaRequest = z.infer<typeof ShareMediaRequestSchema>;

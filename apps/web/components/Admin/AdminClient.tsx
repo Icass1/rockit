@@ -4,6 +4,7 @@ import { JSX, useRef, useState } from "react";
 import { BuildResponse } from "@/dto";
 import {
     BarChart3,
+    ChevronDown,
     Download,
     Loader2,
     MessageSquare,
@@ -11,13 +12,14 @@ import {
     Plus,
     Search,
     Settings,
+    ShieldCheck,
     Smartphone,
-    Trash2,
     Upload,
     X,
 } from "lucide-react";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
+import AdminAndroidBuilds from "@/components/Admin/AdminAndroidBuilds";
 import AdminMediaSearch from "@/components/Admin/AdminMediaSearch";
 import AdminRequests from "@/components/Admin/AdminRequests";
 import AdminStats from "@/components/Admin/AdminStats";
@@ -25,16 +27,16 @@ import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
 interface AdminClientProps {
     builds: BuildResponse[];
+    initialTab?: EAdminClientTab;
 }
 
 export default function AdminClient({
     builds: initialBuilds,
+    initialTab = EAdminClientTab.BUILDS,
 }: AdminClientProps): JSX.Element {
     const $vocabulary = useVocabulary();
     const [builds, setBuilds] = useState<BuildResponse[]>(initialBuilds);
-    const [activeTab, setActiveTab] = useState<EAdminClientTab>(
-        EAdminClientTab.BUILDS
-    );
+    const [activeTab, setActiveTab] = useState<EAdminClientTab>(initialTab);
 
     const [showForm, setShowForm] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -222,16 +224,60 @@ export default function AdminClient({
     return (
         <div className="bg-background min-h-[calc(100vh-4rem)]">
             <div className="border-border-subtle bg-secondary/50 border-b">
-                <div className="mx-auto max-w-6xl px-4">
-                    <div className="flex items-center gap-1 overflow-x-auto py-2">
+                <div className="mx-auto max-w-6xl px-6">
+                    <div className="flex items-center gap-3 pt-8 pb-6">
+                        <ShieldCheck className="text-primary h-7 w-7" />
+                        <div>
+                            <h1 className="text-foreground-strong text-2xl font-semibold tracking-tight">
+                                {$vocabulary.ADMIN_WORKSPACE_TITLE}
+                            </h1>
+                            <p className="text-subtle-foreground mt-1 text-sm">
+                                {$vocabulary.ADMIN_WORKSPACE_DESC}
+                            </p>
+                        </div>
+                    </div>
+                    <div
+                        role="tablist"
+                        aria-label={$vocabulary.ADMIN_WORKSPACE_TITLE}
+                        className="flex items-center gap-6 overflow-x-auto"
+                    >
                         {tabs.map((tab): JSX.Element => (
                             <button
                                 key={tab.id}
+                                id={`admin-tab-${tab.id}`}
+                                role="tab"
+                                aria-selected={activeTab === tab.id}
+                                aria-controls="admin-panel"
+                                tabIndex={activeTab === tab.id ? 0 : -1}
+                                onKeyDown={(event): void => {
+                                    const current = tabs.findIndex(
+                                        (item) => item.id === tab.id
+                                    );
+                                    const next =
+                                        event.key === "ArrowRight"
+                                            ? (current + 1) % tabs.length
+                                            : event.key === "ArrowLeft"
+                                              ? (current + tabs.length - 1) %
+                                                tabs.length
+                                              : event.key === "Home"
+                                                ? 0
+                                                : event.key === "End"
+                                                  ? tabs.length - 1
+                                                  : null;
+                                    if (next === null) return;
+                                    event.preventDefault();
+                                    setActiveTab(tabs[next].id);
+                                    document
+                                        .getElementById(
+                                            `admin-tab-${tabs[next].id}`
+                                        )
+                                        ?.focus();
+                                }}
                                 onClick={(): void => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
+                                className={`flex min-h-12 shrink-0 items-center gap-2 border-b-2 px-1 text-sm font-medium transition ${
                                     activeTab === tab.id
-                                        ? "bg-primary text-primary-foreground"
-                                        : "text-muted-foreground hover:bg-muted hover:text-foreground-strong"
+                                        ? "border-primary text-foreground-strong"
+                                        : "text-subtle-foreground hover:text-foreground-strong border-transparent"
                                 }`}
                             >
                                 <tab.icon className="h-4 w-4" />
@@ -242,238 +288,288 @@ export default function AdminClient({
                 </div>
             </div>
 
-            <div className="mx-auto max-w-6xl p-6">
+            <div
+                id="admin-panel"
+                role="tabpanel"
+                aria-labelledby={`admin-tab-${activeTab}`}
+                className="mx-auto max-w-6xl p-6 sm:py-8"
+            >
                 {activeTab === EAdminClientTab.BUILDS && (
                     <div>
-                        <div className="mb-6 flex items-center justify-between">
-                            <div>
-                                <h1 className="text-foreground-strong text-2xl font-bold">
-                                    {$vocabulary.ADMIN_BUILDS_TITLE}
-                                </h1>
-                                <p className="text-subtle-foreground mt-1 text-sm">
-                                    {$vocabulary.ADMIN_BUILDS_SUBTITLE}
-                                </p>
-                            </div>
-                            <button
-                                onClick={(): void =>
-                                    setShowForm((v): boolean => !v)
-                                }
-                                className="bg-primary text-primary-foreground hover:bg-brand-mid flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50"
-                            >
-                                {showForm ? (
-                                    <>
-                                        <X className="h-4 w-4" />{" "}
-                                        {$vocabulary.ADMIN_CANCEL}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Plus className="h-4 w-4" />{" "}
-                                        {$vocabulary.ADMIN_ADD_BUILD}
-                                    </>
-                                )}
-                            </button>
-                        </div>
-
-                        {showForm && (
-                            <form
-                                onSubmit={handleSubmit}
-                                className="border-border-subtle bg-secondary mb-8 rounded-xl border p-6"
-                            >
-                                <h2 className="text-foreground-strong mb-5 text-lg font-semibold">
-                                    {$vocabulary.ADMIN_UPLOAD_NEW_BUILD}
-                                </h2>
-
-                                <div className="grid gap-5 sm:grid-cols-2">
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-foreground text-sm font-medium">
-                                            {$vocabulary.ADMIN_VERSION}{" "}
-                                            <span className="text-subtle-foreground">
-                                                ({$vocabulary.ADMIN_REQUIRED})
-                                            </span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="1.2.0"
-                                            value={version}
-                                            onChange={(e): void =>
-                                                setVersion(e.target.value)
+                        <AdminAndroidBuilds />
+                        <details className="group border-border-subtle mt-12 border-t pt-5">
+                            <summary className="text-muted-foreground hover:text-foreground-strong flex cursor-pointer list-none items-center gap-2 py-2 text-sm font-medium">
+                                <Upload className="h-4 w-4" />
+                                {$vocabulary.ADMIN_MANUAL_BUILDS}
+                                <span className="text-subtle-foreground text-xs">
+                                    {builds.length}
+                                </span>
+                                <ChevronDown className="ml-auto h-4 w-4 transition group-open:rotate-180" />
+                            </summary>
+                            <div className="pt-6">
+                                <div className="mb-6 flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-foreground-strong text-lg font-semibold">
+                                            {$vocabulary.ADMIN_MANUAL_BUILDS}
+                                        </h3>
+                                        <p className="text-subtle-foreground mt-1 text-sm">
+                                            {
+                                                $vocabulary.ADMIN_MANUAL_BUILDS_DESC
                                             }
-                                            required
-                                            className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-1"
-                                        />
+                                        </p>
                                     </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-foreground text-sm font-medium">
-                                            {$vocabulary.ADMIN_APK_FILE}{" "}
-                                            <span className="text-subtle-foreground">
-                                                ({$vocabulary.ADMIN_REQUIRED})
-                                            </span>
-                                        </label>
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept=".apk"
-                                            onChange={handleFileSelect}
-                                            required
-                                            className="border-border bg-muted text-foreground-strong file:bg-accent file:text-foreground-strong rounded-lg border px-4 py-2.5 text-sm file:mr-4 file:rounded file:border-0 file:px-3 file:py-1 file:text-sm"
-                                        />
-                                        {selectedFile && (
-                                            <p className="text-success-foreground mt-1 text-xs">
-                                                {$vocabulary.ADMIN_SELECTED}:{" "}
-                                                {selectedFile.name}
-                                            </p>
+                                    <button
+                                        onClick={(): void =>
+                                            setShowForm((v): boolean => !v)
+                                        }
+                                        className="bg-primary text-primary-foreground hover:bg-brand-mid flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50"
+                                    >
+                                        {showForm ? (
+                                            <>
+                                                <X className="h-4 w-4" />{" "}
+                                                {$vocabulary.ADMIN_CANCEL}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Plus className="h-4 w-4" />{" "}
+                                                {$vocabulary.ADMIN_ADD_BUILD}
+                                            </>
                                         )}
-                                    </div>
-
-                                    <div className="flex flex-col gap-2 sm:col-span-2">
-                                        <label className="text-foreground text-sm font-medium">
-                                            {$vocabulary.ADMIN_DESCRIPTION}{" "}
-                                            <span className="text-subtle-foreground">
-                                                ({$vocabulary.ADMIN_OPTIONAL})
-                                            </span>
-                                        </label>
-                                        <textarea
-                                            placeholder={
-                                                $vocabulary.ADMIN_DESCRIPTION_PLACEHOLDER
-                                            }
-                                            value={description}
-                                            onChange={(e): void =>
-                                                setDescription(e.target.value)
-                                            }
-                                            rows={3}
-                                            className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary resize-none rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-1"
-                                        />
-                                    </div>
+                                    </button>
                                 </div>
 
-                                {error && (
-                                    <p className="text-destructive-soft mt-4 text-sm">
-                                        {error}
-                                    </p>
-                                )}
-                                {success && (
-                                    <p className="text-success-foreground mt-4 text-sm">
-                                        {success}
-                                    </p>
-                                )}
-
-                                {uploading && (
-                                    <div className="mt-4">
-                                        <div className="mb-1 flex justify-between text-sm">
-                                            <span className="text-muted-foreground">
-                                                {uploadProgress}% (
-                                                {currentChunk + 1}/
-                                                {Math.ceil(
-                                                    selectedFile!.size /
-                                                        (1024 * 1024)
-                                                )}{" "}
-                                                {
-                                                    $vocabulary.ADMIN_UPLOAD_CHUNKS
-                                                }
-                                                )
-                                            </span>
-                                        </div>
-                                        <div className="bg-muted h-2 w-full rounded-full">
-                                            <div
-                                                className="bg-primary h-2 rounded-full transition-all duration-300"
-                                                style={{
-                                                    width: `${uploadProgress}%`,
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    disabled={uploading}
-                                    className="bg-primary text-primary-foreground hover:bg-brand-mid mt-5 flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold transition disabled:opacity-50"
-                                >
-                                    {uploading ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                                            {$vocabulary.ADMIN_UPLOADING}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Upload className="h-4 w-4" />{" "}
-                                            {$vocabulary.ADMIN_UPLOAD_BUILD}
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-                        )}
-
-                        {builds.length === 0 ? (
-                            <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
-                                <Package className="text-disabled-foreground mb-4 h-12 w-12" />
-                                <p className="text-subtle-foreground">
-                                    {$vocabulary.ADMIN_NO_BUILDS}
-                                </p>
-                                <p className="text-disabled-foreground mt-1 text-sm">
-                                    {$vocabulary.ADMIN_UPLOAD_FIRST}
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
-                                {builds.map((build, i): JSX.Element => (
-                                    <div
-                                        key={build.publicId}
-                                        className="group border-border-subtle bg-secondary hover:border-border relative rounded-xl border p-5 transition"
+                                {showForm && (
+                                    <form
+                                        onSubmit={handleSubmit}
+                                        className="border-border-subtle bg-secondary mb-8 rounded-xl border p-6"
                                     >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex flex-1 items-center gap-4">
-                                                <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
-                                                    <Smartphone className="text-primary h-6 w-6" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="bg-primary/15 text-primary rounded-full px-3 py-0.5 text-sm font-bold">
-                                                            v{build.version}
-                                                        </span>
-                                                        {i === 0 && (
-                                                            <span className="bg-success/10 text-success-foreground rounded-full px-2 py-0.5 text-xs font-medium">
-                                                                {
-                                                                    $vocabulary.ADMIN_LATEST
-                                                                }
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {build.description && (
-                                                        <p className="text-muted-foreground mt-2 line-clamp-2 max-w-xl text-sm">
-                                                            {build.description}
-                                                        </p>
-                                                    )}
-                                                    <div className="text-disabled-foreground mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                                                        <span className="font-mono">
-                                                            {build.apkFilename}
-                                                        </span>
-                                                        <span>
-                                                            {new Date(
-                                                                build.dateAdded
-                                                            ).toLocaleString()}
-                                                        </span>
-                                                    </div>
-                                                </div>
+                                        <h2 className="text-foreground-strong mb-5 text-lg font-semibold">
+                                            {$vocabulary.ADMIN_UPLOAD_NEW_BUILD}
+                                        </h2>
+
+                                        <div className="grid gap-5 sm:grid-cols-2">
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-foreground text-sm font-medium">
+                                                    {$vocabulary.ADMIN_VERSION}{" "}
+                                                    <span className="text-subtle-foreground">
+                                                        (
+                                                        {
+                                                            $vocabulary.ADMIN_REQUIRED
+                                                        }
+                                                        )
+                                                    </span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="1.2.0"
+                                                    value={version}
+                                                    onChange={(e): void =>
+                                                        setVersion(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    required
+                                                    className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-1"
+                                                />
                                             </div>
 
-                                            <div className="flex items-center gap-4">
-                                                <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
-                                                    <Download className="h-4 w-4" />
-                                                    <span>
-                                                        {build.downloads}
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-foreground text-sm font-medium">
+                                                    {$vocabulary.ADMIN_APK_FILE}{" "}
+                                                    <span className="text-subtle-foreground">
+                                                        (
+                                                        {
+                                                            $vocabulary.ADMIN_REQUIRED
+                                                        }
+                                                        )
+                                                    </span>
+                                                </label>
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept=".apk"
+                                                    onChange={handleFileSelect}
+                                                    required
+                                                    className="border-border bg-muted text-foreground-strong file:bg-accent file:text-foreground-strong rounded-lg border px-4 py-2.5 text-sm file:mr-4 file:rounded file:border-0 file:px-3 file:py-1 file:text-sm"
+                                                />
+                                                {selectedFile && (
+                                                    <p className="text-success-foreground mt-1 text-xs">
+                                                        {
+                                                            $vocabulary.ADMIN_SELECTED
+                                                        }
+                                                        : {selectedFile.name}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 sm:col-span-2">
+                                                <label className="text-foreground text-sm font-medium">
+                                                    {
+                                                        $vocabulary.ADMIN_DESCRIPTION
+                                                    }{" "}
+                                                    <span className="text-subtle-foreground">
+                                                        (
+                                                        {
+                                                            $vocabulary.ADMIN_OPTIONAL
+                                                        }
+                                                        )
+                                                    </span>
+                                                </label>
+                                                <textarea
+                                                    placeholder={
+                                                        $vocabulary.ADMIN_DESCRIPTION_PLACEHOLDER
+                                                    }
+                                                    value={description}
+                                                    onChange={(e): void =>
+                                                        setDescription(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    rows={3}
+                                                    className="border-border bg-muted text-foreground-strong placeholder-subtle-foreground focus:border-primary focus:ring-primary resize-none rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-1"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {error && (
+                                            <p className="text-destructive-soft mt-4 text-sm">
+                                                {error}
+                                            </p>
+                                        )}
+                                        {success && (
+                                            <p className="text-success-foreground mt-4 text-sm">
+                                                {success}
+                                            </p>
+                                        )}
+
+                                        {uploading && (
+                                            <div className="mt-4">
+                                                <div className="mb-1 flex justify-between text-sm">
+                                                    <span className="text-muted-foreground">
+                                                        {uploadProgress}% (
+                                                        {currentChunk + 1}/
+                                                        {Math.ceil(
+                                                            selectedFile!.size /
+                                                                (1024 * 1024)
+                                                        )}{" "}
+                                                        {
+                                                            $vocabulary.ADMIN_UPLOAD_CHUNKS
+                                                        }
+                                                        )
                                                     </span>
                                                 </div>
-                                                <button className="text-subtle-foreground hover:bg-muted hover:text-destructive-soft rounded-lg p-2 opacity-0 transition group-hover:opacity-100">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+                                                <div className="bg-muted h-2 w-full rounded-full">
+                                                    <div
+                                                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                                                        style={{
+                                                            width: `${uploadProgress}%`,
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
+
+                                        <button
+                                            type="submit"
+                                            disabled={uploading}
+                                            className="bg-primary text-primary-foreground hover:bg-brand-mid mt-5 flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold transition disabled:opacity-50"
+                                        >
+                                            {uploading ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                                                    {
+                                                        $vocabulary.ADMIN_UPLOADING
+                                                    }
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload className="h-4 w-4" />{" "}
+                                                    {
+                                                        $vocabulary.ADMIN_UPLOAD_BUILD
+                                                    }
+                                                </>
+                                            )}
+                                        </button>
+                                    </form>
+                                )}
+
+                                {builds.length === 0 ? (
+                                    <div className="border-border-subtle bg-secondary flex flex-col items-center justify-center rounded-xl border py-20">
+                                        <Package className="text-disabled-foreground mb-4 h-12 w-12" />
+                                        <p className="text-subtle-foreground">
+                                            {$vocabulary.ADMIN_NO_BUILDS}
+                                        </p>
+                                        <p className="text-disabled-foreground mt-1 text-sm">
+                                            {$vocabulary.ADMIN_UPLOAD_FIRST}
+                                        </p>
                                     </div>
-                                ))}
+                                ) : (
+                                    <div className="space-y-3">
+                                        {builds.map((build, i): JSX.Element => (
+                                            <div
+                                                key={build.publicId}
+                                                className="group border-border-subtle bg-secondary hover:border-border relative rounded-xl border p-5 transition"
+                                            >
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex flex-1 items-center gap-4">
+                                                        <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
+                                                            <Smartphone className="text-primary h-6 w-6" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="bg-primary/15 text-primary rounded-full px-3 py-0.5 text-sm font-bold">
+                                                                    v
+                                                                    {
+                                                                        build.version
+                                                                    }
+                                                                </span>
+                                                                {i === 0 && (
+                                                                    <span className="bg-success/10 text-success-foreground rounded-full px-2 py-0.5 text-xs font-medium">
+                                                                        {
+                                                                            $vocabulary.ADMIN_LATEST
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {build.description && (
+                                                                <p className="text-muted-foreground mt-2 line-clamp-2 max-w-xl text-sm">
+                                                                    {
+                                                                        build.description
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                            <div className="text-disabled-foreground mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                                                                <span className="font-mono">
+                                                                    {
+                                                                        build.apkFilename
+                                                                    }
+                                                                </span>
+                                                                <span>
+                                                                    {new Date(
+                                                                        build.dateAdded
+                                                                    ).toLocaleString()}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
+                                                            <Download className="h-4 w-4" />
+                                                            <span>
+                                                                {
+                                                                    build.downloads
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </details>
                     </div>
                 )}
 

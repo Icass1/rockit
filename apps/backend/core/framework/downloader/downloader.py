@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from logging import Logger
 
 from sqlalchemy.ext.asyncio import (
@@ -11,7 +12,7 @@ from core.access.db.ormModels.media import CoreMediaRow
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadReuseAccess import DownloadReuseAccess
 from core.access.mediaAccess import MediaAccess
-from core.enums.downloadStatusEnum import DownloadStatusEnum
+from core.enums.downloadStatusEnum import TERMINAL_DOWNLOAD_STATUS_KEYS, DownloadStatusEnum
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers
 from core.framework.downloader import downloads_manager
@@ -397,7 +398,11 @@ class Downloader:
         a_result_download: Result[
             DownloadRow
         ] = await DownloadAccess.get_download_by_media_public_id(
-            session=session, media_public_id=public_id, user_id=user_id
+            session=session,
+            media_public_id=public_id,
+            user_id=user_id,
+            lock=True,
+            visible_only=True,
         )
         if a_result_download.is_not_ok():
             logger.error(f"Error finding download for retry. {a_result_download.info()}")
@@ -456,7 +461,9 @@ class Downloader:
         return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
-    async def get_downloads_async(session: AsyncSession, user_id: int) -> Result[DownloadsResponse]:
+    async def get_downloads_async(
+        session: AsyncSession, user_id: int, include_cancelled: bool = False
+    ) -> Result[DownloadsResponse]:
         """Get all download groups with their items for a user.
 
         Batches database and provider queries to avoid the N+1 pattern: the
@@ -494,6 +501,8 @@ class Downloader:
         downloads_by_group: dict[int, list[DownloadRow]] = {}
         media_ids: list[int] = []
         for download in downloads:
+            if not include_cancelled and download.status_key == DownloadStatusEnum.CANCELLED.value:
+                continue
             downloads_by_group.setdefault(download.download_group_id, []).append(download)
             media_ids.append(download.media_id)
 
@@ -593,7 +602,10 @@ class Downloader:
                 completed_val: float = 0.0
                 if download.status_key == 3:
                     completed_val = 100.0
-                elif download.status_key == 4:
+                elif download.status_key in (
+                    DownloadStatusEnum.FAILED.value,
+                    DownloadStatusEnum.CANCELLED.value,
+                ):
                     completed_val = 0.0
                 elif download.download_status_list:
                     last_status: DownloadStatusRow = download.download_status_list[-1]
@@ -661,30 +673,80 @@ class Downloader:
         return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
+    async def cancel_download_async(
+        session: AsyncSession, user_id: int, public_id: str
+    ) -> Result[bool]:
+        """Cancel an owned download, including stale entries from previous workers."""
+        found = await DownloadAccess.owned_download_for_cancellation_async(
+            session=session, public_id=public_id, user_id=user_id
+        )
+        if found.is_not_ok():
+            logger.warning(f"Error finding download to cancel. {found.info()}")
+            return Result(code=found.code(), message=found.message())
+        download = found.result()
+        if (
+            download.status_key in TERMINAL_DOWNLOAD_STATUS_KEYS
+            and download.status_key != DownloadStatusEnum.CANCELLED.value
+        ):
+            logger.warning("Cannot cancel a finished download")
+            return Result(code=ResultCode.BAD_REQUEST, message="Download is already finished")
+        return await Downloader.cancel_download_rows_async(
+            session=session, group_id=download.download_group_id, downloads=[download]
+        )
+
+    @staticmethod
+    async def cancel_download_rows_async(
+        session: AsyncSession, group_id: int, downloads: list[DownloadRow]
+    ) -> Result[bool]:
+        """Persist cancellation for the locked rows before stopping local workers."""
+        now = datetime.now(UTC)
+        cancelled: set[int] = set()
+        for download in downloads:
+            if download.status_key not in TERMINAL_DOWNLOAD_STATUS_KEYS:
+                download.status_key = DownloadStatusEnum.CANCELLED.value
+                download.date_ended = now
+                cancelled.add(download.id)
+        if cancelled:
+            try:
+                await session.commit()
+            except Exception as error:
+                await session.rollback()
+                logger.error(f"Could not save download cancellations: {error}", exc_info=True)
+                return Result(code=ResultCode.GENERAL_ERROR, message="Could not cancel downloads")
+            downloads_manager.cancel_downloads(download_ids=cancelled)
+            updated = await DownloadAccess.update_download_group_completion(
+                session=session, download_group_id=group_id
+            )
+            if updated.is_not_ok():
+                logger.error(f"Could not update cancelled download group: {updated.info()}")
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
     async def delete_download_async(
         session: AsyncSession, user_id: int, public_id: str
     ) -> Result[bool]:
         """Delete a finished file and hide its history entry for this user."""
         found = await DownloadAccess.get_download_by_media_public_id(
-            session=session, media_public_id=public_id, user_id=user_id
+            session=session,
+            media_public_id=public_id,
+            user_id=user_id,
+            lock=True,
+            visible_only=True,
         )
         if found.is_not_ok():
             logger.error(f"Error finding download to delete. {found.info()}")
             return Result(code=found.code(), message=found.message())
         download = found.result()
-        media_result = await MediaAccess.get_media_from_id_async(
-            session=session, id=download.media_id
-        )
-        if media_result.is_not_ok():
-            logger.error(f"Error resolving downloaded media. {media_result.info()}")
-            return Result(code=media_result.code(), message=media_result.message())
-        if download.status_key not in (
-            DownloadStatusEnum.COMPLETED.value,
-            DownloadStatusEnum.FAILED.value,
-        ):
+        if download.status_key not in TERMINAL_DOWNLOAD_STATUS_KEYS:
             logger.warning("Cannot delete an active download")
             return Result(code=ResultCode.BAD_REQUEST, message="Cannot delete an active download")
         if download.status_key == DownloadStatusEnum.COMPLETED.value:
+            media_result = await MediaAccess.get_media_from_id_async(
+                session=session, id=download.media_id
+            )
+            if media_result.is_not_ok():
+                logger.error(f"Error resolving downloaded media. {media_result.info()}")
+                return Result(code=media_result.code(), message=media_result.message())
             deleted = await Media.delete_media_file_async(
                 session=session, public_id=media_result.result().public_id
             )

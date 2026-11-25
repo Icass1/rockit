@@ -26,3 +26,20 @@ export function lyricWordState(
         ? "past"
         : "active";
 }
+
+/** An active word fills in playback order using the same boundaries as its state. */
+export function lyricWordFill(
+    word: LyricsWord,
+    time: number,
+    offset = 0,
+    fallbackEnd?: number | null
+): "future" | "past" | number {
+    const state = lyricWordState(word, time, offset, fallbackEnd);
+    if (state !== "active") return state;
+
+    const end = word.end_timestamp_s ?? fallbackEnd;
+    if (end == null) return 1;
+
+    const start = lyricPlaybackTime(word.timestamp_s, offset);
+    return (time - start) / (lyricPlaybackTime(end, offset) - start);
+}

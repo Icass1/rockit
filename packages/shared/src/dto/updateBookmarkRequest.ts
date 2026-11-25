@@ -4,8 +4,8 @@
 import { z } from "zod";
 
 export const UpdateBookmarkRequestSchema = z.object({
-    timestamp: z.number().nullable(),
-    description: z.string().nullable(),
+    timestamp: z.number().nullable().default(null),
+    description: z.string().nullable().default(null),
     mode: z
         .enum([
             "NOTHING",
@@ -13,7 +13,8 @@ export const UpdateBookmarkRequestSchema = z.object({
             "REPEAT_FROM_BEGINNING",
             "PREVIOUS_BOOKMARK",
         ])
-        .nullable(),
+        .nullable()
+        .default(null),
 });
 
 export type UpdateBookmarkRequest = z.infer<typeof UpdateBookmarkRequestSchema>;

@@ -8,6 +8,107 @@
 
 ## To Review
 
+## Done
+
+### [DESCARGAS] Exportar audio o ZIP y limpiar descargas atascadas
+
+- tags: [web, mobile, downloads]
+- priority: normal
+- workload: Normal
+    ```md
+    Audio directo para un único archivo y ZIP para varios, con metadatos disponibles en MP3. Exportación de listas destacadas en móvil. Cancelación y borrado de entradas antiguas sin tocar la biblioteca. PR #234.
+    ```
+
+### [OFFLINE] Organizar la biblioteca descargada y corregir los menús de listas destacadas
+
+- tags: [mobile, web, offline]
+- priority: normal
+- workload: Normal
+    ```md
+    Aplicar likes masivos y guardar listas de RockIt offline. Agrupar la biblioteca local y actualizarla al terminar las descargas. PRs #223 y #225.
+    ```
+
+### [LYRICS] Sugerir una fuente LRCLIB y usarla mientras se revisa
+
+- tags: [web, mobile, lyrics]
+- priority: normal
+- workload: Normal
+    ```md
+    Vista centrada sin letras, propuesta por ID, disponibilidad inmediata para quien la envía y moderación. PRs #224 y #225.
+    ```
+
+### [LYRICS] Buscar letras y sincronizar edición y reproducción por palabra
+
+- tags: [web, mobile, lyrics]
+- priority: normal
+- workload: Normal
+    ```md
+    Búsqueda por fragmentos, resultado destacado y letras word-sync. Edición y revisión con tiempos conservados, corrección al girar el móvil y relleno blanco continuo con pausa y fundido entre líneas. PRs #227, #230, #234 y #236.
+    ```
+
+### [PLAYER] Navegar por canciones con swipe y afinar el vinilo
+
+- tags: [mobile, playback, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Desplazar portada y texto del minirreproductor. Cambiar solo al soltar y permitir invertir el gesto. Reducir el diámetro del punto negro del vinilo. PRs #234 y #236.
+    ```
+
+### [PLAYER] Corregir zoom del reproductor y mostrar el marcador activo
+
+- tags: [web, playback, ux]
+- priority: normal
+- workload: Normal
+    ```md
+    Corregir zoom de pinza en listas y reproductor. Mostrar el marcador actual en las capas de portada y vídeo. PRs #226 y #233.
+    ```
+
+### [SHARING] Abrir enlaces públicos con reproducción web para invitados
+
+- tags: [web, sharing]
+- priority: normal
+- workload: Normal
+    ```md
+    Compartir canciones, vídeos y colecciones públicas. Reproducción web sin cuenta para contenido público. PR #229.
+    ```
+
+### [STATS] Acelerar el ranking semanal de álbumes
+
+- tags: [backend, stats]
+- priority: normal
+- workload: Normal
+    ```md
+    Corregir el plan de consulta de Stats V2 para el rango semanal. PR #231.
+    ```
+
+### [ADMIN] Completar revisión de solicitudes y ordenar estadísticas
+
+- tags: [admin, backend, web]
+- priority: normal
+- workload: Normal
+    ```md
+    Notificar solicitudes nuevas, aplicar metadatos revisados y ordenar tablas por columnas. Añadir un acceso gris en Ajustes móvil que solo se muestra a administradores. PRs #234 y #236.
+    ```
+
+### [ANDROID] Publicar APK desde main y comprobar actualizaciones
+
+- tags: [android, admin, settings]
+- priority: normal
+- workload: Normal
+    ```md
+    Historial de builds con descarga y enlace para compartir. Última APK de main en Ajustes y comprobación de actualizaciones en Android. PR #234.
+    ```
+
+### [VOCABULARY] Revisar traducciones y añadir el vocabulario de la versión
+
+- tags: [i18n, web, mobile]
+- priority: normal
+- workload: Normal
+    ```md
+    Validar inglés, español y francés en el Excel y conservar «logs» en su contexto técnico. El PR #234 añade 48 claves. Algunos errores web aún muestran el mensaje del servidor directamente.
+    ```
+
 ### [EMBLEMS] Prism: medallas con relieve e inspección 3D
 
 - tags: [mobile, web, friends, emblems, ux]
@@ -23,6 +124,8 @@
 - priority: normal
 - workload: Normal
     ```md
+    Animar la aparición de textos y rankings. El resumen final es estático. PR #234.
+
     Recap del usuario desde su perfil: minutos, actividad, canciones, cuenta atrás de artistas y frases con reglas verificables. Año natural, preview del año actual y acceso al anterior. Componente compartido, pausa/mantener pulsado/segundo plano y movimiento reducido; formato vertical centrado en web. Reutilizar Stats V2, sin APIs externas ni algoritmos de percentiles con muestras pequeñas. Investigación y reglas en docs/frontend/annual-recap.md.
     ```
 
@@ -41,6 +144,8 @@
 - priority: normal
 - workload: Normal
     ```md
+    Reorganización de Friends en PC y acceso al perfil desde los avatares del círculo. PR #234.
+
     Acceso al perfil desde el círculo, directorio y ranking web; perfil propio desde el avatar central. Horas, nivel/XP, racha y escuchas reales. Emblemas originales compartidos, detalle de desbloqueo y catálogo paginado. API existente con permiso de amistad, lecturas bajo demanda y aislamiento de cuenta. Verificado en navegador y contratos nativos; aceptación física iOS/APK pendiente.
     ```
 
@@ -203,6 +308,8 @@
 - priority: high
 - workload: Normal
     ```md
+    PWA con negro del header arriba y gris del footer abajo. Validado en navegador móvil. Pendiente de comprobar la barra de estado en iPhone físico. PR #236.
+
     Evitar padding duplicado; barra y mini player respetan insets superiores e inferiores.
     ```
 
@@ -580,8 +687,6 @@ PR191 completa las cuatro tareas siguientes sobre la rama de PR189. Detalles y c
     Investigación documentada sobre el código real y fuentes de React Native Web, Expo, Capacitor, Next y MDN. Compara UI universal, DOM con plugins, componentes DOM de Expo y TWA; recomienda Expo/RNW para mantener Android nativo e iOS PWA. Define límites de carpetas, lógica/UI compartidas, capacidades por plataforma, almacenamiento, origen, migración incremental y aceptación física. Diseño pendiente de revisión; no se presenta como migración implementada. Ver docs/FRONTEND_PLATFORM_ARCHITECTURE.md. Sustituye la recomendación Android TWA del piloto PR188.
     ```
 
-## Done
-
 ### [PLAYER] Estabilizar el scroll de recomendaciones bajo la cola
 
 - tags: [frontend, queue, recommendations, scroll, bug]
@@ -713,6 +818,8 @@ PR191 completa las cuatro tareas siguientes sobre la rama de PR189. Detalles y c
 - priority: low
 - workload: Easy
     ```md
+    Llama compartida con 15 etapas de dos días y contador naranja junto a la campana móvil. PRs #234 y #236.
+
     SVG de llama con gradiente continuo de amarillo tenue a naranja, centro más luminoso y halo creciente entre 1 y 30 días. A partir de 30 días se mantiene la intensidad máxima y el contador sigue mostrando los días reales. Tamaño fijo de 28 px, sin animaciones continuas y con alternativa para contraste alto/colores forzados. Vocabulary existente. Solo interfaz web; sin cambios de backend, almacenamiento ni S3.
     Capturas de revisión en escritorio y móvil con 1, 3, 7, 14, 21, 30 y 60 días. Sin suites locales. Pendiente de revisión del usuario.
     ```

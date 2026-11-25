@@ -8,4 +8,6 @@ export const BACKEND_URL =
  * that link-preview crawlers (WhatsApp, Telegram, Slack, Twitter...) require.
  */
 export const SITE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://rockit.rockhosting.org";
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.EXPO_PUBLIC_SITE_URL ||
+    "https://rockit.rockhosting.org";

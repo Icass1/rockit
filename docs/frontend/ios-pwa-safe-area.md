@@ -8,10 +8,11 @@ passing it was insufficient evidence that the black band was fixed on iPhone.
 ## Document and launch configuration
 
 WebKit can paint the inset/background outside application content from the
-page background. Keep `html` and `body` the navigation surface color in app
-routes, in both themes. Keep `#root` the content background. Authentication and
-standalone utility routes use the content background. Set `theme-color` to the
-same outer surface and initialize the exported HTML before React loads.
+page background. Match `theme-color` and the top of the document underlay to
+the header. Paint the bottom of `html` and `body` with the navigation surface
+color in app routes, in both themes. Keep `#root` the content background.
+Authentication and standalone utility routes use the content background.
+Initialize the exported HTML before React loads.
 
 The PWA now requests the non-translucent `black` Apple status bar rather than
 `black-translucent`. WebKit reports describe a standalone viewport shorter than
@@ -35,7 +36,8 @@ the document underlay; it is not an emulation of Safari's OS-owned surface.
 
 Physical iPhone verification is still required: open the updated installed PWA
 from a cold start, navigate between app pages and the full-screen player,
-background and resume, and rotate where supported. The bottom surface must
+background and resume, and rotate where supported. The status bar must match
+the header. The bottom surface must
 match the navigation gray, with one home-indicator inset and no extra black
 band. Also check a keyboard open/close and both themes. No iOS device or
 simulator is available in this execution environment.

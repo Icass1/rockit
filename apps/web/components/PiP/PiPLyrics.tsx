@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useRef, type JSX } from "react";
+import { useCallback, useMemo, useRef, type JSX } from "react";
 import { designTokens } from "@rockit/theme";
+import { useActiveLyricIndex } from "@rockit/ui/headless/useActiveLyricIndex";
+import { useLyricPlaybackClock } from "@rockit/ui/headless/useLyricPlaybackClock";
 import type { PiPLyricsState } from "@/models/types/pip";
-import { useActiveLyricIndex } from "@/hooks/useActiveLyricIndex";
 import { useLyricAutoScroll } from "@/hooks/useLyricAutoScroll";
 import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -20,13 +21,21 @@ export function PiPLyrics({
         return lyrics?.dynamicLyrics ?? [];
     }, [lyrics]);
 
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const frameScheduler = useCallback(
+        () => scrollRef.current?.ownerDocument.defaultView,
+        []
+    );
+    const clock = useLyricPlaybackClock(
+        rockIt.mediaPlayerManager,
+        !glance && syncedLines.some((line) => line.words?.length),
+        frameScheduler
+    );
     const currentLineIndex = useActiveLyricIndex(
-        rockIt.mediaPlayerManager.currentTimeAtom,
+        clock,
         syncedLines,
         lyrics?.offset
     );
-
-    const scrollRef = useRef<HTMLDivElement>(null);
 
     useLyricAutoScroll(
         scrollRef,
@@ -124,9 +133,7 @@ export function PiPLyrics({
                             }}
                         >
                             <WordSyncedLine
-                                clock={
-                                    rockIt.mediaPlayerManager.currentTimeAtom
-                                }
+                                clock={clock}
                                 line={line}
                                 active={i === currentLineIndex}
                                 offset={lyrics?.offset}

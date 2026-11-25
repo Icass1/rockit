@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { type LyricsCorrectionContextResponse } from "@/dto";
-import { getMediaArtists, lyricPlaybackTime } from "@/shared/index";
+import { getMediaArtists } from "@/shared/index";
 import { withAlpha } from "@rockit/theme";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { useActiveLyricIndex } from "@rockit/ui/headless/useActiveLyricIndex";
+import { useLyricPlaybackClock } from "@rockit/ui/headless/useLyricPlaybackClock";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Http } from "@/lib/http";
-import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
+import { usePlayer } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useVocabulary } from "@/lib/vocabulary";
 import LyricsMissing from "@/components/Player/LyricsMissing";
 import PlayerLyricsScroll from "@/components/Player/PlayerLyricsScroll";
@@ -13,8 +16,7 @@ import PlayerLyricsScroll from "@/components/Player/PlayerLyricsScroll";
 export default function PlayerLyrics() {
     const styles = useThemedStyles(createStyles);
     const { width, height, fontScale } = useWindowDimensions();
-    const { currentMedia, seekTo } = usePlayer();
-    const { currentTime } = usePlayerTime();
+    const { currentMedia, seekTo, isPlayerVisible } = usePlayer();
     const { vocabulary } = useVocabulary();
 
     const [fetchedLyrics, setLyrics] =
@@ -52,29 +54,16 @@ export default function PlayerLyrics() {
         return () => clearInterval(timer);
     }, [lyrics?.syncStatus]);
 
-    const currentIndex = useMemo(() => {
-        if (
-            loading ||
-            !lyrics ||
-            currentTime === null ||
-            currentTime === undefined
-        )
-            return null;
-
-        const offset = lyrics.offset;
-
-        for (let i = lyrics.lines.length - 1; i >= 0; i--) {
-            const timestamp = lyrics.lines[i].timestamp_s;
-            if (
-                timestamp !== null &&
-                currentTime >= lyricPlaybackTime(timestamp, offset)
-            ) {
-                return i;
-            }
-        }
-
-        return null;
-    }, [lyrics, currentTime, loading]);
+    const clock = useLyricPlaybackClock(
+        rockIt.mediaPlayerManager,
+        isPlayerVisible &&
+            (lyrics?.lines.some((line) => line.words?.length) ?? false)
+    );
+    const activeIndex = useActiveLyricIndex(
+        clock,
+        lyrics?.lines,
+        lyrics?.offset
+    );
 
     return (
         <View style={styles.container}>
@@ -124,8 +113,8 @@ export default function PlayerLyrics() {
                 <PlayerLyricsScroll
                     key={`${publicId}:${Math.round(width)}:${Math.round(height)}:${fontScale}`}
                     lyrics={lyrics}
-                    currentIndex={currentIndex}
-                    currentTime={currentTime ?? 0}
+                    currentIndex={activeIndex < 0 ? null : activeIndex}
+                    clock={clock}
                     seekTo={seekTo}
                 />
             )}

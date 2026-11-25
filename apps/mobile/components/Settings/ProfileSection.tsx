@@ -217,10 +217,10 @@ const createStyles = (theme: DesignTheme) =>
             paddingHorizontal: theme.spacing.xl,
             paddingVertical: 14,
             borderRadius: theme.radius.lg,
-            backgroundColor: withAlpha(theme.colors.primary, 0.15),
+            backgroundColor: theme.colors["surface-raised"],
         },
         adminLabel: {
-            color: theme.colors.primary,
+            color: theme.colors.foreground,
             fontSize: theme.typography.label,
             fontWeight: "600",
         },

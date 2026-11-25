@@ -101,6 +101,23 @@ test("settings shows the centered administration shortcut only for administrator
     await expect(settings).toBeVisible();
     await expect(stats).toBeVisible();
     await expect(admin).toHaveCount(0);
+    const streak = page.getByTestId("header-streak");
+    const bell = page.getByRole("button", {
+        name: "Notifications",
+        exact: true,
+    });
+    await expect(streak).toHaveText("2");
+    await expect(streak.getByTestId("streak-flame")).toBeVisible();
+    await page.setViewportSize({ width: 320, height: 844 });
+    const logoBox = (await page
+        .getByTestId("rockit-header-logo")
+        .boundingBox())!;
+    const streakBox = (await streak.boundingBox())!;
+    const bellBox = (await bell.boundingBox())!;
+    expect(logoBox.x + logoBox.width).toBeLessThanOrEqual(streakBox.x);
+    expect(streakBox.x + streakBox.width).toBeLessThanOrEqual(bellBox.x);
+    expect(Math.abs(logoBox.x + logoBox.width / 2 - 160)).toBeLessThan(1);
+    await page.setViewportSize({ width: 390, height: 844 });
 
     const session = await request.get(backend + "/user/session", {
         headers: { cookie: "session_id=fixture" },
@@ -116,6 +133,7 @@ test("settings shows the centered administration shortcut only for administrator
     await expect(admin).toHaveAttribute("href", /^https?:\/\/[^/]+\/admin$/);
     await expect(admin).toHaveAttribute("target", "_blank");
     await expect(admin).toHaveCSS("flex-direction", "row");
+    await expect(admin).toHaveCSS("background-color", "rgb(38, 38, 38)");
     const [adminBox, statsBox, logoutBox] = await Promise.all([
         admin.boundingBox(),
         stats.boundingBox(),

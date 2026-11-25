@@ -10,6 +10,7 @@ import httpx
 from config import settings
 from core.framework.admin.androidBuilds import AndroidBuilds
 from core.models.androidBuildDownload import AndroidBuildDownload
+from core.models.androidBuildHistory import GitHubArtifact, GitHubRun
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -41,13 +42,15 @@ def extract_apk(archive_path: str, output: str) -> None:
 
 class AndroidBuildDownloads:
     @staticmethod
-    async def create_async(run_id: int) -> Result[AndroidBuildDownload]:
+    async def resolve_async(
+        run_id: int, artifact_id: int | None = None
+    ) -> Result[tuple[GitHubRun, GitHubArtifact]]:
         if not settings.ANDROID_BUILDS_GITHUB_TOKEN:
             logger.warning("GitHub artifact download requires server credentials")
             return Result(code=ResultCode.BAD_REQUEST, message="ADMIN_ANDROID_DOWNLOAD_CONFIG")
         source = await AndroidBuilds.source_async()
         if source.is_not_ok():
-            return Result[AndroidBuildDownload].from_result(source)
+            return Result[tuple[GitHubRun, GitHubArtifact]].from_result(source)
         runs, artifacts = source.result()
         run = next(
             (
@@ -63,6 +66,7 @@ class AndroidBuildDownloads:
                 for item in artifacts.artifacts
                 if item.workflow_run
                 and item.workflow_run.id == run_id
+                and (artifact_id is None or item.id == artifact_id)
                 and item.name.startswith("RockIt-Android-preview-")
                 and not item.expired
             ),
@@ -71,6 +75,16 @@ class AndroidBuildDownloads:
         if run is None or artifact is None:
             logger.warning("Requested Android build is unavailable or expired")
             return Result(code=ResultCode.NOT_FOUND, message="ADMIN_ANDROID_EXPIRED")
+        return Result[tuple[GitHubRun, GitHubArtifact]].ok((run, artifact))
+
+    @staticmethod
+    async def create_async(
+        run_id: int, artifact_id: int | None = None
+    ) -> Result[AndroidBuildDownload]:
+        resolved = await AndroidBuildDownloads.resolve_async(run_id=run_id, artifact_id=artifact_id)
+        if resolved.is_not_ok():
+            return Result[AndroidBuildDownload].from_result(resolved)
+        run, artifact = resolved.result()
         os.makedirs(settings.TEMP_PATH, exist_ok=True)
         directory = tempfile.mkdtemp(prefix="rockit-android-", dir=settings.TEMP_PATH)
         archive_path = str(Path(directory) / "artifact.zip")

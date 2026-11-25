@@ -8,6 +8,7 @@ from starlette.background import BackgroundTask
 
 from core.framework.admin.androidBuildDownload import AndroidBuildDownloads
 from core.framework.admin.androidBuilds import AndroidBuilds
+from core.framework.admin.androidBuildShare import create_share_async
 from core.framework.admin.build import AdminBuild
 from core.framework.admin.mediaSearch import AdminMediaSearch
 from core.framework.admin.requestLogStats import RequestLogStats
@@ -26,7 +27,10 @@ from core.requests.userRequestRequest import (
     ReviewUserRequestRequest,
 )
 from core.responses.adminSearchResponse import AdminSearchResponse
-from core.responses.androidBuildResponse import AndroidBuildHistoryResponse
+from core.responses.androidBuildResponse import (
+    AndroidBuildHistoryResponse,
+    AndroidBuildShareResponse,
+)
 from core.responses.buildResponse import AllBuildsResponse, BuildResponse
 from core.responses.okResponse import OkResponse
 from core.responses.requestLogStatsResponse import RequestLogStatsResponse
@@ -62,6 +66,15 @@ async def download_android_build(run_id: int = Path(ge=1)) -> FileResponse:
         media_type="application/vnd.android.package-archive",
         background=BackgroundTask(shutil.rmtree, artifact.directory, ignore_errors=True),
     )
+
+
+@router.post("/builds/android/{run_id}/share")
+async def share_android_build(run_id: int = Path(ge=1)) -> AndroidBuildShareResponse:
+    result = await create_share_async(run_id=run_id)
+    if result.is_not_ok():
+        logger.warning("Android build share failed: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
 
 
 @router.get("/builds/android-history")

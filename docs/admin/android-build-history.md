@@ -13,9 +13,11 @@ Configure the backend environment:
   repository. Private repository history and all APK downloads require this token.
   Public repository history can be read without it, with downloads disabled.
 
-The token remains on the backend. The history and download endpoints require an
-administrator session. Downloads deliver the APK directly from Rockit, without
-opening GitHub or requiring a GitHub login in the browser. The backend verifies
+The token remains on the backend. Administrators can download the APK directly
+from Rockit or copy a link. Each copied link authorizes access to one artifact
+for 24 hours or until GitHub expires the artifact, whichever comes first.
+Recipients can download the APK without signing in to Rockit or GitHub.
+The backend verifies
 that the requested run belongs to the Android preview workflow, fetches the
 matching unexpired artifact, and copies exactly one APK out of the artifact ZIP.
 Compressed and extracted sizes are bounded at 512 MiB; archive paths are never

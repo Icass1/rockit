@@ -23,3 +23,7 @@ class AndroidBuildHistoryResponse(BaseModel):
     workflowUrl: str
     downloadsEnabled: bool = True
     availability: Literal["available", "unavailable"]
+
+
+class AndroidBuildShareResponse(BaseModel):
+    url: str

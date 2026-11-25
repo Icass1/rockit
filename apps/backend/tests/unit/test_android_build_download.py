@@ -1,16 +1,21 @@
 import io
 import shutil
 import zipfile
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import AsyncMock
+from urllib.parse import parse_qs, urlsplit
 
 import httpx
 import pytest
+from fastapi import FastAPI
 from pydantic import SecretStr
 
 from config import settings
+from core.controllers.versionController import router as version_router
 from core.framework.admin.androidBuildDownload import AndroidBuildDownloads, extract_apk
 from core.framework.admin.androidBuilds import AndroidBuilds
+from core.framework.admin.androidBuildShare import create_share_async, signature
 from core.models.androidBuildHistory import GitHubArtifacts, GitHubRuns
 from result import Result
 
@@ -68,7 +73,7 @@ async def test_download_uses_matching_run_and_returns_apk_not_github_zip(
                     "id": 22,
                     "name": "RockIt-Android-preview-25",
                     "expired": False,
-                    "expires_at": "2026-12-08T00:00:00Z",
+                    "expires_at": datetime.now(UTC) + timedelta(days=2),
                     "workflow_run": {"id": 4},
                 }
             ]
@@ -108,4 +113,38 @@ async def test_download_uses_matching_run_and_returns_apk_not_github_zip(
     shutil.rmtree(output.directory)
     missing = await AndroidBuildDownloads.create_async(999)
     assert missing.is_not_ok()
+    assert list(tmp_path.iterdir()) == []
+
+    share = await create_share_async(run_id=4)
+    assert share.is_ok(), share.info()
+    link = urlsplit(share.result().url)
+    params = {key: values[0] for key, values in parse_qs(link.query).items()}
+    expires = int(params["expires"])
+    assert 0 < expires - int(datetime.now(UTC).timestamp()) <= 24 * 60 * 60
+
+    app = FastAPI()
+    app.include_router(version_router)
+    async with original_client(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as web:
+        before = len(requests)
+        tampered = await web.get(link.path, params={**params, "artifact": "23"})
+        assert tampered.status_code == 404
+        past = int(datetime.now(UTC).timestamp()) - 1
+        expired = await web.get(
+            link.path,
+            params={**params, "expires": past, "token": signature(4, 22, past)},
+        )
+        assert expired.status_code == 404
+        assert len(requests) == before
+
+        # The recipient uses the shared URL without a Rockit or GitHub session.
+        download = await web.get(link.path, params=params)
+        assert download.status_code == 200
+        assert (
+            download.headers["content-disposition"]
+            == 'attachment; filename="RockIt-Android-25.apk"'
+        )
+        with zipfile.ZipFile(io.BytesIO(download.content)) as apk:
+            assert "AndroidManifest.xml" in apk.namelist()
     assert list(tmp_path.iterdir()) == []

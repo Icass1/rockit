@@ -2424,4 +2424,5 @@ export interface Vocabulary {
     ADMIN_ANDROID_DOWNLOAD_FAILED: string;
     ADMIN_ANDROID_SOURCE: string;
     ADMIN_ANDROID_RELEASE_NAME: string;
+    ADMIN_ANDROID_LINK_COPIED: string;
 }

@@ -198,6 +198,14 @@ export class BaseHttp {
         return `/admin/builds/android/${encodeURIComponent(runId)}/download`;
     }
 
+    static async shareAndroidBuild(runId: string) {
+        return this.apiFetchAsync(
+            `/admin/builds/android/${encodeURIComponent(runId)}/share`,
+            dto.AndroidBuildShareResponseSchema,
+            { method: "POST" }
+        );
+    }
+
     static async uploadApk(payload: dto.UploadApkRequest) {
         return this.apiPostAsync(
             `/admin/builds/upload`,
@@ -1742,6 +1750,20 @@ export class BaseHttp {
             dto.OkResponseSchema,
             payload
         );
+    }
+
+    static downloadSharedAndroidBuildURL(
+        runId: string,
+        artifact: number,
+        expires: number,
+        token: string
+    ) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("artifact", `${artifact}`);
+        queryParams.append("expires", `${expires}`);
+        queryParams.append("token", `${token}`);
+        const queryString = queryParams.toString();
+        return `/version/android/${encodeURIComponent(runId)}/apk${queryString ? `?${queryString}` : ""}`;
     }
 
     static downloadApkURL(filename: string) {

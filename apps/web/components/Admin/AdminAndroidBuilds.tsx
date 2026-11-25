@@ -4,6 +4,7 @@ import { useEffect, useState, type JSX } from "react";
 import type { AndroidBuildHistoryResponse, AndroidBuildResponse } from "@/dto";
 import {
     Check,
+    Copy,
     Download,
     GitBranch,
     Loader2,
@@ -21,6 +22,9 @@ export default function AdminAndroidBuilds(): JSX.Element {
     const [reload, setReload] = useState(0);
     const [visible, setVisible] = useState(6);
     const downloads = useAdminBuildDownload();
+    const [copying, setCopying] = useState<number>();
+    const [copyStatus, setCopyStatus] = useState<"copied" | "error">();
+    const [manualLink, setManualLink] = useState<string>();
     useEffect(() => {
         let active = true;
         void Http.getAndroidBuildHistory()
@@ -52,6 +56,64 @@ export default function AdminAndroidBuilds(): JSX.Element {
     const latest = history?.builds.find(
         (build) => build.artifactUrl && !build.expired
     );
+    const copyLink = async (build: AndroidBuildResponse): Promise<void> => {
+        setCopying(build.runId);
+        setCopyStatus(undefined);
+        setManualLink(undefined);
+        const link = Http.shareAndroidBuild(String(build.runId)).then(
+            (result) => {
+                if (!result.isOk()) throw new Error();
+                return result.result.url;
+            }
+        );
+        try {
+            // Safari requires the clipboard write to start during the click.
+            const clipboard = navigator.clipboard;
+            if (clipboard?.write && typeof ClipboardItem !== "undefined") {
+                const contents = link.then(
+                    (url) => new Blob([url], { type: "text/plain" })
+                );
+                const write = async (): Promise<void> => {
+                    await clipboard.write([
+                        new ClipboardItem({ "text/plain": contents }),
+                    ]);
+                };
+                await Promise.all([contents, write()]);
+            } else {
+                await clipboard.writeText(await link);
+            }
+            setCopyStatus("copied");
+        } catch {
+            try {
+                setManualLink(await link);
+            } catch {
+                setCopyStatus("error");
+            }
+        } finally {
+            setCopying(undefined);
+        }
+    };
+
+    const copyAction = (
+        build: AndroidBuildResponse,
+        labeled = false
+    ): JSX.Element => (
+        <button
+            type="button"
+            aria-label={v.SHARING_COPY_LINK}
+            title={v.SHARING_COPY_LINK}
+            disabled={!history?.downloadsEnabled || copying !== undefined}
+            onClick={() => void copyLink(build)}
+            className="text-foreground-strong hover:bg-muted border-border-subtle inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium disabled:opacity-50"
+        >
+            {copying === build.runId ? (
+                <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" />
+            ) : (
+                <Copy className="h-4 w-4" />
+            )}
+            {labeled && v.SHARING_COPY_LINK}
+        </button>
+    );
     const downloadAction = (
         build: AndroidBuildResponse,
         primary = false
@@ -81,6 +143,22 @@ export default function AdminAndroidBuilds(): JSX.Element {
     };
     return (
         <section className="space-y-6" aria-busy={loading}>
+            {copyStatus && (
+                <p role="status" className="text-muted-foreground text-sm">
+                    {copyStatus === "copied"
+                        ? v.ADMIN_ANDROID_LINK_COPIED
+                        : v.SHARING_LINK_ERROR}
+                </p>
+            )}
+            {manualLink && (
+                <input
+                    aria-label={v.SHARING_COPY_LINK}
+                    className="border-border-subtle bg-background w-full rounded-lg border px-3 py-2 text-sm"
+                    value={manualLink}
+                    onFocus={(event) => event.currentTarget.select()}
+                    readOnly
+                />
+            )}
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <p className="text-subtle-foreground mb-1 text-xs font-medium tracking-widest uppercase">
@@ -161,7 +239,10 @@ export default function AdminAndroidBuilds(): JSX.Element {
                                 </div>
                             </div>
                             <div className="flex flex-col gap-2 sm:items-end">
-                                {downloadAction(latest, true)}
+                                <div className="flex flex-wrap gap-2">
+                                    {downloadAction(latest, true)}
+                                    {copyAction(latest, true)}
+                                </div>
                                 {latest.expiresAt && (
                                     <p className="text-subtle-foreground text-xs">
                                         {v.ADMIN_ANDROID_EXPIRES.replace(
@@ -214,7 +295,10 @@ export default function AdminAndroidBuilds(): JSX.Element {
                                     </span>
                                     <div className="col-start-2 row-span-2 row-start-1 sm:col-start-auto sm:row-span-1 sm:row-start-auto">
                                         {build.artifactUrl && !build.expired ? (
-                                            downloadAction(build)
+                                            <div className="flex flex-wrap justify-end gap-2">
+                                                {downloadAction(build)}
+                                                {copyAction(build)}
+                                            </div>
                                         ) : (
                                             <span className="text-subtle-foreground text-xs">
                                                 {build.expired

@@ -30,6 +30,7 @@
     "ADMIN_ANDROID_HISTORY_DESC": "Download the latest APK or choose a previous build.",
     "ADMIN_ANDROID_HISTORY_UNAVAILABLE": "GitHub history is unavailable. For a private repository, configure the server with a token that has Actions read access.",
     "ADMIN_ANDROID_LATEST": "Latest available",
+    "ADMIN_ANDROID_LINK_COPIED": "APK link copied. It works for up to 24 hours.",
     "ADMIN_ANDROID_NO_ARTIFACT": "No downloadable artifact",
     "ADMIN_ANDROID_PENDING": "In progress",
     "ADMIN_ANDROID_RECENT": "Recent builds",

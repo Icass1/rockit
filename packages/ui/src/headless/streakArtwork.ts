@@ -1,5 +1,6 @@
 const center = 50;
 const base = 85;
+const lastStage = 14;
 
 type FlareProfile = {
     side: number;
@@ -9,69 +10,134 @@ type FlareProfile = {
     size: number;
 };
 
-const tiers = [
-    {
-        width: 10,
-        height: 34,
-        pulse: 0.29,
-        rolls: 1,
-        sparks: 0,
-        phase: 110,
-        flares: [],
-    },
-    {
-        width: 15,
-        height: 47,
-        pulse: 0.49,
-        rolls: 2,
-        sparks: 1,
-        phase: 318,
-        flares: [
-            { side: 0, period: 1290, phase: 0.1, reach: 0.56, size: 0.31 },
-        ],
-    },
-    {
-        width: 18.5,
-        height: 58,
-        pulse: 0.73,
-        rolls: 3,
-        sparks: 3,
-        phase: 455,
-        flares: [
-            { side: -1, period: 1010, phase: 0.14, reach: 0.84, size: 0.4 },
-            { side: 1, period: 1270, phase: 0.63, reach: 0.73, size: 0.32 },
-        ],
-    },
-    {
-        width: 20.5,
-        height: 65,
-        pulse: 1,
-        rolls: 4,
-        sparks: 6,
-        phase: 202,
-        flares: [
-            { side: -1, period: 890, phase: 0.13, reach: 1.04, size: 0.44 },
-            { side: 1, period: 1170, phase: 0.5, reach: 0.94, size: 0.46 },
-            { side: 0, period: 630, phase: 0.77, reach: 0.59, size: 0.3 },
-        ],
-    },
-] satisfies Array<{
+type StreakPreset = {
+    stage: number;
     width: number;
     height: number;
     pulse: number;
     rolls: number;
     sparks: number;
     phase: number;
+    speed: number;
     flares: FlareProfile[];
-}>;
+};
 
-function levelFor(days: number): number {
-    return days >= 14 ? 3 : days >= 7 ? 2 : days >= 3 ? 1 : 0;
+const presets: StreakPreset[] = [
+    {
+        stage: 0,
+        width: 10,
+        height: 34,
+        pulse: 0.29,
+        rolls: 1,
+        sparks: 0,
+        phase: 110,
+        speed: 1,
+        flares: [],
+    },
+    {
+        stage: 2,
+        width: 15,
+        height: 47,
+        pulse: 0.49,
+        rolls: 2,
+        sparks: 1,
+        phase: 318,
+        speed: 1.02,
+        flares: [
+            { side: 0, period: 1290, phase: 0.1, reach: 0.56, size: 0.31 },
+        ],
+    },
+    {
+        stage: 4,
+        width: 18.5,
+        height: 58,
+        pulse: 0.73,
+        rolls: 3,
+        sparks: 3,
+        phase: 455,
+        speed: 1.04,
+        flares: [
+            { side: 0, period: 1160, phase: 0.1, reach: 0.44, size: 0.22 },
+            { side: -1, period: 1010, phase: 0.14, reach: 0.84, size: 0.4 },
+            { side: 1, period: 1270, phase: 0.63, reach: 0.73, size: 0.32 },
+        ],
+    },
+    {
+        stage: 6,
+        width: 20.5,
+        height: 65,
+        pulse: 1,
+        rolls: 4,
+        sparks: 6,
+        phase: 202,
+        speed: 1.09,
+        flares: [
+            { side: 0, period: 630, phase: 0.77, reach: 0.59, size: 0.3 },
+            { side: -1, period: 890, phase: 0.13, reach: 1.04, size: 0.44 },
+            { side: 1, period: 1170, phase: 0.5, reach: 0.94, size: 0.46 },
+        ],
+    },
+    {
+        stage: lastStage,
+        width: 22,
+        height: 66.5,
+        pulse: 1.12,
+        rolls: 4,
+        sparks: 7,
+        phase: 260,
+        speed: 1.49,
+        flares: [
+            { side: 0, period: 610, phase: 0.72, reach: 0.68, size: 0.34 },
+            { side: -1, period: 875, phase: 0.16, reach: 1.08, size: 0.47 },
+            { side: 1, period: 1125, phase: 0.49, reach: 1.01, size: 0.48 },
+        ],
+    },
+];
+
+/** Days 1–2 start at stage zero. Days 29 onward share the final appearance. */
+export function streakFlameStage(days: number): number {
+    const stage = Math.floor((days - 1) / 2);
+    return stage > 0 ? Math.min(lastStage, stage) : 0;
 }
 
 const mix = (a: number, b: number, fraction: number): number =>
     a + (b - a) * fraction;
 const clamp = (n: number): number => Math.max(0, Math.min(1, n));
+
+// Precompute each two-day step. Between presets, new tongues fade in instead of
+// appearing fully formed and existing tongues keep their place around the axis.
+const tiers = Array.from({ length: lastStage + 1 }, (_, stage) => {
+    const nextIndex = presets.findIndex((preset) => preset.stage >= stage);
+    const next = presets[nextIndex];
+    const previous = presets[Math.max(0, nextIndex - 1)];
+    const part =
+        next === previous
+            ? 0
+            : (stage - previous.stage) / (next.stage - previous.stage);
+    const blend = (from: number, to: number) => mix(from, to, part);
+
+    return {
+        width: blend(previous.width, next.width),
+        height: blend(previous.height, next.height),
+        pulse: blend(previous.pulse, next.pulse),
+        rolls: Math.round(blend(previous.rolls, next.rolls)),
+        sparks: Math.round(blend(previous.sparks, next.sparks)),
+        phase: blend(previous.phase, next.phase),
+        speed: blend(previous.speed, next.speed),
+        flares: next.flares.map((flare, index) => {
+            const from = previous.flares[index];
+            return {
+                side: flare.side,
+                period: blend(from?.period ?? flare.period, flare.period),
+                phase: blend(from?.phase ?? flare.phase, flare.phase),
+                reach: blend(from?.reach ?? flare.reach, flare.reach),
+                size: blend(from?.size ?? flare.size, flare.size),
+                gain: from ? 1 : part,
+            };
+        }),
+    };
+});
+
 const point = (x: number, y: number): string =>
     `${Math.round(x * 10) / 10} ${Math.round(y * 10) / 10}`;
 
@@ -119,14 +185,15 @@ function contour(
 }
 
 function liveFlare(
-    { side, period, phase, reach, size }: FlareProfile,
+    { side, period, phase, reach, size, gain }: FlareProfile & { gain: number },
     t: number
 ) {
     const cycle = t / period + phase;
     const age = cycle % 1;
     return {
         side: side || (Math.floor(cycle) % 2 === 0 ? 1 : -1),
-        strength: smooth(0.04, 0.31, age) * (1 - smooth(0.46, 0.96, age)),
+        strength:
+            smooth(0.04, 0.31, age) * (1 - smooth(0.46, 0.96, age)) * gain,
         height: reach * (0.39 + 0.61 * smooth(0.045, 0.58, age)),
         size,
     };
@@ -177,9 +244,9 @@ function flareContour(
 
 /** All renderers use the same small vector frame, including the preview canvas. */
 export function streakFlameFrame(days: number, elapsed: number) {
-    const tier = tiers[levelFor(days)];
+    const tier = tiers[streakFlameStage(days)];
     const { width, height, pulse } = tier;
-    const t = elapsed + tier.phase;
+    const t = elapsed * tier.speed + tier.phase;
     const flares = tier.flares.map((profile) => liveFlare(profile, t));
     const drive = Math.min(
         1,
@@ -315,8 +382,8 @@ export function streakFlameFrame(days: number, elapsed: number) {
 }
 
 export function streakFlamePalette(days: number) {
-    const level = levelFor(days);
-    const heat = clamp((days - 1) / 35 + level * 0.085);
+    const level = streakFlameStage(days);
+    const heat = Math.pow(level / lastStage, 0.82);
     const color = (
         start: number,
         end: number,

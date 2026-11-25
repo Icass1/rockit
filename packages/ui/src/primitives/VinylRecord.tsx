@@ -116,8 +116,8 @@ export function VinylRecord({
                 >
                     <View
                         style={{
-                            width: "45%",
-                            height: "45%",
+                            width: "38%",
+                            height: "38%",
                             borderRadius: size,
                             backgroundColor: colors.backdrop,
                         }}

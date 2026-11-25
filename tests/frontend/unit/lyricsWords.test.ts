@@ -33,6 +33,15 @@ it("fills only within the current word, including with offsets and fallback ends
     expect(lyricWordFill(withoutEnd, 8, 2, 10)).toBe("past");
 });
 
+it("completes the previous word when the next begins despite overlapping timestamps", () => {
+    const previous = { text: "Hola ", timestamp_s: 10, end_timestamp_s: 13 };
+    const next = { text: "mundo", timestamp_s: 12, end_timestamp_s: 14 };
+    expect(lyricWordFill(previous, 9, 2, next.timestamp_s)).toBe(0.5);
+    expect(lyricWordFill(previous, 10, 2, next.timestamp_s)).toBe("past");
+    expect(lyricWordFill(next, 10, 2)).toBe(0);
+    expect(lyricWordFill(previous, 10.5, 2, next.timestamp_s)).toBe("past");
+});
+
 it("validates and retains word timings at the shared HTTP boundary", () => {
     const data = LyricsCorrectionContextResponseSchema.parse({
         provider: "LRCLIB",

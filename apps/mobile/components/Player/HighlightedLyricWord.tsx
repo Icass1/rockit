@@ -19,25 +19,16 @@ export default function HighlightedLyricWord({
     const highlight = colors["foreground-strong"];
     if (typeof fill !== "number")
         return (
-            <Text
-                style={{
-                    color:
-                        fill === "past"
-                            ? colors["subtle-foreground"]
-                            : upcoming,
-                }}
-            >
+            <Text style={{ color: fill === "past" ? highlight : upcoming }}>
                 {text}
             </Text>
         );
 
     // Inline text keeps the same layout before, during and after the fill.
+    const word = text.trimEnd();
     const glyphs = segmenter
-        ? Array.from(
-              segmenter.segment(text.trimEnd()),
-              ({ segment }) => segment
-          )
-        : [text];
+        ? Array.from(segmenter.segment(word), ({ segment }) => segment)
+        : Array.from(word);
     const position = fill * glyphs.length;
     const completed = Math.floor(position);
     const filled = glyphs.slice(0, completed).join("");

@@ -30,8 +30,18 @@ it("highlights words on playback and seeking, preserving whitespace and releasin
     expect(states()).toEqual(["active", "future"]);
     act(() => clock.set(9));
     expect(states()).toEqual(["past", "future"]);
-    act(() => clock.set(10));
+    act(() => clock.set(10.5));
     expect(states()).toEqual(["past", "active"]);
+    expect(
+        view.container.querySelector('[data-word-state="past"]')?.className
+    ).toBe("text-foreground-strong");
+    expect(
+        (
+            view.container.querySelector(
+                '[data-word-state="active"]'
+            ) as HTMLElement
+        ).style.backgroundImage
+    ).toContain("25%");
     act(() => clock.set(7));
     expect(states()).toEqual(["future", "future"]);
     view.rerender(<WordSyncedLine clock={clock} line={line} active={false} />);

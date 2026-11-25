@@ -374,8 +374,8 @@ img {
 }
 
 .vinyl-black-dot {
-    width: 45%;
-    height: 45%;
+    width: 38%;
+    height: 38%;
     border-radius: 9999px;
     background: var(--theme-backdrop);
     pointer-events: none;

@@ -8,38 +8,30 @@ export function lyricSeekTime(timestamp: number, offset = 0): number {
     return Math.max(0, lyricPlaybackTime(timestamp, offset));
 }
 
-/** Missing ends use the next segment or line end only for display. */
 export function lyricWordState(
     word: LyricsWord,
     time: number | null | undefined,
     offset = 0,
-    fallbackEnd?: number | null
+    nextBoundary?: number | null
 ): "future" | "active" | "past" {
-    if (
-        time == null ||
-        !Number.isFinite(time) ||
-        time < lyricPlaybackTime(word.timestamp_s, offset)
-    )
-        return "future";
-    const end = word.end_timestamp_s ?? fallbackEnd;
-    return end != null && time >= lyricPlaybackTime(end, offset)
-        ? "past"
-        : "active";
+    const fill = lyricWordFill(word, time, offset, nextBoundary);
+    return typeof fill === "number" ? "active" : fill;
 }
 
-/** An active word fills in playback order using the same boundaries as its state. */
+/** Finish a word by the next word or line boundary, even when timings overlap. */
 export function lyricWordFill(
     word: LyricsWord,
-    time: number,
+    time: number | null | undefined,
     offset = 0,
-    fallbackEnd?: number | null
+    nextBoundary?: number | null
 ): "future" | "past" | number {
-    const state = lyricWordState(word, time, offset, fallbackEnd);
-    if (state !== "active") return state;
-
-    const end = word.end_timestamp_s ?? fallbackEnd;
-    if (end == null) return 1;
-
     const start = lyricPlaybackTime(word.timestamp_s, offset);
-    return (time - start) / (lyricPlaybackTime(end, offset) - start);
+    if (time == null || !Number.isFinite(time) || time < start) return "future";
+
+    const end = lyricPlaybackTime(
+        Math.min(word.end_timestamp_s ?? Infinity, nextBoundary ?? Infinity),
+        offset
+    );
+    if (time >= end) return "past";
+    return Number.isFinite(end) ? (time - start) / (end - start) : 1;
 }

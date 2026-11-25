@@ -16,6 +16,7 @@ export const DownloadItemResponseSchema = z.object({
         "FETCHING",
         "WAITING_FOR_QUEUE_SETUP",
         "RETRYING",
+        "CANCELLED",
     ]),
     progress: z.number(),
     imageUrl: z.string().nullable().default(null),

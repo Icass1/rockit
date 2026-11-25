@@ -2441,4 +2441,6 @@ export interface Vocabulary {
     LYRICS_EDIT_POSITION: string;
     LYRICS_PREVIOUS_LINE: string;
     LYRICS_NEXT_LINE: string;
+    DOWNLOAD_CANCEL: string;
+    DOWNLOAD_CANCELLED: string;
 }

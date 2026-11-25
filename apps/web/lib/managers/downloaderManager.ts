@@ -238,6 +238,7 @@ export class DownloaderManager {
     }
 
     private receiveProgress(data: DownloadProgressMessage): void {
+        if (this.removed.has(data.publicId)) return;
         const detail = this.detailAtom.get();
         const known =
             this.groupsAtom
@@ -323,7 +324,7 @@ export class DownloaderManager {
 
     async runActionAsync(
         item: DownloadItemResponse,
-        action: "delete" | "retry" | "library" | "playlist",
+        action: "cancel" | "delete" | "retry" | "library" | "playlist",
         playlistId?: string
     ): Promise<void> {
         const sessionVersion = this.sessionVersion;
@@ -353,27 +354,43 @@ export class DownloaderManager {
         }
         try {
             const result =
-                action === "delete"
-                    ? await Http.deleteDownload(item.publicId)
-                    : action === "retry"
-                      ? await Http.retryDownload(item.publicId)
-                      : action === "playlist" && playlistId
-                        ? await Http.addMediaToPlaylistAsync(playlistId, {
-                              mediaPublicId: item.mediaPublicId,
-                          })
-                        : await Http.addMediaToLibrary(item.mediaPublicId);
+                action === "cancel"
+                    ? await Http.cancelDownload(item.publicId)
+                    : action === "delete"
+                      ? await Http.deleteDownload(item.publicId)
+                      : action === "retry"
+                        ? await Http.retryDownload(item.publicId)
+                        : action === "playlist" && playlistId
+                          ? await Http.addMediaToPlaylistAsync(playlistId, {
+                                mediaPublicId: item.mediaPublicId,
+                            })
+                          : await Http.addMediaToLibrary(item.mediaPublicId);
             if (sessionVersion !== this.sessionVersion) return;
             if (!result.isOk()) throw new Error(result.message);
             rockIt.notificationManager.notifySuccess(
-                action === "delete"
-                    ? rockIt.vocabularyManager.vocabulary.DELETE_SUCCESS
-                    : action === "retry"
-                      ? rockIt.vocabularyManager.vocabulary.DOWNLOAD_STARTED
-                      : action === "playlist"
-                        ? rockIt.vocabularyManager.vocabulary.ADDED_TO_PLAYLIST
-                        : rockIt.vocabularyManager.vocabulary.ADDED_TO_LIBRARY
+                action === "cancel"
+                    ? rockIt.vocabularyManager.vocabulary.DOWNLOAD_CANCELLED
+                    : action === "delete"
+                      ? rockIt.vocabularyManager.vocabulary.DELETE_SUCCESS
+                      : action === "retry"
+                        ? rockIt.vocabularyManager.vocabulary.DOWNLOAD_STARTED
+                        : action === "playlist"
+                          ? rockIt.vocabularyManager.vocabulary
+                                .ADDED_TO_PLAYLIST
+                          : rockIt.vocabularyManager.vocabulary.ADDED_TO_LIBRARY
             );
-            if (action === "delete") {
+            if (action === "delete" || action === "cancel") {
+                if (action === "cancel") {
+                    await this.refreshing;
+                    if (sessionVersion !== this.sessionVersion) return;
+                    this.progress.delete(item.publicId);
+                    this.pendingProgress.delete(item.publicId);
+                    this.updateItem(item.publicId, (entry) => ({
+                        ...entry,
+                        status: "CANCELLED",
+                        progress: 0,
+                    }));
+                }
                 await this.refreshAsync();
                 const detail = this.detailAtom.get();
                 if (detail && detail.groupId === originalDetail?.groupId)
@@ -423,7 +440,7 @@ export class DownloaderManager {
 
     async runGroupActionAsync(
         group: DownloadBrowseGroupResponse,
-        action: "delete" | "retry" | "library"
+        action: "cancel" | "delete" | "retry" | "library"
     ): Promise<void> {
         const sessionVersion = this.sessionVersion;
         if (this.groupPendingAtom.get()[group.publicId]) return;
@@ -444,12 +461,16 @@ export class DownloaderManager {
         if (action === "retry" && originalDetail?.groupId === group.publicId) {
             this.detailAtom.set({
                 ...originalDetail,
-                items: originalDetail.items.map((item) => ({
-                    ...item,
-                    status: "PENDING",
-                    progress: 0,
-                    retryCount: 0,
-                })),
+                items: originalDetail.items.map((item) =>
+                    item.status === "CANCELLED"
+                        ? item
+                        : {
+                              ...item,
+                              status: "PENDING",
+                              progress: 0,
+                              retryCount: 0,
+                          }
+                ),
             });
         }
         if (action === "retry")
@@ -458,16 +479,20 @@ export class DownloaderManager {
                     entry.publicId === group.publicId
                         ? {
                               ...entry,
-                              active: entry.total,
+                              active: entry.success + entry.fail,
                               success: 0,
                               fail: 0,
                               canManage: false,
-                              items: entry.items.map((item) => ({
-                                  ...item,
-                                  status: "PENDING",
-                                  progress: 0,
-                                  retryCount: 0,
-                              })),
+                              items: entry.items.map((item) =>
+                                  item.status === "CANCELLED"
+                                      ? item
+                                      : {
+                                            ...item,
+                                            status: "PENDING",
+                                            progress: 0,
+                                            retryCount: 0,
+                                        }
+                              ),
                           }
                         : entry
                 )
@@ -505,14 +530,21 @@ export class DownloaderManager {
                 if (sessionVersion !== this.sessionVersion) return;
                 if (!result.isOk()) throw new Error(result.message);
                 rockIt.notificationManager.notifySuccess(
-                    action === "delete"
-                        ? rockIt.vocabularyManager.vocabulary.DELETE_SUCCESS
-                        : rockIt.vocabularyManager.vocabulary.DOWNLOAD_STARTED
+                    action === "cancel"
+                        ? rockIt.vocabularyManager.vocabulary.DOWNLOAD_CANCELLED
+                        : action === "delete"
+                          ? rockIt.vocabularyManager.vocabulary.DELETE_SUCCESS
+                          : rockIt.vocabularyManager.vocabulary.DOWNLOAD_STARTED
                 );
+                if (action === "cancel") {
+                    await this.refreshing;
+                    if (sessionVersion !== this.sessionVersion) return;
+                }
                 await this.refreshAsync();
                 if (
-                    action === "retry" &&
-                    originalDetail?.groupId === group.publicId
+                    (action === "retry" || action === "cancel") &&
+                    originalDetail?.groupId === group.publicId &&
+                    this.detailAtom.get()?.groupId === group.publicId
                 )
                     await this.openGroupAsync(
                         group.publicId,

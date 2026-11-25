@@ -14,6 +14,7 @@ from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.provider import ProviderRow
 from core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from core.access.providerStorage import provider_storage
+from core.enums.downloadStatusEnum import TERMINAL_DOWNLOAD_STATUS_KEYS
 from core.utils.safeAsyncCall import safe_async
 from result import Result, ResultCode
 
@@ -31,7 +32,7 @@ class DownloadBrowseAccess:
         if status == "failed":
             return DownloadRow.status_key == 4
         if status == "active":
-            return DownloadRow.status_key.not_in([3, 4])
+            return DownloadRow.status_key.not_in(TERMINAL_DOWNLOAD_STATUS_KEYS)
         return literal(True)
 
     @staticmethod
@@ -78,7 +79,9 @@ class DownloadBrowseAccess:
                         func.count().label("total"),
                         func.count().filter(DownloadRow.status_key == 3).label("completed"),
                         func.count().filter(DownloadRow.status_key == 4).label("failed"),
-                        func.count().filter(DownloadRow.status_key.not_in([3, 4])).label("active"),
+                        func.count()
+                        .filter(DownloadBrowseAccess.status_predicate("active"))
+                        .label("active"),
                     )
                     .select_from(DownloadRow)
                     .join(DownloadGroupRow)
@@ -134,7 +137,9 @@ class DownloadBrowseAccess:
                 func.count().label("total"),
                 func.count().filter(DownloadRow.status_key == 3).label("completed"),
                 func.count().filter(DownloadRow.status_key == 4).label("failed"),
-                func.count().filter(DownloadRow.status_key.not_in([3, 4])).label("active"),
+                func.count()
+                .filter(DownloadBrowseAccess.status_predicate("active"))
+                .label("active"),
                 func.count()
                 .filter(
                     DownloadBrowseAccess.status_predicate(status=status),
@@ -260,7 +265,7 @@ class DownloadBrowseAccess:
             select(DownloadStatusRow.completed)
             .where(
                 DownloadStatusRow.download_id == ranked.c.id,
-                ranked.c.status_key.not_in([1, 3, 4]),
+                ranked.c.status_key.not_in((1, *TERMINAL_DOWNLOAD_STATUS_KEYS)),
             )
             .order_by(DownloadStatusRow.id.desc())
             .limit(1)
@@ -365,7 +370,7 @@ class DownloadBrowseAccess:
                     select(DownloadRow.id).where(
                         DownloadRow.media_id.in_(media_ids),
                         DownloadRow.download_group_id != group_id,
-                        DownloadRow.status_key.not_in([3, 4]),
+                        DownloadRow.status_key.not_in(TERMINAL_DOWNLOAD_STATUS_KEYS),
                     )
                 )
             )

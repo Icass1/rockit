@@ -1,40 +1,48 @@
 import type { Vocabulary } from "@rockit/shared";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
+import { Trash2, X } from "@rockit/ui/icons";
 import { Image } from "expo-image";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { DownloadInfo } from "@/hooks/useDownloads";
 import { useVocabulary } from "@/lib/vocabulary";
 
 interface DownloadItemProps {
     item: DownloadInfo;
+    pending: boolean;
+    onAction: (publicId: string, action: "cancel" | "delete") => void;
 }
 
 function getStatusColor(item: DownloadInfo, theme: DesignTheme): string {
-    if (item.message === "Error") return theme.colors["destructive"];
-    if (item.completed >= 100 || item.message === "Done")
-        return theme.colors["success"];
+    if (item.status === "FAILED") return theme.colors.destructive;
+    if (item.status === "CANCELLED") return theme.legacy.gray400;
+    if (item.status === "COMPLETED") return theme.colors.success;
     return theme.legacy.accent;
 }
 
 function getStatusLabel(item: DownloadInfo, vocabulary: Vocabulary): string {
-    if (item.message === "Error") return vocabulary.ERROR;
-    if (item.completed >= 100 || item.message === "Done")
-        return vocabulary.COMPLETED;
-    if (item.message === "In queue") return vocabulary.DOWNLOAD_STATUS_QUEUED;
-    if (item.message === "Waiting") return vocabulary.DOWNLOAD_STATUS_WAITING;
-    if (item.message === "Starting") return vocabulary.STARTING;
-    if (item.message === "Fetching") return vocabulary.FETCHING;
+    if (item.status === "FAILED") return vocabulary.ERROR;
+    if (item.status === "CANCELLED") return vocabulary.DOWNLOAD_CANCELLED;
+    if (item.status === "COMPLETED") return vocabulary.COMPLETED;
+    if (item.status === "PENDING") return vocabulary.DOWNLOAD_STATUS_QUEUED;
+    if (item.status === "WAITING_FOR_QUEUE_SETUP" || item.status === "RETRYING")
+        return vocabulary.DOWNLOAD_STATUS_WAITING;
+    if (item.status === "FETCHING") return vocabulary.FETCHING;
     return `${Math.round(item.completed)}%`;
 }
 
-export default function DownloadItem({ item }: DownloadItemProps) {
+export default function DownloadItem({
+    item,
+    pending,
+    onAction,
+}: DownloadItemProps) {
     const theme = useDesignTheme();
     const { vocabulary } = useVocabulary();
     const styles = useThemedStyles(createStyles);
     const statusColor = getStatusColor(item, theme);
     const completed = Number(item.completed) || 0;
     const progressWidth =
-        item.message === "Error" ? 100 : Math.min(completed, 100);
+        item.status === "FAILED" ? 100 : Math.min(completed, 100);
+    const canDelete = item.status === "FAILED" || item.status === "CANCELLED";
 
     const hasImage = item.imageUrl && item.imageUrl.length > 0;
 
@@ -87,6 +95,30 @@ export default function DownloadItem({ item }: DownloadItemProps) {
                     />
                 </View>
             </View>
+            {item.status !== "COMPLETED" && (
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                        canDelete
+                            ? vocabulary.DELETE
+                            : vocabulary.DOWNLOAD_CANCEL
+                    }
+                    disabled={pending}
+                    style={({ pressed }) => [
+                        styles.action,
+                        (pressed || pending) && styles.actionInactive,
+                    ]}
+                    onPress={() =>
+                        onAction(item.publicId, canDelete ? "delete" : "cancel")
+                    }
+                >
+                    {canDelete ? (
+                        <Trash2 size={19} color={theme.colors.destructive} />
+                    ) : (
+                        <X size={21} color={theme.colors.foreground} />
+                    )}
+                </Pressable>
+            )}
         </View>
     );
 }
@@ -121,6 +153,15 @@ const createStyles = (theme: DesignTheme) =>
         content: {
             flex: 1,
             gap: 6,
+        },
+        action: {
+            width: 44,
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        actionInactive: {
+            opacity: 0.5,
         },
         header: {
             flexDirection: "row",

@@ -551,9 +551,13 @@ export class BaseHttp {
         return `/downloader/download-zip`;
     }
 
-    static async getDownloads() {
+    static async getDownloads(includeCancelled?: boolean) {
+        const queryParams = new URLSearchParams();
+        if (includeCancelled !== undefined)
+            queryParams.append("include_cancelled", `${includeCancelled}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/downloader/downloads`,
+            `/downloader/downloads${queryString ? `?${queryString}` : ""}`,
             dto.DownloadsResponseSchema
         );
     }
@@ -562,6 +566,14 @@ export class BaseHttp {
         return this.apiDeleteAsync(
             `/downloader/downloads/${encodeURIComponent(publicId)}`,
             dto.OkResponseSchema
+        );
+    }
+
+    static async cancelDownload(publicId: string) {
+        return this.apiFetchAsync(
+            `/downloader/downloads/${encodeURIComponent(publicId)}/cancel`,
+            dto.OkResponseSchema,
+            { method: "POST" }
         );
     }
 

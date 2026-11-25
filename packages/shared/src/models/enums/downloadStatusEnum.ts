@@ -9,4 +9,5 @@ export enum DownloadStatusEnum {
     FETCHING = "FETCHING",
     WAITING_FOR_QUEUE_SETUP = "WAITING_FOR_QUEUE_SETUP",
     RETRYING = "RETRYING",
+    CANCELLED = "CANCELLED",
 }

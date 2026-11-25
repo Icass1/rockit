@@ -258,6 +258,8 @@
     "DOWNLOAD_AND_ADD_TO_LIBRARY": "Download and Add to Library",
     "DOWNLOAD_AND_PLAY": "Download and Play",
     "DOWNLOAD_APP": "Download the App for Offline Listening",
+    "DOWNLOAD_CANCEL": "Cancel download",
+    "DOWNLOAD_CANCELLED": "Cancelled",
     "DOWNLOAD_INPUT_PLACEHOLDER": "Enter a Spotify or YT Music URL",
     "DOWNLOAD_LIST_TO_DEVICE": "Download list to device",
     "DOWNLOAD_LIST_TO_SERVER": "Download list to server",

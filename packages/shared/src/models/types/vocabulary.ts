@@ -2433,4 +2433,12 @@ export interface Vocabulary {
     ANDROID_RELEASE_INSTALLED: string;
     ANDROID_RELEASE_UPDATE: string;
     ANDROID_RELEASE_INSTALL_HINT: string;
+    LYRICS_WORDS_EDIT: string;
+    LYRICS_WORDS_HELP: string;
+    LYRICS_WORD_TEXT: string;
+    LYRICS_WORD_START: string;
+    LYRICS_WORD_END: string;
+    LYRICS_EDIT_POSITION: string;
+    LYRICS_PREVIOUS_LINE: string;
+    LYRICS_NEXT_LINE: string;
 }

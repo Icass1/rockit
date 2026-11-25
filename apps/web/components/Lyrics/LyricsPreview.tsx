@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type JSX } from "react";
-import type { LyricsSnapshot } from "@/models/interfaces/lyricsSnapshot";
+import type { LyricsWord } from "@/dto";
+import { lyricWordState } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
@@ -13,7 +14,12 @@ export function LyricsPreview({
     offset,
 }: {
     mediaPublicId: string;
-    lines: LyricsSnapshot["lines"];
+    lines: ReadonlyArray<{
+        text: string;
+        timestamp_s: number | null;
+        words?: readonly LyricsWord[] | null;
+        end_timestamp_s?: number | null;
+    }>;
     offset: number;
 }): JSX.Element {
     const vocabulary = useVocabulary();
@@ -78,7 +84,7 @@ export function LyricsPreview({
                         key={i}
                         type="button"
                         disabled={line.timestamp_s === null || !url}
-                        className={`block w-full py-1 text-left ${i === active ? "text-primary-soft" : "text-foreground"}`}
+                        className={`block w-full py-1 text-left whitespace-pre-wrap ${i === active ? "text-primary-soft" : "text-foreground"}`}
                         onClick={() => {
                             if (audio.current && line.timestamp_s !== null) {
                                 const target = lyricSeekTime(
@@ -93,7 +99,31 @@ export function LyricsPreview({
                             }
                         }}
                     >
-                        {line.text || "…"}
+                        {i === active && line.words?.length
+                            ? line.words.map((word, index) => {
+                                  const state = lyricWordState(
+                                      word,
+                                      time,
+                                      offset,
+                                      line.words?.[index + 1]?.timestamp_s ??
+                                          line.end_timestamp_s
+                                  );
+                                  return (
+                                      <span
+                                          key={index}
+                                          className={
+                                              state === "active"
+                                                  ? "text-primary font-semibold"
+                                                  : state === "past"
+                                                    ? "text-foreground-strong"
+                                                    : "text-muted-foreground"
+                                          }
+                                      >
+                                          {word.text}
+                                      </span>
+                                  );
+                              })
+                            : line.text || "…"}
                     </button>
                 ))}
             </div>

@@ -96,6 +96,17 @@ class UserRequest:
                 return Result(code=prepared.code(), message=prepared.message())
             proposed_value = prepared.result()
 
+        if request_type in {
+            RequestTypeEnum.METADATA,
+            RequestTypeEnum.TITLE,
+            RequestTypeEnum.ARTIST,
+            RequestTypeEnum.ALBUM,
+            RequestTypeEnum.GENRE,
+        }:
+            changes = MetadataReview.changes(request_type=request_type, payload=proposed_value)
+            if changes.is_not_ok():
+                return Result(code=changes.code(), message=changes.message())
+
         if request_type == RequestTypeEnum.METADATA:
             rating = ContentRatings.parse_metadata_rating(payload=proposed_value)
             if rating.is_not_ok():

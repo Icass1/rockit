@@ -7,12 +7,15 @@ import pytest
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.userRequest import UserRequestRow
 from core.access.requestAccess import RequestAccess
+from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.enums.requestStatusEnum import RequestStatusEnum
 from core.enums.requestTypeEnum import RequestTypeEnum
 from core.framework.admin import userRequest
 from core.framework.lyricsCorrections import LyricsContext, LyricsCorrections, apply_overlay
+from core.models.lyrics import LyricsWord
 from core.models.lyricsCorrection import (
     LyricsCorrection,
     StoredLyricsCorrection,
@@ -101,6 +104,85 @@ def test_offsets_must_be_finite_and_bounded(offset: float) -> None:
 def test_invalid_line_edits_cannot_be_approved(lines: list[dict[str, object]]) -> None:
     with pytest.raises(ValidationError):
         proposal(lines=lines)
+
+
+@pytest.mark.asyncio
+async def test_word_edit_and_later_offset_preserve_the_effective_timeline(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = context()
+    source.revision = "a" * 64
+    source.lines = [
+        PlaybackLyricsLine(
+            text="Hello wrld",
+            timestamp_s=10,
+            end_timestamp_s=13,
+            words=[
+                LyricsWord(text="Hello ", timestamp_s=10, end_timestamp_s=11),
+                LyricsWord(text="wrld", timestamp_s=11, end_timestamp_s=13),
+            ],
+        )
+    ]
+    session = cast(AsyncSession, object())
+    media = CoreMediaRow(provider_id=1, media_type_key=MediaTypeEnum.SONG.value, public_id="song")
+
+    async def lock(session: AsyncSession, media_id: int) -> Result[CoreMediaRow]:
+        return Result(code=ResultCode.OK, message="OK", result=media)
+
+    async def snapshot(
+        session: AsyncSession, media: CoreMediaRow, provider_name: str | None = None
+    ) -> Result[LyricsContext]:
+        return Result(code=ResultCode.OK, message="OK", result=source)
+
+    monkeypatch.setattr(RequestAccess, "lock_media_async", lock)
+    monkeypatch.setattr(LyricsCorrections, "context_async", snapshot)
+
+    changed = LyricsCorrection.model_validate(
+        dict(
+            provider=source.provider,
+            revision=source.revision,
+            offset=0,
+            lines=[
+                dict(
+                    text="Hello world",
+                    timestamp_s=10,
+                    end_timestamp_s=13,
+                    words=[
+                        dict(text="Hello ", timestamp_s=10, end_timestamp_s=11),
+                        dict(text="world", timestamp_s=11.25, end_timestamp_s=13),
+                    ],
+                )
+            ],
+        )
+    )
+    prepared = await LyricsCorrections.prepare_async(
+        session=session, media_id=1, payload=changed.model_dump_json()
+    )
+    assert prepared.is_ok(), prepared.info()
+    checked = await LyricsCorrections.validate_review_async(
+        session=session, media_id=1, payload=prepared.result()
+    )
+    assert checked.is_ok(), checked.info()
+    original = source.lines[0]
+    source = apply_overlay(context=source, proposals=[("words", prepared.result())])
+    assert source.lines[0].text == "Hello world"
+    assert source.lines[0].words[1].timestamp_s == 11.25
+    assert original.words[1].text == "wrld"
+
+    offset = LyricsCorrection.model_validate(
+        dict(provider=source.provider, revision=source.revision, offset=1)
+    )
+    next_correction = await LyricsCorrections.prepare_async(
+        session=session, media_id=1, payload=offset.model_dump_json()
+    )
+    assert next_correction.is_ok(), next_correction.info()
+    playback = context()
+    playback.lines = [original]
+    applied = apply_overlay(context=playback, proposals=[("offset", next_correction.result())])
+    assert applied.offset == 1
+    assert applied.lines[0].text == "Hello world"
+    assert applied.lines[0].words == source.lines[0].words
+    assert applied.lines[0].end_timestamp_s == 13
 
 
 @pytest.mark.asyncio

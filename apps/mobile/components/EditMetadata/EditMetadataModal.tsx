@@ -25,6 +25,7 @@ import {
 } from "react-native";
 import { Http } from "@/lib/http";
 import { useVocabulary } from "@/lib/vocabulary";
+import LyricsCorrectionPanel from "@/components/EditMetadata/LyricsCorrectionPanel";
 
 interface FieldDef {
     key: string;
@@ -142,6 +143,7 @@ export function EditMetadataModalContent({
     const theme = useDesignTheme();
     const styles = useThemedStyles(createStyles);
     const { vocabulary } = useVocabulary();
+    const [editingLyrics, setEditingLyrics] = useState(false);
     const [fields, setFields] = useState<FieldDef[]>(() =>
         getFieldsForMedia(media, vocabulary)
     );
@@ -219,6 +221,15 @@ export function EditMetadataModalContent({
         setSubmitting(false);
     };
 
+    if (editingLyrics && media.type === "song") {
+        return (
+            <LyricsCorrectionPanel
+                publicId={media.publicId}
+                onBack={() => setEditingLyrics(false)}
+            />
+        );
+    }
+
     if (submitted) {
         return (
             <View style={styles.successContainer}>
@@ -256,6 +267,18 @@ export function EditMetadataModalContent({
                     {getMediaSubtitle(media)}
                 </Text>
             </View>
+
+            {media.type === "song" && (
+                <Pressable
+                    accessibilityRole="button"
+                    style={styles.secondaryButton}
+                    onPress={() => setEditingLyrics(true)}
+                >
+                    <Text style={styles.secondaryButtonText}>
+                        {vocabulary.LYRICS_CORRECTION_TITLE}
+                    </Text>
+                </Pressable>
+            )}
 
             {/* Fields */}
             {fields.map((field) => (

@@ -6,7 +6,7 @@ import {
     StoredLyricsSourceSchema,
     type LyricsCorrectionContextResponse,
 } from "@/dto";
-import { lyricsCorrectionSchema } from "@/models/schemas/lyricsCorrection";
+import { lyricsCorrectionSchema } from "@rockit/shared/models/schemas/lyricsCorrection";
 import { Http } from "@/lib/http";
 import { LyricsPreview } from "@/components/Lyrics/LyricsPreview";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
@@ -14,7 +14,9 @@ import { useVocabulary } from "@/components/providers/VocabularyProvider";
 function LoadedProposalPreview({
     payload,
     mediaPublicId,
+    pending,
 }: {
+    pending: boolean;
     payload: string;
     mediaPublicId: string;
 }): JSX.Element {
@@ -31,7 +33,12 @@ function LoadedProposalPreview({
             parsed = null;
         }
         if (StoredLyricsSourceSchema.safeParse(parsed).success) return;
-        void Http.getLyricsCorrectionContextAsync(mediaPublicId)
+        const correction = lyricsCorrectionSchema.safeParse(parsed);
+        if (!correction.success) return;
+        void Http.getLyricsCorrectionContextAsync(
+            mediaPublicId,
+            correction.data.provider
+        )
             .then((result) => {
                 if (cancelled) return;
                 if (result.isOk()) setCurrent(result.result);
@@ -101,7 +108,7 @@ function LoadedProposalPreview({
                     : vocabulary.LYRICS_LOADING}
             </p>
         );
-    const stale = current.revision !== proposal.data.revision;
+    const stale = pending && current.revision !== proposal.data.revision;
     return (
         <div className="space-y-2">
             {stale && (
@@ -137,7 +144,9 @@ function LoadedProposalPreview({
 export function LyricsProposalPreview({
     payload,
     mediaPublicId,
+    pending,
 }: {
+    pending: boolean;
     payload: string;
     mediaPublicId: string;
 }): JSX.Element {
@@ -150,6 +159,7 @@ export function LyricsProposalPreview({
                 <LoadedProposalPreview
                     payload={payload}
                     mediaPublicId={mediaPublicId}
+                    pending={pending}
                 />
             )}
         </details>

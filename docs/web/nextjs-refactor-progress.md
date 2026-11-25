@@ -869,3 +869,10 @@ Validation evidence and configuration details are tracked in the PR and
 [Android build history setup](../admin/android-build-history.md). Browser emulation
 is not physical iOS/Android acceptance; the previously confirmed footer layout is
 unchanged.
+
+## Word-synced lyrics moderation
+
+Lyrics corrections now retain word text, start and end times through proposal,
+approval and playback. Both metadata editors expose timed words, while the web
+admin preview uses the same word timing as playback. The requests inbox loads
+filtered pages from the API and keeps the list visible when a review fails.

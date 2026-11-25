@@ -1,64 +1,47 @@
-import { useEffect, useState } from "react";
-import { APP_VERSION } from "@/constants/version";
+import { useEffect, useRef } from "react";
+import { installedAndroidApkCode } from "@/constants/androidApk";
 import { Http } from "@/lib/http";
 import { useModal } from "@/lib/ModalContext";
-import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 import { UpdateModalContent } from "@/components/UpdateModal";
 
-function isNewerVersion(remote: string, local: string): boolean {
-    const remoteParts = remote.split(".").map(Number);
-    const localParts = local.split(".").map(Number);
-    const length = Math.max(remoteParts.length, localParts.length);
-
-    for (let i = 0; i < length; i++) {
-        const r = remoteParts[i] ?? 0;
-        const l = localParts[i] ?? 0;
-        if (r > l) return true;
-        if (r < l) return false;
-    }
-    return false;
-}
-
-export function useVersionCheck() {
-    const [apkUrl, setApkUrl] = useState<string | null>(null);
-    const [latestVersion, setLatestVersion] = useState<string | null>(null);
+export function useVersionCheck(): void {
     const { vocabulary } = useVocabulary();
     const { show } = useModal();
+    const notified = useRef(false);
+    const title = vocabulary.NEW_VERSION_AVAILABLE;
 
     useEffect(() => {
+        const installed = installedAndroidApkCode;
+        if (installed === null || notified.current) return;
         let cancelled = false;
-        Http.getLatestVersion()
+        void Http.getLatestAndroidRelease()
             .then((response) => {
-                if (cancelled) return;
-                if (response.isOk()) {
-                    if (isNewerVersion(response.result.version, APP_VERSION)) {
-                        toasterManager.notifyInfo(
-                            vocabulary.NEW_VERSION_AVAILABLE
-                        );
-                        setApkUrl(response.result.apkUrl);
-                        setLatestVersion(response.result.version);
-                        show({
-                            title: vocabulary.NEW_VERSION_AVAILABLE,
-                            content: (
-                                <UpdateModalContent
-                                    apkUrl={response.result.apkUrl}
-                                    latestVersion={response.result.version}
-                                />
-                            ),
-                        });
-                    }
-                } else {
-                    console.error(response.message, response.detail);
-                }
+                if (cancelled || !response.isOk()) return;
+                const apk = response.result.apk;
+                if (
+                    !apk ||
+                    apk.versionCode === null ||
+                    apk.versionCode <= installed
+                )
+                    return;
+                notified.current = true;
+                show({
+                    title,
+                    content: (
+                        <UpdateModalContent
+                            apkUrl={apk.apkUrl}
+                            currentBuild={installed - 1}
+                            latestBuild={apk.buildNumber}
+                        />
+                    ),
+                });
             })
             .catch(() => {
-                // Silently ignore — no update check should not break the app
+                // An unavailable release feed must not interrupt startup.
             });
         return () => {
             cancelled = true;
         };
-    }, [vocabulary.NEW_VERSION_AVAILABLE, show]);
-
-    return { apkUrl, latestVersion };
+    }, [show, title]);
 }

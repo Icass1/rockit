@@ -23,9 +23,21 @@ matching unexpired artifact, and copies exactly one APK out of the artifact ZIP.
 Compressed and extracted sizes are bounded at 512 MiB; archive paths are never
 used as output paths. Temporary files are cleaned after delivery or failure.
 
-The preview workflow retains artifacts for 14 days. Refresh requests current
-GitHub data; it does not start a build. GitHub failures or rate limits produce an
-explicit unavailable state while manual build management remains accessible.
+The Android workflow runs automatically on pushes to main. The workflow requests
+90 days of retention for main APKs and 14 days for preview APKs, subject to the
+repository retention limit. User Settings expose only the newest successful main
+APK with an available artifact. Administrators can still share individual builds.
+
+GitHub APKs keep the existing `com.rockit.mobile.preview` package and signing key
+so sideloaded copies are compatible with Android's installer. The workflow sets
+a rising Android version code and embeds that same code into the JS bundle.
+From that build onward, native Android compares the installed code with the main
+release at startup and when the user checks from Settings. Older unversioned APKs
+can be downloaded but cannot participate in the version comparison. The browser
+downloads the new APK and Android handles installation after the user opens it.
+
+Refresh in Admin requests current GitHub data and leaves manual management
+accessible if GitHub is unavailable.
 Manually uploaded builds retain their existing Rockit download counter.
 
 Metadata moderation also adds core database migration 10,

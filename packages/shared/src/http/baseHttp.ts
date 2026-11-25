@@ -1752,6 +1752,13 @@ export class BaseHttp {
         );
     }
 
+    static async getLatestAndroidRelease() {
+        return this.apiGetAsync(
+            `/version/android/latest`,
+            dto.LatestAndroidReleaseResponseSchema
+        );
+    }
+
     static downloadSharedAndroidBuildURL(
         runId: string,
         artifact: number,

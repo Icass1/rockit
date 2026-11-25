@@ -2,7 +2,7 @@ import shutil
 from logging import Logger
 from urllib.parse import quote
 
-from fastapi import APIRouter, HTTPException, Path, Query, Request
+from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.background import BackgroundTask
@@ -11,9 +11,11 @@ from core.access.adminVersionAccess import AdminVersionAccess
 from core.access.db.ormModels.appVersion import AppVersionRow
 from core.framework.admin.androidBuildDownload import AndroidBuildDownloads
 from core.framework.admin.androidBuildShare import valid_share
+from core.framework.androidRelease import AndroidRelease
 from core.framework.objectFiles import ObjectFiles
 from core.framework.version import Version
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from core.responses.androidBuildResponse import LatestAndroidReleaseResponse
 from core.responses.latestVersionResponse import LatestVersionResponse
 from logger import getLogger
 from result import Result
@@ -69,6 +71,16 @@ async def download_latest_apk(request: Request) -> StreamingResponse:
     version_row: AppVersionRow = a_result.result()
 
     return await download_apk(request=request, filename=version_row.apk_filename)
+
+
+@router.get("/android/latest")
+async def get_latest_android_release(response: Response) -> LatestAndroidReleaseResponse:
+    response.headers["Cache-Control"] = "no-store"
+    result = await AndroidRelease.latest_async()
+    if result.is_not_ok():
+        logger.warning("Android release lookup failed: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
 
 
 @router.get("/android/{run_id}/apk")

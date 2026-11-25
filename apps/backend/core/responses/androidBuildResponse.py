@@ -27,3 +27,13 @@ class AndroidBuildHistoryResponse(BaseModel):
 
 class AndroidBuildShareResponse(BaseModel):
     url: str
+
+
+class LatestAndroidApkResponse(BaseModel):
+    buildNumber: int
+    versionCode: int | None
+    apkUrl: str
+
+
+class LatestAndroidReleaseResponse(BaseModel):
+    apk: LatestAndroidApkResponse | None

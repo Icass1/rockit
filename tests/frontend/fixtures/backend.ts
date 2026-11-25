@@ -722,6 +722,17 @@ export async function createFixtureBackend(port = 0) {
             }
             if (path === "/bookmark/list")
                 return send({ bookmarks: [] }, dto.BookmarkListResponseSchema);
+            if (path === "/version/android/latest")
+                return send(
+                    {
+                        apk: {
+                            buildNumber: 42,
+                            versionCode: 43,
+                            apkUrl: `http://127.0.0.1:${port}/version/android/42/apk`,
+                        },
+                    },
+                    dto.LatestAndroidReleaseResponseSchema
+                );
             if (path === "/version/latest")
                 return send(
                     { version: "1.0.0", apkUrl: "" },

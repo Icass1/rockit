@@ -5,7 +5,13 @@ import httpx
 from pydantic import ValidationError
 
 from config import settings
-from core.models.androidBuildHistory import GitHubArtifacts, GitHubRuns
+from core.models.androidBuildHistory import (
+    ArtifactRun,
+    GitHubArtifact,
+    GitHubArtifacts,
+    GitHubRun,
+    GitHubRuns,
+)
 from core.responses.androidBuildResponse import AndroidBuildHistoryResponse, AndroidBuildResponse
 from logger import getLogger
 from result import Result, ResultCode
@@ -32,14 +38,35 @@ class AndroidBuilds:
         return headers
 
     @staticmethod
-    async def source_async() -> Result[tuple[GitHubRuns, GitHubArtifacts]]:
+    def version_code(run: GitHubRun, artifact: GitHubArtifact) -> int | None:
+        code = run.run_number + 1
+        if artifact.name == f"RockIt-Android-preview-{run.run_number}-code-{code}":
+            return code
+        return None
+
+    @staticmethod
+    def is_apk(run: GitHubRun, artifact: GitHubArtifact) -> bool:
+        return (
+            artifact.workflow_run is not None
+            and artifact.workflow_run.id == run.id
+            and (
+                artifact.name == f"RockIt-Android-preview-{run.run_number}"
+                or AndroidBuilds.version_code(run=run, artifact=artifact) is not None
+            )
+        )
+
+    @staticmethod
+    async def source_async(branch: str | None = None) -> Result[tuple[GitHubRuns, GitHubArtifacts]]:
         repository = AndroidBuilds.repository()
+        params: dict[str, str | int] = {"per_page": 30}
+        if branch is not None:
+            params.update(branch=branch, status="success")
         try:
             async with httpx.AsyncClient(timeout=12, headers=AndroidBuilds.headers()) as client:
                 runs_response, artifacts_response = await asyncio.gather(
                     client.get(
                         f"https://api.github.com/repos/{repository}/actions/workflows/build-android-preview.yml/runs",
-                        params={"per_page": 30},
+                        params=params,
                     ),
                     client.get(
                         f"https://api.github.com/repos/{repository}/actions/artifacts",
@@ -63,6 +90,27 @@ class AndroidBuilds:
             )
 
     @staticmethod
+    async def artifacts_for_run_async(run_id: int) -> Result[GitHubArtifacts]:
+        repository = AndroidBuilds.repository()
+        try:
+            async with httpx.AsyncClient(timeout=12, headers=AndroidBuilds.headers()) as client:
+                response = await client.get(
+                    f"https://api.github.com/repos/{repository}/actions/runs/{run_id}/artifacts",
+                    params={"per_page": 100},
+                )
+            response.raise_for_status()
+            artifacts = GitHubArtifacts.model_validate(response.json())
+            for artifact in artifacts.artifacts:
+                if artifact.workflow_run is None:
+                    artifact.workflow_run = ArtifactRun(id=run_id)
+            return Result[GitHubArtifacts].ok(artifacts)
+        except (httpx.HTTPError, ValidationError, ValueError):
+            logger.warning("GitHub artifacts unavailable for Android run %s", run_id)
+            return Result(
+                code=ResultCode.SERVICE_UNAVAILABLE, message="ADMIN_ANDROID_HISTORY_UNAVAILABLE"
+            )
+
+    @staticmethod
     async def history_async() -> Result[AndroidBuildHistoryResponse]:
         """Read GitHub history server-side and expose Rockit download URLs, never credentials."""
         url = f"https://github.com/{AndroidBuilds.repository()}/actions/workflows/build-android-preview.yml"
@@ -75,14 +123,16 @@ class AndroidBuilds:
                 )
             )
         runs, artifacts = source.result()
-        by_run = {
-            artifact.workflow_run.id: artifact
-            for artifact in reversed(artifacts.artifacts)
-            if artifact.workflow_run and artifact.name.startswith("RockIt-Android-preview-")
-        }
         builds: list[AndroidBuildResponse] = []
         for run in runs.workflow_runs:
-            artifact = by_run.get(run.id)
+            artifact = next(
+                (
+                    item
+                    for item in artifacts.artifacts
+                    if AndroidBuilds.is_apk(run=run, artifact=item)
+                ),
+                None,
+            )
             builds.append(
                 AndroidBuildResponse(
                     runId=run.id,

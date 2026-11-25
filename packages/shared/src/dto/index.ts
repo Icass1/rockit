@@ -358,6 +358,14 @@ export {
     type LanguagesResponse,
 } from "./languagesResponse";
 export {
+    LatestAndroidApkResponseSchema,
+    type LatestAndroidApkResponse,
+} from "./latestAndroidApkResponse";
+export {
+    LatestAndroidReleaseResponseSchema,
+    type LatestAndroidReleaseResponse,
+} from "./latestAndroidReleaseResponse";
+export {
     LatestVersionResponseSchema,
     type LatestVersionResponse,
 } from "./latestVersionResponse";

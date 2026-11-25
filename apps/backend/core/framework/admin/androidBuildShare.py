@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 from config import settings
 from core.framework.admin.androidBuildDownload import AndroidBuildDownloads
 from core.framework.admin.androidBuilds import AndroidBuilds
+from core.models.androidBuildHistory import GitHubArtifact, GitHubRun
 from core.responses.androidBuildResponse import AndroidBuildShareResponse
 from logger import getLogger
 from result import Result, ResultCode
@@ -29,7 +30,12 @@ async def create_share_async(run_id: int) -> Result[AndroidBuildShareResponse]:
     resolved = await AndroidBuildDownloads.resolve_async(run_id=run_id)
     if resolved.is_not_ok():
         return Result[AndroidBuildShareResponse].from_result(resolved)
-    _, artifact = resolved.result()
+    run, artifact = resolved.result()
+    return create_share(run=run, artifact=artifact)
+
+
+def create_share(run: GitHubRun, artifact: GitHubArtifact) -> Result[AndroidBuildShareResponse]:
+    run_id = run.id
     now = int(datetime.now(UTC).timestamp())
     expires = min(int(artifact.expires_at.timestamp()), now + SHARE_DURATION_SECONDS)
     if expires <= now:

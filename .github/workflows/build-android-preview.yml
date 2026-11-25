@@ -2,6 +2,8 @@ name: Build Android preview APK
 
 on:
     workflow_dispatch:
+    push:
+        branches: [main]
 
 permissions:
     contents: read
@@ -53,6 +55,10 @@ jobs:
                   EAS_BUILD_PLATFORM: android
               run: node scripts/check-hermes.cjs
 
+            - name: Assign Android version code
+              run: |
+                  echo "EXPO_PUBLIC_ANDROID_APK_VERSION_CODE=$((GITHUB_RUN_NUMBER + 1))" >> "$GITHUB_ENV"
+
             - name: Build preview APK locally
               working-directory: apps/mobile/android
               env:
@@ -90,7 +96,7 @@ jobs:
                   "${BUILD_TOOLS}/apksigner" verify --verbose "${APK_PATH}"
                   "${BUILD_TOOLS}/zipalign" -c -P 16 4 "${APK_PATH}"
                   "${BUILD_TOOLS}/aapt" dump badging "${APK_PATH}" | tee "${OUTPUT_DIR}/app-release.badging.txt"
-                  grep -q "package: name='com.rockit.mobile.preview'" "${OUTPUT_DIR}/app-release.badging.txt"
+                  grep -q "package: name='com.rockit.mobile.preview' versionCode='${EXPO_PUBLIC_ANDROID_APK_VERSION_CODE}'" "${OUTPUT_DIR}/app-release.badging.txt"
 
                   # Android packages AndroidManifest.xml as binary AXML by design.
                   # Export a human-readable copy so downloaded build artifacts can
@@ -134,10 +140,10 @@ jobs:
             - name: Upload preview APK
               uses: actions/upload-artifact@v4
               with:
-                  name: RockIt-Android-preview-${{ github.run_number }}
+                  name: RockIt-Android-preview-${{ github.run_number }}-code-${{ env.EXPO_PUBLIC_ANDROID_APK_VERSION_CODE }}
                   path: |
                       apps/mobile/android/app/build/outputs/apk/release/app-release.apk
                       apps/mobile/android/app/build/outputs/apk/release/app-release.badging.txt
                       apps/mobile/android/app/build/outputs/apk/release/AndroidManifest.xml
                   if-no-files-found: error
-                  retention-days: 14
+                  retention-days: ${{ github.ref == 'refs/heads/main' && 90 || 14 }}

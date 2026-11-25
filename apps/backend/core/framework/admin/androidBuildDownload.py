@@ -60,18 +60,41 @@ class AndroidBuildDownloads:
             ),
             None,
         )
-        artifact = next(
-            (
-                item
-                for item in artifacts.artifacts
-                if item.workflow_run
-                and item.workflow_run.id == run_id
+        if run is None and artifact_id is not None:
+            # A linked main release can be older than the admin list's most recent runs.
+            main_source = await AndroidBuilds.source_async(branch="main")
+            if main_source.is_not_ok():
+                return Result[tuple[GitHubRun, GitHubArtifact]].from_result(main_source)
+            main_runs, artifacts = main_source.result()
+            run = next(
+                (
+                    item
+                    for item in main_runs.workflow_runs
+                    if item.id == run_id
+                    and item.head_branch == "main"
+                    and item.conclusion == "success"
+                ),
+                None,
+            )
+
+        def matching_artifact(item: GitHubArtifact) -> bool:
+            return (
+                run is not None
+                and AndroidBuilds.is_apk(run=run, artifact=item)
                 and (artifact_id is None or item.id == artifact_id)
-                and item.name.startswith("RockIt-Android-preview-")
                 and not item.expired
-            ),
-            None,
-        )
+            )
+
+        artifact = next((item for item in artifacts.artifacts if matching_artifact(item)), None)
+        if run is not None and artifact is None and artifact_id is not None:
+            # The repository-wide artifact list can be crowded by unrelated workflows.
+            run_artifacts = await AndroidBuilds.artifacts_for_run_async(run_id=run_id)
+            if run_artifacts.is_not_ok():
+                return Result[tuple[GitHubRun, GitHubArtifact]].from_result(run_artifacts)
+            artifact = next(
+                (item for item in run_artifacts.result().artifacts if matching_artifact(item)),
+                None,
+            )
         if run is None or artifact is None:
             logger.warning("Requested Android build is unavailable or expired")
             return Result(code=ResultCode.NOT_FOUND, message="ADMIN_ANDROID_EXPIRED")

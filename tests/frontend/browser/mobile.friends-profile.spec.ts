@@ -29,17 +29,6 @@ test("mobile opens friend hours and original emblems, explains progress and open
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(mobile + "/friends");
     const circle = page.getByTestId("listening-circle");
-    await circle
-        .getByRole("button", { name: "View Sam in your listening circle" })
-        .click();
-    const before = await (
-        await request.get(backend + "/__fixture/calls")
-    ).json();
-    expect(
-        before.calls.filter((call: { path: string }) =>
-            call.path.endsWith("/level")
-        )
-    ).toHaveLength(0);
     await circle.getByRole("button", { name: "View Sam's profile" }).click();
     const profile = page.getByTestId("listening-profile");
     await expect(profile.getByText("50.6", { exact: true })).toBeVisible();

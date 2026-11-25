@@ -20,9 +20,6 @@ test("desktop circle opens a focused, dismissible listening passport and the ori
     });
     await page.goto("http://127.0.0.1:13000/friends");
     const circle = page.getByTestId("listening-circle");
-    await circle
-        .getByRole("button", { name: "View Sam in your listening circle" })
-        .click();
     const open = circle.getByRole("button", { name: "View Sam's profile" });
     await open.focus();
     await page.keyboard.press("Enter");

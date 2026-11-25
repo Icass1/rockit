@@ -68,10 +68,7 @@ export default function SharedMediaInbox(): JSX.Element {
             </div>
 
             {items.length === 0 ? (
-                <div className="text-subtle-foreground flex flex-col items-center gap-2 py-12">
-                    <Inbox size={32} />
-                    <p className="text-sm">{v.FRIENDS_NO_SHARED}</p>
-                </div>
+                <p className={styles.quietMessage}>{v.FRIENDS_NO_SHARED}</p>
             ) : (
                 <div id={listId} className={styles.sharedItems}>
                     {visibleItems.map((item) => (

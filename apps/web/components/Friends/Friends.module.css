@@ -464,10 +464,9 @@
     --social-secondary: var(--theme-muted-foreground);
     --social-tint: var(--theme-social-tint);
     width: 100%;
-    max-width: none;
+    max-width: 80rem;
     container: friends / inline-size;
-    padding: 2.5rem clamp(1.5rem, 3vw, 6rem) 6rem;
-    color-scheme: dark;
+    padding: 2rem clamp(1.5rem, 3vw, 3rem) 6rem;
     caret-color: var(--social-tint);
 }
 
@@ -481,7 +480,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 2rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     animation: none;
 }
 
@@ -491,6 +490,21 @@
     font-size: 2.5rem;
     line-height: 1.15;
     letter-spacing: -0.035em;
+}
+
+.findFriends {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-inline: 0.875rem;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.findFriends:hover {
+    background: var(--social-raised);
 }
 
 .subtitle {
@@ -536,29 +550,11 @@
     outline-offset: -3px;
 }
 
-.directoryHeading {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.25rem;
-}
-
 .sectionTitle {
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    letter-spacing: 0;
-    margin-bottom: 1.25rem;
-}
-
-.directoryHeading .sectionTitle {
-    margin: 0;
-}
-
-.presence {
-    font-size: 0.8125rem;
-    color: var(--theme-social-positive);
+    letter-spacing: -0.015em;
+    margin-bottom: 1rem;
 }
 
 .directory {
@@ -612,6 +608,27 @@
     gap: 0.75rem;
     padding-block: 0.875rem;
     min-width: 0;
+}
+
+.directoryList .directoryRow {
+    gap: 0.25rem;
+    padding-block: 0.5rem;
+    border-bottom: 1px solid var(--theme-border-subtle);
+}
+
+.root .personIdentity {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
+    gap: 0.75rem;
+    text-align: start;
+    border-radius: 0.5rem;
+}
+
+.personIdentity:hover .personName {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
 }
 
 .directoryAvatar {
@@ -1283,19 +1300,58 @@
     display: grid;
     gap: 0.5rem;
 }
-/* People first in reading and keyboard order; personal progress stays last on mobile. */
-.socialLayout {
+.overview,
+.moreLayout {
     display: grid;
-    gap: 3rem;
+    gap: 2rem;
     align-items: start;
 }
+
+.overview,
 .peopleRegion,
-.sharedRegion,
-.recentRegion,
-.togetherRegion,
-.progressRegion {
+.socialColumn > :is(section, aside) {
     min-width: 0;
-    scroll-margin-top: 6rem;
+    scroll-margin-top: 5.5rem;
+}
+
+.circleRegion {
+    min-width: 0;
+    border: 1px solid var(--theme-border-subtle);
+    border-radius: 1rem;
+    padding: clamp(0.875rem, 2cqi, 1.5rem);
+    background: radial-gradient(
+        ellipse at 50% 44%,
+        var(--social-raised),
+        var(--theme-surface) 72%
+    );
+}
+
+.circleSkeleton {
+    min-height: 21rem;
+}
+
+.peopleRegion {
+    padding-top: clamp(0.875rem, 2cqi, 1.5rem);
+}
+
+.moreLayout {
+    margin-top: 2.5rem;
+}
+
+.socialColumn {
+    display: grid;
+    min-width: 0;
+    gap: 2rem;
+}
+
+.socialColumn > :is(section, aside) {
+    border-top: 1px solid var(--theme-border-subtle);
+    padding-top: 1rem;
+}
+
+.quietMessage {
+    color: var(--social-secondary);
+    font-size: 0.875rem;
 }
 .navigation {
     flex-wrap: wrap;
@@ -1331,15 +1387,6 @@
 }
 .listeningHistory .trackTitle {
     font-size: 1rem;
-}
-.activityEmpty {
-    padding-block: 1rem;
-}
-.activityEmpty h2 {
-    font-size: 1.125rem;
-}
-.activityEmpty > svg {
-    display: none;
 }
 .competition {
     display: grid;
@@ -1403,23 +1450,11 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 0.5rem;
 }
-/* Equal primary columns and bounded initial feeds keep each social section
-   comparable in weight. Mobile retains the DOM order: people, shares, recent. */
-@container friends (min-width: 900px) {
-    .socialLayout {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 2.5rem;
-    }
-}
-@container friends (min-width: 1200px) {
-    .socialLayout {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 2.5rem;
-    }
-}
-@container friends (min-width: 2400px) {
-    .socialLayout {
-        gap: 3rem;
+@container friends (min-width: 760px) {
+    .overview,
+    .moreLayout {
+        grid-template-columns: minmax(0, 1.7fr) minmax(17rem, 1fr);
+        gap: clamp(2rem, 4cqi, 3.5rem);
     }
 }
 

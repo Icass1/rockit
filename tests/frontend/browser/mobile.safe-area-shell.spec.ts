@@ -9,7 +9,7 @@ test.beforeEach(async ({ request, context }) => {
         { name: "session_id", value: "fixture", url: backend, httpOnly: true },
     ]);
 });
-test("the installed shell starts with a gray document edge before React loads", async ({
+test("the installed shell has a dark top edge and gray footer before React loads", async ({
     page,
 }) => {
     await page.route("**/_expo/static/js/**/*.js", (route) => route.abort());
@@ -19,15 +19,17 @@ test("the installed shell starts with a gray document edge before React loads", 
     ).toHaveAttribute("content", "black");
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute(
         "content",
-        getTheme("dark").secondary
+        getTheme("dark").background
     );
     const background = await page.evaluate(() => ({
         html: getComputedStyle(document.documentElement).backgroundColor,
         body: getComputedStyle(document.body).backgroundColor,
+        gradient: getComputedStyle(document.body).backgroundImage,
     }));
     expect(background).toEqual({
         html: "rgb(26, 26, 26)",
         body: "rgb(26, 26, 26)",
+        gradient: "linear-gradient(rgb(11, 11, 11) 50%, rgb(26, 26, 26) 50%)",
     });
 });
 test("a region outside the React viewport stays the footer color after reload and rotation", async ({
@@ -36,11 +38,10 @@ test("a region outside the React viewport stays the footer color after reload an
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(app + "/library");
     await expect(page.getByTestId("navigation-settings")).toBeVisible();
-    // Model the part of the installed iOS surface outside React's layout box.
-    // This exercises the document underlay the previous inset-only test omitted.
+    // Expose the document underlay above and below React's layout box.
     await page.addStyleTag({
         content:
-            "#root { height: calc(100% - 44px) !important; flex: none !important; }",
+            "#root { height: calc(100% - 88px) !important; margin-top: 44px; flex: none !important; }",
     });
     const read = () =>
         page.evaluate(() => {
@@ -55,6 +56,8 @@ test("a region outside the React viewport stays the footer color after reload an
                 bar: getComputedStyle(bar).backgroundColor,
                 html: html.backgroundColor,
                 body: body.backgroundColor,
+                underlay: body.backgroundImage,
+                rootTop: root.getBoundingClientRect().top,
                 rootBottom: root.getBoundingClientRect().bottom,
                 screen: innerHeight,
             };
@@ -63,12 +66,17 @@ test("a region outside the React viewport stays the footer color after reload an
         .poll(async () => {
             const c = await read();
             return (
-                c.body === c.bar && c.html === c.bar && c.rootBottom < c.screen
+                c.body === c.bar &&
+                c.html === c.bar &&
+                c.underlay ===
+                    "linear-gradient(rgb(11, 11, 11) 50%, rgb(26, 26, 26) 50%)" &&
+                c.rootTop > 0 &&
+                c.rootBottom < c.screen
             );
         })
         .toBe(true);
     await page.screenshot({
-        path: info.outputPath("ios-document-bottom-gray.png"),
+        path: info.outputPath("ios-document-header-and-footer.png"),
     });
     await page.reload();
     await expect(page.getByTestId("navigation-settings")).toBeVisible();
@@ -79,4 +87,74 @@ test("a region outside the React viewport stays the footer color after reload an
             return c.body === c.bar && c.html === c.bar;
         })
         .toBe(true);
+});
+
+test("settings shows the centered administration shortcut only for administrators", async ({
+    page,
+    request,
+}, info) => {
+    const settings = page.getByRole("button", { name: "Settings" });
+    const stats = page.getByRole("button", { name: "Stats", exact: true });
+    const logout = page.getByRole("button", { name: "Log Out", exact: true });
+    const admin = page.getByRole("link", { name: "Administration" });
+    await page.goto(app + "/settings");
+    await expect(settings).toBeVisible();
+    await expect(stats).toBeVisible();
+    await expect(admin).toHaveCount(0);
+    const streak = page.getByTestId("header-streak");
+    const bell = page.getByRole("button", {
+        name: "Notifications",
+        exact: true,
+    });
+    await expect(streak).toHaveText("2");
+    await expect(streak.getByTestId("streak-flame")).toBeVisible();
+    await page.setViewportSize({ width: 320, height: 844 });
+    const logoBox = (await page
+        .getByTestId("rockit-header-logo")
+        .boundingBox())!;
+    const streakBox = (await streak.boundingBox())!;
+    const bellBox = (await bell.boundingBox())!;
+    expect(logoBox.x + logoBox.width).toBeLessThanOrEqual(streakBox.x);
+    expect(streakBox.x + streakBox.width).toBeLessThanOrEqual(bellBox.x);
+    expect(Math.abs(logoBox.x + logoBox.width / 2 - 160)).toBeLessThan(1);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    const session = await request.get(backend + "/user/session", {
+        headers: { cookie: "session_id=fixture" },
+    });
+    await request.post(backend + "/__fixture/fault", {
+        data: {
+            path: "/user/session",
+            body: { ...(await session.json()), admin: true },
+        },
+    });
+    await page.reload();
+    await expect(admin).toBeVisible();
+    await expect(admin).toHaveAttribute("href", /^https?:\/\/[^/]+\/admin$/);
+    await expect(admin).toHaveAttribute("target", "_blank");
+    await expect(admin).toHaveCSS("flex-direction", "row");
+    await expect(admin).toHaveCSS("background-color", "rgb(38, 38, 38)");
+    const [adminBox, statsBox, logoutBox] = await Promise.all([
+        admin.boundingBox(),
+        stats.boundingBox(),
+        logout.boundingBox(),
+    ]);
+    expect(adminBox!.y).toBeGreaterThan(logoutBox!.y + logoutBox!.height);
+    const rowCenter = (statsBox!.x + logoutBox!.x + logoutBox!.width) / 2;
+    expect(
+        Math.abs(adminBox!.x + adminBox!.width / 2 - rowCenter)
+    ).toBeLessThan(4);
+    await page.screenshot({
+        path: info.outputPath("mobile-settings-admin.png"),
+    });
+    const destination = (await admin.getAttribute("href"))!;
+    await page
+        .context()
+        .route(destination, (route) =>
+            route.fulfill({ body: "Admin fixture" })
+        );
+    const popup = page.waitForEvent("popup");
+    await admin.click();
+    await expect(await popup).toHaveURL(destination);
+    await expect(page).toHaveURL(app + "/settings");
 });

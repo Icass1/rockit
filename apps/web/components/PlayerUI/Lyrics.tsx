@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, type JSX } from "react";
 import { BaseLyricsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { useActiveLyricIndex } from "@/hooks/useActiveLyricIndex";
+import { useActiveLyricIndex } from "@rockit/ui/headless/useActiveLyricIndex";
+import { useLyricPlaybackClock } from "@rockit/ui/headless/useLyricPlaybackClock";
 import { useLyricAutoScroll } from "@/hooks/useLyricAutoScroll";
 import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { Http } from "@/lib/http";
@@ -74,8 +75,12 @@ function DynamicLyrics(): JSX.Element {
     const lyrics = snapshot.data?.dynamic;
     const loading = snapshot.loading;
 
+    const clock = useLyricPlaybackClock(
+        rockIt.mediaPlayerManager,
+        lyrics?.lines.some((line) => line.words?.length) ?? false
+    );
     const activeIndex = useActiveLyricIndex(
-        rockIt.mediaPlayerManager.currentTimeAtom,
+        clock,
         lyrics?.lines,
         lyrics?.offset
     );
@@ -164,7 +169,9 @@ function DynamicLyrics(): JSX.Element {
                     className={`player-lyric-line cursor-pointer px-4 py-2 font-semibold text-balance ${
                         currentIndex === index
                             ? "player-lyric-line--current text-foreground-strong"
-                            : "text-muted-foreground hover:text-foreground"
+                            : currentIndex !== null && index < currentIndex
+                              ? "text-subtle-foreground hover:text-foreground"
+                              : "text-muted-foreground hover:text-foreground"
                     }`}
                     data-lyric-index={index}
                     role="button"
@@ -178,9 +185,10 @@ function DynamicLyrics(): JSX.Element {
                     id={`dynamic-lyric-line-${index}`}
                 >
                     <WordSyncedLine
-                        clock={rockIt.mediaPlayerManager.currentTimeAtom}
+                        clock={clock}
                         line={line}
                         active={currentIndex === index}
+                        nextLineStart={lyrics.lines[index + 1]?.timestamp_s}
                         offset={lyrics.offset}
                     />
                 </p>

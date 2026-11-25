@@ -1108,6 +1108,31 @@ export abstract class BaseMediaPlayerManager {
         return this._currentTimeAtom.get();
     }
 
+    /** Read the local playhead for animation without publishing a playback event. */
+    readPlaybackTimeForDisplay(): number {
+        const time = this.currentTime;
+        if (!this._syncOwner || this._loadingPlayback || this._isSeeking)
+            return time;
+        const { currentMedia, currentQueueMediaId } = getRockIt().queueManager;
+        if (
+            !currentMedia ||
+            currentMedia.publicId !== this._playbackMediaId ||
+            currentQueueMediaId !== this._playbackQueueId
+        )
+            return time;
+        const position = this.getNativePosition(
+            this._effectiveKind(currentMedia)
+        );
+        if (!Number.isFinite(position) || position < 0) return time;
+        // Native seeks can take effect after the destination reaches the UI.
+        if (
+            this._playbackPositionAtom.get()?.kind === "seek" &&
+            Math.abs(position - time) > 0.25
+        )
+            return time;
+        return position;
+    }
+
     get isPlaybackOwner(): boolean {
         return this._syncOwner && this._playbackConfirmed;
     }

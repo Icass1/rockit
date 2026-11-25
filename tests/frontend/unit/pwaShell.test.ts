@@ -31,10 +31,12 @@ it("prepares an edge-to-edge installable shell with a single viewport and the fu
         );
         expect(html).not.toContain("black-translucent");
         expect(html).toContain(
-            `html,body{background:${designTokens.themes.dark.secondary};`
+            `html,body{background-color:${designTokens.themes.dark.secondary};background-image:linear-gradient(${designTokens.themes.dark.background} 50%,${designTokens.themes.dark.secondary} 50%);`
         );
-        expect(manifest.theme_color).toBe(designTokens.themes.dark.secondary);
-        expect(html).toContain(designTokens.themes.dark.background);
+        expect(manifest.theme_color).toBe(designTokens.themes.dark.background);
+        expect(html).toContain(
+            `name="theme-color" content="${designTokens.themes.dark.background}"`
+        );
         expect(manifest.orientation).toBe("portrait");
         expect(manifest.icons[0].sizes).toBe("512x512");
         expect(await readFile(path.join(directory, "icon.png"))).toEqual(

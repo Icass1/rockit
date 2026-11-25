@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LyricsCorrectionContextResponse } from "@/dto";
-import { lyricSeekTime, lyricWordFill } from "@/shared/index";
+import {
+    lyricLineFillEnd,
+    lyricSeekTime,
+    lyricWordFill,
+    type ReadonlyAtom,
+} from "@/shared/index";
+import { useStore } from "@nanostores/react";
 import { designTokens, withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -9,16 +15,47 @@ import { useVocabulary } from "@/lib/vocabulary";
 import HighlightedLyricWord from "@/components/Player/HighlightedLyricWord";
 import LyricLine from "@/components/Player/LyricLine";
 
+function ActiveLyricWords({
+    line,
+    clock,
+    offset,
+    nextLineStart,
+}: {
+    line: LyricsCorrectionContextResponse["lines"][number];
+    clock: ReadonlyAtom<number>;
+    offset: number;
+    nextLineStart?: number | null;
+}) {
+    const time = useStore(clock);
+    const end = lyricLineFillEnd(line.end_timestamp_s, nextLineStart);
+    return (
+        <>
+            {line.words?.map((word, index) => (
+                <HighlightedLyricWord
+                    key={index}
+                    text={word.text}
+                    fill={lyricWordFill(
+                        word,
+                        time,
+                        offset,
+                        line.words?.[index + 1]?.timestamp_s ?? end
+                    )}
+                />
+            ))}
+        </>
+    );
+}
+
 /** Measured positions belong to one viewport; a resize never reuses old scroll coordinates. */
 export default function PlayerLyricsScroll({
     lyrics,
     currentIndex,
-    currentTime,
+    clock,
     seekTo,
 }: {
     lyrics: LyricsCorrectionContextResponse;
     currentIndex: number | null;
-    currentTime: number;
+    clock: ReadonlyAtom<number>;
     seekTo: (seconds: number) => Promise<void>;
 }) {
     const styles = useThemedStyles(createStyles);
@@ -38,6 +75,13 @@ export default function PlayerLyricsScroll({
     );
     const [viewportHeight, setViewportHeight] = useState(0);
     const reducedMotion = useReducedMotion();
+    const nextLineStart =
+        currentIndex === null
+            ? undefined
+            : lyrics.lines.find(
+                  (line, index) =>
+                      index > currentIndex && line.timestamp_s !== null
+              )?.timestamp_s;
 
     const centerActiveLine = useCallback(
         (animated = true) => {
@@ -125,22 +169,16 @@ export default function PlayerLyricsScroll({
                         onPress={() => goToLine(index)}
                         style={styles.lyricLine}
                     >
-                        {currentIndex === index && line.words?.length
-                            ? line.words.map((word, wordIndex) => (
-                                  <HighlightedLyricWord
-                                      key={wordIndex}
-                                      text={word.text}
-                                      fill={lyricWordFill(
-                                          word,
-                                          currentTime,
-                                          lyrics.offset,
-                                          line.words[wordIndex + 1]
-                                              ?.timestamp_s ??
-                                              line.end_timestamp_s
-                                      )}
-                                  />
-                              ))
-                            : line.text}
+                        {currentIndex === index && line.words?.length ? (
+                            <ActiveLyricWords
+                                line={line}
+                                clock={clock}
+                                offset={lyrics.offset}
+                                nextLineStart={nextLineStart}
+                            />
+                        ) : (
+                            line.text
+                        )}
                     </LyricLine>
                 ))}
 

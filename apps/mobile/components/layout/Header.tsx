@@ -2,10 +2,13 @@ import { useStore } from "@nanostores/react";
 import { withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { OnlinePresence } from "@rockit/ui/primitives/OnlinePresence";
+import { StreakFlame } from "@rockit/ui/primitives/StreakFlame";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Http } from "@/lib/http";
+import useFetch from "@/lib/useFetch";
 import { useVocabulary } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";
 import NotificationButton from "@/components/Notifications/NotificationButton";
@@ -20,6 +23,11 @@ export default function Header({ showNotifications = false }: HeaderProps) {
     const styles = useThemedStyles(createStyles);
     const onlineUsers = useStore(webSocketManager.onlineUsersAtom);
     const { vocabulary, lang } = useVocabulary();
+    const { data } = useFetch(Http.getStreak);
+    const streak = data?.currentStreak ?? 0;
+    const showStreak = showNotifications && streak > 0;
+    const streakLabel = streak.toLocaleString(lang);
+    const sideStyle = showStreak ? styles.withStreak : undefined;
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             <LinearGradient
@@ -32,7 +40,7 @@ export default function Header({ showNotifications = false }: HeaderProps) {
                 style={styles.gradient}
             />
             <View style={styles.content}>
-                <View style={styles.presence}>
+                <View style={[styles.presence, sideStyle]}>
                     <OnlinePresence
                         count={onlineUsers}
                         label={vocabulary.ONLINE_LABEL}
@@ -46,7 +54,18 @@ export default function Header({ showNotifications = false }: HeaderProps) {
                     style={styles.logo}
                     contentFit="contain"
                 />
-                <View style={styles.actionSlot}>
+                <View style={[styles.actionSlot, sideStyle]}>
+                    {showStreak && (
+                        <View style={styles.streak} testID="header-streak">
+                            <StreakFlame days={streak} size={24} />
+                            <Text
+                                style={styles.streakCount}
+                                accessibilityLabel={`${streakLabel} ${vocabulary.HOME_STREAK_DAYS}`}
+                            >
+                                {streakLabel}
+                            </Text>
+                        </View>
+                    )}
                     {showNotifications && <NotificationButton />}
                 </View>
             </View>
@@ -81,8 +100,22 @@ const createStyles = (theme: DesignTheme) =>
         actionSlot: {
             width: theme.layout.touchTarget + theme.spacing.md,
             height: theme.layout.touchTarget,
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
+        },
+        withStreak: {
+            width: theme.layout.touchTarget + 36,
+        },
+        streak: {
+            minWidth: 32,
+            alignItems: "center",
+        },
+        streakCount: {
+            color: theme.colors["streak-foreground"],
+            fontSize: theme.typography.caption,
+            fontVariant: ["tabular-nums"],
+            fontWeight: "600",
         },
         presence: {
             width: theme.layout.touchTarget + theme.spacing.md,

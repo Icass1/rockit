@@ -20,6 +20,7 @@ await cp(
 );
 await cp(path.resolve(root, "../../packages/ui/assets/rockit-background.png"), path.join(output, "rockit-background.png"));
 await cp(path.resolve(root, "../../packages/ui/assets/recap-covers"), path.join(output, "recap-covers"), { recursive: true });
+const { background, secondary: footer } = tokens.themes.dark;
 const manifest = {
     id: "/",
     name: "RockIt!",
@@ -28,8 +29,8 @@ const manifest = {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: tokens.themes.dark.background,
-    theme_color: tokens.themes.dark.secondary,
+    background_color: background,
+    theme_color: background,
     icons: [
         {
             src: "/icon.png",
@@ -51,7 +52,19 @@ html = html.replace(/<meta\s+name="viewport"[^>]*>/gi, "");
 html = html.replace(/<meta\s+name="theme-color"[^>]*>/gi, "");
 html = html.replace(
     "</head>",
-    `<!-- rockit-mobile-pwa:start --><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="${tokens.themes.dark.secondary}"><style>html,body{background:${tokens.themes.dark.secondary};color-scheme:dark;margin:0;height:100%;}#root{background:${tokens.themes.dark.background};}@supports(height:100dvh){html,body,#root{height:100dvh;}}</style><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><!-- rockit-mobile-pwa:end --></head>`
+    `<!-- rockit-mobile-pwa:start -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="${background}">
+<style>
+html,body{background-color:${footer};background-image:linear-gradient(${background} 50%,${footer} 50%);color-scheme:dark;margin:0;height:100%;}
+#root{background:${background};}
+@supports(height:100dvh){html,body,#root{height:100dvh;}}
+</style>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<!-- rockit-mobile-pwa:end --></head>`
 );
 await writeFile(htmlPath, html);
 // Cache route chunks before declaring the installation ready, not just visited pages.

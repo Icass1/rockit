@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
+import { SITE_URL } from "@/environment";
 import { pickProfilePhoto } from "@/platform/pickProfilePhoto";
 import { withAlpha } from "@rockit/theme";
 import { useThemedStyles, type DesignTheme } from "@rockit/ui";
-import { Camera } from "@rockit/ui/icons";
+import { Camera, ShieldCheck } from "@rockit/ui/icons";
 import { Image } from "expo-image";
+import { Link } from "expo-router";
 import {
     ActivityIndicator,
+    Platform,
     Pressable,
     StyleSheet,
     Text,
@@ -19,6 +22,12 @@ import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 import LogoutButton from "@/components/Settings/LogoutButton";
 import StatsButton from "@/components/Settings/StatsButton";
+
+const adminHref = new URL("/admin", SITE_URL).href as `${string}:${string}`;
+const adminLinkAttrs = {
+    target: "_blank",
+    rel: "noopener noreferrer",
+} as const;
 
 export default function ProfileSection() {
     const { vocabulary } = useVocabulary();
@@ -117,8 +126,30 @@ export default function ProfileSection() {
             )}
 
             <View style={styles.actions}>
-                <StatsButton />
-                <LogoutButton />
+                <View style={styles.actionRow}>
+                    <StatsButton />
+                    <LogoutButton />
+                </View>
+                {admin && (
+                    <Link href={adminHref} asChild>
+                        <Pressable
+                            {...Platform.select({
+                                web: { hrefAttrs: adminLinkAttrs },
+                                default: {},
+                            })}
+                            accessibilityRole="link"
+                            style={styles.adminButton}
+                        >
+                            <ShieldCheck
+                                size={18}
+                                color={styles.adminLabel.color}
+                            />
+                            <Text style={styles.adminLabel}>
+                                {vocabulary.NAV_ADMIN}
+                            </Text>
+                        </Pressable>
+                    </Link>
+                )}
             </View>
         </View>
     );
@@ -167,9 +198,31 @@ const createStyles = (theme: DesignTheme) =>
             fontWeight: "600",
         },
         actions: {
-            flexDirection: "row",
+            alignItems: "center",
             gap: theme.spacing.md,
             marginTop: theme.spacing.sm,
+        },
+        actionRow: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: theme.spacing.md,
+        },
+        adminButton: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: theme.spacing.sm,
+            minHeight: theme.layout.touchTarget,
+            paddingHorizontal: theme.spacing.xl,
+            paddingVertical: 14,
+            borderRadius: theme.radius.lg,
+            backgroundColor: theme.colors["surface-raised"],
+        },
+        adminLabel: {
+            color: theme.colors.foreground,
+            fontSize: theme.typography.label,
+            fontWeight: "600",
         },
         skeleton: {
             alignItems: "center",

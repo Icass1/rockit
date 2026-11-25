@@ -5,7 +5,7 @@ import { afterEach, expect, it } from "vitest";
 import { useDocumentTheme } from "../../../apps/mobile/platform/useDocumentTheme.web";
 
 afterEach(cleanup);
-it("paints the WebKit document and browser chrome with the footer while preserving content background", () => {
+it("matches the top chrome to the header and the bottom underlay to the footer in both themes", () => {
     const root = document.createElement("div");
     root.id = "root";
     document.body.appendChild(root);
@@ -32,17 +32,31 @@ it("paints the WebKit document and browser chrome with the footer while preservi
         rgb(dark.secondary)
     );
     expect(root.style.backgroundColor).toBe(rgb(dark.background));
+    const gradient = (top: string, footer: string) => {
+        const element = document.createElement("div");
+        element.style.backgroundImage = `linear-gradient(${top} 50%, ${footer} 50%)`;
+        return element.style.backgroundImage;
+    };
+    expect(document.body.style.backgroundImage).toBe(
+        gradient(dark.background, dark.secondary)
+    );
+    expect(document.documentElement.style.backgroundImage).toBe(
+        gradient(dark.background, dark.secondary)
+    );
     expect(
         document
             .querySelector('meta[name="theme-color"]')
             ?.getAttribute("content")
-    ).toBe(dark.secondary);
+    ).toBe(dark.background);
     view.rerender({
         mode: "light",
         background: light.background,
         bottom: light.secondary,
     });
     expect(document.body.style.backgroundColor).toBe(rgb(light.secondary));
+    expect(document.body.style.backgroundImage).toBe(
+        gradient(light.background, light.secondary)
+    );
     expect(root.style.backgroundColor).toBe(rgb(light.background));
     expect(document.documentElement.style.colorScheme).toBe("light");
     view.rerender({
@@ -51,5 +65,6 @@ it("paints the WebKit document and browser chrome with the footer while preservi
         bottom: dark.background,
     });
     expect(document.body.style.backgroundColor).toBe(rgb(dark.background));
+    expect(document.body.style.backgroundImage).toBe("none");
     root.remove();
 });

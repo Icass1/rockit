@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type { ThemeMode } from "@rockit/theme";
 
-/** WebKit paints outside the CSS viewport from the document, not the tab bar. */
+/** Set the top browser chrome and preserve the tab bar's document underlay. */
 export function useDocumentTheme(
     mode: ThemeMode,
     background: string,
@@ -14,9 +14,15 @@ export function useDocumentTheme(
             style.textContent = `body *:not(input):not(textarea):not([contenteditable="true"]) { -webkit-user-select:none !important; user-select:none !important; -webkit-touch-callout:none; } input,textarea,[contenteditable="true"],[contenteditable="true"] * { -webkit-user-select:text !important; user-select:text !important; -webkit-touch-callout:default; } img { -webkit-user-drag:none; }`;
             document.head.appendChild(style);
         }
-        document.documentElement.style.backgroundColor = bottomBackground;
+        const underlay =
+            background === bottomBackground
+                ? "none"
+                : `linear-gradient(${background} 50%, ${bottomBackground} 50%)`;
+        for (const element of [document.documentElement, document.body]) {
+            element.style.backgroundColor = bottomBackground;
+            element.style.backgroundImage = underlay;
+        }
         document.documentElement.style.colorScheme = mode;
-        document.body.style.backgroundColor = bottomBackground;
         const root = document.getElementById("root");
         if (root) root.style.backgroundColor = background;
         let meta = document.querySelector<HTMLMetaElement>(
@@ -27,6 +33,6 @@ export function useDocumentTheme(
             meta.name = "theme-color";
             document.head.appendChild(meta);
         }
-        meta.content = bottomBackground;
+        meta.content = background;
     }, [mode, background, bottomBackground]);
 }

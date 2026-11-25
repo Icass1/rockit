@@ -13,7 +13,7 @@ export function HighlightedLyricWord({
                 data-word-state={fill}
                 className={
                     fill === "past"
-                        ? "text-subtle-foreground"
+                        ? "text-foreground-strong"
                         : "text-muted-foreground"
                 }
             >

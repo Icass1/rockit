@@ -49,6 +49,10 @@ export default defineConfig({
                 replacement: path.resolve("packages/shared/src/index.ts"),
             },
             {
+                find: /^@\/components\/Lyrics\/(.+)$/,
+                replacement: path.resolve("apps/web/components/Lyrics") + "/$1",
+            },
+            {
                 find: /^@\//,
                 replacement: path.resolve("packages/shared/src") + "/",
             },

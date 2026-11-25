@@ -23,6 +23,10 @@ export default defineConfig({
                 replacement: path.resolve("packages/ui/src/icons.web.ts"),
             },
             {
+                find: "@rockit/ui/streakSvg",
+                replacement: path.resolve("packages/ui/src/streakSvg.web.ts"),
+            },
+            {
                 find: /^@rockit\/ui\/(.+)$/,
                 replacement: path.resolve("packages/ui/src") + "/$1",
             },

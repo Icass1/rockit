@@ -232,6 +232,7 @@ export function ListeningProfile({
                     [Flame, String(profile.streak), v.SOCIAL_STREAK],
                 ].map(([Icon, value, label]) => {
                     const StatIcon = Icon as typeof Clock3;
+                    const streak = label === v.SOCIAL_STREAK;
                     return (
                         <View
                             key={String(label)}
@@ -241,7 +242,7 @@ export function ListeningProfile({
                                 gap: theme.spacing.xs,
                             }}
                         >
-                            {label === v.SOCIAL_STREAK ? (
+                            {streak ? (
                                 <StreakFlame
                                     days={profile.streak}
                                     size={theme.typography.subtitle}
@@ -254,7 +255,9 @@ export function ListeningProfile({
                             )}
                             <Text
                                 style={{
-                                    color,
+                                    color: streak
+                                        ? theme.colors["streak-foreground"]
+                                        : color,
                                     fontSize: theme.typography.title,
                                     fontWeight: "600",
                                 }}

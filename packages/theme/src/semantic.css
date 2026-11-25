@@ -83,6 +83,7 @@
     --color-flame-core-start: var(--theme-flame-core-start);
     --color-flame-core-end: var(--theme-flame-core-end);
     --color-flame-glow: var(--theme-flame-glow);
+    --color-streak-foreground: var(--theme-streak-foreground);
     --color-bookmark-none: var(--theme-bookmark-none);
     --color-bookmark-autoskip: var(--theme-bookmark-autoskip);
     --color-bookmark-repeat: var(--theme-bookmark-repeat);

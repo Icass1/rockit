@@ -2,7 +2,8 @@
 
 import { JSX } from "react";
 import type { StatsV2SummaryResponse } from "@/dto";
-import { Clock3, Flame, Headphones, Radio, Waves } from "lucide-react";
+import { StreakFlame } from "@rockit/ui/primitives/StreakFlame";
+import { Clock3, Headphones, Radio, Waves } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useVocabulary } from "@/components/providers/VocabularyProvider";
 
@@ -55,9 +56,12 @@ export default function SummaryCardsV2({
             value: formatDuration(summary.avgPlayTimePerMediaMs / 60000),
         },
         {
-            icon: Flame,
+            icon: null,
             label: vocabulary.SOCIAL_STREAK,
-            value: `${summary.currentStreak} days`,
+            value: vocabulary.TIME_DAYS.replace(
+                "{n}",
+                String(summary.currentStreak)
+            ),
         },
     ];
 
@@ -145,8 +149,20 @@ export default function SummaryCardsV2({
                         key={label}
                         className="border-foreground-strong/7 bg-foreground-strong/3 rounded-2xl border p-4"
                     >
-                        <Icon size={17} className="text-disabled-foreground" />
-                        <p className="text-foreground-strong mt-5 text-xl font-bold">
+                        {Icon ? (
+                            <Icon
+                                size={17}
+                                className="text-disabled-foreground"
+                            />
+                        ) : (
+                            <StreakFlame
+                                days={summary.currentStreak}
+                                size={17}
+                            />
+                        )}
+                        <p
+                            className={`mt-5 text-xl font-bold ${Icon ? "text-foreground-strong" : "text-streak-foreground"}`}
+                        >
                             {value}
                         </p>
                         <p className="text-disabled-foreground mt-1 text-[10px] font-semibold tracking-wider uppercase">

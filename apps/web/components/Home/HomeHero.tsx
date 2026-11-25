@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
+import { StreakFlame } from "@rockit/ui/primitives/StreakFlame";
 import { motion, useScroll, useTransform } from "framer-motion";
 import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
 import HeroBackgroundDrift from "@/components/Home/HeroBackgroundDrift";
@@ -79,9 +80,14 @@ export default function HomeHero({
                     {(streak ?? 0) > 0 || (minutesThisWeek ?? 0) > 0 ? (
                         <div className="text-foreground-strong/60 mt-3 flex items-center gap-4 text-sm">
                             {typeof streak === "number" && streak > 0 && (
-                                <span>
-                                    🔥 {streak} {$vocabulary.HOME_STREAK_DAYS}
-                                </span>
+                                <div className="text-streak-foreground inline-flex items-center gap-1">
+                                    <StreakFlame
+                                        days={streak}
+                                        size={22}
+                                        active={heroVisible}
+                                    />
+                                    {streak} {$vocabulary.HOME_STREAK_DAYS}
+                                </div>
                             )}
                             {typeof minutesThisWeek === "number" &&
                                 minutesThisWeek > 0 && (

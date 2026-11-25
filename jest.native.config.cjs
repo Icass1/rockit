@@ -23,6 +23,8 @@ module.exports = {
         "^@/lib/api$": "<rootDir>/apps/mobile/lib/api.native.ts",
         "^@/(.*)$": "<rootDir>/packages/shared/src/$1",
         "^@rockit/ui/runtime$": "<rootDir>/packages/ui/src/runtime.native.ts",
+        "^@rockit/ui/streakSvg$":
+            "<rootDir>/packages/ui/src/streakSvg.native.ts",
         "^@rockit/ui$": "<rootDir>/packages/ui/src/index.ts",
         "^@rockit/ui/primitives/ExplicitBadge$":
             "<rootDir>/packages/ui/src/primitives/ExplicitBadge.native.tsx",

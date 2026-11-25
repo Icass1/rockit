@@ -138,10 +138,7 @@ export default function ProfileSection() {
                                 default: {},
                             })}
                             accessibilityRole="link"
-                            style={({ pressed }) => [
-                                styles.adminButton,
-                                pressed && styles.adminButtonPressed,
-                            ]}
+                            style={styles.adminButton}
                         >
                             <ShieldCheck
                                 size={18}
@@ -221,9 +218,6 @@ const createStyles = (theme: DesignTheme) =>
             paddingVertical: 14,
             borderRadius: theme.radius.lg,
             backgroundColor: withAlpha(theme.colors.primary, 0.15),
-        },
-        adminButtonPressed: {
-            backgroundColor: withAlpha(theme.colors.primary, 0.3),
         },
         adminLabel: {
             color: theme.colors.primary,

@@ -115,6 +115,7 @@ test("settings shows the centered administration shortcut only for administrator
     await expect(admin).toBeVisible();
     await expect(admin).toHaveAttribute("href", /^https?:\/\/[^/]+\/admin$/);
     await expect(admin).toHaveAttribute("target", "_blank");
+    await expect(admin).toHaveCSS("flex-direction", "row");
     const [adminBox, statsBox, logoutBox] = await Promise.all([
         admin.boundingBox(),
         stats.boundingBox(),

@@ -15,9 +15,7 @@ export default function LyricLine({
     const emphasis = useAnimatedStyle(
         () => ({
             color: withTiming(color, {
-                duration: reducedMotion
-                    ? 0
-                    : designTokens.motion.lyricsHighlight,
+                duration: reducedMotion ? 0 : designTokens.motion.normal,
             }),
         }),
         [color, reducedMotion]

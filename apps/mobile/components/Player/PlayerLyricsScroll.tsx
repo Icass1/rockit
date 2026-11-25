@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LyricsCorrectionContextResponse } from "@/dto";
 import {
+    lyricLineFillEnd,
     lyricSeekTime,
     lyricWordFill,
     type ReadonlyAtom,
@@ -18,12 +19,15 @@ function ActiveLyricWords({
     line,
     clock,
     offset,
+    nextLineStart,
 }: {
     line: LyricsCorrectionContextResponse["lines"][number];
     clock: ReadonlyAtom<number>;
     offset: number;
+    nextLineStart?: number | null;
 }) {
     const time = useStore(clock);
+    const end = lyricLineFillEnd(line.end_timestamp_s, nextLineStart);
     return (
         <>
             {line.words?.map((word, index) => (
@@ -34,8 +38,7 @@ function ActiveLyricWords({
                         word,
                         time,
                         offset,
-                        line.words?.[index + 1]?.timestamp_s ??
-                            line.end_timestamp_s
+                        line.words?.[index + 1]?.timestamp_s ?? end
                     )}
                 />
             ))}
@@ -72,6 +75,13 @@ export default function PlayerLyricsScroll({
     );
     const [viewportHeight, setViewportHeight] = useState(0);
     const reducedMotion = useReducedMotion();
+    const nextLineStart =
+        currentIndex === null
+            ? undefined
+            : lyrics.lines.find(
+                  (line, index) =>
+                      index > currentIndex && line.timestamp_s !== null
+              )?.timestamp_s;
 
     const centerActiveLine = useCallback(
         (animated = true) => {
@@ -164,6 +174,7 @@ export default function PlayerLyricsScroll({
                                 line={line}
                                 clock={clock}
                                 offset={lyrics.offset}
+                                nextLineStart={nextLineStart}
                             />
                         ) : (
                             line.text

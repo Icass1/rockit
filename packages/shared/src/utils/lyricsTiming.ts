@@ -8,6 +8,15 @@ export function lyricSeekTime(timestamp: number, offset = 0): number {
     return Math.max(0, lyricPlaybackTime(timestamp, offset));
 }
 
+/** A line may finish early, but its fill cannot run into the following line. */
+export function lyricLineFillEnd(
+    lineEnd?: number | null,
+    nextLineStart?: number | null
+): number | undefined {
+    if (lineEnd == null) return nextLineStart ?? undefined;
+    return Math.min(lineEnd, nextLineStart ?? lineEnd);
+}
+
 export function lyricWordState(
     word: LyricsWord,
     time: number | null | undefined,

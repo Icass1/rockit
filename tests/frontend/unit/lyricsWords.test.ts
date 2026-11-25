@@ -1,5 +1,6 @@
 import { LyricsCorrectionContextResponseSchema } from "@/dto";
 import {
+    lyricLineFillEnd,
     lyricSeekTime,
     lyricWordFill,
     lyricWordState,
@@ -40,6 +41,14 @@ it("completes the previous word when the next begins despite overlapping timesta
     expect(lyricWordFill(previous, 10, 2, next.timestamp_s)).toBe("past");
     expect(lyricWordFill(next, 10, 2)).toBe(0);
     expect(lyricWordFill(previous, 10.5, 2, next.timestamp_s)).toBe("past");
+});
+
+it("honors a measured pause and bounds an unfinished line by the next entry", () => {
+    const word = { text: "Vuelvo", timestamp_s: 1, end_timestamp_s: null };
+    expect(lyricWordFill(word, 2.4, 0, lyricLineFillEnd(2, 2.5))).toBe("past");
+    expect(lyricWordFill(word, 2, 0, lyricLineFillEnd(null, 3))).toBe(0.5);
+    expect(lyricWordFill(word, 2, 0, lyricLineFillEnd(4, 3))).toBe(0.5);
+    expect(lyricWordFill(word, 3, 0, lyricLineFillEnd(4, 3))).toBe("past");
 });
 
 it("validates and retains word timings at the shared HTTP boundary", () => {

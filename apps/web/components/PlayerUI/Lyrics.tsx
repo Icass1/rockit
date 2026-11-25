@@ -169,7 +169,9 @@ function DynamicLyrics(): JSX.Element {
                     className={`player-lyric-line cursor-pointer px-4 py-2 font-semibold text-balance ${
                         currentIndex === index
                             ? "player-lyric-line--current text-foreground-strong"
-                            : "text-muted-foreground hover:text-foreground"
+                            : currentIndex !== null && index < currentIndex
+                              ? "text-subtle-foreground hover:text-foreground"
+                              : "text-muted-foreground hover:text-foreground"
                     }`}
                     data-lyric-index={index}
                     role="button"
@@ -186,6 +188,7 @@ function DynamicLyrics(): JSX.Element {
                         clock={clock}
                         line={line}
                         active={currentIndex === index}
+                        nextLineStart={lyrics.lines[index + 1]?.timestamp_s}
                         offset={lyrics.offset}
                     />
                 </p>

@@ -881,7 +881,7 @@ img {
     transform: scale(calc(1 / var(--lyrics-emphasis-scale)));
     transition:
         transform var(--motion-lyricsHighlight) ease-in-out,
-        color var(--motion-lyricsHighlight) ease-in-out;
+        color var(--motion-normal) ease-in-out;
 }
 .player-lyric-line--current {
     transform: scale(1);

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 import type { LyricsWord } from "@/dto";
-import { lyricWordFill } from "@rockit/shared";
+import { lyricLineFillEnd, lyricWordFill } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
@@ -75,6 +75,11 @@ export function LyricsPreview({
             break;
         }
     }
+    const activeLineEnd = lyricLineFillEnd(
+        lines[active]?.end_timestamp_s,
+        lines.find((line, index) => index > active && line.timestamp_s !== null)
+            ?.timestamp_s
+    );
     return (
         <div className="space-y-2">
             {url && (
@@ -124,8 +129,7 @@ export function LyricsPreview({
                                           time,
                                           offset,
                                           line.words?.[index + 1]
-                                              ?.timestamp_s ??
-                                              line.end_timestamp_s
+                                              ?.timestamp_s ?? activeLineEnd
                                       )}
                                   />
                               ))

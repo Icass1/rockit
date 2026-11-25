@@ -136,6 +136,7 @@ export function PiPLyrics({
                                 clock={clock}
                                 line={line}
                                 active={i === currentLineIndex}
+                                nextLineStart={syncedLines[i + 1]?.timestamp_s}
                                 offset={lyrics?.offset}
                             />
                         </span>

@@ -2,7 +2,7 @@
 
 import { useCallback, useSyncExternalStore, type JSX } from "react";
 import type { BaseDynamicLyricsItem } from "@/dto";
-import { lyricWordFill } from "@/utils/lyricsTiming";
+import { lyricLineFillEnd, lyricWordFill } from "@/utils/lyricsTiming";
 import type { ReadonlyAtom } from "@/lib/store";
 import { HighlightedLyricWord } from "@/components/Lyrics/HighlightedLyricWord";
 
@@ -11,11 +11,13 @@ export function WordSyncedLine({
     line,
     clock,
     active,
+    nextLineStart,
     offset = 0,
 }: {
     line: BaseDynamicLyricsItem;
     clock: ReadonlyAtom<number | null>;
     active: boolean;
+    nextLineStart?: number | null;
     offset?: number;
 }): JSX.Element {
     const snapshot = useCallback(
@@ -30,6 +32,7 @@ export function WordSyncedLine({
     const time = useSyncExternalStore(subscribe, snapshot, () => null);
     if (!active || time === null || !line.words?.length)
         return <>{line.text}</>;
+    const end = lyricLineFillEnd(line.end_timestamp_s, nextLineStart);
     return (
         <>
             {line.words.map((word, index) => (
@@ -40,8 +43,7 @@ export function WordSyncedLine({
                         word,
                         time,
                         offset,
-                        line.words?.[index + 1]?.timestamp_s ??
-                            line.end_timestamp_s
+                        line.words?.[index + 1]?.timestamp_s ?? end
                     )}
                 />
             ))}

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LyricsCorrectionContextResponse } from "@/dto";
-import { lyricSeekTime, lyricWordState } from "@/shared/index";
+import { lyricSeekTime, lyricWordFill } from "@/shared/index";
 import { designTokens, withAlpha } from "@rockit/theme";
 import { useDesignTheme, useThemedStyles, type DesignTheme } from "@rockit/ui";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { useVocabulary } from "@/lib/vocabulary";
+import HighlightedLyricWord from "@/components/Player/HighlightedLyricWord";
 import LyricLine from "@/components/Player/LyricLine";
 
 /** Measured positions belong to one viewport; a resize never reuses old scroll coordinates. */
@@ -125,37 +126,20 @@ export default function PlayerLyricsScroll({
                         style={styles.lyricLine}
                     >
                         {currentIndex === index && line.words?.length
-                            ? line.words.map((word, wordIndex) => {
-                                  const state = lyricWordState(
-                                      word,
-                                      currentTime,
-                                      lyrics.offset,
-                                      line.words[wordIndex + 1]?.timestamp_s ??
-                                          line.end_timestamp_s
-                                  );
-                                  return (
-                                      <Text
-                                          key={wordIndex}
-                                          style={{
-                                              color:
-                                                  state === "active"
-                                                      ? theme.colors.primary
-                                                      : state === "past"
-                                                        ? theme.colors[
-                                                              "foreground-strong"
-                                                          ]
-                                                        : withAlpha(
-                                                              theme.colors[
-                                                                  "foreground-strong"
-                                                              ],
-                                                              0.35
-                                                          ),
-                                          }}
-                                      >
-                                          {word.text}
-                                      </Text>
-                                  );
-                              })
+                            ? line.words.map((word, wordIndex) => (
+                                  <HighlightedLyricWord
+                                      key={wordIndex}
+                                      text={word.text}
+                                      fill={lyricWordFill(
+                                          word,
+                                          currentTime,
+                                          lyrics.offset,
+                                          line.words[wordIndex + 1]
+                                              ?.timestamp_s ??
+                                              line.end_timestamp_s
+                                      )}
+                                  />
+                              ))
                             : line.text}
                     </LyricLine>
                 ))}

@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
 
 from result import Result, ResultCode
 from spotify.framework.download.spotifyDownload import SpotifyDownload
@@ -26,7 +27,7 @@ from youtube.utils.ytdlpLog import YtdlpLogger, sanitize_ytdlp_message
 pytestmark = pytest.mark.unit
 
 
-@pytest.mark.parametrize("provider,first", [(None, "android_vr"), ("http://pot:4416", "mweb+pot")])
+@pytest.mark.parametrize("provider,first", [(None, "default"), ("http://pot:4416", "mweb+pot")])
 def test_strategy_selection_never_forces_missing_tokens(
     monkeypatch: pytest.MonkeyPatch, provider: str | None, first: str
 ) -> None:
@@ -528,8 +529,104 @@ def test_filtered_hd_formats_cannot_silently_become_sd_success(
         return nullcontext(SimpleNamespace(download=download))
 
     monkeypatch.setattr(youtubeDownloader, "_create_youtube_dl", create)
-    result = youtubeDownloader._download_once(  # pyright: ignore[reportPrivateUsage]
-        opts=build_download_opts(format_type="mp4", output_template="unused.%(ext)s"),
+    opts = build_download_opts(format_type="mp4", output_template="unused.%(ext)s")
+    if expected:
+        with pytest.raises(DownloadError, match="HD formats were omitted") as failure:
+            youtubeDownloader._download_once(opts=opts, youtube_url="video")  # pyright: ignore[reportPrivateUsage]
+        assert classify_ytdlp_error(error=failure.value) == YtdlpFailureEnum.FORMAT_UNAVAILABLE
+    else:
+        assert youtubeDownloader._download_once(opts=opts, youtube_url="video") == 0  # pyright: ignore[reportPrivateUsage]
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Some tv client https formats have been skipped as they are missing a URL",
+        "YouTube is forcing SABR streaming for this client",
+        "tv client https formats require a GVS PO Token. They will be skipped",
+    ],
+)
+def test_default_client_debug_diagnostics_preserve_quality_guard(
+    monkeypatch: pytest.MonkeyPatch, message: str
+) -> None:
+    from youtube.utils import ytdlpLog
+
+    log = Mock()
+    monkeypatch.setattr(ytdlpLog, "logger", log)
+    adapter = YtdlpLogger()
+    adapter.debug(msg=f"[debug] [youtube] {message}")
+    assert adapter.incomplete_formats
+    log.info.assert_not_called()
+
+
+async def test_upstream_default_clients_recover_hd_after_mweb_sabr_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(ytdlpStrategies, "YTDLP_POT_PROVIDER_URL", "http://pot:4416")
+    monkeypatch.setattr(ytdlpStrategies, "YTDLP_COOKIES_FILE", None)
+    monkeypatch.setattr(ytdlpStrategies.youtube_gate, "has_proxies", lambda: False)
+    monkeypatch.setattr(youtubeDownloader.youtube_gate, "pace_async", AsyncMock())
+    clients: list[str] = []
+
+    def create(opts: dict[str, Any]) -> nullcontext[SimpleNamespace]:
+        def download(urls: list[str]) -> int:
+            client = opts["extractor_args"]["youtube"]["player_client"][0]
+            clients.append(client)
+            assert "[height>=720]" in opts["format"]
+            if client == "mweb":
+                opts["logger"].warning("SABR-only streaming experiment; missing a URL")
+                raise DownloadError("Requested format is not available")
+            assert client == "default"
+            assert opts["match_filter"]({"height": 1080}, incomplete=False) is None
+            return 0
+
+        return nullcontext(SimpleNamespace(download=download))
+
+    monkeypatch.setattr(youtubeDownloader, "_create_youtube_dl", create)
+    result = await youtubeDownloader._download_with_strategies_async(  # pyright: ignore[reportPrivateUsage]
         youtube_url="video",
+        base_opts=build_download_opts(format_type="mp4", output_template="unused.%(ext)s"),
+        output_path=str(tmp_path),
+        filename="sample",
     )
-    assert result == expected
+    assert result[0] and clients == ["mweb", "default"]
+
+
+async def test_incomplete_sd_catalogue_tries_next_candidate_without_tripping_breaker(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        youtubeDownloader,
+        "build_strategies",
+        lambda: [ytdlpStrategies.YtdlpStrategy(name="default")],
+    )
+    monkeypatch.setattr(youtubeDownloader.youtube_gate, "pace_async", AsyncMock())
+    block = Mock()
+    monkeypatch.setattr(youtubeDownloader.youtube_gate, "record_block", block)
+    monkeypatch.setattr(youtubeDownloader.youtube_gate, "record_success", Mock())
+    attempts: list[str] = []
+
+    def create(opts: dict[str, Any]) -> nullcontext[SimpleNamespace]:
+        def download(urls: list[str]) -> int:
+            attempts.append(urls[0])
+            if urls[0] == "incomplete":
+                opts["logger"].debug("[debug] YouTube is forcing SABR streaming for this client")
+                if "[height>=720]" in opts["format"]:
+                    raise DownloadError("Requested format is not available")
+                assert opts["match_filter"]({"height": 360}, incomplete=False) is not None
+                return 0
+            assert opts["match_filter"]({"height": 1080}, incomplete=False) is None
+            return 0
+
+        return nullcontext(SimpleNamespace(download=download))
+
+    monkeypatch.setattr(youtubeDownloader, "_create_youtube_dl", create)
+    result = await youtubeDownloader._download_with_candidates_async(  # pyright: ignore[reportPrivateUsage]
+        youtube_urls=["incomplete", "alternative"],
+        base_opts=build_download_opts(format_type="mp4", output_template="unused.%(ext)s"),
+        output_path=str(tmp_path),
+        filename="sample",
+    )
+    assert result[0] and result[1] == "alternative"
+    assert attempts == ["incomplete", "incomplete", "alternative"]
+    block.assert_not_called()

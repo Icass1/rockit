@@ -85,7 +85,7 @@ Repeat full MP3 and MP4 checks for several known public uploads, including a
 longer video. Exit status 0 with `Full download validated` confirms positive
 duration and the expected audio/video streams. Verify an application download
 in beta afterward to cover the database, websocket and media-storage path.
-Use `--strategy android_vr` or `--strategy web_safari` to investigate a fallback
+Use `--strategy default` or `--strategy web_safari` to investigate a fallback
 independently. Perform these checks on the actual deployment host: another
 network's success does not validate production egress.
 
@@ -119,11 +119,22 @@ bytes directly, so a saved 360p file remains 360p during playback.
 
 ## Fallback and retry policy
 
-With a configured provider the order is `mweb+pot`, `android_vr`, `web_safari`,
+With a configured provider the order is `mweb+pot`, `default`, `web_safari`,
 then optional cookie and proxy strategies. Without a provider only fallback
-clients are available. yt-dlp skips formats that require missing tokens; the
+clients are available. `default` follows the pinned yt-dlp release's maintained
+client selection (`tv_samsung` and `visionos` in 2026.11.23), including on the
+proxy fallback. Forcing the older `android_vr` client excluded these alternatives
+while Android token requirements could not be satisfied by the web PO provider.
+See the [pinned upstream client defaults](https://github.com/yt-dlp/yt-dlp/blob/2026.11.23/yt_dlp/extractor/youtube/_video.py).
+yt-dlp skips formats that require missing tokens; the
 application never forces `formats=missing_pot`. Web PO tokens cannot satisfy
 Android or iOS token requirements.
+
+Omitted-format diagnostics are tracked at both warning and debug level; raw
+debug output remains suppressed. Rejecting an incomplete SD catalogue preserves
+a format-unavailable failure instead of becoming an unknown transfer error.
+When all clients run out of formats, another candidate upload may be tried
+before scheduling a retry. This does not increment the global block streak.
 
 | Failure | Handling |
 | --- | --- |
@@ -133,7 +144,7 @@ Android or iOS token requirements.
 | Private/removed/restricted video | Do not retry as a network failure |
 | Missing runtime/plugin or incompatible provider | Fail with configuration error; repair deployment |
 | Provider outage, network or conversion error | Ordinary retry policy |
-| No matching format | Try another client; do not infer a global IP block |
+| No matching format or incomplete SD catalogue | Try another client/candidate; do not infer a global IP block |
 
 YouTube and Spotify wrappers preserve these result codes for the scheduler.
 Ordinary retry delays are 30s, 2m, 10m, 30m. Rate-limited retries use 5m, 30m,

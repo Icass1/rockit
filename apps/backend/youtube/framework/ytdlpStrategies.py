@@ -90,9 +90,9 @@ def build_strategies() -> list[YtdlpStrategy]:
             )
         )
 
-    strategies.append(
-        YtdlpStrategy(name="android_vr", youtube_args={"player_client": ["android_vr"]})
-    )
+    # Follow the pinned extractor's maintained defaults. Forcing android_vr
+    # excludes newer working clients and its tokens cannot come from bgutil.
+    strategies.append(YtdlpStrategy(name="default", youtube_args={"player_client": ["default"]}))
     # Safari HLS is a useful fallback. Let yt-dlp skip formats requiring a
     # missing token rather than forcing them into the format selection.
     strategies.append(
@@ -114,8 +114,8 @@ def build_strategies() -> list[YtdlpStrategy]:
         # Optional alternative transport; a proxy does not guarantee success.
         strategies.append(
             YtdlpStrategy(
-                name="android_vr+proxy",
-                youtube_args={"player_client": ["android_vr"]},
+                name="default+proxy",
+                youtube_args={"player_client": ["default"]},
                 use_proxy=True,
             )
         )

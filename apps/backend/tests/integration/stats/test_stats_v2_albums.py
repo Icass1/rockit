@@ -1,4 +1,4 @@
-"""Album rankings must enrich albums once, regardless of the interval count."""
+"""Album rankings must enrich albums once, regardless of the listening event count."""
 
 import os
 from collections.abc import AsyncIterator, Iterator
@@ -13,13 +13,17 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
 from core.access.db import migrations
+from core.access.statsAccess import StatsAccess
 from core.access.statsV2Access import StatsV2Access
 from core.framework import providers
 from core.framework.media.image import Image
 from spotify.framework.provider.spotifyProvider import SpotifyProvider
 from youtubeMusic.framework.provider.youtubeMusicProvider import YoutubeMusicProvider
 
-pytestmark = pytest.mark.integration
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.parametrize("access_class", [StatsAccess, StatsV2Access]),
+]
 
 
 @pytest.fixture
@@ -48,6 +52,9 @@ async def stats_database(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[Async
                 "CREATE TABLE core.user_media_listen_interval (id serial PRIMARY KEY, "
                 "user_id int, media_id int, date_added timestamptz, "
                 "time_ms_start int, time_ms_end int)",
+                "CREATE TABLE core.user_media_listened (id serial PRIMARY KEY, "
+                "user_id int, media_id int, date_added timestamptz, "
+                "CONSTRAINT uq_user_media_listened_user_date UNIQUE (user_id, date_added))",
                 "CREATE TABLE spotify.track (id int PRIMARY KEY, album_id int)",
                 "CREATE TABLE spotify.album (id int PRIMARY KEY, name text, image_id int)",
                 "CREATE TABLE spotify.artist (id int PRIMARY KEY, name text)",
@@ -82,6 +89,12 @@ async def stats_database(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[Async
                 "(99, 3, '2026-11-23 00:00:00+00', 0, 1000000), "
                 "(42, 3, '2026-11-24 00:00:00+00', 0, 1000000), "
                 "(42, 3, '2026-10-24 00:00:00+00', 0, 1000000)",
+                # The legacy ranking counts plays, while V2 measures milliseconds.
+                "INSERT INTO core.user_media_listened (user_id, media_id, date_added) "
+                "SELECT user_id, media_id, date_added "
+                "+ (id * 10000 + n) * interval '1 microsecond' "
+                "FROM core.user_media_listen_interval "
+                "CROSS JOIN LATERAL generate_series(1, (time_ms_end-time_ms_start)/1000) n",
             )
             for statement in statements:
                 await conn.execute(text(statement))
@@ -104,35 +117,41 @@ async def stats_database(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[Async
 
 @pytest.mark.parametrize("days, multiplier", [(1, 1), (7, 2), (30, 3)])
 async def test_album_rankings_preserve_totals_credits_and_cross_provider_merging(
-    stats_database: AsyncEngine, days: int, multiplier: int
+    stats_database: AsyncEngine,
+    days: int,
+    multiplier: int,
+    access_class: type[StatsAccess] | type[StatsV2Access],
 ) -> None:
     async with AsyncSession(stats_database) as session:
         end = datetime(2026, 11, 24, tzinfo=UTC)
         start = end - timedelta(days=days)
-        result = await StatsV2Access.get_top_albums_async(
+        result = await access_class.get_top_albums_async(
             session=session, user_id=42, start_date=start, end_date=end, limit=25
         )
         assert result.is_ok(), result.info()
         albums = result.result()
+        multiplier *= 1 if access_class is StatsAccess else 1000
         assert [(row.publicId, row.subtitle, row.value) for row in albums] == [
-            ("spotify-album", "Artist A, Guest", 11000 * multiplier),
-            ("other-artist", "Artist B", 4000 * multiplier),
-            ("uncredited", None, 1000 * multiplier),
+            ("spotify-album", "Artist A, Guest", 11 * multiplier),
+            ("other-artist", "Artist B", 4 * multiplier),
+            ("uncredited", None, 1 * multiplier),
         ]
         assert all(row.imageUrl == "/cover" for row in albums)
         assert albums[0].href == "/album/spotify-album"
-        limited = await StatsV2Access.get_top_albums_async(
+        limited = await access_class.get_top_albums_async(
             session=session, user_id=42, start_date=start, end_date=end, limit=1
         )
         assert limited.is_ok(), limited.info()
         assert limited.result() == albums[:1]
 
 
-async def test_empty_range_skips_metadata_enrichment(stats_database: AsyncEngine) -> None:
+async def test_empty_range_skips_metadata_enrichment(
+    stats_database: AsyncEngine, access_class: type[StatsAccess] | type[StatsV2Access]
+) -> None:
     async with AsyncSession(stats_database) as session:
         execute = AsyncMock(wraps=session.execute)
         session.execute = execute
-        result = await StatsV2Access.get_top_albums_async(
+        result = await access_class.get_top_albums_async(
             session=session,
             user_id=123,
             start_date=datetime(2026, 11, 17, tzinfo=UTC),
@@ -149,7 +168,7 @@ def _plan_nodes(node: dict[str, Any]) -> Iterator[dict[str, Any]]:
 
 
 async def test_metadata_work_is_bounded_by_albums_and_range_uses_index(
-    stats_database: AsyncEngine,
+    stats_database: AsyncEngine, access_class: type[StatsAccess] | type[StatsV2Access]
 ) -> None:
     async with AsyncSession(stats_database) as session:
         await session.execute(
@@ -159,10 +178,27 @@ async def test_metadata_work_is_bounded_by_albums_and_range_uses_index(
                 "SELECT 42, 1, '2026-11-23 00:00:00+00', 0, 30000 FROM generate_series(1, 6000)"
             )
         )
-        await session.execute(text("ANALYZE core.user_media_listen_interval"))
+        await session.execute(
+            text(
+                "INSERT INTO core.user_media_listened (user_id, media_id, date_added) "
+                "SELECT 42, 1, '2026-11-23 01:00:00+00'::timestamptz "
+                "+ n * interval '1 microsecond' FROM generate_series(1, 6000) n"
+            )
+        )
+        # A large unrelated catalog must not increase artist aggregation work.
+        for statement in (
+            "INSERT INTO core.media SELECT n, 'unplayed-' || n FROM generate_series(1000, 2999) n",
+            "INSERT INTO spotify.album SELECT n, 'Unplayed ' || n, 100 "
+            "FROM generate_series(1000, 2999) n",
+            "INSERT INTO spotify.album_artist SELECT n, 1 FROM generate_series(1000, 2999) n",
+            "INSERT INTO spotify.track SELECT n, 1000 + n % 2000 "
+            "FROM generate_series(10000, 59999) n",
+            "ANALYZE",
+        ):
+            await session.execute(text(statement))
         execute = AsyncMock(wraps=session.execute)
         session.execute = execute
-        result = await StatsV2Access.get_top_albums_async(
+        result = await access_class.get_top_albums_async(
             session=session,
             user_id=42,
             start_date=datetime(2026, 11, 17, tzinfo=UTC),
@@ -170,7 +206,7 @@ async def test_metadata_work_is_bounded_by_albums_and_range_uses_index(
             limit=25,
         )
         assert result.is_ok(), result.info()
-        assert result.result()[0].value == 180022000
+        assert result.result()[0].value == (6022 if access_class is StatsAccess else 180022000)
         assert execute.await_count == 2
         for call in execute.await_args_list:
             plan_result = await AsyncSession.execute(
@@ -181,14 +217,27 @@ async def test_metadata_work_is_bounded_by_albums_and_range_uses_index(
             subplans = [n for n in nodes if n.get("Subplan Name", "").startswith("SubPlan")]
             assert all(n["Actual Loops"] <= 4 for n in subplans)
             assert not plan.get("JIT", {}).get("Options", {}).get("Optimization", False)
+            if access_class is StatsAccess:
+                track_scans = [n for n in nodes if n.get("Relation Name") == "track"]
+                assert track_scans
+                assert all(
+                    n["Actual Rows"] + n.get("Rows Removed by Filter", 0) <= 5 for n in track_scans
+                )
         await AsyncSession.execute(session, text("SET LOCAL enable_seqscan = off"))
+        if access_class is StatsAccess:
+            aggregate = "COUNT(*)"
+            table = "core.user_media_listened"
+            index_name = "uq_user_media_listened_user_date"
+        else:
+            aggregate = "SUM(time_ms_end - time_ms_start)"
+            table = "core.user_media_listen_interval"
+            index_name = "ix_user_media_listen_interval_user_date"
         plan_result = await AsyncSession.execute(
             session,
             text(
-                "EXPLAIN SELECT media_id, SUM(time_ms_end - time_ms_start) "
-                "FROM core.user_media_listen_interval "
+                f"EXPLAIN SELECT media_id, {aggregate} FROM {table} "
                 "WHERE user_id = 42 AND date_added >= '2026-11-17' "
                 "AND date_added < '2026-11-24 00:00:00+00' GROUP BY media_id"
             ),
         )
-        assert "ix_user_media_listen_interval_user_date" in "\n".join(row[0] for row in plan_result)
+        assert index_name in "\n".join(row[0] for row in plan_result)

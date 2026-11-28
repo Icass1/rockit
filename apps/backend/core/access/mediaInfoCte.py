@@ -91,9 +91,9 @@ def get_genre_info_cte(*, inline: bool = False) -> str:
     return build_cte("genre_info", frags, inline=inline)
 
 
-def get_album_info_cte(*, inline: bool = False) -> str:
+def get_album_info_cte(*, inline: bool = False, media_ids_cte: str | None = None) -> str:
     """CTE aggregating (media_id, album_public_id, album_name, album_image_id, album_artists)
-    across every registered media provider."""
+    across every registered media provider, optionally scoped to an internal media-ID CTE."""
 
     from core.framework import providers
 
@@ -110,4 +110,17 @@ def get_album_info_cte(*, inline: bool = False) -> str:
                 ("album_artists", "text"),
             ],
         )
+    if media_ids_cte is not None:
+        # Keep each lookup parameterized by the small input set. Joining outside
+        # the provider UNION can instead scan every track in the catalog.
+        frags = [
+            f"""SELECT album.*
+            FROM {media_ids_cte} scope
+            CROSS JOIN LATERAL (
+                SELECT provider_album.* FROM ({fragment}) provider_album
+                WHERE provider_album.media_id = scope.media_id
+                OFFSET 0
+            ) album"""
+            for fragment in frags
+        ]
     return build_cte("album_info", frags, inline=inline)

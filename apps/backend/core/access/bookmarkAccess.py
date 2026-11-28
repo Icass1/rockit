@@ -44,6 +44,18 @@ class BookmarkAccess:
 
     @staticmethod
     @safe_async
+    async def get_bookmark_timestamps_by_user_and_medias_async(
+        session: AsyncSession, user_id: int, media_ids: list[int]
+    ) -> Result[list[tuple[int, float]]]:
+        """Load the viewer's queue section markers without hydrating related media."""
+        stmt = select(BookmarkRow.media_id, BookmarkRow.timestamp).where(
+            BookmarkRow.user_id == user_id, BookmarkRow.media_id.in_(media_ids)
+        )
+        rows = (await session.execute(stmt)).all()
+        return Result(code=ResultCode.OK, message="OK", result=[(row[0], row[1]) for row in rows])
+
+    @staticmethod
+    @safe_async
     async def get_bookmark_by_public_id_async(
         session: AsyncSession, public_id: str, user_id: int
     ) -> Result[BookmarkRow]:

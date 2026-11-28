@@ -9,6 +9,8 @@ export const QueueItemSchema = z.object({
     queueMediaId: z.number(),
     randomIndex: z.number(),
     sortedIndex: z.number(),
+    startTimeMs: z.number().nullable().default(null),
+    endTimeMs: z.number().nullable().default(null),
 });
 
 export type QueueItem = z.infer<typeof QueueItemSchema>;

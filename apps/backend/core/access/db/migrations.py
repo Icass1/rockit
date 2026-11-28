@@ -93,6 +93,14 @@ _CORE_MIGRATIONS: tuple[Migration, ...] = (
             "ALTER TABLE core.media ADD COLUMN IF NOT EXISTS reviewed_genre VARCHAR(2000)",
         ),
     ),
+    Migration(
+        version=11,
+        name="add_queue_time_bounds",
+        statements=(
+            "ALTER TABLE core.user_queue ADD COLUMN IF NOT EXISTS start_time_ms INTEGER",
+            "ALTER TABLE core.user_queue ADD COLUMN IF NOT EXISTS end_time_ms INTEGER",
+        ),
+    ),
 )
 
 

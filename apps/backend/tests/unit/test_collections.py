@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.access.bookmarkAccess import BookmarkAccess
 from core.access.collectionAccess import CollectionAccess
 from core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from core.enums.queueTypeEnum import QueueTypeEnum
@@ -94,12 +95,16 @@ async def test_empty_queue_does_not_replace_existing_queue(
     save.assert_not_awaited()
 
 
+@pytest.mark.parametrize("bookmark_count", [0, 10])
+@pytest.mark.parametrize("persist", [False, True])
 @pytest.mark.parametrize("queue_type", list(QueueTypeEnum))
 @pytest.mark.parametrize("start_public_id", [None, "track-1"])
 async def test_collection_queue_selects_and_persists_start_for_queue_mode(
     monkeypatch: pytest.MonkeyPatch,
     queue_type: QueueTypeEnum,
     start_public_id: str | None,
+    bookmark_count: int,
+    persist: bool,
 ) -> None:
     """Shuffle the initial selection unless a particular track was requested."""
     root = CollectionRecord(id=1, public_id="list", provider_id=1, media_type_key=3, name="List")
@@ -166,6 +171,18 @@ async def test_collection_queue_selects_and_persists_start_for_queue_mode(
         ),
     )
 
+    timestamps = [0.05 + i * 0.09 for i in range(bookmark_count)]
+    if bookmark_count:
+        timestamps += [0.05, -1, float("inf"), 1e308, 1, 2]
+    bookmarks = AsyncMock(
+        return_value=Result[list[tuple[int, float]]].ok(
+            [(tracks[0].id, timestamp) for timestamp in timestamps]
+        )
+    )
+    monkeypatch.setattr(
+        BookmarkAccess, "get_bookmark_timestamps_by_user_and_medias_async", bookmarks
+    )
+
     # Force a non-first track to lead the shuffle without relying on chance.
     def reverse_order(values: list[int]) -> None:
         values.reverse()
@@ -176,26 +193,62 @@ async def test_collection_queue_selects_and_persists_start_for_queue_mode(
     session.execute.return_value.scalar_one.return_value = queue_type.value
 
     result = await Collection.queue_async(
-        session=session, public_id="list", user_id=1, start_public_id=start_public_id
+        session=session,
+        public_id="list",
+        user_id=1,
+        start_public_id=start_public_id,
+        persist=persist,
     )
 
     assert result.is_ok(), result.info()
     response = result.result()
-    expected_start = 1 if start_public_id else (2 if queue_type is QueueTypeEnum.RANDOM else 0)
-    assert response.queueType is queue_type
+    first_count = bookmark_count or 1
+    count = first_count + 2
+    expected_type = queue_type if persist else QueueTypeEnum.SORTED
+    expected_start = (
+        first_count
+        if start_public_id
+        else (count - 1 if expected_type is QueueTypeEnum.RANDOM else 0)
+    )
+    assert response.queueType is expected_type
     assert response.currentQueueMediaId == expected_start
     selected = response.queue[expected_start]
-    assert selected.media.publicId == f"track-{expected_start}"
+    assert selected.media.publicId == (
+        "track-1"
+        if start_public_id
+        else ("track-2" if expected_type is QueueTypeEnum.RANDOM else "track-0")
+    )
     assert selected.sortedIndex == expected_start
-    assert selected.randomIndex == (0 if start_public_id or expected_start == 2 else 2)
-    assert sorted(item.randomIndex for item in response.queue) == [0, 1, 2]
-    assert [item.sortedIndex for item in response.queue] == [0, 1, 2]
+    assert sorted(item.randomIndex for item in response.queue) == list(range(count))
+    assert [item.sortedIndex for item in response.queue] == list(range(count))
+    if bookmark_count:
+        assert [(item.startTimeMs, item.endTimeMs) for item in response.queue[:10]] == [
+            (50 + i * 90, 50 + (i + 1) * 90 if i < 9 else None) for i in range(10)
+        ]
+        assert {item.media.publicId for item in response.queue[:10]} == {"track-0"}
+    else:
+        assert all(item.startTimeMs is None and item.endTimeMs is None for item in response.queue)
+    assert all(
+        item.startTimeMs is None and item.endTimeMs is None for item in response.queue[first_count:]
+    )
+    bookmarks.assert_awaited_once()
+    assert bookmarks.await_args is not None
+    assert bookmarks.await_args.kwargs["user_id"] == 1
+    assert set(bookmarks.await_args.kwargs["media_ids"]) == {2, 3, 4}
+    assert response.total == count
+    if not persist:
+        session.commit.assert_not_awaited()
+        return
     persisted_update = next(
         call.args[0]
         for call in session.execute.await_args_list
         if "current_queue_id" in call.args[0].compile().params
     )
     assert persisted_update.compile().params["current_queue_id"] == expected_start
+    assert persisted_update.compile().params["current_time_ms"] == (selected.startTimeMs or 0)
     inserted_rows = session.execute.await_args_list[2].args[1]
     assert inserted_rows[expected_start]["random_index"] == selected.randomIndex
+    assert [(row["start_time_ms"], row["end_time_ms"]) for row in inserted_rows] == [
+        (item.startTimeMs, item.endTimeMs) for item in response.queue
+    ]
     session.commit.assert_awaited_once()

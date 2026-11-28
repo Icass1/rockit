@@ -58,6 +58,8 @@ async def handle_current_queue(
                 list_id=list_id,
                 sorted_index=item.sortedIndex,
                 random_index=item.randomIndex,
+                start_time_ms=item.startTimeMs,
+                end_time_ms=item.endTimeMs,
             )
         )
 

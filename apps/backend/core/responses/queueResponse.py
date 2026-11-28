@@ -18,6 +18,8 @@ class QueueResponseItem(BaseModel):
         | BaseSongWithoutAlbumResponse
         | BaseStationResponse
     )
+    startTimeMs: int | None = None
+    endTimeMs: int | None = None
     randomIndex: int
     sortedIndex: int
 

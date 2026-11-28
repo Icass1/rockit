@@ -1,15 +1,18 @@
 from collections import defaultdict
+from math import isfinite
 from random import shuffle
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.access.bookmarkAccess import BookmarkAccess
 from core.access.collectionAccess import CollectionAccess
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.framework import providers
 from core.framework.contentRating import ContentRatings
 from core.framework.media.image import Image
 from core.framework.models.collection import CollectionEntry, CollectionRecord
+from core.framework.models.queue import QueueItem
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistForPlaylistResponse import (
@@ -307,6 +310,43 @@ class Collection:
                 code=ResultCode.BAD_REQUEST,
                 message="Collection contains no queueable media",
             )
+        hydrated = await Collection.hydrate_async(
+            session=session,
+            records=[r for r in records.values() if r.media_type_key in (4, 5)],
+        )
+        if hydrated.is_not_ok():
+            logger.error(f"Queue hydration failed: {hydrated.info()}")
+            return Result(code=hydrated.code(), message=hydrated.message())
+        medias = hydrated.result()
+        if any(ids[media_id] not in medias for media_id in ordered):
+            logger.error("Provider omitted a queue item")
+            return Result(code=ResultCode.NOT_FOUND, message="Queue media unavailable")
+        markers: defaultdict[int, set[int]] = defaultdict(set)
+        if user_id:
+            bookmarks = await BookmarkAccess.get_bookmark_timestamps_by_user_and_medias_async(
+                session=session, user_id=user_id, media_ids=list(set(ordered))
+            )
+            if bookmarks.is_not_ok():
+                logger.error(f"Queue bookmarks failed: {bookmarks.info()}")
+                return Result(code=bookmarks.code(), message=bookmarks.message())
+            for bookmark_media_id, timestamp in bookmarks.result():
+                if not isfinite(timestamp) or not 0 <= timestamp <= 2_147_483.647:
+                    continue
+                timestamp_ms = round(timestamp * 1000)
+                duration_ms = medias[ids[bookmark_media_id]].duration_ms
+                if timestamp_ms <= 2_147_483_647 and (
+                    duration_ms is None or timestamp_ms < duration_ms
+                ):
+                    markers[bookmark_media_id].add(timestamp_ms)
+        sections: list[tuple[int, int | None, int | None]] = []
+        for media_id in ordered:
+            timestamps = sorted(markers[media_id])
+            if not timestamps:
+                sections.append((media_id, None, None))
+            for index, timestamp in enumerate(timestamps):
+                end = timestamps[index + 1] if index + 1 < len(timestamps) else None
+                sections.append((media_id, timestamp, end))
+        ordered = [media_id for media_id, _, _ in sections]
         start = (
             next(
                 (i for i, media_id in enumerate(ordered) if ids[media_id] == start_public_id),
@@ -331,21 +371,23 @@ class Collection:
             QueueTypeEnum.SORTED.value: start,
             QueueTypeEnum.RANDOM.value: random_order[0],
         }
-        hydrated = await Collection.hydrate_async(
-            session=session,
-            records=[r for r in records.values() if r.media_type_key in (4, 5)],
-        )
-        if hydrated.is_not_ok():
-            logger.error(f"Queue hydration failed: {hydrated.info()}")
-            return Result(code=hydrated.code(), message=hydrated.message())
-        medias = hydrated.result()
-        if any(ids[media_id] not in medias for media_id in ordered):
-            logger.error("Provider omitted a queue item")
-            return Result(code=ResultCode.NOT_FOUND, message="Queue media unavailable")
+        queue_items = [
+            QueueItem(
+                media_id=media_id,
+                queue_id=i,
+                list_id=root.id,
+                sorted_index=i,
+                random_index=random_indexes[i],
+                start_time_ms=start_ms,
+                end_time_ms=end_ms,
+            )
+            for i, (media_id, start_ms, end_ms) in enumerate(sections)
+        ]
         if not persist:
             return await ContentRatings.enrich_async(
                 session=session,
                 response=QueueResponse(
+                    total=len(queue_items),
                     currentQueueMediaId=start,
                     queueType=QueueTypeEnum.SORTED,
                     queue=[
@@ -355,6 +397,8 @@ class Collection:
                             media=medias[ids[media_id]],
                             sortedIndex=i,
                             randomIndex=random_indexes[i],
+                            startTimeMs=queue_items[i].start_time_ms,
+                            endTimeMs=queue_items[i].end_time_ms,
                         )
                         for i, media_id in enumerate(ordered)
                     ],
@@ -363,9 +407,7 @@ class Collection:
         saved = await CollectionAccess.save_queue_async(
             session=session,
             user_id=user_id,
-            root_id=root.id,
-            ordered_ids=ordered,
-            random_indexes=random_indexes,
+            queue_items=queue_items,
             start_by_queue_type=start_by_queue_type,
         )
         if saved.is_not_ok():
@@ -374,6 +416,7 @@ class Collection:
         return await ContentRatings.enrich_async(
             session=session,
             response=QueueResponse(
+                total=len(queue_items),
                 currentQueueMediaId=start_by_queue_type[saved.result()],
                 queueType=QueueTypeEnum(saved.result()),
                 queue=[
@@ -383,6 +426,8 @@ class Collection:
                         media=medias[ids[media_id]],
                         sortedIndex=i,
                         randomIndex=random_indexes[i],
+                        startTimeMs=queue_items[i].start_time_ms,
+                        endTimeMs=queue_items[i].end_time_ms,
                     )
                     for i, media_id in enumerate(ordered)
                 ],

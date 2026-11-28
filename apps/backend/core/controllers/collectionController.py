@@ -72,6 +72,8 @@ async def create_collection_queue(
                     queueMediaId=item.queueMediaId,
                     randomIndex=item.randomIndex,
                     sortedIndex=item.sortedIndex,
+                    startTimeMs=item.startTimeMs,
+                    endTimeMs=item.endTimeMs,
                 )
                 for item in queue.queue
             ]

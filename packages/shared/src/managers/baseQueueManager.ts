@@ -553,6 +553,8 @@ export class BaseQueueManager {
                         queueMediaId: item.queueMediaId,
                         randomIndex,
                         sortedIndex,
+                        startTimeMs: item.startTimeMs ?? null,
+                        endTimeMs: item.endTimeMs ?? null,
                     };
                 }
             ),
@@ -560,12 +562,15 @@ export class BaseQueueManager {
     }
 
     skipBack(): void {
-        const jumped = getRockIt().bookmarkManager.skipToPrevBookmark();
+        const jumped =
+            !this.hasCurrentTimeBounds &&
+            getRockIt().bookmarkManager.skipToPrevBookmark();
         if (jumped) return;
 
         const currentTime = getRockIt().mediaPlayerManager.currentTime;
-        if (currentTime >= 3) {
-            getRockIt().mediaPlayerManager.setCurrentTime(0, true);
+        const start = (this.currentQueueItem?.startTimeMs ?? 0) / 1000;
+        if (currentTime - start >= 3) {
+            getRockIt().mediaPlayerManager.setCurrentTime(start, true);
             return;
         }
 
@@ -602,7 +607,9 @@ export class BaseQueueManager {
     }
 
     skipForward(): void {
-        const jumped = getRockIt().bookmarkManager.skipToNextBookmark();
+        const jumped =
+            !this.hasCurrentTimeBounds &&
+            getRockIt().bookmarkManager.skipToNextBookmark();
         if (jumped) return;
 
         this._lastNavigationDirection = 1;
@@ -726,7 +733,11 @@ export class BaseQueueManager {
         getRockIt().mediaPlayerManager.play();
     }
 
-    setMedia(medias: TQueueMedia[], listPublicId: string): void {
+    setMedia(
+        medias: TQueueMedia[],
+        listPublicId: string,
+        items?: QueueMediaItem[]
+    ): void {
         this._pendingSelectionAtom.set(undefined);
         this._playRequest++;
         this._hasInitialQueue = true;
@@ -741,16 +752,12 @@ export class BaseQueueManager {
                 listPublicId: listPublicId,
                 queueMediaId: index,
                 sortedIndex: index,
+                startTimeMs: items?.[index]?.startTimeMs ?? null,
+                endTimeMs: items?.[index]?.endTimeMs ?? null,
             };
         });
 
-        this.randomQueue = medias.map((media, index): QueueMediaItem => {
-            return {
-                media: media,
-                listPublicId: listPublicId,
-                queueMediaId: index,
-            };
-        });
+        this.randomQueue = this.sortedQueue.map((item) => ({ ...item }));
 
         const shuffleInPlace = (array: QueueMediaItem[]): void => {
             for (let i = array.length - 1; i > 0; i--) {
@@ -907,10 +914,12 @@ export class BaseQueueManager {
 
     async addListToQueueTopAsync(media: TListMedia): Promise<void> {
         const isCurrent = this._captureQueueWork();
-        const medias = await this.getListMediasAsync(media);
+        const medias = await this.getListQueueItemsAsync(media);
         if (!isCurrent() || medias.length === 0) return;
 
-        const queueableMedias = medias.filter(isQueueable);
+        const queueableMedias = medias.filter((item) =>
+            isQueueable(item.media)
+        );
         if (queueableMedias.length === 0) return;
 
         const currentMaxId = this.sortedQueue.reduce(
@@ -918,13 +927,10 @@ export class BaseQueueManager {
             0
         );
 
-        const newItems = queueableMedias.map(
-            (media, index): QueueMediaItem => ({
-                media,
-                listPublicId: media.publicId,
-                queueMediaId: currentMaxId + 1 + index,
-            })
-        );
+        const newItems = queueableMedias.map((item, index): QueueMediaItem => ({
+            ...item,
+            queueMediaId: currentMaxId + 1 + index,
+        }));
 
         this.sortedQueue = [...newItems, ...this.sortedQueue];
         this.randomQueue = [...shuffle(newItems), ...this.randomQueue];
@@ -934,77 +940,47 @@ export class BaseQueueManager {
 
     async addListToQueueRandomAsync(media: TListMedia): Promise<void> {
         const isCurrent = this._captureQueueWork();
-        const medias = await this.getListMediasAsync(media);
+        const medias = await this.getListQueueItemsAsync(media);
         if (!isCurrent() || medias.length === 0) return;
 
-        const queueableMedias = medias.filter(isQueueable);
+        const queueableMedias = medias.filter((item) =>
+            isQueueable(item.media)
+        );
         if (queueableMedias.length === 0) return;
 
-        const shuffledMedias = shuffle(queueableMedias);
-
-        const currentQueueMediaId = this._currentQueueMediaIdAtom.get();
-
-        const sortedInsertBase = this.sortedQueue.findIndex(
-            (item): boolean => item.queueMediaId === currentQueueMediaId
-        );
-        const sortedStart =
-            sortedInsertBase >= 0
-                ? sortedInsertBase + 1
-                : this.sortedQueue.length;
-
-        const randomInsertBase = this.randomQueue.findIndex(
-            (item): boolean => item.queueMediaId === currentQueueMediaId
-        );
-        const randomStart =
-            randomInsertBase >= 0
-                ? randomInsertBase + 1
-                : this.randomQueue.length;
-
-        const currentMaxId = this.sortedQueue.reduce(
-            (max, item): number => Math.max(max, item.queueMediaId),
+        const currentId = this.currentQueueMediaId;
+        const maxId = this.sortedQueue.reduce(
+            (max, item) => Math.max(max, item.queueMediaId),
             0
         );
-
-        shuffledMedias.forEach((media, index): void => {
-            const newItem: QueueMediaItem = {
-                media,
-                listPublicId: media.publicId,
-                queueMediaId: currentMaxId + 1 + index,
-            };
-
-            const si =
-                sortedStart +
-                Math.floor(
-                    Math.random() * (this.sortedQueue.length - sortedStart)
-                );
-            this.sortedQueue.splice(si, 0, newItem);
-        });
-
-        const reshuffled = shuffle(queueableMedias);
-        reshuffled.forEach((media, index): void => {
-            const newItem: QueueMediaItem = {
-                media,
-                listPublicId: media.publicId,
-                queueMediaId: currentMaxId + 1 + index,
-            };
-
-            const ri =
-                randomStart +
-                Math.floor(
-                    Math.random() * (this.randomQueue.length - randomStart)
-                );
-            this.randomQueue.splice(ri, 0, newItem);
-        });
+        const items = queueableMedias.map((item, index) => ({
+            ...item,
+            queueMediaId: maxId + 1 + index,
+        }));
+        for (const queue of [this.sortedQueue, this.randomQueue]) {
+            const currentIndex = queue.findIndex(
+                (item) => item.queueMediaId === currentId
+            );
+            const start = currentIndex >= 0 ? currentIndex + 1 : queue.length;
+            for (const item of shuffle(items)) {
+                const index =
+                    start +
+                    Math.floor(Math.random() * (queue.length - start + 1));
+                queue.splice(index, 0, { ...item });
+            }
+        }
 
         this.updateQueue();
     }
 
     async addListToQueueBottomAsync(media: TListMedia): Promise<void> {
         const isCurrent = this._captureQueueWork();
-        const medias = await this.getListMediasAsync(media);
+        const medias = await this.getListQueueItemsAsync(media);
         if (!isCurrent() || medias.length === 0) return;
 
-        const queueableMedias = medias.filter(isQueueable);
+        const queueableMedias = medias.filter((item) =>
+            isQueueable(item.media)
+        );
         if (queueableMedias.length === 0) return;
 
         const currentMaxId = this.sortedQueue.reduce(
@@ -1012,13 +988,10 @@ export class BaseQueueManager {
             0
         );
 
-        const newItems = queueableMedias.map(
-            (media, index): QueueMediaItem => ({
-                media,
-                listPublicId: media.publicId,
-                queueMediaId: currentMaxId + 1 + index,
-            })
-        );
+        const newItems = queueableMedias.map((item, index): QueueMediaItem => ({
+            ...item,
+            queueMediaId: currentMaxId + 1 + index,
+        }));
 
         this.sortedQueue = [...this.sortedQueue, ...newItems];
         this.randomQueue = [...this.randomQueue, ...shuffle(newItems)];
@@ -1058,7 +1031,8 @@ export class BaseQueueManager {
                     if (cached.isOk()) {
                         this.setMedia(
                             cached.result.queue.map((item) => item.media),
-                            publicId
+                            publicId,
+                            cached.result.queue
                         );
                         if (startPublicId) this.moveToMedia(startPublicId);
                         else this.setQueueMediaId();
@@ -1093,18 +1067,27 @@ export class BaseQueueManager {
     }
 
     async getListMediasAsync(media: TListMedia): Promise<TPlayableMedia[]> {
+        const items = await this.getListQueueItemsAsync(media);
+        return [
+            ...new Map(
+                items.map((item) => [item.media.publicId, item.media])
+            ).values(),
+        ];
+    }
+
+    protected async getListQueueItemsAsync(
+        media: TListMedia
+    ): Promise<QueueMediaItem[]> {
         const isCurrent = this._captureQueueWork();
         const response = await getRockIt().http.resolveCollectionQueue(
             media.publicId
         );
         if (!isCurrent()) return [];
-        if (response.isNotOk()) {
+        if (!response.isOk()) {
             getRockIt().notificationManager.notifyError(response.message);
             return [];
         }
-        return response.isOk()
-            ? response.result.queue.map((item) => item.media)
-            : [];
+        return response.result.queue;
     }
 
     /** Resolve stable occurrence IDs before loading missing queue pages. */
@@ -1408,6 +1391,17 @@ export class BaseQueueManager {
     // #endregion: Methods
 
     // #region: Getters
+
+    get currentQueueItem(): QueueMediaItem | undefined {
+        return this.queue.find(
+            (item) => item.queueMediaId === this.currentQueueMediaId
+        );
+    }
+
+    get hasCurrentTimeBounds(): boolean {
+        const item = this.currentQueueItem;
+        return item?.startTimeMs != null || item?.endTimeMs != null;
+    }
 
     get currentMediaAtom(): ReadonlyAtom<TPlayableMedia | undefined> {
         return this._currentMediaAtom.getReadonlyAtom();

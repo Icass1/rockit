@@ -112,7 +112,9 @@ function setup({ seed = page(), playing = false, web = false } = {}) {
         requestPlaybackState() {
             calls.playback++;
         },
-        sendCurrentQueue() {},
+        sendCurrentQueue(data) {
+            calls.queueMessage = data;
+        },
         sendSkipClicked() {},
         sendMediaClicked() {},
     };
@@ -129,6 +131,9 @@ function setup({ seed = page(), playing = false, web = false } = {}) {
             playingAtom: createAtom(playing),
             isPlaybackOwner: true,
             currentTime: 0,
+            setCurrentTime(time) {
+                this.currentTime = time;
+            },
             async setMedia() {
                 calls.loads++;
             },
@@ -963,5 +968,101 @@ test("guests resolve collection contents and edit, reorder and advance their loc
     e.queue.removeMediaFromQueue(song("extra"));
     assert.equal(e.queue.queue.length, 3);
     assert.equal(e.requests.length, 0);
+    e.queue.stop();
+});
+
+for (const method of [
+    "addListToQueueTopAsync",
+    "addListToQueueRandomAsync",
+    "addListToQueueBottomAsync",
+]) {
+    test(`${method} retains section bounds and occurrence identities in both queue orders`, async () => {
+        const e = setup();
+        await e.queue.init();
+        const pending = e.queue[method]({
+            type: "playlist",
+            publicId: "concert-list",
+        });
+        const response = page({ prefix: "concert" });
+        response.queue[1].media = response.queue[0].media;
+        Object.assign(response.queue[0], { startTimeMs: 0, endTimeMs: 10000 });
+        Object.assign(response.queue[1], {
+            startTimeMs: 10000,
+            endTimeMs: null,
+        });
+        e.take("resolveCollectionQueue").resolve(ok(response));
+        await pending;
+        const sorted = e.queue.sortedQueue.filter(
+            (item) => item.media.publicId === "concert0"
+        );
+        const random = e.queue.randomQueue.filter(
+            (item) => item.media.publicId === "concert0"
+        );
+        assert.equal(sorted.length, 2);
+        for (const item of sorted) {
+            const other = random.find(
+                (entry) => entry.queueMediaId === item.queueMediaId
+            );
+            assert.equal(other.startTimeMs, item.startTimeMs);
+            assert.equal(other.endTimeMs, item.endTimeMs);
+            const sent = e.calls.queueMessage.queue.find(
+                (entry) => entry.queueMediaId === item.queueMediaId
+            );
+            assert.equal(sent.startTimeMs, item.startTimeMs);
+            assert.equal(sent.endTimeMs, item.endTimeMs);
+        }
+        const section = sorted.find((item) => item.startTimeMs === 10000);
+        e.queue.setQueueMediaId(section.queueMediaId);
+        e.runtime.mediaPlayerManager.currentTime = 11;
+        e.runtime.bookmarkManager.skipToNextBookmark = () => {
+            throw new Error("Section next must use queue order");
+        };
+        e.runtime.bookmarkManager.skipToPrevBookmark = () => {
+            throw new Error("Section previous must use queue order");
+        };
+        e.queue.skipBack();
+        assert.notEqual(e.queue.currentQueueMediaId, section.queueMediaId);
+        e.queue.setQueueMediaId(section.queueMediaId);
+        e.runtime.mediaPlayerManager.currentTime = 14;
+        e.queue.skipBack();
+        assert.equal(e.queue.currentQueueMediaId, section.queueMediaId);
+        assert.equal(e.runtime.mediaPlayerManager.currentTime, 10);
+        e.queue.skipForward();
+        assert.notEqual(e.queue.currentQueueMediaId, section.queueMediaId);
+        e.queue.stop();
+    });
+}
+
+test("cached collection playback preserves section bounds", async () => {
+    const e = setup();
+    await e.queue.init();
+    const pending = e.queue.playCollection("concert-list");
+    e.take("createCollectionQueue").resolve({ ...fail(), code: 0 });
+    await flush();
+    const response = page({ prefix: "concert" });
+    Object.assign(response.queue[0], { startTimeMs: 12000, endTimeMs: 24000 });
+    e.take("resolveCollectionQueue").resolve(ok(response));
+    await pending;
+    assert.equal(e.queue.currentQueueItem.startTimeMs, 12000);
+    assert.equal(e.queue.currentQueueItem.endTimeMs, 24000);
+    e.queue.reorderQueue(0, 1);
+    assert.equal(e.queue.currentQueueItem.startTimeMs, 12000);
+    assert.equal(e.queue.currentQueueItem.endTimeMs, 24000);
+    e.queue.stop();
+});
+
+test("offline media resolution downloads a concert only once for all its sections", async () => {
+    const e = setup();
+    await e.queue.init();
+    const pending = e.queue.getListMediasAsync({
+        type: "playlist",
+        publicId: "concert-list",
+    });
+    const response = page({ prefix: "concert" });
+    response.queue[1].media = response.queue[0].media;
+    e.take("resolveCollectionQueue").resolve(ok(response));
+    const media = await pending;
+    assert.equal(media.length, 1);
+    assert.equal(media[0].publicId, "concert0");
     e.queue.stop();
 });

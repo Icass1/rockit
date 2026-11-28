@@ -53,7 +53,8 @@ export class QueueManager extends BaseQueueManager {
         }
         this.setMedia(
             response.result.queue.map((item) => item.media),
-            publicId
+            publicId,
+            response.result.queue
         );
         if (startPublicId) this.moveToMedia(startPublicId);
         else this.setQueueMediaId();

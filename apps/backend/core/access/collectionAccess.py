@@ -23,6 +23,7 @@ from core.access.collectionCatalog import collection_catalog
 from core.access.collectionSources import collection_sources
 from core.access.db.shared_metadata import shared_metadata
 from core.framework.models.collection import CollectionEntry, CollectionRecord
+from core.framework.models.queue import QueueItem
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
 from result import Result, ResultCode
@@ -354,9 +355,7 @@ class CollectionAccess:
     async def save_queue_async(
         session: AsyncSession,
         user_id: int,
-        root_id: int,
-        ordered_ids: list[int],
-        random_indexes: dict[int, int],
+        queue_items: list[QueueItem],
         start_by_queue_type: dict[int, int],
     ) -> Result[int]:
         """Serialize replacement per user and commit queue and selection atomically."""
@@ -371,20 +370,28 @@ class CollectionAccess:
         values = [
             dict(
                 user_id=user_id,
-                media_id=media_id,
-                list_media_id=root_id,
-                queue_id=i,
-                sorted_index=i,
-                random_index=random_indexes[i],
+                media_id=item.media_id,
+                list_media_id=item.list_id,
+                queue_id=item.queue_id,
+                sorted_index=item.sorted_index,
+                random_index=item.random_index,
+                start_time_ms=item.start_time_ms,
+                end_time_ms=item.end_time_ms,
             )
-            for i, media_id in enumerate(ordered_ids)
+            for item in queue_items
         ]
         for offset in range(0, len(values), 500):
             await session.execute(insert(queue), values[offset : offset + 500])
+        selected = next(
+            item for item in queue_items if item.queue_id == start_by_queue_type[queue_type]
+        )
         await session.execute(
             update(users)
             .where(users.c.id == user_id)
-            .values(current_queue_id=start_by_queue_type[queue_type], current_time_ms=0)
+            .values(
+                current_queue_id=selected.queue_id,
+                current_time_ms=selected.start_time_ms or 0,
+            )
         )
         await session.commit()
         return Result(code=ResultCode.OK, message="OK", result=queue_type)

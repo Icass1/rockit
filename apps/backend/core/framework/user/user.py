@@ -158,6 +158,8 @@ class User:
                         media=medias[item.media.public_id],
                         sortedIndex=item.sorted_index,
                         randomIndex=item.random_index,
+                        startTimeMs=item.start_time_ms,
+                        endTimeMs=item.end_time_ms,
                     )
                     for item in queue_items
                     if item.media.public_id in medias

@@ -207,6 +207,15 @@ function setup({
         queue: items,
         currentQueueMediaId: 1,
         currentMedia: items[0].media,
+        get currentQueueItem() {
+            return items.find(
+                (item) => item.queueMediaId === this.currentQueueMediaId
+            );
+        },
+        get hasCurrentTimeBounds() {
+            const item = this.currentQueueItem;
+            return item?.startTimeMs != null || item?.endTimeMs != null;
+        },
         peekNextQueueItem() {
             return items[this.currentQueueMediaId % items.length];
         },
@@ -1351,4 +1360,105 @@ test("background playback still prepares the next song when mixing is disabled",
     assert.equal(e.player._preloadedUri, "https://test/b");
     assert.equal(e.player._preloadAudio.preload, "auto");
     e.player.stopBrowserLifecycle();
+});
+
+for (const [startTimeMs, endTimeMs, startTime] of [
+    [10000, 20000, 10],
+    [10000, null, 10],
+    [null, 20000, 0],
+    [null, null, 0],
+]) {
+    test(`queue bounds ${startTimeMs}/${endTimeMs} set the initial position and clamp seeks`, async () => {
+        const e = setup();
+        Object.assign(e.queue.queue[0], { startTimeMs, endTimeMs });
+        await start(e);
+        assert.equal(e.player.audioElement.currentTime, startTime);
+        e.player.setCurrentTime(5, false);
+        assert.equal(e.player.audioElement.currentTime, Math.max(startTime, 5));
+        e.player.endSeek(45);
+        assert.equal(
+            e.player.audioElement.currentTime,
+            endTimeMs == null ? 45 : 20
+        );
+        assert.equal(e.player.currentTime, endTimeMs == null ? 45 : 20);
+        e.player.pause();
+    });
+}
+
+test("adjacent sections of the same media advance by occurrence and start at their own bounds", async () => {
+    const e = setup();
+    const [first, second] = e.queue.queue;
+    Object.assign(first, { startTimeMs: 10000, endTimeMs: 20000 });
+    Object.assign(second, {
+        media: first.media,
+        startTimeMs: 20000,
+        endTimeMs: 30000,
+    });
+    await start(e);
+    const audio = e.player.audioElement;
+    audio.currentTime = 19;
+    audio.ontimeupdate();
+    await flush();
+    assert.equal(
+        e.queue.currentQueueMediaId,
+        1,
+        "crossfade must preserve the section end"
+    );
+    audio.currentTime = 20.25;
+    audio.ontimeupdate();
+    audio.ontimeupdate();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    assert.equal(e.player.audioElement.currentTime, 20);
+    assert.equal(e.player.playingAtom.get(), true);
+    assert.equal(e.messages.filter((m) => m.kind === "ended").length, 1);
+    e.player.audioElement.currentTime = 30;
+    e.player.audioElement.ontimeupdate();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 3);
+    assert.equal(e.player.audioElement.currentTime, 0);
+    e.player.pause();
+});
+
+test("repeat one returns to the section start at its end", async () => {
+    const e = setup();
+    Object.assign(e.queue.queue[0], { startTimeMs: 10000, endTimeMs: 20000 });
+    e.setRepeat("ONE");
+    await start(e);
+    const audio = e.player.audioElement;
+    audio.currentTime = 20;
+    audio.ontimeupdate();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    assert.equal(e.player.audioElement.currentTime, 10);
+    assert.equal(e.player.playingAtom.get(), true);
+    e.player.pause();
+});
+
+test("a start-only section plays through to native media end", async () => {
+    const e = setup();
+    Object.assign(e.queue.queue[0], { startTimeMs: 10000, endTimeMs: null });
+    await start(e);
+    const audio = e.player.audioElement;
+    audio.currentTime = 59;
+    audio.ontimeupdate();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    audio.onended();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    e.player.pause();
+});
+
+test("remote section playback resumes inside its bounds and never advances a passive client", async () => {
+    const e = setup();
+    Object.assign(e.queue.queue[0], { startTimeMs: 10000, endTimeMs: 20000 });
+    await e.player.setMedia(false, "remote-playback", 15000, false);
+    assert.equal(e.player.audioElement.currentTime, 15);
+    e.player.audioElement.currentTime = 25;
+    e.player.audioElement.ontimeupdate();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    assert.equal(e.messages.filter((m) => m.kind === "ended").length, 0);
+    e.player.pause();
 });

@@ -100,6 +100,8 @@ class UserQueueAccess:
                 queue_id=item.queue_id,
                 sorted_index=item.sorted_index,
                 random_index=item.random_index,
+                start_time_ms=item.start_time_ms,
+                end_time_ms=item.end_time_ms,
             )
             session.add(instance=user_queue)
 

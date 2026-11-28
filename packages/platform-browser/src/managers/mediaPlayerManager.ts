@@ -681,6 +681,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             return;
         const media = getRockIt().queueManager.currentMedia;
         if (!media || !isSong(media) || !this._mixer.has(audio)) return;
+        if (getRockIt().queueManager.hasCurrentTimeBounds) return;
         const time = audio.currentTime,
             duration = audio.duration;
         if (!Number.isFinite(duration) || duration < 20) return;
@@ -695,6 +696,8 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         const next = queue.peekNextQueueItem();
         if (
             !next ||
+            next.startTimeMs != null ||
+            next.endTimeMs != null ||
             next.queueMediaId === queue.currentQueueMediaId ||
             !isSong(next.media) ||
             !next.media.downloaded ||
@@ -1066,6 +1069,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             const media = getRockIt().queueManager.currentMedia;
             if (
                 sec === 0 &&
+                !getRockIt().queueManager.hasCurrentTimeBounds &&
                 media &&
                 isSong(media) &&
                 this._syncOwner &&

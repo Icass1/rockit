@@ -70,6 +70,7 @@ export abstract class BaseMediaPlayerManager {
     private _mediaLoadPromise?: Promise<void>;
     private _workGeneration = 0;
     private _loadRequest = 0;
+    private _endedPlaybackId?: string;
     private _pendingMediaResume?: () => Promise<boolean>;
     private _resumeMediaAfterRestart = false;
     private _errorTimer?: ReturnType<typeof setTimeout>;
@@ -503,10 +504,23 @@ export abstract class BaseMediaPlayerManager {
         this._publishPlaybackPosition("seek", this._seekFrom, this._seekFrom);
     }
 
+    private _clampQueueTime(time: number): number {
+        const item = getRockIt().queueManager.currentQueueItem;
+        const start = (item?.startTimeMs ?? 0) / 1000;
+        const end = item?.endTimeMs == null ? Infinity : item.endTimeMs / 1000;
+        return Math.max(
+            start,
+            Math.min(end, Number.isFinite(time) ? time : start)
+        );
+    }
+
     setCurrentTime(time: number, sendMessage: boolean = true): void {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
+        time = this._clampQueueTime(time);
+        this._endedPlaybackId = undefined;
+        this._lastTime = time;
         const kind: TMediaKind = this._effectiveKind(currentMedia);
         const timeFrom = this.getNativePosition(kind);
         this._publishPlaybackPosition("seek", timeFrom, time);
@@ -522,6 +536,9 @@ export abstract class BaseMediaPlayerManager {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
+        time = this._clampQueueTime(time);
+        this._endedPlaybackId = undefined;
+        this._lastTime = time;
         const kind: TMediaKind = this._effectiveKind(currentMedia);
         this._publishPlaybackPosition("seek", this._seekFrom, time);
         this.seekNative(kind, time);
@@ -654,13 +671,16 @@ export abstract class BaseMediaPlayerManager {
         this._lastTime = 0;
         this._lastWsSyncTime = 0;
         this._triggeredBookmarkPublicIdsAtom.set([]);
-        const startAt =
+        const startAt = this._clampQueueTime(
             remotePlaybackId !== undefined
                 ? remoteTimeMs / 1000
                 : useSavedCurrentTime
                   ? (getRockIt().userManager.currentTimeMsAtom.get() ?? 0) /
                     1000
-                  : 0;
+                  : 0
+        );
+        this._endedPlaybackId = undefined;
+        this._lastTime = startAt;
         this._currentTimeAtom.set(startAt);
         if (
             this._syncOwner &&
@@ -805,6 +825,9 @@ export abstract class BaseMediaPlayerManager {
         const duration = this.getPlaybackDuration(currentMedia);
         if (!Number.isFinite(time) || time < 0 || (duration && time > duration))
             return;
+        const endMs = getRockIt().queueManager.currentQueueItem?.endTimeMs;
+        const reachedEnd = endMs != null && time >= endMs / 1000;
+        time = this._clampQueueTime(time);
         this._publishPlaybackPosition(
             "progress",
             this._currentTimeAtom.get(),
@@ -813,7 +836,18 @@ export abstract class BaseMediaPlayerManager {
         this._currentTimeAtom.set(time);
 
         // Check bookmarks we've crossed since last update.
-        this._checkBookmarks(this._lastTime, time);
+        if (reachedEnd) {
+            if (
+                this._playingAtom.get() &&
+                this._endedPlaybackId !== this._playbackId
+            ) {
+                this.pauseNative(this._effectiveKind(currentMedia));
+                this._handleEnded();
+            }
+            return;
+        }
+        if (!getRockIt().queueManager.hasCurrentTimeBounds)
+            this._checkBookmarks(this._lastTime, time);
 
         this._lastTime = time;
 
@@ -1023,6 +1057,8 @@ export abstract class BaseMediaPlayerManager {
                 this._playbackQueueId
         )
             return;
+        if (this._endedPlaybackId === this._playbackId) return;
+        this._endedPlaybackId = this._playbackId;
         if (currentMedia) {
             getRockIt().webSocketManager.sendMediaEnded({
                 mediaPublicId: currentMedia.publicId,

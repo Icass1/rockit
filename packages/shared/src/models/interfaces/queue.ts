@@ -6,6 +6,8 @@ export interface QueueMediaItem {
     queueMediaId: number;
     listPublicId: string | null;
     media: TQueueMedia;
+    startTimeMs?: number | null;
+    endTimeMs?: number | null;
     sortedIndex?: number;
     randomIndex?: number;
 }

@@ -28,6 +28,8 @@ class UserQueueRow(CoreBase, TableAutoincrementId, TableDateAdded):
     list_media_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("core.media.id"), nullable=True
     )
+    start_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    end_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     queue_id: Mapped[int] = mapped_column(Integer, nullable=False)
     sorted_index: Mapped[int] = mapped_column(Integer, nullable=False)
     random_index: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -43,6 +45,8 @@ class UserQueueRow(CoreBase, TableAutoincrementId, TableDateAdded):
         sorted_index: int,
         random_index: int,
         list_media_id: int | None = None,
+        start_time_ms: int | None = None,
+        end_time_ms: int | None = None,
         id: int | None = None,
     ) -> None:
         kwargs: dict[str, None | int] = {}
@@ -52,6 +56,8 @@ class UserQueueRow(CoreBase, TableAutoincrementId, TableDateAdded):
         kwargs["sorted_index"] = sorted_index
         kwargs["random_index"] = random_index
         kwargs["list_media_id"] = list_media_id
+        kwargs["start_time_ms"] = start_time_ms
+        kwargs["end_time_ms"] = end_time_ms
         if id is not None:
             kwargs["id"] = id
         for k, v in kwargs.items():

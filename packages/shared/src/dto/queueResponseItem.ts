@@ -16,6 +16,8 @@ export const QueueResponseItemSchema = z.object({
         z.lazy(() => BaseSongWithoutAlbumResponseSchema),
         z.lazy(() => BaseStationResponseSchema),
     ]),
+    startTimeMs: z.number().nullable().default(null),
+    endTimeMs: z.number().nullable().default(null),
     randomIndex: z.number(),
     sortedIndex: z.number(),
 });

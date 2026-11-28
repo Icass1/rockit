@@ -8,3 +8,5 @@ class QueueItem:
     list_id: int | None
     sorted_index: int
     random_index: int
+    start_time_ms: int | None = None
+    end_time_ms: int | None = None

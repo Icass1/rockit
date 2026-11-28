@@ -21,7 +21,7 @@ Keep the Python plugin and sidecar pinned together. This deployment uses:
 
 | Component | Version |
 | --- | --- |
-| yt-dlp | 2026.8.19 |
+| yt-dlp | 2026.11.23 |
 | bgutil plugin and sidecar | 2.0.2 |
 | yt-dlp-ejs | 0.8.0 |
 | JavaScript runtime | Node.js 22 or newer |
@@ -29,6 +29,13 @@ Keep the Python plugin and sidecar pinned together. This deployment uses:
 EJS is installed in the image rather than fetched from GitHub during downloads.
 MP3 and MP4 jobs use the same runtime configuration. MP4 format selection still
 prefers H.264/AAC and applies faststart during merging.
+
+yt-dlp 2026.11.23 includes the upstream workaround for YouTube players failing
+with `TypeError: a.addOnDisposeCallback is not a function`: it uses the `tv`
+player JavaScript variant for challenge solving. This is separate from the
+`mweb` extraction client and PO token configuration. Rebuild the backend image
+to install the updated extractor; restarting an older image keeps the broken
+version. See the [upstream fix](https://github.com/yt-dlp/yt-dlp/pull/18124).
 
 Build and recreate the services together:
 

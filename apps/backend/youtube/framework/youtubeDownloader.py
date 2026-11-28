@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
 
 from constants import TEMP_PATH
 from core.access.db import db_context
@@ -63,7 +64,10 @@ def _download_once(opts: dict[str, Any], youtube_url: str) -> int | None:
         code = ydl.download([youtube_url])
     if rejected_incomplete:
         logger.warning("Client omitted HD formats; trying another client or retrying later")
-        return 1
+        raise DownloadError(
+            "Requested format is not available: HD formats were omitted by this client; "
+            "refusing a degraded SD download"
+        )
     return code
 
 
@@ -211,9 +215,9 @@ async def _download_with_candidates_async(
     """Walk the candidate videos, running the full strategy ladder on each.
 
     YouTube gates videos individually, so when every client is refused on one
-    video the same song on a different upload is often still downloadable. Only
-    block-class failures move on to the next candidate: a video that is simply
-    unavailable already told us everything we need to know.
+    video the same song on a different upload is often still downloadable.
+    Blocks, unavailable videos and exhausted format catalogues can move on to
+    another candidate; transient transfer errors stay with the original upload.
 
     Returns (succeeded, url that worked, failure kind, last error message).
     """
@@ -243,6 +247,7 @@ async def _download_with_candidates_async(
             YtdlpFailureEnum.BLOCKED,
             YtdlpFailureEnum.UNAVAILABLE,
             YtdlpFailureEnum.MEDIA_FORBIDDEN,
+            YtdlpFailureEnum.FORMAT_UNAVAILABLE,
         ):
             # A transient or unclassified error is not a reason to switch to a
             # different recording of the song; let the retry scheduler handle it.

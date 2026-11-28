@@ -22,6 +22,7 @@ class YtdlpLogger:
     def debug(self, msg: str) -> None:
         """Expose provider discovery, while discarding verbose headers and URLs."""
 
+        self._track_incomplete_formats(msg=msg)
         if msg.startswith("[debug]"):
             if "PO Token Providers:" in msg or "JS runtimes:" in msg:
                 logger.info(sanitize_ytdlp_message(message=msg))
@@ -38,14 +39,20 @@ class YtdlpLogger:
     def warning(self, msg: str) -> None:
         """Report sanitized extractor and provider warnings."""
 
+        self._track_incomplete_formats(msg=msg)
+        logger.warning(f"[yt-dlp] {sanitize_ytdlp_message(message=msg)}")
+
+    def _track_incomplete_formats(self, msg: str) -> None:
+        """Default clients report omitted formats at debug level in newer yt-dlp."""
+
         message = msg.lower()
         if (
             "sabr-only" in message
+            or "forcing sabr" in message
             or ("formats" in message and "missing a url" in message)
             or ("formats" in message and "po token" in message and "skipped" in message)
         ):
             self.incomplete_formats = True
-        logger.warning(f"[yt-dlp] {sanitize_ytdlp_message(message=msg)}")
 
     def error(self, msg: str) -> None:
         """Report sanitized download failures."""

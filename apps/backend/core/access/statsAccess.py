@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -18,6 +19,7 @@ from core.framework.media.image import Image
 from core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
 from core.responses.statsRankedItemResponse import StatsRankedItemResponse
+from core.utils.safeAsyncCall import safe_async
 from core.utils.statsLabels import DAY_NAMES, MONTH_NAMES
 from logger import getLogger
 from result import Result, ResultCode
@@ -457,6 +459,7 @@ class StatsAccess:
         )
 
     @staticmethod
+    @safe_async
     async def get_top_albums_async(
         session: AsyncSession,
         user_id: int,
@@ -464,20 +467,60 @@ class StatsAccess:
         end_date: datetime,
         limit: int = 3,
     ) -> Result[list[StatsRankedItemResponse]]:
+        """Count plays before looking up metadata for the user's tracks and albums."""
         sql = text(f"""
-        WITH {_get_album_info_cte()},
-        album_plays AS (
+        WITH play_counts AS MATERIALIZED (
+            SELECT media_id, COUNT(*) AS play_count
+            FROM core.user_media_listened
+            WHERE user_id = :user_id
+              AND date_added >= :start_date
+              AND date_added < :end_date
+            GROUP BY media_id
+        ),
+        {_get_album_info_cte(inline=True, media_ids_cte="play_counts")},
+        album_totals AS MATERIALIZED (
             SELECT ai.album_public_id,
                    ai.album_name,
                    ai.album_image_id,
-                   ai.album_artists,
-                   COUNT(*) AS play_count
-            FROM     core.user_media_listened uml
-            JOIN     album_info ai ON ai.media_id = uml.media_id
-            WHERE    uml.user_id    = :user_id
-              AND    uml.date_added >= :start_date
-              AND    uml.date_added <  :end_date
-            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_id, ai.album_artists
+                   MIN(pc.media_id) AS media_id,
+                   SUM(pc.play_count) AS play_count
+            FROM play_counts pc
+            JOIN album_info ai ON ai.media_id = pc.media_id
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_id
+        )
+        SELECT * FROM album_totals
+        """)
+        totals = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                },
+            )
+        ).fetchall()
+        if not totals:
+            return Result(code=ResultCode.OK, message="OK", result=[])
+
+        # Plan metadata enrichment against the actual album totals, rather than the
+        # listening event join's inflated cardinality, which can trigger expensive JIT.
+        sql = text(f"""
+        WITH {_get_album_info_cte(inline=True)},
+        album_totals AS (
+            SELECT * FROM jsonb_to_recordset(CAST(:album_totals AS jsonb)) AS totals(
+                album_public_id text, album_name text, album_image_id int,
+                media_id int, play_count bigint
+            )
+        ),
+        album_plays AS MATERIALIZED (
+            SELECT at.album_public_id, at.album_name, at.album_image_id, at.play_count,
+                   (SELECT ai.album_artists
+                    FROM album_info ai
+                    WHERE ai.media_id = at.media_id
+                      AND ai.album_public_id = at.album_public_id
+                    LIMIT 1) AS album_artists
+            FROM album_totals at
         )
         SELECT (ARRAY_AGG(ap.album_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
                ap.album_name        AS name,
@@ -493,9 +536,18 @@ class StatsAccess:
             await session.execute(
                 sql,
                 {
-                    "user_id": user_id,
-                    "start_date": start_date.astimezone(UTC),
-                    "end_date": end_date.astimezone(UTC),
+                    "album_totals": json.dumps(
+                        [
+                            {
+                                "album_public_id": row.album_public_id,
+                                "album_name": row.album_name,
+                                "album_image_id": row.album_image_id,
+                                "media_id": row.media_id,
+                                "play_count": int(row.play_count),
+                            }
+                            for row in totals
+                        ]
+                    ),
                     "limit": limit,
                 },
             )

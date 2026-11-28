@@ -45,7 +45,7 @@ dependencies = [
   "Unidecode==1.4.0",
   "uvicorn==0.23.2",
   "websockets==14.2",
-  "yt-dlp==2026.8.19",
+  "yt-dlp==2026.11.23",
   "yt-dlp-ejs==0.8.0",
   "ytmusicapi==1.11.1",
   "fastapi>=0.115,<0.116",

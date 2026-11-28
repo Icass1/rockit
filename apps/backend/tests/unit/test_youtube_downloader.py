@@ -55,6 +55,33 @@ def test_audio_and_video_share_installed_js_solver(format_type: str) -> None:
         assert opts["postprocessor_args"]["merger"] == ["-movflags", "+faststart"]
 
 
+@pytest.mark.parametrize("format_type", ["mp3", "mp4"])
+def test_strategies_avoid_broken_main_player_challenges(
+    monkeypatch: pytest.MonkeyPatch,
+    format_type: str,
+) -> None:
+    """Resolve the logged player to the upstream TV solver workaround without network calls."""
+
+    monkeypatch.setattr(ytdlpStrategies, "YTDLP_POT_PROVIDER_URL", "http://pot:4416")
+    monkeypatch.setattr(ytdlpStrategies, "YTDLP_COOKIES_FILE", None)
+    monkeypatch.setattr(ytdlpStrategies.youtube_gate, "has_proxies", lambda: False)
+    base = build_download_opts(format_type=format_type, output_template="unused.%(ext)s")
+    base["logger"] = Mock()
+    player_url = "/s/player/9244921b/player_ias.vflset/en_US/base.js"
+    for strategy in ytdlpStrategies.build_strategies():
+        opts = strategy.build_opts(base_opts=base)
+        with YoutubeDL(opts) as ydl:  # type: ignore[arg-type]
+            extractor = cast(Any, ydl).get_info_extractor("Youtube")
+            resolved = extractor._extract_player_url({"PLAYER_JS_URL": player_url})
+        assert resolved == (
+            "https://www.youtube.com/s/player/9244921b/tv-player-ias.vflset/tv-player-ias.js"
+        )
+        assert (
+            opts["extractor_args"]["youtube"]["player_client"]
+            == strategy.youtube_args["player_client"]
+        )
+
+
 @pytest.mark.parametrize(
     "message,kind",
     [
